@@ -37,3 +37,4 @@ def get_menu(request, week, day):
     meal = Meal.objects.filter(week=week, day=day).first()
     context = {"meal": meal, "week": week, "day": day}
     return render(request, "partials/_menu.html", context)
+

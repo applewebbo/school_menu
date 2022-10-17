@@ -1,38 +1,40 @@
 <div class="container-fluid text-center my-3" id="day_menu">
     <a href="{% url 'school_menu:get_menu' week 1 %}"
-        class="btn {% if day == 1 %}btn-primary{% else %}btn-outline-primary{% endif %}" hx-target="#day_menu"
+        class="btn {% if day == 1 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
         hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 1 %}">LUN</a>
     <a href="{% url 'school_menu:get_menu' week 2 %}"
-        class="btn {% if day == 2 %}btn-primary{% else %}btn-outline-primary{% endif %}" hx-target="#day_menu"
+        class="btn {% if day == 2 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
         hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 2 %}">MAR</a>
     <a href="{% url 'school_menu:get_menu' week 3 %}"
-        class="btn {% if day == 3 %}btn-primary{% else %}btn-outline-primary{% endif %}" hx-target="#day_menu"
+        class="btn {% if day == 3 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
         hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 3 %}">MER</a>
     <a href="{% url 'school_menu:get_menu' week 4 %}"
-        class="btn {% if day == 4 %}btn-primary{% else %}btn-outline-primary{% endif %}" hx-target="#day_menu"
+        class="btn {% if day == 4 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
         hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 4 %}">GIO</a>
     <a href="{% url 'school_menu:get_menu' week 5 %}"
-        class="btn {% if day == 5 %}btn-primary{% else %}btn-outline-primary{% endif %}" hx-target="#day_menu"
+        class="btn {% if day == 5 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
         hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 5 %}">VEN</a>
-    <div id="current_menu" class="text-center card my-5">
+    <div id="current_menu" class="text-center card my-4">
 
         {% if meal %}
         <h5 class="card-header">
             Menu del giorno
         </h5>
-    
-        <p><strong>Pranzo </strong></p>
-            <ul class="list-unstyled">
-                
-                <li>{{ meal.first_course }}</li>
-                <li>{{ meal.second_course }}</li>
-                <li>{{ meal.side_dish }}</li>
-                <li>{{ meal.fruit }}</li>
-                <li><strong>Spuntino</strong></li>
-                <li>{{ meal.snack }}</li>
-            </ul>
-            
-        
+        <p class="my-3"><strong>Pranzo</strong></p>
+        <ul class="list-unstyled">
+
+            <li>{{ meal.first_course }}</li>
+            <li>{{ meal.second_course }}</li>
+            <li>{{ meal.side_dish }}</li>
+            <li>{{ meal.fruit }}</li>
+        </ul>
+        <p class="my-3"><strong>Spuntino</strong></p>
+        <ul class="list-unstyled">
+            <li>{{ meal.snack }}</li>
+        </ul>
+
+
+
         {% else %}
         <div class="card-body">
             <p><em>Nessun menù caricato per il giorno selezionato</em></p>

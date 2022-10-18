@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # 3RD PARTY DEPENDENCIES
+    "django_extensions",
     # INTERNAL APPS
     "users",
     "school_menu",

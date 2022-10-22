@@ -2,6 +2,11 @@ from django.db import models
 
 
 class Meal(models.Model):
+    class Types(models.IntegerChoices):
+        STANDARD = 1
+        GLUTEN_FREE = 2
+        LACTOSE_FREE = 3
+
     class Seasons(models.IntegerChoices):
         ESTIVO = 1
         INVERNALE = 2
@@ -29,6 +34,7 @@ class Meal(models.Model):
     season = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.INVERNALE
     )
+    type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"

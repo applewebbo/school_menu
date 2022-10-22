@@ -15,14 +15,15 @@ def run():
             print(row)
 
             meal = Meal(
-                season=row[0],
-                week=row[1],
-                day=row[2],
-                first_course=row[3],
-                second_course=row[4],
-                side_dish=row[5],
-                fruit=row[6],
-                snack=row[7],
+                type=row[0],
+                season=row[1],
+                week=row[2],
+                day=row[3],
+                first_course=row[4],
+                second_course=row[5],
+                side_dish=row[6],
+                fruit=row[7],
+                snack=row[8],
             )
 
             meal.save()

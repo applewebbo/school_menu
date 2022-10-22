@@ -1,0 +1,7 @@
+#logo-credits {
+    text-decoration: none;
+}
+
+#logo-credits:hover {
+    text-decoration: underline;
+}

@@ -32,7 +32,7 @@ def index(request):
     return render(request, "index.html", context)
 
 
-def get_menu(request, week, day):
-    meal = Meal.objects.filter(week=week, day=day).first()
+def get_menu(request, week, day, type):
+    meal = Meal.objects.filter(week=week, day=day, type=type).first()
     context = {"meal": meal, "week": week, "day": day}
     return render(request, "partials/_menu.html", context)

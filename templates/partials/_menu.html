@@ -1,19 +1,19 @@
 <div class="container-fluid text-center my-3" id="day_menu">
-    <a href="{% url 'school_menu:get_menu' week 1 %}"
+    <a href="{% url 'school_menu:get_menu' week 1 meal.type %}"
         class="btn {% if day == 1 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
-        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 1 %}">LUN</a>
-    <a href="{% url 'school_menu:get_menu' week 2 %}"
+        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 1 meal.type %}">LUN</a>
+    <a href="{% url 'school_menu:get_menu' week 2 meal.type %}"
         class="btn {% if day == 2 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
-        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 2 %}">MAR</a>
-    <a href="{% url 'school_menu:get_menu' week 3 %}"
+        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 2 meal.type %}">MAR</a>
+    <a href="{% url 'school_menu:get_menu' week 3 meal.type %}"
         class="btn {% if day == 3 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
-        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 3 %}">MER</a>
-    <a href="{% url 'school_menu:get_menu' week 4 %}"
+        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 3 meal.type %}">MER</a>
+    <a href="{% url 'school_menu:get_menu' week 4 meal.type %}"
         class="btn {% if day == 4 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
-        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 4 %}">GIO</a>
-    <a href="{% url 'school_menu:get_menu' week 5 %}"
+        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 4 meal.type %}">GIO</a>
+    <a href="{% url 'school_menu:get_menu' week 5 meal.type %}"
         class="btn {% if day == 5 %}btn-secondary{% else %}btn-outline-secondary{% endif %}" hx-target="#day_menu"
-        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 5 %}">VEN</a>
+        hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 5 meal.type %}">VEN</a>
     <div id="current_menu" class="text-center my-5">
 
         {% if meal %}
@@ -41,4 +41,13 @@
         <br>
         {% endif %}
     </div>
+    <div class="container-fluid text-center my-3" id="season">
+        <a href="#" class="btn btn{% if meal.type != 1%}-outline{% endif %}-secondary btn-sm"
+            hx-target="#day_menu" hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week day 1 %}"  >STANDARD</a>
+            <a href="#" class="btn btn{% if meal.type != 2%}-outline{% endif %}-secondary btn-sm"
+            hx-target="#day_menu" hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week day 2 %}"  >NO GLUTINE</a>
+        <a href="#" class="btn btn{% if meal.type != 3%}-outline{% endif %}-secondary btn-sm"
+            hx-target="#day_menu" hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week day 3 %}">NO LATTOSIO</a>
+    </div>
 </div>
+

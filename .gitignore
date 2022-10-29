@@ -160,8 +160,10 @@ cython_debug/
 #.idea/
  
 #  Boostrap Source Code
-boostrap_source_scss/
+bootstrap_source_scss/
 
 #  Misc
 .DS_Store
 .vscode/
+.python-version
+

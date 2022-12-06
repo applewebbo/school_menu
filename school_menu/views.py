@@ -1,8 +1,9 @@
 import datetime
 
 from django.core.serializers import json
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
 
 from school_menu.models import Meal
 from school_menu.serializers import MealSerializer
@@ -41,17 +42,18 @@ def get_menu(request, week, day, type):
     return render(request, "partials/_menu.html", context)
 
 
+@require_http_methods(["GET"])
 def json_menu(request):
-
-    if request.method == "GET":
-        today = datetime.datetime.now()
-        current_year, current_week, current_day = today.isocalendar()
-        if current_day > 5:
-            current_week = current_week + 1
-            adjusted_day = 1
-        else:
-            adjusted_day = current_day
-        adjusted_week = calculate_week(current_week, 1)
-        meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day).first()
-        serializer = MealSerializer(meal_for_today)
-        return JsonResponse(serializer.data, safe=False)
+    today = datetime.datetime.now()
+    current_year, current_week, current_day = today.isocalendar()
+    if current_day > 5:
+        current_week = current_week + 1
+        adjusted_day = 1
+    else:
+        adjusted_day = current_day
+    adjusted_week = calculate_week(current_week, 1)
+    meal_for_today = Meal.objects.filter(week=adjusted_week, type=1)
+    serializer = MealSerializer(meal_for_today, many=True)
+    meals = list(serializer.data)
+    meals.append({"current_day": adjusted_day})
+    return JsonResponse(meals, safe=False)

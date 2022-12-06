@@ -1,8 +1,11 @@
 import datetime
 
+from django.core.serializers import json
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from school_menu.models import Meal
+from school_menu.serializers import MealSerializer
 
 
 def calculate_week(week, bias):
@@ -36,3 +39,19 @@ def get_menu(request, week, day, type):
     meal = Meal.objects.filter(week=week, day=day, type=type).first()
     context = {"meal": meal, "week": week, "day": day}
     return render(request, "partials/_menu.html", context)
+
+
+def json_menu(request):
+
+    if request.method == "GET":
+        today = datetime.datetime.now()
+        current_year, current_week, current_day = today.isocalendar()
+        if current_day > 5:
+            current_week = current_week + 1
+            adjusted_day = 1
+        else:
+            adjusted_day = current_day
+        adjusted_week = calculate_week(current_week, 1)
+        meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day).first()
+        serializer = MealSerializer(meal_for_today)
+        return JsonResponse(serializer.data, safe=False)

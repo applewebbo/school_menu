@@ -21,7 +21,10 @@ def calculate_week(week, bias):
         return int((week_number - floor_week_number) * 4)
 
 
-def index(request):
+def get_current_date():
+    """
+    Get current week and day
+    """
     today = datetime.datetime.now()
     current_year, current_week, current_day = today.isocalendar()
     # get next week monday's menu on weekends
@@ -30,6 +33,11 @@ def index(request):
         adjusted_day = 1
     else:
         adjusted_day = current_day
+    return current_week, adjusted_day
+
+
+def index(request):
+    current_week, adjusted_day = get_current_date()
     adjusted_week = calculate_week(current_week, 1)
     meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
@@ -44,16 +52,12 @@ def get_menu(request, week, day, type):
 
 @require_http_methods(["GET"])
 def json_menu(request):
-    today = datetime.datetime.now()
-    current_year, current_week, current_day = today.isocalendar()
-    if current_day > 5:
-        current_week = current_week + 1
-        adjusted_day = 1
-    else:
-        adjusted_day = current_day
+    current_week, adjusted_day = get_current_date()
     adjusted_week = calculate_week(current_week, 1)
     meal_for_today = Meal.objects.filter(week=adjusted_week, type=1)
     serializer = MealSerializer(meal_for_today, many=True)
+    meals = {}
+    current_day = adjusted_day
     meals = list(serializer.data)
-    meals.append({"current_day": adjusted_day})
-    return JsonResponse(meals, safe=False)
+    data = [{"current_day": current_day}, {"meals": meals}]
+    return JsonResponse(data, safe=False)

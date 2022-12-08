@@ -56,8 +56,6 @@ def json_menu(request):
     adjusted_week = calculate_week(current_week, 1)
     meal_for_today = Meal.objects.filter(week=adjusted_week, type=1)
     serializer = MealSerializer(meal_for_today, many=True)
-    meals = {}
-    current_day = adjusted_day
     meals = list(serializer.data)
-    data = [{"current_day": current_day}, {"meals": meals}]
+    data = {"current_day": adjusted_day, "meals": meals}
     return JsonResponse(data, safe=False)

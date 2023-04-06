@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 
-from school_menu.models import Meal
+from school_menu.models import Meal, Settings
 from school_menu.serializers import MealSerializer
 
 
@@ -39,13 +39,15 @@ def get_current_date():
 def index(request):
     current_week, adjusted_day = get_current_date()
     adjusted_week = calculate_week(current_week, 0)
-    meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day).first()
+    season = Settings.objects.first().season_choice
+    meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day, season=season).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
     return render(request, "index.html", context)
 
 
 def get_menu(request, week, day, type):
-    meal = Meal.objects.filter(week=week, day=day, type=type).first()
+    season = Settings.objects.first().season_choice
+    meal = Meal.objects.filter(week=week, day=day, type=type, season=season).first()
     context = {"meal": meal, "week": week, "day": day}
     return render(request, "partials/_menu.html", context)
 
@@ -54,7 +56,8 @@ def get_menu(request, week, day, type):
 def json_menu(request):
     current_week, adjusted_day = get_current_date()
     adjusted_week = calculate_week(current_week, 0)
-    meal_for_today = Meal.objects.filter(week=adjusted_week, type=1)
+    season = Settings.objects.first().season_choice
+    meal_for_today = Meal.objects.filter(week=adjusted_week, type=1, season=season)
     serializer = MealSerializer(meal_for_today, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}

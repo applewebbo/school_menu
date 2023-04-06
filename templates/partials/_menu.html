@@ -32,6 +32,13 @@
         <ul class="list-unstyled" style="font-size: 1.1rem">
             <li>{{ meal.snack }}</li>
         </ul>
+        <span class="badge rounded-pill text-bg-primary py-2 px-3">
+            {% if meal.season == 2 %}
+                Autunno / Inverno
+            {% else %}
+                Primavera / Estate
+            {% endif %}
+        </span>
         <br>
 
 

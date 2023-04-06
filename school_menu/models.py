@@ -31,10 +31,25 @@ class Meal(models.Model):
     snack = models.CharField(max_length=200)
     day = models.SmallIntegerField(choices=Days.choices, default=Days.LUNEDÌ)
     week = models.SmallIntegerField(choices=Weeks.choices, default=Weeks.SETTIMANA_1)
-    season = models.SmallIntegerField(
-        choices=Seasons.choices, default=Seasons.INVERNALE
-    )
+    season = models.SmallIntegerField(choices=Seasons.choices, default=Seasons.INVERNALE)
     type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
+
+
+class Settings(models.Model):
+    class Seasons(models.IntegerChoices):
+        ESTIVO = 1
+        INVERNALE = 2
+
+    season_choice = models.SmallIntegerField(
+        choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
+    )
+
+    class Meta:
+        verbose_name = "stagione"
+        verbose_name_plural = "stagioni"
+
+    def __str__(self):
+        return self.get_season_choice_display()

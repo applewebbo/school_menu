@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator
 from django.db import models
 
 
@@ -46,6 +47,7 @@ class Settings(models.Model):
     season_choice = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
     )
+    week_bias = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3)], default=0, verbose_name="scarto")
 
     class Meta:
         verbose_name = "stagione"

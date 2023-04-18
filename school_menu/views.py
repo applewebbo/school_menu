@@ -38,7 +38,8 @@ def get_current_date():
 
 def index(request):
     current_week, adjusted_day = get_current_date()
-    adjusted_week = calculate_week(current_week, 0)
+    bias = Settings.objects.first().week_bias
+    adjusted_week = calculate_week(current_week, bias)
     season = Settings.objects.first().season_choice
     meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day, season=season).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     # INTERNAL APPS
     "users",
     "school_menu",
+    "import_export",
 ]
 
 MIDDLEWARE = [

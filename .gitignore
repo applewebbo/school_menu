@@ -166,4 +166,5 @@ bootstrap_source_scss/
 .DS_Store
 .vscode/
 .python-version
+staticfiles/
 

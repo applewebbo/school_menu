@@ -7,6 +7,7 @@ class Meal(models.Model):
         STANDARD = 1
         GLUTEN_FREE = 2
         LACTOSE_FREE = 3
+        VEGAN = 4
 
     class Seasons(models.IntegerChoices):
         ESTIVO = 1
@@ -32,7 +33,9 @@ class Meal(models.Model):
     snack = models.CharField(max_length=200)
     day = models.SmallIntegerField(choices=Days.choices, default=Days.LUNEDÌ)
     week = models.SmallIntegerField(choices=Weeks.choices, default=Weeks.SETTIMANA_1)
-    season = models.SmallIntegerField(choices=Seasons.choices, default=Seasons.INVERNALE)
+    season = models.SmallIntegerField(
+        choices=Seasons.choices, default=Seasons.INVERNALE
+    )
     type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
 
     def __str__(self):
@@ -47,7 +50,9 @@ class Settings(models.Model):
     season_choice = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
     )
-    week_bias = models.PositiveSmallIntegerField(validators=[MaxValueValidator(3)], default=0, verbose_name="scarto")
+    week_bias = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
+    )
 
     class Meta:
         verbose_name = "stagione"

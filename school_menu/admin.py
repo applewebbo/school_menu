@@ -13,7 +13,7 @@ class MealAdmin(ImportExportModelAdmin):
 
 
 @admin.register(Settings)
-class SettingsAdmin(admin.ModelAdmin):
+class SettingAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 

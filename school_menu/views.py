@@ -41,7 +41,9 @@ def index(request):
     bias = Settings.objects.first().week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = Settings.objects.first().season_choice
-    meal_for_today = Meal.objects.filter(week=adjusted_week, day=adjusted_day, season=season).first()
+    meal_for_today = Meal.objects.filter(
+        week=adjusted_week, day=adjusted_day, season=season
+    ).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
     return render(request, "index.html", context)
 

@@ -23,4 +23,8 @@ RUN uv pip install -r requirements.txt
 # copy project
 COPY . .
 
+# expose port for gunicorn
 EXPOSE 80
+
+# run init script
+CMD SH usr/src/app/utils/init.sh

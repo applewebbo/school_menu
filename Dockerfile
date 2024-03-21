@@ -27,4 +27,4 @@ COPY . .
 EXPOSE 80
 
 # run init script
-CMD ["gunicorn", "--bind", ":80", "mysite.wsgi:application"]
+CMD ["gunicorn", "--bind", ":80", "core.wsgi:application"]

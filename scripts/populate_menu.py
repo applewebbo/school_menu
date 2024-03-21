@@ -1,5 +1,4 @@
 import csv
-from calendar import week
 
 from school_menu.models import Meal
 

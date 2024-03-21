@@ -1,4 +1,4 @@
-from .common import *
+from .common import *  # noqa
 
 DEBUG = True
 
@@ -9,6 +9,6 @@ DATABASES = {
     }
 }
 
-SECRET_KEY = "r)s&++&c9l(zg1x4lxnba21^vwj%_6(1^1la$3k5^0&$d#%)93"
+SECRET_KEY = env("SECRET_KEY")
 
 ALLOWED_HOSTS = []

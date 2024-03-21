@@ -5,3 +5,7 @@
 #logo-credits:hover {
     text-decoration: underline;
 }
+
+.menu-list {
+    font-size: 1.1rem
+}

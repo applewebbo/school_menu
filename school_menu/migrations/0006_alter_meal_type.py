@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("school_menu", "0005_alter_settings_options_settings_week_bias_and_more"),
     ]

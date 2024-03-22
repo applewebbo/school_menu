@@ -20,11 +20,16 @@ RUN python -m uv venv /venv
 COPY ./requirements.txt .
 RUN uv pip install -r requirements.txt
 
+# copy entrypoint.sh
+COPY ./entrypoint.sh .
+RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
+RUN chmod +x /usr/src/app/entrypoint.sh
+
 # copy project
 COPY . .
 
 # expose port for gunicorn
 EXPOSE 80
 
-# run init script
-CMD ["gunicorn", "--bind", ":80", "core.wsgi:application"]
+# run entrypoint.sh
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

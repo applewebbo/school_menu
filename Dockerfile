@@ -14,16 +14,11 @@ ENV PYTHONUNBUFFERED 1
 #install uv
 RUN apt-get update
 RUN pip install --upgrade pip uv
-RUN python -m uv venv /venv
+RUN python -m uv venv
 
 # install dependencies
 COPY ./requirements.txt .
-RUN uv pip install -r requirements.txt --reinstall
-
-# copy entrypoint.sh
-COPY ./entrypoint.sh .
-RUN sed -i 's/\r$//g' /usr/src/app/entrypoint.sh
-RUN chmod +x /usr/src/app/entrypoint.sh
+RUN uv pip install -r requirements.txt
 
 # copy project
 COPY . .
@@ -32,4 +27,4 @@ COPY . .
 EXPOSE 80
 
 # run entrypoint.sh
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+CMD ["sh", "./runserver.sh"]

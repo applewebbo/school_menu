@@ -18,7 +18,7 @@ RUN python -m uv venv /venv
 
 # install dependencies
 COPY ./requirements.txt .
-RUN uv pip install -r requirements.txt
+RUN uv pip install -r requirements.txt --reinstall
 
 # copy entrypoint.sh
 COPY ./entrypoint.sh .

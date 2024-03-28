@@ -167,3 +167,6 @@ bootstrap_source_scss/
 .vscode/
 .python-version
 staticfiles/
+
+# RUFF
+.ruff_cache/

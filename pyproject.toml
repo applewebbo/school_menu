@@ -1,3 +1,30 @@
+[project]
+name = "school_menu"
+version = "0.2"
+requires-python = ">= 3.12"
+dependencies = [
+    "django >5.0",
+    "django-import-export",
+    "gunicorn==21.2.0",
+    "djangorestframework",
+    "psycopg[binary]",
+    "whitenoise",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "django-browser-reload",
+    "django-debug-toolbar",
+    "django-environ",
+    "django-extensions",
+    "django_htmx",
+    "djlint",
+    "pre-commit",
+    "pywatchman",
+    "ruff",
+]
+
 [tool.bandit]
 skips = ["B101","B311"]
 

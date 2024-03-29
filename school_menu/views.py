@@ -1,10 +1,10 @@
 import datetime
 
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
-from school_menu.models import Meal, Settings
+from school_menu.models import Meal, School, Settings
 from school_menu.serializers import MealSerializer
 
 
@@ -45,6 +45,20 @@ def index(request):
     ).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
     return render(request, "index.html", context)
+
+
+def school_menu(request, slug):
+    """Return school menu for the given school"""
+    school = get_object_or_404(School, slug=slug)
+    current_week, adjusted_day = get_current_date()
+    bias = Settings.objects.get(school=school).week_bias
+    adjusted_week = calculate_week(current_week, bias)
+    season = Settings.objects.get(school=school).season_choice
+    meal_for_today = Meal.objects.filter(
+        week=adjusted_week, day=adjusted_day, season=season
+    ).first()
+    context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
+    return render(request, "school-menu.html", context)
 
 
 def get_menu(request, week, day, type):

@@ -37,11 +37,14 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # 3RD PARTY DEPENDENCIES
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
     "django_extensions",
+    "import_export",
     # INTERNAL APPS
     "users",
     "school_menu",
-    "import_export",
 ]
 
 MIDDLEWARE = [
@@ -53,6 +56,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -136,3 +140,53 @@ MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
 AUTH_USER_MODEL = "users.User"
+
+# DJANGO-ALLAUTH
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+# ACCOUNT_ADAPTER => default
+# ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS => default
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_CONFIRM_EMAIL_ON_GET = True
+# ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL => default
+# ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL => default
+# ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS => default
+# ACCOUNT_EMAIL_CONFIRMATION_HMAC => default
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+ACCOUNT_EMAIL_SUBJECT_PREFIX = "ORGANIZE IT! - "
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = env("ACCOUNT_DEFAULT_HTTP_PROTOCOL")
+# ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN => default
+# ACCOUNT_EMAIL_MAX_LENGTH => default
+# ACCOUNT_MAX_EMAIL_ADDRESSES => default
+# ACCOUNT_FORMS => default
+# ACCOUNT_LOGIN_ATTEMPTS_LIMIT => default
+# ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT => default
+ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+# ACCOUNT_LOGOUT_ON_GET => default
+# ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE => default
+# ACCOUNT_LOGIN_ON_PASSWORD_RESET => default
+# ACCOUNT_LOGOUT_REDIRECT_URL => default
+# ACCOUNT_PASSWORD_INPUT_RENDER_VALUE => default
+ACCOUNT_PRESERVE_USERNAME_CASING = False
+# ACCOUNT_PREVENT_ENUMERATION => default
+# ACCOUNT_RATE_LIMITS => default
+ACCOUNT_SESSION_REMEMBER = True
+# ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE => default
+# ACCOUNT_SIGNUP_FORM_CLASS => default
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+# ACCOUNT_SIGNUP_REDIRECT_URL => default
+# ACCOUNT_TEMPLATE_EXTENSION => default
+# ACCOUNT_USERNAME_BLACKLIST => default
+# ACCOUNT_UNIQUE_EMAIL => default
+# ACCOUNT_USER_DISPLAY =>  default
+# ACCOUNT_USER_MODEL_EMAIL_FIELD => default
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+# ACCOUNT_USERNAME_MIN_LENGTH => default
+ACCOUNT_USERNAME_REQUIRED = False
+# ACCOUNT_USERNAME_VALIDATORS => default
+# SOCIALACCOUNT_* => default

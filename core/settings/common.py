@@ -41,7 +41,10 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "django_extensions",
+    "django_browser_reload",
+    "heroicons",
     "import_export",
+    "django_tailwind_cli",
     # INTERNAL APPS
     "users",
     "school_menu",
@@ -57,6 +60,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -190,3 +194,6 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_USERNAME_REQUIRED = False
 # ACCOUNT_USERNAME_VALIDATORS => default
 # SOCIALACCOUNT_* => default
+
+# DJANGO-TAILWIND-CLI
+TAILWIND_CLI_SRC_CSS = BASE_DIR / "static/src/input.css"

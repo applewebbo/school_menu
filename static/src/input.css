@@ -17,16 +17,11 @@
     @apply px-2.5 py-1.5 text-xs
   }
   .btn-primary{
-    @apply bg-green-700 hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-lime-800
+    @apply text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800
   }
-  .btn-secondary{
-    @apply bg-lime-700 hover:bg-lime-800 dark:bg-lime-600 dark:hover:bg-lime-700 dark:focus:ring-lime-800
-  }
+
   .btn-primary-outline{
     @apply text-green-700 hover:text-white border border-green-700 hover:bg-green-800 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-500 dark:focus:ring-green-800
-  }
-  .btn-secondary-outline{
-    @apply text-lime-700 hover:text-white border border-lime-700 hover:bg-lime-800 dark:border-lime-500 dark:text-lime-500 dark:hover:text-white dark:hover:bg-lime-500 dark:focus:ring-lime-800
   }
 
   .btn-danger-outline{

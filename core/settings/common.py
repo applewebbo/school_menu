@@ -40,11 +40,13 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "crispy_tailwind",
+    "crispy_forms",
     "django_extensions",
     "django_browser_reload",
+    "django_tailwind_cli",
     "heroicons",
     "import_export",
-    "django_tailwind_cli",
     # INTERNAL APPS
     "users",
     "school_menu",
@@ -146,54 +148,32 @@ MEDIA_URL = "/media/"
 AUTH_USER_MODEL = "users.User"
 
 # DJANGO-ALLAUTH
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
     "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by e-mail
     "allauth.account.auth_backends.AuthenticationBackend",
-]
+)
 
-# ACCOUNT_ADAPTER => default
-# ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS => default
-ACCOUNT_AUTHENTICATION_METHOD = "email"
-ACCOUNT_CONFIRM_EMAIL_ON_GET = True
-# ACCOUNT_EMAIL_CONFIRMATION_ANONYMOUS_REDIRECT_URL => default
-# ACCOUNT_EMAIL_CONFIRMATION_AUTHENTICATED_REDIRECT_URL => default
-# ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS => default
-# ACCOUNT_EMAIL_CONFIRMATION_HMAC => default
+SITE_ID = 1
+
 ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_EMAIL_SUBJECT_PREFIX = "ORGANIZE IT! - "
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = env("ACCOUNT_DEFAULT_HTTP_PROTOCOL")
-# ACCOUNT_EMAIL_CONFIRMATION_COOLDOWN => default
-# ACCOUNT_EMAIL_MAX_LENGTH => default
-# ACCOUNT_MAX_EMAIL_ADDRESSES => default
-# ACCOUNT_FORMS => default
-# ACCOUNT_LOGIN_ATTEMPTS_LIMIT => default
-# ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT => default
-ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
-# ACCOUNT_LOGOUT_ON_GET => default
-# ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE => default
-# ACCOUNT_LOGIN_ON_PASSWORD_RESET => default
-# ACCOUNT_LOGOUT_REDIRECT_URL => default
-# ACCOUNT_PASSWORD_INPUT_RENDER_VALUE => default
-ACCOUNT_PRESERVE_USERNAME_CASING = False
-# ACCOUNT_PREVENT_ENUMERATION => default
-# ACCOUNT_RATE_LIMITS => default
-ACCOUNT_SESSION_REMEMBER = True
-# ACCOUNT_SIGNUP_EMAIL_ENTER_TWICE => default
-# ACCOUNT_SIGNUP_FORM_CLASS => default
-ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
-# ACCOUNT_SIGNUP_REDIRECT_URL => default
-# ACCOUNT_TEMPLATE_EXTENSION => default
-# ACCOUNT_USERNAME_BLACKLIST => default
-# ACCOUNT_UNIQUE_EMAIL => default
-# ACCOUNT_USER_DISPLAY =>  default
-# ACCOUNT_USER_MODEL_EMAIL_FIELD => default
-ACCOUNT_USER_MODEL_USERNAME_FIELD = None
-# ACCOUNT_USERNAME_MIN_LENGTH => default
 ACCOUNT_USERNAME_REQUIRED = False
-# ACCOUNT_USERNAME_VALIDATORS => default
-# SOCIALACCOUNT_* => default
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_UNIQUE_EMAIL = True
+
+LOGIN_REDIRECT_URL = "school_menu:index"
+ACCOUNT_LOGOUT_REDIRECT_URL = "school_menu:index"
 
 # DJANGO-TAILWIND-CLI
 TAILWIND_CLI_SRC_CSS = BASE_DIR / "static/src/input.css"
+
+# DJANGO CRISPY FORMS
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+
+CRISPY_TEMPLATE_PACK = "tailwind"

@@ -3,12 +3,14 @@ name = "school_menu"
 version = "0.2"
 requires-python = ">= 3.12"
 dependencies = [
+    "crispy-tailwind",
     "django >5.0",
     "django-allauth",
+    "django-crispy-forms",
     "django-import-export",
+    "djangorestframework",
     "heroicons[django]",
     "gunicorn==21.2.0",
-    "djangorestframework",
     "psycopg[binary]",
     "whitenoise",
 ]

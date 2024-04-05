@@ -58,25 +58,29 @@
             <br>
         {% endif %}
     </div>
-    <div class="container grid justify-items-center my-2" id="season">
-        <div class="mb-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2" id="season">
+        <div class="place-self-end md:place-self-center">
             <a href="#"
-               class="btn btn-primary{% if meal.type != 1 %}-outline{% endif %} btn-sm me-2"
+               class="btn btn-primary{% if meal.type != 1 %}-outline{% endif %} btn-sm"
                hx-target="#day_menu"
                hx-swap="outerHTML"
                hx-get="{% url 'school_menu:get_menu' week day 1 %}">STANDARD</a>
+        </div>
+        <div class="place-self-start md:place-self-center">
             <a href="#"
                class="btn btn-primary{% if meal.type != 4 %}-outline{% endif %} btn-sm"
                hx-target="#day_menu"
                hx-swap="outerHTML"
                hx-get="{% url 'school_menu:get_menu' week day 4 %}">VEGETARIANO</a>
         </div>
-        <div class="mb-4">
+        <div class="place-self-end md:place-self-center">
             <a href="#"
-               class="btn btn-primary{% if meal.type != 2 %}-outline{% endif %} btn-sm me-2"
+               class="btn btn-primary{% if meal.type != 2 %}-outline{% endif %} btn-sm"
                hx-target="#day_menu"
                hx-swap="outerHTML"
                hx-get="{% url 'school_menu:get_menu' week day 2 %}">NO GLUTINE</a>
+        </div>
+        <div class="place-self-start md:place-self-center">
             <a href="#"
                class="btn btn-primary{% if meal.type != 3 %}-outline{% endif %} btn-sm"
                hx-target="#day_menu"

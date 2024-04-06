@@ -56,9 +56,7 @@ class Settings(models.Model):
     week_bias = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
     )
-    school = models.OneToOneField(
-        "School", on_delete=models.CASCADE, verbose_name="scuola"
-    )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "impostazione"

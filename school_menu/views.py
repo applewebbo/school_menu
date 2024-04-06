@@ -1,5 +1,6 @@
 import datetime
 
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
@@ -78,3 +79,11 @@ def json_menu(request):
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
     return JsonResponse(data, safe=False)
+
+
+@login_required
+def settings_view(request):
+    user = request.user
+    settings = get_object_or_404(Settings, user=user)
+    context = {"settings": settings, "user": user}
+    return render(request, "settings.html", context)

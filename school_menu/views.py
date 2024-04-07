@@ -1,10 +1,11 @@
 import datetime
 
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
+from school_menu.forms import SchoolForm
 from school_menu.models import Meal, School, Settings
 from school_menu.serializers import MealSerializer
 
@@ -85,5 +86,18 @@ def json_menu(request):
 def settings_view(request):
     user = request.user
     settings = get_object_or_404(Settings, user=user)
-    context = {"settings": settings, "user": user}
+    school = get_object_or_404(School, user=user)
+    context = {"settings": settings, "user": user, "school": school}
     return render(request, "settings.html", context)
+
+
+@login_required
+def school_update(request):
+    school = get_object_or_404(School, user=request.user)
+    form = SchoolForm(request.POST or None, instance=school)
+    if form.is_valid():
+        school = form.save()
+        return HttpResponse(status=204, headers={"HX-Trigger": "schoolSaved"})
+
+    context = {"form": form}
+    return render(request, "settings.html#school", context)

@@ -37,11 +37,20 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # 3RD PARTY DEPENDENCIES
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "crispy_tailwind",
+    "crispy_forms",
     "django_extensions",
+    "django_browser_reload",
+    "django_tailwind_cli",
+    "heroicons",
+    "import_export",
+    "template_partials",
     # INTERNAL APPS
     "users",
     "school_menu",
-    "import_export",
 ]
 
 MIDDLEWARE = [
@@ -53,6 +62,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -136,3 +147,34 @@ MEDIA_ROOT = BASE_DIR / "media"
 MEDIA_URL = "/media/"
 
 AUTH_USER_MODEL = "users.User"
+
+# DJANGO-ALLAUTH
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+AUTHENTICATION_BACKENDS = (
+    # Needed to login by username in Django admin, regardless of `allauth`
+    "django.contrib.auth.backends.ModelBackend",
+    # `allauth` specific authentication methods, such as login by e-mail
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+SITE_ID = 1
+
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_MODEL_USERNAME_FIELD = None
+ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_UNIQUE_EMAIL = True
+
+LOGIN_REDIRECT_URL = "school_menu:index"
+ACCOUNT_LOGOUT_REDIRECT_URL = "school_menu:index"
+
+# DJANGO-TAILWIND-CLI
+TAILWIND_CLI_SRC_CSS = BASE_DIR / "static/src/input.css"
+
+# DJANGO CRISPY FORMS
+CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
+
+CRISPY_TEMPLATE_PACK = "tailwind"

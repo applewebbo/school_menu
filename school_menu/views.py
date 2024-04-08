@@ -1,10 +1,12 @@
 import datetime
 
-from django.http import JsonResponse
-from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
-from school_menu.models import Meal, Settings
+from school_menu.forms import SchoolForm
+from school_menu.models import Meal, School, Settings
 from school_menu.serializers import MealSerializer
 
 
@@ -47,6 +49,20 @@ def index(request):
     return render(request, "index.html", context)
 
 
+def school_menu(request, slug):
+    """Return school menu for the given school"""
+    school = get_object_or_404(School, slug=slug)
+    current_week, adjusted_day = get_current_date()
+    bias = Settings.objects.get(school=school).week_bias
+    adjusted_week = calculate_week(current_week, bias)
+    season = Settings.objects.get(school=school).season_choice
+    meal_for_today = Meal.objects.filter(
+        week=adjusted_week, day=adjusted_day, season=season
+    ).first()
+    context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
+    return render(request, "school-menu.html", context)
+
+
 def get_menu(request, week, day, type):
     season = Settings.objects.first().season_choice
     meal = Meal.objects.filter(week=week, day=day, type=type, season=season).first()
@@ -64,3 +80,24 @@ def json_menu(request):
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
     return JsonResponse(data, safe=False)
+
+
+@login_required
+def settings_view(request):
+    user = request.user
+    settings = get_object_or_404(Settings, user=user)
+    school = get_object_or_404(School, user=user)
+    context = {"settings": settings, "user": user, "school": school}
+    return render(request, "settings.html", context)
+
+
+@login_required
+def school_update(request):
+    school = get_object_or_404(School, user=request.user)
+    form = SchoolForm(request.POST or None, instance=school)
+    if form.is_valid():
+        school = form.save()
+        return HttpResponse(status=204, headers={"HX-Trigger": "schoolSaved"})
+
+    context = {"form": form}
+    return render(request, "settings.html#school", context)

@@ -1,5 +1,7 @@
+from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.template.defaultfilters import slugify
 
 
 class Meal(models.Model):
@@ -37,6 +39,7 @@ class Meal(models.Model):
         choices=Seasons.choices, default=Seasons.INVERNALE
     )
     type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
+    school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
@@ -44,7 +47,7 @@ class Meal(models.Model):
 
 class Settings(models.Model):
     class Seasons(models.IntegerChoices):
-        ESTIVO = 1
+        PRIMAVERILE = 1
         INVERNALE = 2
 
     season_choice = models.SmallIntegerField(
@@ -53,10 +56,29 @@ class Settings(models.Model):
     week_bias = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
     )
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = "stagione"
-        verbose_name_plural = "stagioni"
+        verbose_name = "impostazione"
+        verbose_name_plural = "impostazioni"
 
     def __str__(self):
         return self.get_season_choice_display()
+
+
+class School(models.Model):
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, editable=False)
+    city = models.CharField(max_length=200)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "scuola"
+        verbose_name_plural = "scuole"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)

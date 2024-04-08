@@ -21,7 +21,7 @@ click==8.1.7
     #   black
     #   django-typer
     #   djlint
-    #   typer
+    #   typer-slim
 colorama==0.4.6
     # via djlint
 crispy-tailwind==1.0.3
@@ -37,7 +37,7 @@ diff-match-patch==20230430
     # via django-import-export
 distlib==0.3.8
     # via virtualenv
-django==5.0.3
+django==5.0.4
     # via
     #   crispy-tailwind
     #   django-allauth
@@ -60,10 +60,10 @@ django-debug-toolbar==4.3.0
 django-environ==0.11.2
 django-extensions==3.2.3
 django-htmx==1.17.3
-django-import-export==3.3.7
+django-import-export==3.3.8
 django-tailwind-cli==2.10.0
-django-template-partials==24.1
-django-typer==1.0.8
+django-template-partials==24.2
+django-typer==1.1.0
     # via django-tailwind-cli
 djangorestframework==3.15.1
 djlint==1.34.1
@@ -119,7 +119,7 @@ pre-commit==3.7.0
 psycopg==3.1.18
 psycopg-binary==3.1.18
     # via psycopg
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pyjwt==2.8.0
     # via django-allauth
@@ -139,7 +139,7 @@ requests==2.31.0
     #   requests-oauthlib
 requests-oauthlib==2.0.0
     # via django-allauth
-ruff==0.3.4
+ruff==0.3.5
 setuptools==69.2.0
     # via nodeenv
 shellingham==1.5.4
@@ -156,12 +156,12 @@ tablib==3.5.0
     # via django-import-export
 tqdm==4.66.2
     # via djlint
-typer==0.11.0
+typer-slim==0.12.1
     # via django-typer
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   psycopg
-    #   typer
+    #   typer-slim
 urllib3==2.2.1
     # via requests
 virtualenv==20.25.1

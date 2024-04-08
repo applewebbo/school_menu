@@ -17,7 +17,7 @@ defusedxml==0.7.1
     #   python3-openid
 diff-match-patch==20230430
     # via django-import-export
-django==5.0.3
+django==5.0.4
     # via
     #   crispy-tailwind
     #   django-allauth
@@ -29,8 +29,8 @@ django==5.0.3
 django-allauth==0.61.1
 django-crispy-forms==2.1
     # via crispy-tailwind
-django-import-export==3.3.7
-django-template-partials==24.1
+django-import-export==3.3.8
+django-template-partials==24.2
 djangorestframework==3.15.1
 et-xmlfile==1.1.0
     # via openpyxl
@@ -51,7 +51,7 @@ packaging==24.0
 psycopg==3.1.18
 psycopg-binary==3.1.18
     # via psycopg
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pyjwt==2.8.0
     # via django-allauth
@@ -69,7 +69,7 @@ sqlparse==0.4.4
     # via django
 tablib==3.5.0
     # via django-import-export
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via psycopg
 urllib3==2.2.1
     # via requests

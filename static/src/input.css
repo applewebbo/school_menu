@@ -13,11 +13,11 @@
   }
 
   .btn-sm{
-    @apply px-3 py-2 text-sm
+    @apply px-3 py-2 text-sm rounded-md
   }
 
   .btn-xs{
-    @apply px-2.5 py-1.5 text-xs
+    @apply px-2.5 py-1.5 text-xs rounded-md
   }
 
   .btn-primary{

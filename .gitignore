@@ -170,3 +170,6 @@ staticfiles/
 
 # RUFF
 .ruff_cache/
+
+# TAILWIND DEV STUFF
+static/css/tailwind.css

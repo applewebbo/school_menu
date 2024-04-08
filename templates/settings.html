@@ -11,23 +11,27 @@
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 <div class="block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                    <div class="flex">
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Scuola</h5>
-                        <button class="btn btn-sm btn-primary ms-2">Modifica</button>
+                    <div class="flex items-center mb-2">
+                        <h5 class="grow text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Scuola</h5>
+                        <button class="btn btn-xs btn-primary ms-2">Modifica</button>
                     </div>
                     <p class="font-normal text-gray-700 dark:text-gray-400">
-                        <span class="font-bold">Nome:</span>{{ school.name }}
-                        <br>
-                        <span class="font-bold">Città:</span>{{ school.city }}
+                        <ul class="leading-loose">
+                            <li><span class="font-bold">Nome: </span>{{ school.name }}</li>
+                            <li><span class="font-bold">Città: </span>{{ school.city }}</li>
+                        </ul>
                     </p>
                 </div>
                 <div class="block p-6 bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Menu</h5>
+                    <div class="flex items-center mb-2">
+                        <h5 class="grow text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Menu</h5>
+                        <button class="btn btn-xs btn-primary ms-2">Modifica</button>
+                    </div>
                     <p class="font-normal text-gray-700 dark:text-gray-400">
-                        <span class="font-bold">Stagione:</span>{{ settings.get_season_choice_display }}
-                        <br>
-                        <span class="font-bold">Scarto:</span>{{ settings.week_bias }}
-                        <br>
+                        <ul class="leading-loose">
+                            <li><span class="font-bold">Stagione: </span>{{ settings.get_season_choice_display }}</li>
+                            <li><span class="font-bold">Scarto: </span>{{ settings.week_bias }}</li>
+                        </ul>
                     </p>
                 </div>
             </div>

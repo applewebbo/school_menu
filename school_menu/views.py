@@ -1,5 +1,7 @@
 import datetime
 
+from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -83,12 +85,40 @@ def json_menu(request):
 
 
 @login_required
-def settings_view(request):
-    user = request.user
-    settings = get_object_or_404(Settings, user=user)
-    school = get_object_or_404(School, user=user)
-    context = {"settings": settings, "user": user, "school": school}
+def settings_view(request, pk):
+    User = get_user_model()
+    queryset = User.objects.select_related("school", "settings")
+    user = get_object_or_404(queryset, pk=pk)
+    context = {"user": user}
     return render(request, "settings.html", context)
+
+
+@login_required
+def school_view(request):
+    user = request.user
+    school = get_object_or_404(School, user=user)
+    context = {"school": school}
+    return render(request, "settings.html#school", context)
+
+
+def school_create(request):
+    form = SchoolForm(request.POST or None)
+    if form.is_valid():
+        school = form.save(commit=False)
+        school.user = request.user
+        school.save()
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"<strong>{school.name}</strong> created successfully",
+        )
+        return HttpResponse(
+            status=204,
+            headers={"HX-Trigger": "schoolSaved"},
+        )
+
+    context = {"form": form, "create": True}
+    return render(request, "partials/school.html", context)
 
 
 @login_required
@@ -97,7 +127,12 @@ def school_update(request):
     form = SchoolForm(request.POST or None, instance=school)
     if form.is_valid():
         school = form.save()
-        return HttpResponse(status=204, headers={"HX-Trigger": "schoolSaved"})
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"<strong>{school.name}</strong> updated successfully",
+        )
+        return render(request, "settings.html#school", {"school": school})
 
     context = {"form": form}
-    return render(request, "settings.html#school", context)
+    return render(request, "partials/school.html", context)

@@ -63,7 +63,7 @@ class Settings(models.Model):
         verbose_name_plural = "impostazioni"
 
     def __str__(self):
-        return self.get_season_choice_display()
+        return str(self.user)
 
 
 class School(models.Model):

@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
 
 from school_menu.forms import SchoolForm, SettingsForm
-from school_menu.models import Meal, School, Settings
+from school_menu.models import DetailedMeal, School, Settings
 from school_menu.serializers import MealSerializer
 
 
@@ -44,7 +44,7 @@ def index(request):
     bias = Settings.objects.first().week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = Settings.objects.first().season_choice
-    meal_for_today = Meal.objects.filter(
+    meal_for_today = DetailedMeal.objects.filter(
         week=adjusted_week, day=adjusted_day, season=season
     ).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
@@ -58,7 +58,7 @@ def school_menu(request, slug):
     bias = Settings.objects.get(school=school).week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = Settings.objects.get(school=school).season_choice
-    meal_for_today = Meal.objects.filter(
+    meal_for_today = DetailedMeal.objects.filter(
         week=adjusted_week, day=adjusted_day, season=season
     ).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
@@ -67,7 +67,9 @@ def school_menu(request, slug):
 
 def get_menu(request, week, day, type):
     season = Settings.objects.first().season_choice
-    meal = Meal.objects.filter(week=week, day=day, type=type, season=season).first()
+    meal = DetailedMeal.objects.filter(
+        week=week, day=day, type=type, season=season
+    ).first()
     context = {"meal": meal, "week": week, "day": day}
     return render(request, "partials/_menu.html", context)
 
@@ -77,7 +79,9 @@ def json_menu(request):
     current_week, adjusted_day = get_current_date()
     adjusted_week = calculate_week(current_week, 0)
     season = Settings.objects.first().season_choice
-    meal_for_today = Meal.objects.filter(week=adjusted_week, type=1, season=season)
+    meal_for_today = DetailedMeal.objects.filter(
+        week=adjusted_week, type=1, season=season
+    )
     serializer = MealSerializer(meal_for_today, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}

@@ -28,11 +28,6 @@ class Meal(models.Model):
         GIOVEDÌ = 4
         VENERDÌ = 5
 
-    first_course = models.CharField(max_length=200)
-    second_course = models.CharField(max_length=200)
-    side_dish = models.CharField(max_length=200)
-    fruit = models.CharField(max_length=200, default="Frutta di Stagione")
-    snack = models.CharField(max_length=200)
     day = models.SmallIntegerField(choices=Days.choices, default=Days.LUNEDÌ)
     week = models.SmallIntegerField(choices=Weeks.choices, default=Weeks.SETTIMANA_1)
     season = models.SmallIntegerField(
@@ -41,8 +36,23 @@ class Meal(models.Model):
     type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
+
+
+class DetailedMeal(Meal):
+    first_course = models.CharField(max_length=200)
+    second_course = models.CharField(max_length=200)
+    side_dish = models.CharField(max_length=200)
+    fruit = models.CharField(max_length=200, default="Frutta di Stagione")
+    snack = models.CharField(max_length=200)
+
+
+class SimpleMeal(Meal):
+    menu = models.CharField(max_length=600)
 
 
 class Settings(models.Model):

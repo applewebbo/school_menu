@@ -1,15 +1,15 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 
-from .models import Meal, School, Settings
-from .resources import MealResource
+from .models import DetailedMeal, School, Settings
+from .resources import DetailedMealResource
 
 # from .forms import CustomExportForm
 
 
-@admin.register(Meal)
+@admin.register(DetailedMeal)
 class MealAdmin(ImportExportModelAdmin):
-    resource_classes = [MealResource]
+    resource_classes = [DetailedMealResource]
     list_display = ["__str__", "school"]
     list_filter = ["school"]
 

@@ -18,8 +18,8 @@ htmx_urlpatterns = [
     path("school/", views.school_view, name="school_view"),
     path("school/create/", views.school_create, name="school_create"),
     path("school/update/", views.school_update, name="school_update"),
-    path("settings/create/", views.settings_create, name="settings_create"),
-    path("settings/update/", views.settings_update, name="settings_update"),
+    # path("settings/create/", views.settings_create, name="settings_create"),
+    # path("settings/update/", views.settings_update, name="settings_update"),
 ]
 
 urlpatterns += htmx_urlpatterns

@@ -10,7 +10,7 @@
             <p>
                 Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio
             </p>
-            <div class="grid grid-cols-1 gap-4 mt-6 md:grid-cols-2">
+            <div class="mt-6">
                 <div class="block p-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
                      id="school">
                     {% partialdef school inline=True %}
@@ -25,6 +25,12 @@
                                 </li>
                                 <li>
                                     <span class="font-bold">Città:</span> {{ user.school.city }}
+                                </li>
+                                <li>
+                                    <span class="font-bold">Menu Stagionale:</span> {{ user.school.get_season_choice_display }}
+                                </li>
+                                <li>
+                                    <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
                                 </li>
                             </ul>
                         </p>
@@ -41,37 +47,7 @@
                     {% endif %}
                 {% endpartialdef %}
             </div>
-            <div class="block p-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
-                 id="settings">
-                {% partialdef settings inline=True %}
-                <div class="mb-2">
-                    <h5 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Menu</h5>
-                </div>
-                {% if user.settings %}
-                    <p class="font-normal text-gray-700 dark:text-gray-400">
-                        <ul class="mb-2 leading-10">
-                            <li>
-                                <span class="font-bold">Stagione:</span> {{ user.settings.get_season_choice_display }}
-                            </li>
-                            <li>
-                                <span class="font-bold">Scarto:</span> {{ user.settings.week_bias }}
-                            </li>
-                        </ul>
-                    </p>
-                    <button class="w-full md:w-auto btn btn-sm btn-primary"
-                            hx-target="#settings"
-                            hx-swap="innerHTML"
-                            hx-get="{% url 'school_menu:settings_update' %}">Modifica</button>
-                {% else %}
-                    <p class="mb-4 italic font-normal text-gray-700 dark:text-gray-400">Nessuna impostazione associata al tuo menu</p>
-                    <button class="w-full md:w-auto btn btn-sm btn-primary"
-                            hx-get="{% url 'school_menu:settings_create' %}"
-                            hx-target="#settings"
-                            hx-swap="innerHTML">Crea</button>
-                {% endif %}
-            {% endpartialdef %}
         </div>
     </div>
-</div>
 </section>
 {% endblock content %}

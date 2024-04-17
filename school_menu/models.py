@@ -55,39 +55,49 @@ class SimpleMeal(Meal):
     menu = models.CharField(max_length=600)
 
 
-class Settings(models.Model):
+# class Settings(models.Model):
+#     class Seasons(models.IntegerChoices):
+#         PRIMAVERILE = 1
+#         INVERNALE = 2
+
+#     season_choice = models.SmallIntegerField(
+#         choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
+#     )
+#     week_bias = models.PositiveSmallIntegerField(
+#         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
+#     )
+#     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+#     class Meta:
+#         verbose_name = "impostazione"
+#         verbose_name_plural = "impostazioni"
+
+#     def __str__(self):
+#         return str(self.user)
+
+
+class School(models.Model):
     class Seasons(models.IntegerChoices):
         PRIMAVERILE = 1
         INVERNALE = 2
 
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, editable=False)
+    city = models.CharField(max_length=200)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     season_choice = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
     )
     week_bias = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
     )
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = "impostazione"
-        verbose_name_plural = "impostazioni"
-
-    def __str__(self):
-        return str(self.user)
-
-
-class School(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, editable=False)
-    city = models.CharField(max_length=200)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = "scuola"
         verbose_name_plural = "scuole"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.city} ({str(self.user)})"
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)

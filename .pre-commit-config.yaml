@@ -1,38 +1,48 @@
 repos:
-- repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.6.0
-  hooks:
-  - id: trailing-whitespace
-  - id: end-of-file-fixer
-  - id: check-yaml
-  - id: check-added-large-files
-- repo: https://github.com/asottile/pyupgrade
-  rev: v3.15.2
-  hooks:
-  - id: pyupgrade
-    args:
-      - "--py311-plus"
-- repo: https://github.com/adamchainz/django-upgrade
-  rev: 1.16.0
-  hooks:
-  - id: django-upgrade
-    args: [--target-version, "4.1"]
-- repo: https://github.com/djlint/djLint
-  rev: v1.34.1
-  hooks:
-    - id: djlint-reformat-django
-    - id: djlint-django
-- repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.3.7
-  hooks:
-    - id: ruff
-      args: [--fix, --exit-non-zero-on-fix]
-    - id: ruff-format
-- repo: https://github.com/PyCQA/bandit
-  rev: 1.7.8
-  hooks:
-  - id: bandit
-    args:
-      - "-c"
-      - "pyproject.toml"
-    additional_dependencies: ["toml==0.10.2"]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+    - id: check-yaml
+    - id: check-added-large-files
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.15.2
+    hooks:
+    - id: pyupgrade
+      args:
+        - "--py311-plus"
+  - repo: https://github.com/adamchainz/django-upgrade
+    rev: 1.16.0
+    hooks:
+    - id: django-upgrade
+      args: [--target-version, "4.1"]
+  - repo: https://github.com/djlint/djLint
+    rev: v1.34.1
+    hooks:
+      - id: djlint-reformat-django
+      - id: djlint-django
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.7
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.8
+    hooks:
+    - id: bandit
+      args:
+        - "-c"
+        - "pyproject.toml"
+      additional_dependencies: ["toml==0.10.2"]
+  - repo: local
+    hooks:
+      - id: rustywind
+        name: rustywind Tailwind CSS class linter
+        language: node
+        additional_dependencies:
+          - rustywind@latest
+        entry: rustywind
+        args: [--write]
+        types_or: [html]

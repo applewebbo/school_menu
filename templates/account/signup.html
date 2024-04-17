@@ -4,8 +4,8 @@
     {% trans "Signup" %}
 {% endblock page_title %}
 {% block content %}
-    <div class="max-w-sm mx-auto my-6">
-        <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+    <div class="my-6 mx-auto max-w-sm">
+        <h1 class="text-xl font-bold tracking-tight leading-tight text-gray-900 md:text-2xl dark:text-white">
             {% trans "Sign Up" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
@@ -19,7 +19,7 @@
                        name="{{ redirect_field_name }}"
                        value="{{ redirect_field_value }}" />
             {% endif %}
-            <button class="btn btn-primary w-full" type="submit">{% trans "Sign Up" %}</button>
+            <button class="w-full btn btn-primary" type="submit">{% trans "Sign Up" %}</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
                 {% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}
             </p>

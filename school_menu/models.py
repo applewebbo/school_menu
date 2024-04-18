@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.utils.translation import gettext_lazy as _
 
 
 class Meal(models.Model):
@@ -55,31 +56,14 @@ class SimpleMeal(Meal):
     menu = models.CharField(max_length=600)
 
 
-# class Settings(models.Model):
-#     class Seasons(models.IntegerChoices):
-#         PRIMAVERILE = 1
-#         INVERNALE = 2
-
-#     season_choice = models.SmallIntegerField(
-#         choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
-#     )
-#     week_bias = models.PositiveSmallIntegerField(
-#         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
-#     )
-#     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-#     class Meta:
-#         verbose_name = "impostazione"
-#         verbose_name_plural = "impostazioni"
-
-#     def __str__(self):
-#         return str(self.user)
-
-
 class School(models.Model):
     class Seasons(models.IntegerChoices):
         PRIMAVERILE = 1
         INVERNALE = 2
+
+    class Types(models.TextChoices):
+        SIMPLE = "S", _("Semplice")
+        DETAILED = "D", _("Dettagliato")
 
     name = models.CharField(max_length=200)
     slug = models.SlugField(max_length=200, unique=True, editable=False)
@@ -90,6 +74,9 @@ class School(models.Model):
     )
     week_bias = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
+    )
+    menu_type = models.CharField(
+        max_length=1, choices=Types.choices, default=Types.DETAILED
     )
 
     class Meta:

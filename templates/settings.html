@@ -14,18 +14,20 @@
                 <div class="block p-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
                      id="school">
                     {% partialdef school inline=True %}
-                    <div class="mb-2">
-                        <h5 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white grow">Scuola</h5>
-                    </div>
+                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                        Scuola
+                    </h5>
                     {% if user.school %}
-                        <p class="font-normal text-gray-700 dark:text-gray-400">
-                            <ul class="leading-10">
+                        <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2 dark:text-gray-400">
+                            <ul class="leading-10" id="school-settings">
                                 <li>
                                     <span class="font-bold">Nome:</span> {{ user.school.name }}
                                 </li>
                                 <li>
                                     <span class="font-bold">Città:</span> {{ user.school.city }}
                                 </li>
+                            </ul>
+                            <ul class="leading-10" id="meal-settings">
                                 <li>
                                     <span class="font-bold">Menu Stagionale:</span> {{ user.school.get_season_choice_display }}
                                 </li>
@@ -33,7 +35,7 @@
                                     <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
                                 </li>
                             </ul>
-                        </p>
+                        </div>
                         <button class="w-full md:w-auto btn btn-sm btn-primary"
                                 hx-target="#school"
                                 hx-swap="innerHTML"

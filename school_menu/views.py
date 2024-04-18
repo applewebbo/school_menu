@@ -67,6 +67,7 @@ def school_menu(request, slug):
 
 
 def get_menu(request, week, day, type):
+    """get menu for the given day, week and type"""
     season = School.objects.first().season_choice
     meal = DetailedMeal.objects.filter(
         week=week, day=day, type=type, season=season

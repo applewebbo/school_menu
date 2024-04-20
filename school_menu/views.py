@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 
 from school_menu.forms import SchoolForm
-from school_menu.models import DetailedMeal, School
+from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.serializers import MealSerializer
 
 
@@ -59,9 +59,15 @@ def school_menu(request, slug):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = school.season_choice
-    meal_for_today = DetailedMeal.objects.filter(
-        week=adjusted_week, day=adjusted_day, season=season
-    ).first()
+    if school.menu_type == School.Types.SIMPLE:
+        meal_for_today = SimpleMeal.objects.filter(
+            week=adjusted_week, day=adjusted_day, season=season
+        ).first()
+    else:
+        meal_for_today = DetailedMeal.objects.filter(
+            week=adjusted_week, day=adjusted_day, season=season
+        ).first()
+    print(meal_for_today)
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
     return render(request, "school-menu.html", context)
 

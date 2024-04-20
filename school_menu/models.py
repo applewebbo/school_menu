@@ -92,4 +92,4 @@ class School(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse("school_menu:menu", kwargs={"slug": self.slug})
+        return reverse("school_menu:school_menu", kwargs={"slug": self.slug})

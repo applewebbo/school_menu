@@ -67,7 +67,6 @@ def school_menu(request, slug):
         meal_for_today = DetailedMeal.objects.filter(
             week=adjusted_week, day=adjusted_day, season=season
         ).first()
-    print(meal_for_today)
     context = {
         "school": school,
         "meal": meal_for_today,
@@ -77,13 +76,25 @@ def school_menu(request, slug):
     return render(request, "school-menu.html", context)
 
 
-def get_menu(request, week, day, type):
-    """get menu for the given day, week and type"""
-    season = School.objects.first().season_choice
-    meal = DetailedMeal.objects.filter(
-        week=week, day=day, type=type, season=season
-    ).first()
-    context = {"meal": meal, "week": week, "day": day}
+def get_menu(request, week, day, type, school_id):
+    """get menu for the given school, day, week and type"""
+    school = School.objects.get(pk=school_id)
+    season = school.season_choice
+    if school.menu_type == School.Types.SIMPLE:
+        meal = SimpleMeal.objects.get(
+            week=week, day=day, type=type, season=season, school=school
+        )
+    else:
+        meal = DetailedMeal.objects.get(
+            week=week, day=day, type=type, season=season, school=school
+        )
+    context = {
+        "school": school,
+        "meal": meal,
+        "week": week,
+        "day": day,
+        "type": type,
+    }
     return render(request, "partials/_menu.html", context)
 
 

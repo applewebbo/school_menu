@@ -68,7 +68,12 @@ def school_menu(request, slug):
             week=adjusted_week, day=adjusted_day, season=season
         ).first()
     print(meal_for_today)
-    context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
+    context = {
+        "school": school,
+        "meal": meal_for_today,
+        "week": adjusted_week,
+        "day": adjusted_day,
+    }
     return render(request, "school-menu.html", context)
 
 

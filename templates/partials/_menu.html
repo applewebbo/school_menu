@@ -3,21 +3,11 @@
     <div id="current_menu" class="my-7 text-center">
         {% if meal %}
             <h1 class="text-3xl font-medium tracking-tight">Menu del giorno</h1>
-            <p class="my-3 text-xl font-medium">
-                <strong>Pranzo</strong>
-            </p>
-            <ul class="list-unstyled menu-list">
-                <li>{{ meal.first_course }}</li>
-                <li>{{ meal.second_course }}</li>
-                <li>{{ meal.side_dish }}</li>
-                <li>{{ meal.fruit }}</li>
-            </ul>
-            <p class="my-3 text-xl font-medium">
-                <strong>Spuntino</strong>
-            </p>
-            <ul class="mb-4 list-unstyled menu-list">
-                <li>{{ meal.snack }}</li>
-            </ul>
+            {% if school.menu_type == "D" %}
+                {% include 'partials/_detailed_menu.html' %}
+            {% else %}
+                {% include 'partials/_simple_menu.html' %}
+            {% endif %}
             <span class="py-1 px-3.5 text-xs font-medium text-green-800 bg-green-200 rounded-full me-2">
                 {% if meal.season == 2 %}
                     Autunno / Inverno

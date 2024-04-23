@@ -36,7 +36,7 @@
   }
 
   .btn-disabled {
-    @apply cursor-not-allowed border border-green-600 text-green-600 bg-white
+    @apply cursor-not-allowed border border-gray-400 text-gray-400 bg-white
   }
 
   p > a {

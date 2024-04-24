@@ -60,16 +60,19 @@ def school_menu(request, slug):
     adjusted_week = calculate_week(current_week, bias)
     season = school.season_choice
     if school.menu_type == School.Types.SIMPLE:
-        meal_for_today = SimpleMeal.objects.filter(
-            week=adjusted_week, day=adjusted_day, season=season
-        ).first()
+        weekly_meals = SimpleMeal.objects.filter(
+            school=school, week=adjusted_week, season=season
+        ).order_by("day")
+        meal_for_today = weekly_meals.get(day=adjusted_day)
     else:
-        meal_for_today = DetailedMeal.objects.filter(
-            week=adjusted_week, day=adjusted_day, season=season
-        ).first()
+        weekly_meals = DetailedMeal.objects.filter(
+            school=school, week=adjusted_week, season=season
+        ).order_by("day")
+        meal_for_today = weekly_meals.get(day=adjusted_day)
     context = {
         "school": school,
         "meal": meal_for_today,
+        "weekly_meals": weekly_meals,
         "week": adjusted_week,
         "day": adjusted_day,
     }
@@ -81,16 +84,18 @@ def get_menu(request, week, day, type, school_id):
     school = School.objects.get(pk=school_id)
     season = school.season_choice
     if school.menu_type == School.Types.SIMPLE:
-        meal = SimpleMeal.objects.get(
-            week=week, day=day, type=type, season=season, school=school
-        )
+        weekly_meals = SimpleMeal.objects.filter(
+            week=week, type=type, season=season, school=school
+        ).order_by("day")
     else:
-        meal = DetailedMeal.objects.get(
-            week=week, day=day, type=type, season=season, school=school
-        )
+        weekly_meals = DetailedMeal.objects.filter(
+            week=week, type=type, season=season, school=school
+        ).order_by("day")
+    meal_of_the_day = weekly_meals.get(day=day)
     context = {
         "school": school,
-        "meal": meal,
+        "meal": meal_of_the_day,
+        "weekly_meals": weekly_meals,
         "week": week,
         "day": day,
         "type": type,

@@ -1,47 +1,10 @@
-<button type="button"
-        {% if meal %} hx-target="#day_menu" hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week 1 meal.type school.pk %}" class="btn {% if day == 1 %}btn-primary{% else %}btn-primary-outline{% endif %}
-        "
-        {% else %}
-        class="btn btn-disabled"
-        disabled
-        {% endif %}>LUN</button>
-<button type="button"
-        {% if meal %} class="btn {% if day == 2 %}btn-primary{% else %}btn-primary-outline{% endif %}
-        "
-        hx-target="#day_menu"
-        hx-swap="outerHTML"
-        hx-get="{% url 'school_menu:get_menu' week 2 meal.type school.pk %}"
-        {% else %}
-        class="btn btn-disabled"
-        disabled
-        {% endif %}>MAR</button>
-<button type="button"
-        {% if meal %} class="btn {% if day == 3 %}btn-primary{% else %}btn-primary-outline{% endif %}
-        "
-        hx-target="#day_menu"
-        hx-swap="outerHTML"
-        hx-get="{% url 'school_menu:get_menu' week 3 meal.type school.pk %}"
-        {% else %}
-        class="btn btn-disabled"
-        disabled
-        {% endif %}>MER</button>
-<button type="button"
-        {% if meal %} class="btn {% if day == 4 %}btn-primary{% else %}btn-primary-outline{% endif %}
-        "
-        hx-target="#day_menu"
-        hx-swap="outerHTML"
-        hx-get="{% url 'school_menu:get_menu' week 4 meal.type school.pk %}"
-        {% else %}
-        class="btn btn-disabled"
-        disabled
-        {% endif %}>GIO</button>
-<button type="button"
-        {% if meal %} class="btn {% if day == 5 %}btn-primary{% else %}btn-primary-outline{% endif %}
-        "
-        hx-target="#day_menu"
-        hx-swap="outerHTML"
-        hx-get="{% url 'school_menu:get_menu' week 5 meal.type school.pk %}"
-        {% else %}
-        class="btn btn-disabled"
-        disabled
-        {% endif %}>VEN</button>
+{% load truncate_filter %}
+{% for meal in weekly_meals %}
+    <button type="button"
+            {% if meal %} hx-target="#day_menu" hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week meal.day meal.type school.pk %}" class="btn {% if day == meal.day %}btn-primary{% else %}btn-primary-outline{% endif %}
+            "
+            {% else %}
+            class="btn btn-disabled"
+            disabled
+            {% endif %}>{{ meal.get_day_display|upper|truncate:3 }}</button>
+{% endfor %}

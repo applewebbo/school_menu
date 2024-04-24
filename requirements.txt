@@ -2,19 +2,9 @@
 #    uv pip compile pyproject.toml -o requirements.txt
 asgiref==3.8.1
     # via django
-certifi==2024.2.2
-    # via requests
-cffi==1.16.0
-    # via cryptography
-charset-normalizer==3.3.2
-    # via requests
 crispy-tailwind==1.0.3
-cryptography==42.0.5
-    # via pyjwt
 defusedxml==0.7.1
-    # via
-    #   odfpy
-    #   python3-openid
+    # via odfpy
 diff-match-patch==20230430
     # via django-import-export
 django==5.0.4
@@ -26,7 +16,7 @@ django==5.0.4
     #   django-template-partials
     #   djangorestframework
     #   heroicons
-django-allauth==0.61.1
+django-allauth==0.62.1
 django-crispy-forms==2.1
     # via crispy-tailwind
 django-import-export==3.3.8
@@ -36,12 +26,8 @@ et-xmlfile==1.1.0
     # via openpyxl
 gunicorn==21.2.0
 heroicons==2.6.0
-idna==3.6
-    # via requests
 markuppy==1.14
     # via tablib
-oauthlib==3.2.2
-    # via requests-oauthlib
 odfpy==1.4.1
     # via tablib
 openpyxl==3.1.2
@@ -51,28 +37,14 @@ packaging==24.0
 psycopg==3.1.18
 psycopg-binary==3.1.18
     # via psycopg
-pycparser==2.22
-    # via cffi
-pyjwt==2.8.0
-    # via django-allauth
-python3-openid==3.2.0
-    # via django-allauth
 pyyaml==6.0.1
     # via tablib
-requests==2.31.0
-    # via
-    #   django-allauth
-    #   requests-oauthlib
-requests-oauthlib==2.0.0
-    # via django-allauth
-sqlparse==0.4.4
+sqlparse==0.5.0
     # via django
 tablib==3.5.0
     # via django-import-export
 typing-extensions==4.11.0
     # via psycopg
-urllib3==2.2.1
-    # via requests
 whitenoise==6.6.0
 xlrd==2.0.1
     # via tablib

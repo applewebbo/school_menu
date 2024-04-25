@@ -2,7 +2,8 @@
 <div x-data="{ open: false}">
     <nav class="bg-white dark:bg-gray-900">
         <div class="flex flex-wrap justify-between items-center p-4 mx-auto max-w-screen-lg">
-            <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse grow">
+            <a href="{% url 'school_menu:index' %}"
+               class="flex items-center space-x-3 rtl:space-x-reverse grow">
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo">
                 <span class="self-center text-2xl font-semibold tracking-tight whitespace-nowrap dark:text-white">Menu Scolastico</span>
             </a>
@@ -25,7 +26,7 @@
                  id="navbar-cta">
                 <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-8 md:border-0 rtl:space-x-reverse">
                     <li>
-                        <a href="#"
+                        <a href="{% url 'school_menu:index' %}"
                            class="block p-0 text-green-800 md:dark:text-green-500"
                            aria-current="page">Home</a>
                     </li>
@@ -57,7 +58,7 @@
              x-collapse.duration.500>
             <ul class="flex flex-col gap-x-0 gap-y-4 p-4 px-5">
                 <li>
-                    <a href="#"
+                    <a href="{% url 'school_menu:index' %}"
                        class="block py-2 px-3 text-white bg-green-700 rounded md:p-0"
                        aria-current="page">Home</a>
                 </li>

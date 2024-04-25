@@ -35,6 +35,10 @@
     @apply text-gray-900 hover:text-white border border-gray-800 hover:bg-gray-900 focus:ring-gray-300 dark:border-gray-600 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-800
   }
 
+  .btn-disabled {
+    @apply cursor-not-allowed border border-gray-400 text-gray-400 bg-white
+  }
+
   p > a {
     @apply text-green-600 hover:underline
   }

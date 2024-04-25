@@ -2,8 +2,8 @@
 {% load static i18n crispy_forms_tags %}
 {% load account socialaccount %}
 {% block content %}
-    <div class="max-w-sm mx-auto my-8">
-        <h1 class="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white text-center">
+    <div class="my-8 mx-auto max-w-sm">
+        <h1 class="text-xl font-bold tracking-tight leading-tight text-center text-gray-900 md:text-2xl dark:text-white">
             {% trans "Sign In" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
@@ -20,7 +20,7 @@
                 <a href="{% url 'account_reset_password' %}"
                    class="text-green-600 hover:underline">{% trans "Forgot Password?" %}</a>
             </div>
-            <button type="submit" class="btn btn-primary w-full">{% trans "Sign In" %}</button>
+            <button type="submit" class="w-full btn btn-primary">{% trans "Sign In" %}</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
                 {% blocktrans %}If you have not created an account yet, then please
     <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}

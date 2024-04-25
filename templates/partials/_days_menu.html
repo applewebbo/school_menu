@@ -1,0 +1,10 @@
+{% load truncate_filter %}
+{% for meal in weekly_meals %}
+    <button type="button"
+            {% if meal %} hx-target="#day_menu" hx-swap="outerHTML" hx-get="{% url 'school_menu:get_menu' week meal.day meal.type school.pk %}" class="btn {% if day == meal.day %}btn-primary{% else %}btn-primary-outline{% endif %}
+            "
+            {% else %}
+            class="btn btn-disabled"
+            disabled
+            {% endif %}>{{ meal.get_day_display|upper|truncate:3 }}</button>
+{% endfor %}

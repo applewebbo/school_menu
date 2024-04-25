@@ -1,6 +1,6 @@
 import csv
 
-from school_menu.models import Meal
+from school_menu.models import DetailedMeal
 
 
 def run():
@@ -8,12 +8,12 @@ def run():
         reader = csv.reader(file)
         next(reader)
 
-        Meal.objects.all().delete()
+        DetailedMeal.objects.all().delete()
 
         for row in reader:
             print(row)
 
-            meal = Meal(
+            meal = DetailedMeal(
                 type=row[0],
                 season=row[1],
                 week=row[2],
@@ -23,6 +23,7 @@ def run():
                 side_dish=row[6],
                 fruit=row[7],
                 snack=row[8],
+                school=row[9],
             )
 
             meal.save()

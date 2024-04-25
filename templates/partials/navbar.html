@@ -1,18 +1,19 @@
 {% load static heroicons %}
 <div x-data="{ open: false}">
     <nav class="bg-white dark:bg-gray-900">
-        <div class="max-w-screen-lg flex flex-wrap items-center justify-between mx-auto p-4">
-            <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse grow">
+        <div class="flex flex-wrap justify-between items-center p-4 mx-auto max-w-screen-lg">
+            <a href="{% url 'school_menu:index' %}"
+               class="flex items-center space-x-3 rtl:space-x-reverse grow">
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo">
-                <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white tracking-tight">Menu Scolastico</span>
+                <span class="self-center text-2xl font-semibold tracking-tight whitespace-nowrap dark:text-white">Menu Scolastico</span>
             </a>
-            <div class="flex md:order-2 items-end space-x-3 md:space-x-0 rtl:space-x-reverse">
+            <div class="flex items-end space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
                 {% if user.is_authenticated %}
                 {% else %}
                     <a href="{% url 'account_login' %}" class="btn btn-primary">Entra</a>
                 {% endif %}
                 <button type="button"
-                        class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                        class="inline-flex justify-center items-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg md:hidden dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
                         aria-controls="navbar-cta"
                         aria-expanded="false"
                         x-on:click="open = ! open">
@@ -21,27 +22,28 @@
                     {% heroicon_outline "x-mark" x_show="open" %}
                 </button>
             </div>
-            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1 md:me-8"
+            <div class="hidden justify-between items-center w-full md:flex md:order-1 md:w-auto md:me-8"
                  id="navbar-cta">
-                <ul class="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0">
+                <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-8 md:border-0 rtl:space-x-reverse">
                     <li>
-                        <a href="#"
+                        <a href="{% url 'school_menu:index' %}"
                            class="block p-0 text-green-800 md:dark:text-green-500"
                            aria-current="page">Home</a>
                     </li>
                     <li>
-                        <a href="#" class="block p-0 text-gray-800 hover:text-green-800">Scuole</a>
+                        <a href="{% url 'school_menu:school_list' %}"
+                           class="block p-0 text-gray-800 hover:text-green-800">Scuole</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li>
                             <a href="{% url 'school_menu:settings' user.id %}"
-                               class="block py-2 px-3 md:p-0 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700 d:dark:hover:text-green-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Impostazioni</a>
+                               class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 d:dark:hover:text-green-500 md:hover:bg-transparent md:hover:text-green-700 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Impostazioni</a>
                         </li>
                         <li>
                             <form action="{% url 'account_logout' %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="block py-2 px-3 md:p-0 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700">
+                                        class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700">
                                     Esci
                                 </button>
                             </form>
@@ -50,31 +52,31 @@
                 </ul>
             </div>
         </div>
-        <div class="items-center justify-between w-full md:hidden"
+        <div class="justify-between items-center w-full md:hidden"
              x-cloak
              x-show="open"
              x-collapse.duration.500>
-            <ul class="flex flex-col gap-y-4 gap-x-0 p-4 px-5">
+            <ul class="flex flex-col gap-x-0 gap-y-4 p-4 px-5">
                 <li>
-                    <a href="#"
-                       class="block py-2 px-3 md:p-0 text-white bg-green-700 rounded"
+                    <a href="{% url 'school_menu:index' %}"
+                       class="block py-2 px-3 text-white bg-green-700 rounded md:p-0"
                        aria-current="page">Home</a>
                 </li>
                 <li>
-                    <a href="#"
-                       class="block py-2 px-3 md:p-0 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Scuole</a>
+                    <a href="{% url 'school_menu:school_list' %}"
+                       class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Scuole</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li>
                         <a href="{% url 'school_menu:settings' user.id %}"
-                           class="block py-2 px-3 md:p-0 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">Impostazioni</a>
+                           class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Impostazioni</a>
                     </li>
                     <li>
                         <form action="{% url 'account_logout' %}" method="post">
                             {% csrf_token %}
                             <button type="submit"
                                     href="{% url 'account_logout' %}"
-                                    class="block py-2 px-3 md:p-0 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700">
+                                    class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">
                                 Esci
                             </button>
                         </form>

@@ -2,6 +2,8 @@ from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 
 
 class Meal(models.Model):
@@ -28,11 +30,6 @@ class Meal(models.Model):
         GIOVEDÌ = 4
         VENERDÌ = 5
 
-    first_course = models.CharField(max_length=200)
-    second_course = models.CharField(max_length=200)
-    side_dish = models.CharField(max_length=200)
-    fruit = models.CharField(max_length=200, default="Frutta di Stagione")
-    snack = models.CharField(max_length=200)
     day = models.SmallIntegerField(choices=Days.choices, default=Days.LUNEDÌ)
     week = models.SmallIntegerField(choices=Weeks.choices, default=Weeks.SETTIMANA_1)
     season = models.SmallIntegerField(
@@ -41,44 +38,58 @@ class Meal(models.Model):
     type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
 
+    class Meta:
+        abstract = True
+
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
 
 
-class Settings(models.Model):
+class DetailedMeal(Meal):
+    first_course = models.CharField(max_length=200)
+    second_course = models.CharField(max_length=200)
+    side_dish = models.CharField(max_length=200)
+    fruit = models.CharField(max_length=200, default="Frutta di Stagione")
+    snack = models.CharField(max_length=200)
+
+
+class SimpleMeal(Meal):
+    menu = models.TextField(max_length=600)
+
+
+class School(models.Model):
     class Seasons(models.IntegerChoices):
         PRIMAVERILE = 1
         INVERNALE = 2
 
+    class Types(models.TextChoices):
+        SIMPLE = "S", _("Semplice")
+        DETAILED = "D", _("Dettagliato")
+
+    name = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True, editable=False)
+    city = models.CharField(max_length=200)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     season_choice = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
     )
     week_bias = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"
     )
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-
-    class Meta:
-        verbose_name = "impostazione"
-        verbose_name_plural = "impostazioni"
-
-    def __str__(self):
-        return str(self.user)
-
-
-class School(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=200, unique=True, editable=False)
-    city = models.CharField(max_length=200)
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    menu_type = models.CharField(
+        max_length=1, choices=Types.choices, default=Types.DETAILED
+    )
 
     class Meta:
         verbose_name = "scuola"
         verbose_name_plural = "scuole"
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - {self.city} ({str(self.user)})"
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("school_menu:school_menu", kwargs={"slug": self.slug})

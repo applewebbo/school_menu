@@ -1,91 +1,27 @@
 <div class="text-center" id="day_menu">
-    <a href="{% url 'school_menu:get_menu' week 1 meal.type %}"
-       class="btn {% if day == 1 %}btn-primary{% else %}btn-primary-outline{% endif %}"
-       hx-target="#day_menu"
-       hx-swap="outerHTML"
-       hx-get="{% url 'school_menu:get_menu' week 1 meal.type %}">LUN</a>
-    <a href="{% url 'school_menu:get_menu' week 2 meal.type %}"
-       class="btn {% if day == 2 %}btn-primary{% else %}btn-primary-outline{% endif %}"
-       hx-target="#day_menu"
-       hx-swap="outerHTML"
-       hx-get="{% url 'school_menu:get_menu' week 2 meal.type %}">MAR</a>
-    <a href="{% url 'school_menu:get_menu' week 3 meal.type %}"
-       class="btn {% if day == 3 %}btn-primary{% else %}btn-primary-outline{% endif %}"
-       hx-target="#day_menu"
-       hx-swap="outerHTML"
-       hx-get="{% url 'school_menu:get_menu' week 3 meal.type %}">MER</a>
-    <a href="{% url 'school_menu:get_menu' week 4 meal.type %}"
-       class="btn {% if day == 4 %}btn-primary{% else %}btn-primary-outline{% endif %}"
-       hx-target="#day_menu"
-       hx-swap="outerHTML"
-       hx-get="{% url 'school_menu:get_menu' week 4 meal.type %}">GIO</a>
-    <a href="{% url 'school_menu:get_menu' week 5 meal.type %}"
-       class="btn {% if day == 5 %}btn-primary{% else %}btn-primary-outline{% endif %}"
-       hx-target="#day_menu"
-       hx-swap="outerHTML"
-       hx-get="{% url 'school_menu:get_menu' week 5 meal.type %}">VEN</a>
-    <div id="current_menu" class="text-center my-7">
+    {% include 'partials/_days_menu.html' %}
+    <div id="current_menu" class="my-7 text-center">
         {% if meal %}
-            <h1 class="text-3xl tracking-tight font-medium">Menu del giorno</h1>
-            <p class="my-3 text-xl font-medium">
-                <strong>Pranzo</strong>
-            </p>
-            <ul class="list-unstyled menu-list">
-                <li>{{ meal.first_course }}</li>
-                <li>{{ meal.second_course }}</li>
-                <li>{{ meal.side_dish }}</li>
-                <li>{{ meal.fruit }}</li>
-            </ul>
-            <p class="my-3 text-xl font-medium">
-                <strong>Spuntino</strong>
-            </p>
-            <ul class="list-unstyled menu-list mb-4">
-                <li>{{ meal.snack }}</li>
-            </ul>
-            <span class="bg-green-200 text-green-800 text-xs font-medium me-2 px-3.5 py-1 rounded-full">
+            <h1 class="text-3xl font-medium tracking-tight">Menu del giorno</h1>
+            {% if school.menu_type == "D" %}
+                {% include 'partials/_detailed_menu.html' %}
+            {% else %}
+                {% include 'partials/_simple_menu.html' %}
+            {% endif %}
+            <span class="py-1 px-3.5 text-xs font-medium text-green-800 bg-green-200 rounded-full me-2">
                 {% if meal.season == 2 %}
                     Autunno / Inverno
                 {% else %}
                     Primavera / Estate
                 {% endif %}
             </span>
-            <span class="bg-yellow-200 text-yellow-800 text-xs font-medium me-2 px-3.5 py-1 rounded-full">2023/2024</span>
+            <span class="py-1 px-3.5 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-full me-2">2023/2024</span>
             <br>
         {% else %}
-            <p>
+            <p class="p-12 text-xl font-medium text-gray-900">
                 <em>Nessun menù caricato per il giorno selezionato</em>
             </p>
             <br>
         {% endif %}
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-y-4 gap-x-2" id="season">
-        <div class="place-self-end md:place-self-center">
-            <a href="#"
-               class="btn btn-primary{% if meal.type != 1 %}-outline{% endif %} btn-sm"
-               hx-target="#day_menu"
-               hx-swap="outerHTML"
-               hx-get="{% url 'school_menu:get_menu' week day 1 %}">STANDARD</a>
-        </div>
-        <div class="place-self-start md:place-self-center">
-            <a href="#"
-               class="btn btn-primary{% if meal.type != 4 %}-outline{% endif %} btn-sm"
-               hx-target="#day_menu"
-               hx-swap="outerHTML"
-               hx-get="{% url 'school_menu:get_menu' week day 4 %}">VEGETARIANO</a>
-        </div>
-        <div class="place-self-end md:place-self-center">
-            <a href="#"
-               class="btn btn-primary{% if meal.type != 2 %}-outline{% endif %} btn-sm"
-               hx-target="#day_menu"
-               hx-swap="outerHTML"
-               hx-get="{% url 'school_menu:get_menu' week day 2 %}">NO GLUTINE</a>
-        </div>
-        <div class="place-self-start md:place-self-center">
-            <a href="#"
-               class="btn btn-primary{% if meal.type != 3 %}-outline{% endif %} btn-sm"
-               hx-target="#day_menu"
-               hx-swap="outerHTML"
-               hx-get="{% url 'school_menu:get_menu' week day 3 %}">NO LATTOSIO</a>
-        </div>
     </div>
 </div>

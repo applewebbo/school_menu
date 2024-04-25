@@ -5,10 +5,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 
-from school_menu.forms import SchoolForm, SettingsForm
-from school_menu.models import Meal, School, Settings
+from school_menu.forms import SchoolForm
+from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.serializers import MealSerializer
 
 
@@ -41,10 +42,10 @@ def get_current_date():
 
 def index(request):
     current_week, adjusted_day = get_current_date()
-    bias = Settings.objects.first().week_bias
+    bias = School.objects.first().week_bias
     adjusted_week = calculate_week(current_week, bias)
-    season = Settings.objects.first().season_choice
-    meal_for_today = Meal.objects.filter(
+    season = School.objects.first().season_choice
+    meal_for_today = DetailedMeal.objects.filter(
         week=adjusted_week, day=adjusted_day, season=season
     ).first()
     context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
@@ -55,20 +56,50 @@ def school_menu(request, slug):
     """Return school menu for the given school"""
     school = get_object_or_404(School, slug=slug)
     current_week, adjusted_day = get_current_date()
-    bias = Settings.objects.get(school=school).week_bias
+    bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
-    season = Settings.objects.get(school=school).season_choice
-    meal_for_today = Meal.objects.filter(
-        week=adjusted_week, day=adjusted_day, season=season
-    ).first()
-    context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
+    season = school.season_choice
+    if school.menu_type == School.Types.SIMPLE:
+        weekly_meals = SimpleMeal.objects.filter(
+            school=school, week=adjusted_week, season=season
+        ).order_by("day")
+        meal_for_today = weekly_meals.get(day=adjusted_day)
+    else:
+        weekly_meals = DetailedMeal.objects.filter(
+            school=school, week=adjusted_week, season=season
+        ).order_by("day")
+        meal_for_today = weekly_meals.get(day=adjusted_day)
+    context = {
+        "school": school,
+        "meal": meal_for_today,
+        "weekly_meals": weekly_meals,
+        "week": adjusted_week,
+        "day": adjusted_day,
+    }
     return render(request, "school-menu.html", context)
 
 
-def get_menu(request, week, day, type):
-    season = Settings.objects.first().season_choice
-    meal = Meal.objects.filter(week=week, day=day, type=type, season=season).first()
-    context = {"meal": meal, "week": week, "day": day}
+def get_menu(request, week, day, type, school_id):
+    """get menu for the given school, day, week and type"""
+    school = School.objects.get(pk=school_id)
+    season = school.season_choice
+    if school.menu_type == School.Types.SIMPLE:
+        weekly_meals = SimpleMeal.objects.filter(
+            week=week, type=type, season=season, school=school
+        ).order_by("day")
+    else:
+        weekly_meals = DetailedMeal.objects.filter(
+            week=week, type=type, season=season, school=school
+        ).order_by("day")
+    meal_of_the_day = weekly_meals.get(day=day)
+    context = {
+        "school": school,
+        "meal": meal_of_the_day,
+        "weekly_meals": weekly_meals,
+        "week": week,
+        "day": day,
+        "type": type,
+    }
     return render(request, "partials/_menu.html", context)
 
 
@@ -76,8 +107,10 @@ def get_menu(request, week, day, type):
 def json_menu(request):
     current_week, adjusted_day = get_current_date()
     adjusted_week = calculate_week(current_week, 0)
-    season = Settings.objects.first().season_choice
-    meal_for_today = Meal.objects.filter(week=adjusted_week, type=1, season=season)
+    season = School.objects.first().season_choice
+    meal_for_today = DetailedMeal.objects.filter(
+        week=adjusted_week, type=1, season=season
+    )
     serializer = MealSerializer(meal_for_today, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
@@ -87,7 +120,7 @@ def json_menu(request):
 @login_required
 def settings_view(request, pk):
     User = get_user_model()
-    queryset = User.objects.select_related("school", "settings")
+    queryset = User.objects.select_related("school")
     user = get_object_or_404(queryset, pk=pk)
     context = {"user": user}
     return render(request, "settings.html", context)
@@ -136,33 +169,7 @@ def school_update(request):
     return render(request, "partials/school.html", context)
 
 
-@login_required
-def settings_create(request):
-    user = request.user
-    form = SettingsForm(request.POST or None)
-    if form.is_valid():
-        settings = form.save(commit=False)
-        settings.user = user
-        settings.save()
-        return render(request, "settings.html#settings", {"user": user})
-
-    context = {"form": form, "create": True}
-    return render(request, "partials/settings.html", context)
-
-
-@login_required
-def settings_update(request):
-    user = request.user
-    settings = get_object_or_404(Settings, user=user)
-    form = SettingsForm(request.POST or None, instance=settings)
-    if form.is_valid():
-        settings = form.save()
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            "Settings updated successfully",
-        )
-        return render(request, "settings.html#settings", {"user": user})
-
-    context = {"form": form}
-    return render(request, "partials/settings.html", context)
+def school_list(request):
+    schools = School.objects.all()
+    context = {"schools": schools}
+    return TemplateResponse(request, "school-list.html", context)

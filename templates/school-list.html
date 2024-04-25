@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block page_title %}
+    Tutte le scuole
+{% endblock page_title %}
+{% block content %}
+    <section>
+        <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+            <ul class="my-4">
+                {% for school in schools %}
+                    <li class="mb-3">
+                        <a class="font-medium text-green-600 dark:text-green-500 hover:underline"
+                           href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+{% endblock content %}

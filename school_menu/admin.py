@@ -1,21 +1,21 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 
-from .models import Meal, School, Settings
-from .resources import MealResource
+from .models import DetailedMeal, School, SimpleMeal
+from .resources import DetailedMealResource
 
 # from .forms import CustomExportForm
 
 
-@admin.register(Meal)
-class MealAdmin(ImportExportModelAdmin):
-    resource_classes = [MealResource]
+@admin.register(DetailedMeal)
+class DetailedMealAdmin(ImportExportModelAdmin):
+    resource_classes = [DetailedMealResource]
     list_display = ["__str__", "school"]
     list_filter = ["school"]
 
 
-@admin.register(Settings)
-class SettingAdmin(admin.ModelAdmin):
+@admin.register(SimpleMeal)
+class SimpleMealAdmin(admin.ModelAdmin):
     pass
 
 

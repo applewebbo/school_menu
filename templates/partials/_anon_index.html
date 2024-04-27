@@ -1,0 +1,41 @@
+{% load static heroicons %}
+<div class="max-w-3xl">
+    <p class="italic leading-relaxed text-gray-600">
+        Benvenuti su <span class="font-bold text-green-600">School Menu</span>. Questo progetto ha inizialmente risolto il problema personale di sapere cosa mangiasva mio figlio a scuola senza cercare su un foglio excel e impazzendo a calcolare quale settimana era in corso.
+    </p>
+    <p class="italic leading-relaxed text-gray-600">
+        Ho deciso di condividere questo sforzo e renderlo utilizzabile da chiunque condivida questo problema. Basta registrarsi, creare una scuola e caricare i menu settimanali utilizzando i comodi template in formato CSV.
+    </p>
+    <div class="grid grid-cols-1 gap-6 p-6 mt-6 bg-center bg-cover rounded-xl md:grid-cols-2"
+         id="anon-cta">
+        <div class="py-6 px-4 bg-white rounded-xl border border-gray-300 shadow-md">
+            <p class="mb-6 text-xl font-medium tracking-tight text-center">Cerca la tua scuola</p>
+            <form class="flex items-center mx-auto max-w-sm">
+                <label for="simple-search" class="sr-only">Cerca</label>
+                <div class="relative w-full">
+                    <div class="flex absolute inset-y-0 items-center pointer-events-none start-0 ps-3">
+                        {% heroicon_outline "building-office-2" class="w-4 h-4 text-green-600" %}
+                    </div>
+                    <input type="text"
+                           id="simple-search"
+                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:placeholder-gray-400 dark:text-white dark:bg-gray-700 dark:border-gray-600 focus:border-green-500 focus:ring-green-500 ps-10 dark:focus:ring-green-500 dark:focus:border-green-500"
+                           placeholder="Cerca scuola o città..."
+                           required />
+                </div>
+                <button type="submit"
+                        class="p-2.5 text-sm font-medium text-white bg-green-700 rounded-lg border border-green-700 dark:bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 focus:outline-none ms-2 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    {% heroicon_outline "magnifying-glass" class="w-4 h-4" %}
+                    <span class="sr-only">Search</span>
+                </button>
+            </form>
+        </div>
+        <div class="py-6 px-4 text-center bg-white rounded-xl border border-gray-300 shadow-md">
+            <p class="mb-6 text-xl font-medium tracking-tight">Crea il menu della tua scuola</p>
+            <a href="{% url 'account_signup' %}"
+               class="inline-flex items-center btn btn-xl btn-primary">
+                Registrati
+                {% heroicon_outline "arrow-right" class="w-4 h-4 ms-4" %}
+            </a>
+        </div>
+    </div>
+</div>

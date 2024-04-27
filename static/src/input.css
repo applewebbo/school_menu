@@ -20,6 +20,10 @@
     @apply px-2.5 py-1.5 text-xs rounded-md
   }
 
+  .btn-xl{
+    @apply px-6 py-2.5 text-base rounded-md
+  }
+
   .btn-primary{
     @apply text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800
   }
@@ -54,4 +58,8 @@
   select ~ .pointer-events-none {
     display: none !important;
 }
+}
+
+#anon-cta {
+  background-image: url('../img/anon_header.jpg');
 }

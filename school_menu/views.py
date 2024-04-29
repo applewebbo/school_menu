@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 
@@ -13,6 +13,7 @@ from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.serializers import MealSerializer
 
 
+# TODO: need to refactor this function when number of weeks is different than 4 in settings
 def calculate_week(week, bias):
     """
     Getting week number from today's date translated to week number available in Meal model (1,2,3,4) shifted by bias
@@ -41,14 +42,33 @@ def get_current_date():
 
 
 def index(request):
-    current_week, adjusted_day = get_current_date()
-    bias = School.objects.first().week_bias
-    adjusted_week = calculate_week(current_week, bias)
-    season = School.objects.first().season_choice
-    meal_for_today = DetailedMeal.objects.filter(
-        week=adjusted_week, day=adjusted_day, season=season
-    ).first()
-    context = {"meal": meal_for_today, "week": adjusted_week, "day": adjusted_day}
+    context = {}
+    if request.user.is_authenticated:
+        school = School.objects.filter(user=request.user).first()
+        if not school:
+            redirect("school_menu:settings")
+        current_week, adjusted_day = get_current_date()
+        bias = school.week_bias
+        adjusted_week = calculate_week(current_week, bias)
+        season = school.season_choice
+        # TODO: need to degrade better when menu for the day is not available
+        if school.menu_type == School.Types.SIMPLE:
+            weekly_meals = SimpleMeal.objects.filter(
+                school=school, week=adjusted_week, season=season
+            ).order_by("day")
+            meal_for_today = weekly_meals.get(day=adjusted_day)
+        else:
+            weekly_meals = DetailedMeal.objects.filter(
+                school=school, week=adjusted_week, season=season
+            ).order_by("day")
+            meal_for_today = weekly_meals.get(day=adjusted_day)
+        context = {
+            "school": school,
+            "meal": meal_for_today,
+            "weekly_meals": weekly_meals,
+            "week": adjusted_week,
+            "day": adjusted_day,
+        }
     return render(request, "index.html", context)
 
 
@@ -59,6 +79,7 @@ def school_menu(request, slug):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = school.season_choice
+    # TODO: need to degrade better when menu for the day is not available
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
             school=school, week=adjusted_week, season=season

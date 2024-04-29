@@ -39,10 +39,12 @@
                                 </li>
                             </ul>
                         </div>
-                        <button class="w-full md:w-auto btn btn-sm btn-primary"
-                                hx-target="#school"
-                                hx-swap="innerHTML"
-                                hx-get="{% url 'school_menu:school_update' %}">Modifica</button>
+                        <div class="md:text-right">
+                            <button class="w-full md:w-auto btn btn-sm btn-primary"
+                                    hx-target="#school"
+                                    hx-swap="innerHTML"
+                                    hx-get="{% url 'school_menu:school_update' %}">Modifica</button>
+                        </div>
                     {% else %}
                         <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
                         <button class="w-full md:w-auto btn btn-sm btn-primary"

@@ -51,17 +51,16 @@ def index(request):
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)
         season = school.season_choice
-        # TODO: need to degrade better when menu for the day is not available
         if school.menu_type == School.Types.SIMPLE:
             weekly_meals = SimpleMeal.objects.filter(
                 school=school, week=adjusted_week, season=season
             ).order_by("day")
-            meal_for_today = weekly_meals.get(day=adjusted_day)
+            meal_for_today = weekly_meals.filter(day=adjusted_day).first()
         else:
             weekly_meals = DetailedMeal.objects.filter(
                 school=school, week=adjusted_week, season=season
             ).order_by("day")
-            meal_for_today = weekly_meals.get(day=adjusted_day)
+            meal_for_today = weekly_meals.filter(day=adjusted_day).first()
         context = {
             "school": school,
             "meal": meal_for_today,
@@ -79,17 +78,16 @@ def school_menu(request, slug):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = school.season_choice
-    # TODO: need to degrade better when menu for the day is not available
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
             school=school, week=adjusted_week, season=season
         ).order_by("day")
-        meal_for_today = weekly_meals.get(day=adjusted_day)
+        meal_for_today = weekly_meals.filter(day=adjusted_day).first()
     else:
         weekly_meals = DetailedMeal.objects.filter(
             school=school, week=adjusted_week, season=season
         ).order_by("day")
-        meal_for_today = weekly_meals.get(day=adjusted_day)
+        meal_for_today = weekly_meals.filter(day=adjusted_day).first()
     context = {
         "school": school,
         "meal": meal_for_today,

@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model
@@ -30,7 +30,7 @@ def get_current_date():
     """
     Get current week and day
     """
-    today = datetime.datetime.now()
+    today = datetime.now()
     current_year, current_week, current_day = today.isocalendar()
     # get next week monday's menu on weekends
     if current_day > 5:
@@ -39,6 +39,29 @@ def get_current_date():
     else:
         adjusted_day = current_day
     return current_week, adjusted_day
+
+
+def get_season(school):
+    """
+    Get season based on school's settings
+    """
+    season = school.season_choice
+    if season == School.Seasons.AUTOMATICO:
+        today = datetime.now()
+        day, month = today.day, today.month
+        if (
+            month in [10, 11, 12, 1, 2]
+            or (month == 3 and day < 20)
+            or (month == 9 and day > 21)
+        ):
+            season = School.Seasons.INVERNALE
+        elif (
+            month in [4, 5, 6, 7, 8]
+            or (month == 3 and day > 20)
+            or (month == 9 and day < 21)
+        ):
+            season = School.Seasons.PRIMAVERILE
+    return season
 
 
 def index(request):
@@ -50,7 +73,8 @@ def index(request):
         current_week, adjusted_day = get_current_date()
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)
-        season = school.season_choice
+        season = get_season(school)
+        print(season)
         if school.menu_type == School.Types.SIMPLE:
             weekly_meals = SimpleMeal.objects.filter(
                 school=school, week=adjusted_week, season=season
@@ -77,7 +101,7 @@ def school_menu(request, slug):
     current_week, adjusted_day = get_current_date()
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
-    season = school.season_choice
+    season = get_season(school)
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
             school=school, week=adjusted_week, season=season

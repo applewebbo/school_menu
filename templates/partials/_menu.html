@@ -1,3 +1,4 @@
+{% load heroicons %}
 <div class="text-center" id="day_menu">
     {% include 'partials/_days_menu.html' %}
     <div id="current_menu" class="my-7 text-center">
@@ -24,4 +25,58 @@
             <br>
         {% endif %}
     </div>
+    <div id="share"
+         class="mt-12 mb-4"
+         x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
+        <!--   https://www.alpinejs.dev/component/tooltip -->
+        <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
+           x-data
+           x-tooltip="Condividi via email"
+           class="inline-flex items-center py-2.5 px-5 mb-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg border border-gray-200 shadow dark:text-gray-900 dark:bg-white dark:border-gray-700 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 focus:outline-none me-2 dark:focus:ring-gray-800 dark:hover:bg-gra2-200">
+            {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-2" %}
+            Email
+        </a>
+        <button x-data
+                x-tooltip="Condividi su Facebook"
+                type="button"
+                class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 me-2 mb-2 shadow">
+            <svg class="w-5 h-5 text-blue-800 me-2"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="currentColor"
+                 viewBox="0 0 8 19">
+                <path fill-rule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clip-rule="evenodd" />
+            </svg>
+            Facebook
+        </button>
+        <button type="button"
+                x-data
+                x-tooltip="Copia negli appunti"
+                x-clipboard="address"
+                class="inline-flex items-center py-2.5 px-5 mb-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg border border-gray-200 shadow dark:text-gray-900 dark:bg-white dark:border-gray-700 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 focus:outline-none me-2 dark:focus:ring-gray-800 dark:hover:bg-gray-200">
+            {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-2" %}
+            Copia
+        </button>
+    </div>
 </div>
+<script>
+    document.addEventListener('alpine:init', () => {
+        // Magic: $tooltip
+        Alpine.magic('tooltip', el => message => {
+            let instance = tippy(el, { content: message, trigger: 'manual' })
+
+            instance.show()
+
+            setTimeout(() => {
+                instance.hide()
+
+                setTimeout(() => instance.destroy(), 150)
+            }, 2000)
+        })
+
+        // Directive: x-tooltip
+        Alpine.directive('tooltip', (el, { expression }) => {
+            tippy(el, { content: expression })
+        })
+    })
+</script>

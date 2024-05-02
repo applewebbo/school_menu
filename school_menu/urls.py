@@ -16,7 +16,7 @@ urlpatterns = [
     ),
     path("info", TemplateView.as_view(template_name="pages/info.html"), name="info"),
     path("json_menu", views.json_menu, name="json_menu"),
-    path("menu/<slug:slug>", views.school_menu, name="school_menu"),
+    path("menu/<slug:slug>/", views.school_menu, name="school_menu"),
 ]
 
 htmx_urlpatterns = [

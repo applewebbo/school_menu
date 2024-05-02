@@ -61,6 +61,7 @@ class School(models.Model):
     class Seasons(models.IntegerChoices):
         PRIMAVERILE = 1
         INVERNALE = 2
+        AUTOMATICO = 3
 
     class Types(models.TextChoices):
         SIMPLE = "S", _("Semplice")
@@ -71,7 +72,7 @@ class School(models.Model):
     city = models.CharField(max_length=200)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     season_choice = models.SmallIntegerField(
-        choices=Seasons.choices, default=Seasons.INVERNALE, verbose_name="stagione"
+        choices=Seasons.choices, default=Seasons.AUTOMATICO, verbose_name="stagione"
     )
     week_bias = models.PositiveSmallIntegerField(
         validators=[MaxValueValidator(3)], default=0, verbose_name="scarto"

@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Layout
+from crispy_forms.layout import Div, Layout, Submit
 from django import forms
 
 from school_menu.models import School
@@ -21,6 +21,11 @@ class SchoolForm(forms.ModelForm):
             "week_bias": "Scarto",
             "menu_type": "Tipo di Menù",
         }
+        help_texts = {
+            "season_choice": "Selezionando Automatico il sistema sceglierà la stagione in base alla data attuale",
+            "week_bias": "Modificare il valore per allineare la settimana in corso (max=3)",
+            "menu_type": "Seleziona Semplice per un singolo campo, Dettagliato per avere menu diviso in primo, secondo, contorno e spuntino",
+        }
         error_messages = {
             "week_bias": {
                 "max_value": "Il valore massimo è 3",
@@ -36,12 +41,20 @@ class SchoolForm(forms.ModelForm):
                 Div(
                     "name",
                     "city",
+                    "menu_type",
                 ),
                 Div(
                     "season_choice",
                     "week_bias",
-                    "menu_type",
                 ),
                 css_class="grid grid-cols-1 md:grid-cols-2 md:gap-4",
+            ),
+            Div(
+                Submit(
+                    "submit",
+                    "Salva",
+                    css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
+                ),
+                css_class="md:text-right",
             ),
         )

@@ -1,10 +1,9 @@
 {% load crispy_forms_tags %}
-<div class="mb-2">
+<div class="mb-4">
     <h5 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white grow">Scuola</h5>
 </div>
 <form hx-post="{% if create %} {% url 'school_menu:school_create' %} {% else %} {% url 'school_menu:school_update' %} {% endif %}"
       hx-target="#school"
       hx-swap="innerHTML">
     {% crispy form %}
-    <button type="submit" class="w-full md:w-auto btn btn-sm btn-primary">Salva</button>
 </form>

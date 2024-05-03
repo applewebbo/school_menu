@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load partials %}
+{% load partials heroicons %}
 {% block page_title %}
     Impostazioni
 {% endblock page_title %}
@@ -10,50 +10,84 @@
             <p>
                 Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio
             </p>
-            <div class="mt-6">
-                <div class="block p-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
-                     id="school">
-                    {% partialdef school inline=True %}
-                    <h5 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
-                        Scuola
-                    </h5>
-                    {% if user.school %}
-                        <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2 dark:text-gray-400">
-                            <ul class="leading-10" id="school-settings">
-                                <li>
-                                    <span class="font-bold">Nome:</span> {{ user.school.name }}
-                                </li>
-                                <li>
-                                    <span class="font-bold">Città:</span> {{ user.school.city }}
-                                </li>
-                                <li>
-                                    <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
-                                </li>
-                            </ul>
-                            <ul class="leading-10" id="meal-settings">
-                                <li>
-                                    <span class="font-bold">Menu Stagionale:</span> {{ user.school.get_season_choice_display }}
-                                </li>
-                                <li>
-                                    <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="md:text-right">
-                            <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
-                                    hx-target="#school"
-                                    hx-swap="innerHTML"
-                                    hx-get="{% url 'school_menu:school_update' %}">Modifica</button>
-                        </div>
-                    {% else %}
-                        <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
-                        <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
+            <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
+                 id="school">
+                {% partialdef school inline=True %}
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                    Scuola
+                </h5>
+                {% if user.school %}
+                    <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
+                        <ul class="leading-10" id="school-settings">
+                            <li>
+                                <span class="font-bold">Nome:</span> {{ user.school.name }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Città:</span> {{ user.school.city }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
+                            </li>
+                        </ul>
+                        <ul class="leading-10" id="meal-settings">
+                            <li>
+                                <span class="font-bold">Menu Stagionale:</span> {{ user.school.get_season_choice_display }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="md:text-right">
+                        <button class="inline-flex items-center mt-2 w-full md:w-auto btn btn-sm btn-primary"
                                 hx-target="#school"
                                 hx-swap="innerHTML"
-                                hx-get="{% url 'school_menu:school_create' %}">Crea</button>
-                    {% endif %}
-                {% endpartialdef %}
+                                hx-get="{% url 'school_menu:school_update' %}">
+                            Modifica
+                            {% heroicon_solid 'pencil' class="w-5 h-5 text-white ms-2" %}
+                        </button>
+                    </div>
+                {% else %}
+                    <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
+                    <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
+                            hx-target="#school"
+                            hx-swap="innerHTML"
+                            hx-get="{% url 'school_menu:school_create' %}">Crea</button>
+                {% endif %}
+            {% endpartialdef %}
+        </div>
+        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
+             id="menu">
+            <div class="flex items-center mb-4">
+                <h5 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                    Menu
+                </h5>
+                <button class="inline-flex items-center btn btn-sm btn-primary">
+                    Settimana
+                    {% heroicon_solid 'plus-circle' class="w-5 h-5 text-white ms-2" %}
+                </button>
             </div>
+            <ul class="leading-10">
+                <li>
+                    <div class="flex">
+                        <div class="grow">
+                            <span class="font-bold">Settimana 1</span>
+                        </div>
+                        <div class="grow-0">
+                            <button type="button"
+                                    class="inline-flex items-center btn btn-xs btn-danger-outline">
+                                Modifica
+                                {% heroicon_mini 'pencil' class="w-4 h-4 text-red-700 ms-2" %}
+                            </button>
+                            <button type="button"
+                                    class="inline-flex items-center btn btn-xs btn-secondary-outline">
+                                Carica Menu
+                                {% heroicon_mini 'arrow-up-on-square-stack' class="w-4 h-4 text-teal-700 ms-2" %}
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            </ul>
         </div>
     </div>
 </section>

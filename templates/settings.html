@@ -8,7 +8,7 @@
         <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
             <h1 class="my-4 text-2xl font-semibold tracking-tight text-center">Impostazioni</h1>
             <p>
-                Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio
+                Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio. Puoi caricare i menu settimanali oppure modificare quelli già presenti.
             </p>
             <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
                  id="school">
@@ -44,7 +44,7 @@
                                 hx-swap="innerHTML"
                                 hx-get="{% url 'school_menu:school_update' %}">
                             Modifica
-                            {% heroicon_solid 'pencil' class="w-5 h-5 text-white ms-2" %}
+                            {% heroicon_solid 'pencil' class="w-4 h-4 text-white ms-2" %}
                         </button>
                     </div>
                 {% else %}
@@ -64,7 +64,7 @@
                 </h5>
                 <button class="inline-flex items-center btn btn-sm btn-primary">
                     Settimana
-                    {% heroicon_solid 'plus-circle' class="w-5 h-5 text-white ms-2" %}
+                    {% heroicon_solid 'plus-circle' class="w-4 h-4 text-white ms-2" %}
                 </button>
             </div>
             <ul class="leading-10">

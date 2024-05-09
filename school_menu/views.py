@@ -229,13 +229,14 @@ def upload_menu(request, school_id):
         for index, row in df.iterrows():
             DetailedMeal.objects.update_or_create(
                 day=row["day"],
+                week=row["week"],
+                season=row["season"],
                 first_course=row["first_course"],
                 second_course=row["second_course"],
                 side_dish=row["side_dish"],
                 fruit=row["fruit"],
                 snack=row["snack"],
                 school=school,
-                week=1,
             )
         return TemplateResponse(request, "settings.html#menu_upload")
     else:

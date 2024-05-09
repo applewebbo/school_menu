@@ -1,5 +1,6 @@
 from datetime import datetime
 
+import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -8,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 
-from school_menu.forms import SchoolForm
+from school_menu.forms import SchoolForm, UploadMenuForm
 from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.serializers import MealSerializer
 
@@ -216,3 +217,32 @@ def school_list(request):
     schools = School.objects.all()
     context = {"schools": schools}
     return TemplateResponse(request, "school-list.html", context)
+
+
+def upload_menu(request, school_id):
+    school = get_object_or_404(School, pk=school_id)
+    if request.method == "POST":
+        form = UploadMenuForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data["file"]
+        df = pd.read_csv(file)
+        for index, row in df.iterrows():
+            DetailedMeal.objects.update_or_create(
+                day=row["day"],
+                first_course=row["first_course"],
+                second_course=row["second_course"],
+                side_dish=row["side_dish"],
+                fruit=row["fruit"],
+                snack=row["snack"],
+                school=school,
+                week=1,
+            )
+        return TemplateResponse(request, "settings.html#menu_upload")
+    else:
+        form = UploadMenuForm()  # replace with your form
+    context = {"form": form, "school": school}
+    return TemplateResponse(request, "upload-menu.html", context)
+
+
+def cancel_upload_menu(request):
+    return TemplateResponse(request, "settings.html#menu_upload")

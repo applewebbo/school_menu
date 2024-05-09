@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Layout, Submit
+from crispy_forms.layout import Button, Div, Field, Layout, Submit
 from django import forms
+from django.urls import reverse
 
 from school_menu.models import School
 
@@ -56,5 +57,35 @@ class SchoolForm(forms.ModelForm):
                     css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
                 ),
                 css_class="md:text-right",
+            ),
+        )
+
+
+class UploadMenuForm(forms.Form):
+    file = forms.FileField(label="Carica File")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.form_show_labels = False
+        self.helper.layout = Layout(
+            Div(
+                Field(
+                    "file",
+                    css_class="file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-300 text-slate-500 text-sm",
+                ),
+                Submit(
+                    "submit",
+                    "Salva",
+                    css_class="btn btn-sm btn-primary ms-2",
+                ),
+                Button(
+                    "cancel",
+                    "Annulla",
+                    css_class="btn btn-sm btn-danger-outline ms-2",
+                    hx_get=reverse("school_menu:cancel_upload_menu"),
+                ),
+                css_class="flex items-start justify-center",
             ),
         )

@@ -1,0 +1,8 @@
+{% load crispy_forms_tags %}
+<form method="post"
+      enctype="multipart/form-data"
+      hx-post="{% url 'school_menu:upload_menu' school.id %}"
+      hx-swap="innerHTML"
+      hx-target="#menu_upload">
+    {% crispy form %}
+</form>

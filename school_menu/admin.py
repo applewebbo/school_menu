@@ -2,7 +2,7 @@ from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 
 from .models import DetailedMeal, School, SimpleMeal
-from .resources import DetailedMealResource
+from .resources import DetailedMealResource, SimpleMealResource
 
 # from .forms import CustomExportForm
 
@@ -15,8 +15,8 @@ class DetailedMealAdmin(ImportExportModelAdmin):
 
 
 @admin.register(SimpleMeal)
-class SimpleMealAdmin(admin.ModelAdmin):
-    pass
+class SimpleMealAdmin(ImportExportModelAdmin):
+    resource_classes = [SimpleMealResource]
 
 
 @admin.register(School)

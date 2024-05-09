@@ -28,23 +28,34 @@ gunicorn==21.2.0
 heroicons==2.6.0
 markuppy==1.14
     # via tablib
+numpy==1.26.4
+    # via pandas
 odfpy==1.4.1
     # via tablib
 openpyxl==3.1.2
     # via tablib
 packaging==24.0
     # via gunicorn
+pandas==2.2.2
 psycopg==3.1.18
 psycopg-binary==3.1.18
     # via psycopg
+python-dateutil==2.9.0.post0
+    # via pandas
+pytz==2024.1
+    # via pandas
 pyyaml==6.0.1
     # via tablib
+six==1.16.0
+    # via python-dateutil
 sqlparse==0.5.0
     # via django
 tablib==3.5.0
     # via django-import-export
 typing-extensions==4.11.0
     # via psycopg
+tzdata==2024.1
+    # via pandas
 whitenoise==6.6.0
 xlrd==2.0.1
     # via tablib

@@ -12,6 +12,8 @@ dependencies = [
     "djangorestframework",
     "heroicons[django]",
     "gunicorn==21.2.0",
+    "pandas==2.2.2",
+    "openpyxl==3.1.2",
     "psycopg[binary]",
     "whitenoise",
 ]
@@ -40,7 +42,7 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "B", "I"]
-ignore = ["E501", "E741", "F405"]
+ignore = ["E501", "E741", "F405", "B007"]
 
 
 [tool.djlint]

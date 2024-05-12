@@ -67,6 +67,13 @@
     @apply block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500
   }
 
+  .file-upload-input {
+    @apply block w-full border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400
+    file:bg-gray-50 file:border-0
+    file:me-4
+    file:py-3 file:px-4
+  }
+
   select ~ .pointer-events-none {
     display: none !important;
 }
@@ -74,4 +81,18 @@
 
 #anon-cta {
   background-image: url('../img/anon_header.jpg');
+}
+
+[x-cloak] { display: none !important; }
+
+#logo-credits {
+  text-decoration: none;
+}
+
+#logo-credits:hover {
+  text-decoration: underline;
+}
+
+.menu-list {
+  font-size: 1.1rem
 }

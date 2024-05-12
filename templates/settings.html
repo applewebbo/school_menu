@@ -44,7 +44,7 @@
                                 hx-swap="innerHTML"
                                 hx-get="{% url 'school_menu:school_update' %}">
                             Modifica
-                            {% heroicon_solid 'pencil' class="hidden w-4 h-4 text-white md:block ms-2" %}
+                            {% heroicon_solid 'pencil' class="hidden text-white md:block size-4 ms-2" %}
                         </button>
                     </div>
                 {% else %}
@@ -61,20 +61,18 @@
             <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-2 md:text-left">
                 <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h5>
                 {% partialdef menu_upload inline=True %}
-                <div id="menu_upload" class="text-center md:text-right">
-                    <button class="inline-flex items-center mr-2 group btn btn-sm btn-dark-outline"
-                            hx-get="{% url 'school_menu:upload_menu' user.school.id %}"
-                            hx-target="#menu_upload"
-                            hx-swap="innerHTML">
+                <div x-data id="menu_upload" class="text-center md:text-right">
+                    <button class="inline-flex items-center mr-2 group btn btn-sm btn-dark-outline">
                         <span class="hidden sm:block">Scarica&nbsp;</span> Menu
-                        {% heroicon_solid 'arrow-down-on-square-stack' class="w-5 h-5 text-gray-700 group-hover:text-white ms-2" %}
+                        {% heroicon_solid 'arrow-down-on-square-stack' class="text-gray-700 group-hover:text-white size-5 ms-2" %}
                     </button>
                     <button class="inline-flex items-center group btn btn-sm btn-dark-outline"
                             hx-get="{% url 'school_menu:upload_menu' user.school.id %}"
-                            hx-target="#menu_upload"
-                            hx-swap="innerHTML">
+                            hx-target="#dialog"
+                            hx-swap="innerHTML"
+                            @click="$dispatch('open-modal')">
                         <span class="hidden sm:block">Carica&nbsp;</span>Menu
-                        {% heroicon_solid 'arrow-up-on-square-stack' class="w-5 h-5 text-gray-700 group-hover:text-white ms-2" %}
+                        {% heroicon_solid 'arrow-up-on-square-stack' class="text-gray-700 group-hover:text-white size-5 ms-2" %}
                     </button>
                 </div>
             {% endpartialdef %}
@@ -85,7 +83,7 @@
                 <button type="button"
                         class="inline-flex items-center btn btn-xs btn-danger-outline">
                     Modifica
-                    {% heroicon_mini 'pencil' class="w-4 h-4 text-red-700 ms-2" %}
+                    {% heroicon_mini 'pencil' class="text-red-700 size-4 ms-2" %}
                 </button>
             </div>
             <div class="flex items-center">
@@ -93,7 +91,7 @@
                 <button type="button"
                         class="inline-flex items-center btn btn-xs btn-danger-outline">
                     Modifica
-                    {% heroicon_mini 'pencil' class="w-4 h-4 text-red-700 ms-2" %}
+                    {% heroicon_mini 'pencil' class="text-red-700 size-4 ms-2" %}
                 </button>
             </div>
             <div class="flex items-center">
@@ -101,7 +99,7 @@
                 <button type="button"
                         class="inline-flex items-center btn btn-xs btn-danger-outline">
                     Modifica
-                    {% heroicon_mini 'pencil' class="w-4 h-4 text-red-700 ms-2" %}
+                    {% heroicon_mini 'pencil' class="text-red-700 size-4 ms-2" %}
                 </button>
             </div>
             <div class="flex items-center">
@@ -109,7 +107,7 @@
                 <button type="button"
                         class="inline-flex items-center btn btn-xs btn-danger-outline">
                     Modifica
-                    {% heroicon_mini 'pencil' class="w-4 h-4 text-red-700 ms-2" %}
+                    {% heroicon_mini 'pencil' class="text-red-700 size-4 ms-2" %}
                 </button>
             </div>
         </div>

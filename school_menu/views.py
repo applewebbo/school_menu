@@ -240,10 +240,6 @@ def upload_menu(request, school_id):
             )
         return TemplateResponse(request, "settings.html#menu_upload")
     else:
-        form = UploadMenuForm()  # replace with your form
+        form = UploadMenuForm()
     context = {"form": form, "school": school}
     return TemplateResponse(request, "upload-menu.html", context)
-
-
-def cancel_upload_menu(request):
-    return TemplateResponse(request, "settings.html#menu_upload")

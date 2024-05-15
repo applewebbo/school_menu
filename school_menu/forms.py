@@ -2,7 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout, Submit
 from django import forms
 
-from school_menu.models import School
+from school_menu.models import Meal, School
 
 
 class SchoolForm(forms.ModelForm):
@@ -61,14 +61,19 @@ class SchoolForm(forms.ModelForm):
 
 
 class UploadMenuForm(forms.Form):
-    file = forms.FileField(label="Carica File")
+    season = forms.ChoiceField(
+        choices=Meal.Seasons.choices,
+        label="Stagionalità",
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    file = forms.FileField(label="Carica Menu")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
-        self.helper.form_show_labels = False
         self.helper.layout = Layout(
+            "season",
             Field(
                 "file",
                 css_class="file-upload-input mb-2",

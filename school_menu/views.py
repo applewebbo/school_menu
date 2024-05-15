@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.response import TemplateResponse
+from django.template.response import HttpResponse, TemplateResponse
 from django.views.decorators.http import require_http_methods
 
 from school_menu.forms import SchoolForm, UploadMenuForm
@@ -63,6 +63,13 @@ def get_season(school):
         ):
             season = School.Seasons.PRIMAVERILE
     return season
+
+
+def get_user(pk):
+    User = get_user_model()
+    queryset = User.objects.select_related("school")
+    user = get_object_or_404(queryset, pk=pk)
+    return user
 
 
 def index(request):
@@ -163,11 +170,18 @@ def json_menu(request):
 
 @login_required
 def settings_view(request, pk):
-    User = get_user_model()
-    queryset = User.objects.select_related("school")
-    user = get_object_or_404(queryset, pk=pk)
+    """Get the settings page"""
+    user = get_user(pk)
     context = {"user": user}
     return render(request, "settings.html", context)
+
+
+@login_required
+def menu_settings_partial(request, pk):
+    """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
+    user = get_user(pk)
+    context = {"user": user, "htmx": True}
+    return render(request, "settings.html#menu", context)
 
 
 @login_required
@@ -225,12 +239,13 @@ def upload_menu(request, school_id):
         form = UploadMenuForm(request.POST, request.FILES)
         if form.is_valid():
             file = form.cleaned_data["file"]
+            season = form.cleaned_data["season"]
         df = pd.read_csv(file)
         for index, row in df.iterrows():
             DetailedMeal.objects.update_or_create(
                 day=row["day"],
                 week=row["week"],
-                season=row["season"],
+                season=season,
                 first_course=row["first_course"],
                 second_course=row["second_course"],
                 side_dish=row["side_dish"],
@@ -238,7 +253,12 @@ def upload_menu(request, school_id):
                 snack=row["snack"],
                 school=school,
             )
-        return TemplateResponse(request, "settings.html#menu_upload")
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "<strong>Menu</strong> salvato correttamente",
+        )
+        return HttpResponse(status=204, headers={"HX-Trigger": "menuSaved"})
     else:
         form = UploadMenuForm()
     context = {"form": form, "school": school}

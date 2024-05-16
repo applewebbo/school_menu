@@ -68,6 +68,14 @@ class UploadMenuForm(forms.Form):
     )
     file = forms.FileField(label="Carica Menu")
 
+    def clean_file(self):
+        file = self.cleaned_data.get("file")
+        if file:
+            ext = file.name.split(".")[-1].lower()
+            if ext not in ["xls", "xlsx"]:
+                raise forms.ValidationError("Il file deve essere in formato xls o xlsx")
+        return file
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
@@ -77,5 +85,6 @@ class UploadMenuForm(forms.Form):
             Field(
                 "file",
                 css_class="file-upload-input mb-2",
+                accept=".xls, .xlsx",
             ),
         )

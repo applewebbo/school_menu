@@ -61,7 +61,7 @@
              id="menu"
              hx-get="{% url 'school_menu:menu_settings' user.pk %}"
              hx-swap="innerHTML"
-             hx-trigger="menuSaved from:body">
+             hx-trigger="menuModified from:body">
             <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-2 md:text-left">
                 <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h5>
                 <div x-data id="menu_upload" class="text-center md:text-right">

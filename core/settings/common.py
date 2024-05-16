@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django_tailwind_cli",
     "heroicons",
     "import_export",
+    "neapolitan",
     "template_partials",
     # INTERNAL APPS
     "users",

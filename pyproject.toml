@@ -12,6 +12,7 @@ dependencies = [
     "djangorestframework",
     "heroicons[django]",
     "gunicorn==21.2.0",
+    "neapolitan",
     "pandas==2.2.2",
     "openpyxl==3.1.2",
     "psycopg[binary]",

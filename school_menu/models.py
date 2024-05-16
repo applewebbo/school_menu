@@ -55,6 +55,7 @@ class DetailedMeal(Meal):
 
 class SimpleMeal(Meal):
     menu = models.TextField(max_length=600)
+    snack = models.CharField(max_length=200)
 
 
 class School(models.Model):

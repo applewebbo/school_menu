@@ -72,60 +72,68 @@ def get_user(pk):
     return user
 
 
-def import_menu(request, file, school, season):
+def import_menu(request, file, menu_type, school, season):
     """take a file and import the menu into the database dealing with validation errors and relative messages"""
     df = pd.read_excel(file, engine="openpyxl")
-    # check if the file contains all the required columns
-    required_columns = [
-        "giorno",
-        "settimana",
-        "primo",
-        "secondo",
-        "contorno",
-        "frutta",
-        "spuntino",
-    ]
-    if not all(column in df.columns for column in required_columns):
+    if menu_type == School.Types.DETAILED:
+        # check if the file contains all the required columns
+        required_columns = [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        if not all(column in df.columns for column in required_columns):
+            messages.add_message(
+                request,
+                messages.ERROR,
+                "Formato non valido. Il file non contiene tutte le colonne richieste.",
+            )
+            return
+
+        day_mapping = {
+            "Lunedì": 1,
+            "Martedì": 2,
+            "Mercoledì": 3,
+            "Giovedì": 4,
+            "Venerdì": 5,
+        }
+        df["giorno"] = df["giorno"].map(day_mapping)
+        # Check if 'day' rows contain only the day names
+        if not df["giorno"].isin(day_mapping.values()).all():
+            messages.error(
+                request,
+                'Formato non valido. La colonna "giorno" contiene valori diversi dai giorni della settimana.',
+            )
+            return
+        for index, row in df.iterrows():
+            DetailedMeal.objects.update_or_create(
+                week=row["settimana"],
+                day=row["giorno"],
+                season=season,
+                first_course=row["primo"],
+                second_course=row["secondo"],
+                side_dish=row["contorno"],
+                fruit=row["frutta"],
+                snack=row["spuntino"],
+                school=school,
+            )
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "<strong>Menu</strong> salvato correttamente",
+        )
+        return
+    else:
         messages.add_message(
             request,
             messages.ERROR,
-            "Formato non valido. Il file non contiene tutte le colonne richieste.",
+            "Menu semplice non ancora implementato. Scegliere un altro tipo di menu.",
         )
         return
-
-    day_mapping = {
-        "Lunedì": 1,
-        "Martedì": 2,
-        "Mercoledì": 3,
-        "Giovedì": 4,
-        "Venerdì": 5,
-    }
-    df["giorno"] = df["giorno"].map(day_mapping)
-    # Check if 'day' rows contain only the day names
-    if not df["giorno"].isin(day_mapping.values()).all():
-        messages.error(
-            request,
-            'Formato non valido. La colonna "giorno" contiene valori diversi dai giorni della settimana.',
-        )
-        return
-    for index, row in df.iterrows():
-        DetailedMeal.objects.update_or_create(
-            week=row["settimana"],
-            day=row["giorno"],
-            season=season,
-            first_course=row["primo"],
-            second_course=row["secondo"],
-            side_dish=row["contorno"],
-            fruit=row["frutta"],
-            snack=row["spuntino"],
-            school=school,
-        )
-    messages.add_message(
-        request,
-        messages.SUCCESS,
-        "<strong>Menu</strong> salvato correttamente",
-    )
-    return
 
 
 def index(request):
@@ -291,12 +299,13 @@ def school_list(request):
 
 def upload_menu(request, school_id):
     school = get_object_or_404(School, pk=school_id)
+    menu_type = school.menu_type
     if request.method == "POST":
         form = UploadMenuForm(request.POST, request.FILES)
         if form.is_valid():
             file = form.cleaned_data["file"]
             season = form.cleaned_data["season"]
-            import_menu(request, file, school, season)
+            import_menu(request, file, menu_type, school, season)
             return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
         context = {"form": form, "school": school}
         return TemplateResponse(request, "upload-menu.html", context)

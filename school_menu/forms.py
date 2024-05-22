@@ -112,11 +112,12 @@ class SimpleMealForm(forms.ModelForm):
 class DetailedMealForm(forms.ModelForm):
     class Meta:
         model = DetailedMeal
-        fields = ["first_course", "second_course", "side_dish", "snack"]
+        fields = ["first_course", "second_course", "side_dish", "fruit", "snack"]
         labels = {
             "first_course": "Primo",
             "second_course": "Secondo",
             "side_dish": "Contorno",
+            "fruit": "Frutta",
             "snack": "Spuntino",
         }
 
@@ -128,5 +129,6 @@ class DetailedMealForm(forms.ModelForm):
             "first_course",
             "second_course",
             "side_dish",
+            "fruit",
             "snack",
         )

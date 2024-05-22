@@ -41,7 +41,7 @@ def get_season(school):
     Get season based on school's settings
     """
     season = school.season_choice
-    if season == School.Seasons.AUTOMATICO:
+    if season == School.Seasons.AUTOMATICA:
         today = datetime.now()
         day, month = today.day, today.month
         if (

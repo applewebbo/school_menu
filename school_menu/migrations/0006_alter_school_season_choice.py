@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
             model_name="school",
             name="season_choice",
             field=models.SmallIntegerField(
-                choices=[(1, "Primaverile"), (2, "Invernale"), (3, "Automatico")],
+                choices=[(1, "Primaverile"), (2, "Invernale"), (3, "AUTOMATICA")],
                 default=3,
                 verbose_name="stagione",
             ),

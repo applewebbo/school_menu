@@ -2,7 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Div, Field, Layout, Submit
 from django import forms
 
-from school_menu.models import Meal, School
+from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 
 
 class SchoolForm(forms.ModelForm):
@@ -22,7 +22,7 @@ class SchoolForm(forms.ModelForm):
             "menu_type": "Tipo di Menù",
         }
         help_texts = {
-            "season_choice": "Selezionando Automatico il sistema sceglierà la stagione in base alla data attuale",
+            "season_choice": "Selezionando AUTOMATICA il sistema sceglierà la stagione in base alla data attuale",
             "week_bias": "Modificare il valore per allineare la settimana in corso (max=3)",
             "menu_type": "Seleziona Semplice per un singolo campo, Dettagliato per avere menu diviso in primo, secondo, contorno e spuntino",
         }
@@ -87,4 +87,46 @@ class UploadMenuForm(forms.Form):
                 css_class="file-upload-input mb-2",
                 accept=".xls, .xlsx",
             ),
+        )
+
+
+class SimpleMealForm(forms.ModelForm):
+    class Meta:
+        model = SimpleMeal
+        fields = ["menu", "snack"]
+        labels = {
+            "menu": "Menù",
+            "snack": "Spuntino",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field("menu", css_class="h-36"),
+            "snack",
+        )
+
+
+class DetailedMealForm(forms.ModelForm):
+    class Meta:
+        model = DetailedMeal
+        fields = ["first_course", "second_course", "side_dish", "snack"]
+        labels = {
+            "first_course": "Primo",
+            "second_course": "Secondo",
+            "side_dish": "Contorno",
+            "snack": "Spuntino",
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            "first_course",
+            "second_course",
+            "side_dish",
+            "snack",
         )

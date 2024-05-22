@@ -12,10 +12,11 @@
             </p>
             <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
                  id="school">
+                <!-- SCHOOL -->
                 {% partialdef school inline=True %}
-                <h5 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
                     Scuola
-                </h5>
+                </h3>
                 {% if user.school %}
                     <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
                         <ul class="leading-10" id="school-settings">
@@ -31,7 +32,7 @@
                         </ul>
                         <ul class="leading-10" id="meal-settings">
                             <li>
-                                <span class="font-bold">Menu Stagionale:</span> {{ user.school.get_season_choice_display }}
+                                <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
                             </li>
                             <li>
                                 <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
@@ -54,8 +55,10 @@
                             hx-swap="innerHTML"
                             hx-get="{% url 'school_menu:school_create' %}">Crea</button>
                 {% endif %}
+                <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
             {% endpartialdef %}
         </div>
+        <!-- MENU  -->
         {% partialdef menu inline=true %}
         <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
              id="menu"
@@ -63,7 +66,7 @@
              hx-swap="innerHTML"
              hx-trigger="menuModified from:body">
             <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-2 md:text-left">
-                <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h5>
+                <h3 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h3>
                 <div x-data id="menu_upload" class="text-center md:text-right">
                     <button class="inline-flex items-center mr-2 group btn btn-sm btn-disabled"
                             disabled>
@@ -79,42 +82,80 @@
                         {% heroicon_solid 'arrow-up-on-square-stack' class="text-gray-700 group-hover:text-white size-5 ms-2" %}
                     </button>
                 </div>
-                {% if htmx %}
-                    <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
-                {% endif %}
+                <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
             </div>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-                <div class="flex items-center">
-                    <h4 class="mr-8 font-bold grow md:grow-0">Settimana 1</h4>
-                    <button type="button"
-                            class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                        Modifica
-                        {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                    </button>
+            <div class="grid grid-cols-1 gap-y-2 gap-x-4 md:grid-cols-2 md:gap-x-6 md:gp-y-4">
+                <div class="grid grid-cols-1 gap-y-2" id="winter-weeks">
+                    <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:text-left">Autunno / Inverno</h4>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 1</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 2</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 3</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 4</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
                 </div>
-                <div class="flex items-center">
-                    <h4 class="mr-8 font-bold grow md:grow-0">Settimana 2</h4>
-                    <button type="button"
-                            class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                        Modifica
-                        {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                    </button>
-                </div>
-                <div class="flex items-center">
-                    <h4 class="mr-8 font-bold grow md:grow-0">Settimana 3</h4>
-                    <button type="button"
-                            class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                        Modifica
-                        {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                    </button>
-                </div>
-                <div class="flex items-center">
-                    <h4 class="mr-8 font-bold grow md:grow-0">Settimana 4</h4>
-                    <button type="button"
-                            class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                        Modifica
-                        {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                    </button>
+                <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
+                <div class="grid grid-cols-1 gap-y-2" id="spring-weeks">
+                    <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:text-left">Primavera / Estate</h4>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 1</h5>
+                        <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
+                           href="{% url 'school_menu:create_weekly_menu' user.school.id 1 2 %}"
+                           hx-boost="true">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </a>
+                    </div>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 2</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 3</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
+                    <div class="flex items-center">
+                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 4</h5>
+                        <button type="button"
+                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
+                            Modifica
+                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                        </button>
+                    </div>
                 </div>
             </div>
         {% endpartialdef %}

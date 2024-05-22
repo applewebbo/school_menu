@@ -1,11 +1,17 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
 from django.views.decorators.http import require_http_methods
 
-from school_menu.forms import SchoolForm, UploadMenuForm
+from school_menu.forms import (
+    DetailedMealForm,
+    SchoolForm,
+    SimpleMealForm,
+    UploadMenuForm,
+)
 from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.serializers import MealSerializer
 from school_menu.utils import (
@@ -125,7 +131,7 @@ def settings_view(request, pk):
 def menu_settings_partial(request, pk):
     """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
     user = get_user(pk)
-    context = {"user": user, "htmx": True}
+    context = {"user": user}
     return render(request, "settings.html#menu", context)
 
 
@@ -164,7 +170,7 @@ def school_update(request):
         messages.add_message(
             request,
             messages.SUCCESS,
-            f"<strong>{school.name}</strong> updated successfully",
+            f"<strong>{school.name}</strong> aggiornata con successo",
         )
         return render(request, "settings.html#school", {"school": school})
 
@@ -194,3 +200,65 @@ def upload_menu(request, school_id):
         form = UploadMenuForm()
     context = {"form": form, "school": school}
     return TemplateResponse(request, "upload-menu.html", context)
+
+
+@login_required
+def create_weekly_menu(request, school_id, week, season):
+    qs = School.objects.all().select_related("user")
+    school = get_object_or_404(qs, pk=school_id)
+    menu_type = school.menu_type
+    # check if the meal for the given week and season already exists
+    if menu_type == School.Types.SIMPLE:
+        weekly_meals = SimpleMeal.objects.filter(
+            week=week, season=season, school=school
+        )
+    else:
+        weekly_meals = DetailedMeal.objects.filter(
+            week=week, season=season, school=school
+        )
+    # if the meals don't exist, create them with blank values
+    if not weekly_meals.exists():
+        if menu_type == School.Types.SIMPLE:
+            for day in range(1, 6):
+                SimpleMeal.objects.create(
+                    week=week, day=day, season=season, school=school
+                )
+        else:
+            for day in range(1, 6):
+                DetailedMeal.objects.create(
+                    week=week, day=day, season=season, school=school
+                )
+    # create a formset for editing the meals for the week
+    if menu_type == School.Types.SIMPLE:
+        MealFormSet = modelformset_factory(
+            SimpleMeal,
+            form=SimpleMealForm,
+            extra=0,
+            fields=("menu", "snack"),
+        )
+    else:
+        MealFormSet = modelformset_factory(
+            DetailedMeal,
+            form=DetailedMealForm,
+            extra=0,
+            fields=("first_course", "second_course", "side_dish", "fruit", "snack"),
+        )
+    if menu_type == School.Types.SIMPLE:
+        meals = SimpleMeal.objects.filter(week=week, season=season, school=school)
+    else:
+        meals = DetailedMeal.objects.filter(week=week, season=season, school=school)
+    formset = MealFormSet(request.POST or None, queryset=meals)
+    if request.method == "POST":
+        print(formset.errors)
+        if formset.is_valid():
+            formset.save()
+            messages.add_message(
+                request, messages.SUCCESS, "Menu settimanale salvato con successo"
+            )
+            return redirect("school_menu:settings", pk=school.user.pk)
+        context = {"formset": formset, "school": school, "week": week, "season": season}
+        return render(request, "create-weekly-menu.html", context)
+    else:
+        formset = MealFormSet(queryset=meals)
+    context = {"formset": formset, "school": school, "week": week, "season": season}
+    return render(request, "create-weekly-menu.html", context)

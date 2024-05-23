@@ -1,4 +1,4 @@
-{% load crispy_forms_tags heroicons %}
+{% load crispy_forms_tags heroicons static %}
 <form method="post"
       enctype="multipart/form-data"
       hx-post="{{ request.path }}"
@@ -6,7 +6,7 @@
       hx-target="#dialog"
       hx-disabled-elt="#form-submit"
       class="modal-content">
-    <div class="flex justify-between items-center p-3 rounded-t border-b md:p-4 dark:border-gray-600">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Carica il tuo menu</h3>
         <button type="button"
                 class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
@@ -23,6 +23,22 @@
                 x-on:click="openModal = false">Annulla</button>
     </div>
 </form>
-<div class="p-1.5 my-4 mx-6 text-center bg-red-100 rounded border border-red-300">
-    <span class="text-sm italic font-light text-red-800">Attenzione, il caricamento del menu sovrascriverà il menu presente in maniera definitiva</span>
+<div class="p-1.5 my-4 mx-6 text-gray-700">
+    <p>Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio:</p>
+    <ol class="space-y-1 list-decimal list-inside">
+        <li>
+            <a href="{% static 'files/EsempioMenuSemplice.xlsx' %}"
+               class="text-green-600 hover:underline underline-offset-2"
+               download>Menu Semplice</a>
+        </li>
+        <li>
+            <a href="{% static 'files/EsempioMenuDettagliato.xlsx' %}"
+               class="text-green-600 hover:underline underline-offset-2"
+               download>Menu Dettagliato</a>
+        </li>
+    </ol>
+</div>
+<div class="flex items-center p-2 my-4 mx-6 text-center text-red-800 bg-red-50 rounded border border-red-200">
+    {% heroicon_solid 'exclamation-triangle' class="size-5 me-2" %}
+    <span class="text-sm italic">Attenzione, il caricamento del menu sovrascriverà il menu presente in maniera definitiva</span>
 </div>

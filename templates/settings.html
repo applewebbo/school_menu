@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load partials heroicons %}
+{% load partials heroicons filters %}
 {% block page_title %}
     Impostazioni
 {% endblock page_title %}
@@ -85,76 +85,36 @@
                 <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
             </div>
             <div class="grid grid-cols-1 gap-y-2 gap-x-4 md:grid-cols-2 md:gap-x-6 md:gp-y-4">
+                <!--  Settimane Autunno/Inverno  -->
                 <div class="grid grid-cols-1 gap-y-2" id="winter-weeks">
                     <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:text-left">Autunno / Inverno</h4>
-                    <!--   TODO: add a for loop to iterate over the weeks using https://stackoverflow.com/questions/1107737/numeric-for-loop-in-django-templates -->
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 1</h5>
-                        <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
-                           href="{% url 'school_menu:create_weekly_menu' user.school.id 1 2 %}"
-                           hx-boost="true">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </a>
-                    </div>
-                    {% comment %} <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 2</h5>
-                        <button type="button" class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </button>
-                    </div>
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 3</h5>
-                        <button type="button" class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </button>
-                    </div>
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 4</h5>
-                        <button type="button" class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </button>
-                    </div> {% endcomment %}
+                    {% for week in 4|weeks %}
+                        <div class="flex items-center">
+                            <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
+                            <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
+                               href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 %}"
+                               hx-boost="true">
+                                Modifica
+                                {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                            </a>
+                        </div>
+                    {% endfor %}
                 </div>
                 <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
+                <!--  Settimane Primavera/Estate  -->
                 <div class="grid grid-cols-1 gap-y-2" id="spring-weeks">
                     <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:text-left">Primavera / Estate</h4>
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 1</h5>
-                        <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
-                           href="{% url 'school_menu:create_weekly_menu' user.school.id 1 1 %}"
-                           hx-boost="true">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </a>
-                    </div>
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 2</h5>
-                        <button type="button"
-                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </button>
-                    </div>
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 3</h5>
-                        <button type="button"
-                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </button>
-                    </div>
-                    <div class="flex items-center">
-                        <h5 class="mr-8 font-medium grow md:grow-0">Settimana 4</h5>
-                        <button type="button"
-                                class="inline-flex items-center btn btn-xs btn-danger-outline group">
-                            Modifica
-                            {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
-                        </button>
-                    </div>
+                    {% for week in 4|weeks %}
+                        <div class="flex items-center">
+                            <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
+                            <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
+                               href="{% url 'school_menu:create_weekly_menu' user.school.id week 1 %}"
+                               hx-boost="true">
+                                Modifica
+                                {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                            </a>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
         {% endpartialdef %}

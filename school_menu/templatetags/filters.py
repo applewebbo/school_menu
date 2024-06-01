@@ -14,3 +14,8 @@ def truncate(value, arg):
         return value[:arg]
     else:
         return value
+
+
+@register.filter(name="weeks")
+def weeks(value):
+    return range(1, value + 1)

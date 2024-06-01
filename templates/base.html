@@ -32,19 +32,15 @@
         <!-- TailwindCSS -->
         {% tailwind_css %}
         <!-- Tooltip -->
-        <script src="https://unpkg.com/@popperjs/core@2"></script>
-        <script src="https://unpkg.com/tippy.js@6"></script>
+        <script src="{% static 'js/popper.min.js' %}"></script>
+        <script src="{% static 'js/tippy-bundle.umd.min.js' %}"></script>
         <!-- HTMX -->
         <script defer src="{% static 'js/htmx.min.js' %}"></script>
         <!-- Alpine.js -->
-        <script defer
-                src="https://cdn.jsdelivr.net/npm/@alpinejs/focus@3.x.x/dist/cdn.min.js"></script>
-        <script defer
-                src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-        <script defer
-                src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.x.x/dist/alpine-clipboard.js"></script>
-        <script defer
-                src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        <script defer src="{% static 'js/alpine-focus.min.js' %}"></script>
+        <script defer src="{% static 'js/alpine-collapse.min.js' %}"></script>
+        <script defer src="{% static 'js/alpine-clipboard.min.js' %}"></script>
+        <script defer src="{% static 'js/alpine.min.js' %}"></script>
         <!-- Custom JS -->
         <script defer src="{% static 'js/custom.js' %}"></script>
     </head>

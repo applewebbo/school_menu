@@ -29,8 +29,11 @@ dev = [
     "django_htmx",
     "django-tailwind-cli",
     "djlint",
+    "factory_boy",
     "pre-commit",
     "pywatchman",
+    "pytest",
+    "pytest-django",
     "ruff",
 ]
 

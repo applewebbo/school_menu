@@ -81,6 +81,10 @@ editorconfig==0.12.4
     #   jsbeautifier
 et-xmlfile==1.1.0
     # via openpyxl
+factory-boy==3.3.0
+    # via school-menu (pyproject.toml)
+faker==25.3.0
+    # via factory-boy
 filelock==3.14.0
     # via virtualenv
 gunicorn==21.2.0
@@ -93,6 +97,8 @@ html-void-elements==0.1.0
     # via djlint
 identify==2.5.36
     # via pre-commit
+iniconfig==2.0.0
+    # via pytest
 jsbeautifier==1.15.1
     # via
     #   cssbeautifier
@@ -113,6 +119,7 @@ packaging==24.0
     # via
     #   black
     #   gunicorn
+    #   pytest
 pandas==2.2.2
     # via school-menu (pyproject.toml)
 pathspec==0.12.1
@@ -123,14 +130,24 @@ platformdirs==4.2.2
     # via
     #   black
     #   virtualenv
+pluggy==1.5.0
+    # via pytest
 pre-commit==3.7.1
     # via school-menu (pyproject.toml)
 psycopg==3.1.19
     # via school-menu (pyproject.toml)
 psycopg-binary==3.1.19
     # via psycopg
+pytest==8.2.1
+    # via
+    #   school-menu (pyproject.toml)
+    #   pytest-django
+pytest-django==4.8.0
+    # via school-menu (pyproject.toml)
 python-dateutil==2.9.0.post0
-    # via pandas
+    # via
+    #   faker
+    #   pandas
 pytz==2024.1
     # via pandas
 pywatchman==2.0.0

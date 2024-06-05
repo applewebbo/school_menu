@@ -262,3 +262,13 @@ def create_weekly_menu(request, school_id, week, season):
         formset = MealFormSet(queryset=meals)
     context = {"formset": formset, "school": school, "week": week, "season": season}
     return render(request, "create-weekly-menu.html", context)
+
+
+def search_schools(request):
+    query = request.GET.get("q")
+    schools = School.objects.filter(name__icontains=query)
+    if not schools:
+        context = {"no_schools": True}
+    else:
+        context = {"schools": schools}
+    return TemplateResponse(request, "school-list.html#search-result", context)

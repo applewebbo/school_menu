@@ -30,6 +30,7 @@ htmx_urlpatterns = [
     path("school/update/", views.school_update, name="school_update"),
     path("menu/<int:school_id>/upload/", views.upload_menu, name="upload_menu"),
     path("settings/<int:pk>/menu/", views.menu_settings_partial, name="menu_settings"),
+    path("search-schools/", views.search_schools, name="search_schools"),
 ]
 
 urlpatterns += htmx_urlpatterns

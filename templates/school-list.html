@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load heroicons %}
+{% load partials heroicons %}
 {% block page_title %}
     Tutte le scuole
 {% endblock page_title %}
@@ -10,6 +10,7 @@
             Qui puoi vedere tutte le scuole e i relativi menu creati dai nostri utenti. Non siamo responsabili della correttezza dei menu pubblicati.
         </p>
         <div class="grid grid-cols-1 gap-3 mx-auto max-w-screen-xl md:grid-cols-2 grid-cols">
+            <!-- School Search -->
             <div id="search" class="my-4 md:order-last">
                 <form class="flex items-center mx-auto mb-4 max-w-sm">
                     <label for="simple-search" class="sr-only">Search</label>
@@ -19,6 +20,11 @@
                         </div>
                         <input type="text"
                                id="simple-search"
+                               name="q"
+                               hx-get="{% url 'school_menu:search_schools' %}"
+                               hx-swap="outerHTML"
+                               hx-trigger="keyup changed delay:1s"
+                               hx-target="#school-list"
                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:placeholder-gray-400 dark:text-white dark:bg-gray-700 dark:border-gray-600 focus:border-green-500 focus:ring-green-500 ps-10 dark:focus:ring-green-500 dark:focus:border-green-500"
                                placeholder="Cerca la tua scuola..."
                                required />
@@ -26,16 +32,23 @@
                 </form>
                 <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
             </div>
+            <!-- School List -->
+            {% partialdef search-result inline=true %}
             <div id="school-list">
-                <ul>
-                    {% for school in schools %}
-                        <li class="mb-3">
-                            <a class="font-medium text-gray-600 hover:text-green-600 hover:underline underline-offset-2"
-                               href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})</a>
-                        </li>
-                    {% endfor %}
+                <ul class="md:mt-6">
+                    {% if no_schools %}
+                        <p class="italic font-light text-red-600">Nessuna scuola soddisfa i criteri di ricerca...</p>
+                    {% else %}
+                        {% for school in schools %}
+                            <li class="mb-3">
+                                <a class="font-medium text-gray-600 hover:text-green-600 hover:underline underline-offset-2"
+                                   href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})</a>
+                            </li>
+                        {% endfor %}
+                    {% endif %}
                 </ul>
             </div>
-        </div>
-    </section>
+        {% endpartialdef %}
+    </div>
+</section>
 {% endblock content %}

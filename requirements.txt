@@ -18,7 +18,7 @@ django==5.0.6
     #   djangorestframework
     #   heroicons
     #   neapolitan
-django-allauth==0.63.0
+django-allauth==0.63.3
     # via school-menu (pyproject.toml)
 django-crispy-forms==2.1
     # via
@@ -26,7 +26,7 @@ django-crispy-forms==2.1
     #   crispy-tailwind
 django-filter==24.2
     # via neapolitan
-django-import-export==4.0.2
+django-import-export==4.0.7
     # via school-menu (pyproject.toml)
 django-template-partials==24.2
     # via school-menu (pyproject.toml)
@@ -62,7 +62,7 @@ sqlparse==0.5.0
     # via django
 tablib==3.5.0
     # via django-import-export
-typing-extensions==4.11.0
+typing-extensions==4.12.1
     # via psycopg
 tzdata==2024.1
     # via pandas

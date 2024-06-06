@@ -12,11 +12,11 @@
         <div class="grid grid-cols-1 gap-3 mx-auto max-w-screen-xl md:grid-cols-2 grid-cols">
             <!-- School Search -->
             <div id="search" class="my-4 md:order-last">
-                <form class="flex items-center mx-auto mb-4 max-w-sm">
+                <div class="flex items-center mx-auto mb-4 max-w-sm">
                     <label for="simple-search" class="sr-only">Search</label>
                     <div class="relative w-full">
                         <div class="flex absolute inset-y-0 items-center pointer-events-none start-0 ps-3">
-                            {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-gray-400" %}
+                            {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-green-600" %}
                         </div>
                         <input type="text"
                                id="simple-search"
@@ -26,23 +26,28 @@
                                hx-trigger="keyup changed delay:1s"
                                hx-target="#school-list"
                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:placeholder-gray-400 dark:text-white dark:bg-gray-700 dark:border-gray-600 focus:border-green-500 focus:ring-green-500 ps-10 dark:focus:ring-green-500 dark:focus:border-green-500"
-                               placeholder="Cerca la tua scuola..."
+                               placeholder="Cerca scuola o città..."
                                required />
                     </div>
-                </form>
+                </div>
                 <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
             </div>
             <!-- School List -->
             {% partialdef search-result inline=true %}
-            <div id="school-list">
+            <div id="school-list"
+                 class="{% if hidden %}hidden{% endif %}{% if index %}mt-6 px-2 py-3 bg-gray-50 border border-gray-100 rounded-md{% endif %}">
                 <ul class="md:mt-6">
                     {% if no_schools %}
                         <p class="italic font-light text-red-600">Nessuna scuola soddisfa i criteri di ricerca...</p>
                     {% else %}
                         {% for school in schools %}
                             <li class="mb-3">
-                                <a class="font-medium text-gray-600 hover:text-green-600 hover:underline underline-offset-2"
-                                   href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})</a>
+                                <a class="flex justify-center items-center font-medium text-gray-600 hover:text-green-600 hover:underline underline-offset-2"
+                                   href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})
+                                    {% if index %}
+                                        {% heroicon_solid 'arrow-right-circle' class="text-green-600 size-5 ms-2" %}
+                                    {% endif %}
+                                </a>
                             </li>
                         {% endfor %}
                     {% endif %}

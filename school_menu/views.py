@@ -4,6 +4,7 @@ from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 
 from school_menu.forms import (
@@ -264,11 +265,19 @@ def create_weekly_menu(request, school_id, week, season):
     return render(request, "create-weekly-menu.html", context)
 
 
+# TODO: add city in search criteria
 def search_schools(request):
+    context = {}
     query = request.GET.get("q")
     schools = School.objects.filter(name__icontains=query)
+    referrer = request.headers.get("referer", None)
+    print(request.build_absolute_uri(reverse("school_menu:index")))
+    if referrer == request.build_absolute_uri(reverse("school_menu:index")):
+        context["index"] = True
+    if not query:
+        context["hidden"] = True
     if not schools:
-        context = {"no_schools": True}
+        context["no_schools"] = True
     else:
-        context = {"schools": schools}
+        context["schools"] = schools
     return TemplateResponse(request, "school-list.html#search-result", context)

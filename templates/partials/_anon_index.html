@@ -10,24 +10,26 @@
          id="anon-cta">
         <div class="py-6 px-4 bg-white rounded-xl border border-gray-300 shadow-md">
             <p class="mb-6 text-xl font-medium tracking-tight text-center">Cerca la tua scuola</p>
-            <form class="flex items-center mx-auto max-w-sm">
+            <div class="flex items-center mx-auto max-w-sm">
                 <label for="simple-search" class="sr-only">Cerca</label>
                 <div class="relative w-full">
                     <div class="flex absolute inset-y-0 items-center pointer-events-none start-0 ps-3">
-                        {% heroicon_outline "building-office-2" class="w-4 h-4 text-green-600" %}
+                        {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-green-600" %}
                     </div>
                     <input type="text"
                            id="simple-search"
+                           name="q"
                            class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:placeholder-gray-400 dark:text-white dark:bg-gray-700 dark:border-gray-600 focus:border-green-500 focus:ring-green-500 ps-10 dark:focus:ring-green-500 dark:focus:border-green-500"
+                           hx-get="{% url 'school_menu:search_schools' %}"
+                           hx-swap="outerHTML"
+                           hx-trigger="keyup changed delay:1s"
+                           hx-target="#school-list"
                            placeholder="Cerca scuola o città..."
+                           autocomplete="off"
                            required />
                 </div>
-                <button type="submit"
-                        class="p-2.5 text-sm font-medium text-white bg-green-700 rounded-lg border border-green-700 dark:bg-green-600 hover:bg-green-800 focus:ring-4 focus:ring-green-300 focus:outline-none ms-2 dark:hover:bg-green-700 dark:focus:ring-green-800">
-                    {% heroicon_outline "magnifying-glass" class="w-4 h-4" %}
-                    <span class="sr-only">Search</span>
-                </button>
-            </form>
+            </div>
+            <div id="school-list"></div>
         </div>
         <div class="py-6 px-4 text-center bg-white rounded-xl border border-gray-300 shadow-md">
             <p class="mb-6 text-xl font-medium tracking-tight">Crea il menu della tua scuola</p>

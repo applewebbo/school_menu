@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.forms import modelformset_factory
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -267,17 +268,22 @@ def create_weekly_menu(request, school_id, week, season):
 
 # TODO: add city in search criteria
 def search_schools(request):
+    """get the schools based on the search input via htmx"""
     context = {}
     query = request.GET.get("q")
-    schools = School.objects.filter(name__icontains=query)
+    schools = School.objects.filter(Q(name__icontains=query) | Q(city__icontains=query))
     referrer = request.headers.get("referer", None)
-    print(request.build_absolute_uri(reverse("school_menu:index")))
+    # get a different partial if the search comes from the index page
     if referrer == request.build_absolute_uri(reverse("school_menu:index")):
-        context["index"] = True
+        template = "index.html#search-result"
+    else:
+        template = "school-list.html#search-result"
+    # hidden results if the input is empty in the index page
     if not query:
         context["hidden"] = True
+    # get a message if no schools match the search query
     if not schools:
         context["no_schools"] = True
     else:
         context["schools"] = schools
-    return TemplateResponse(request, "school-list.html#search-result", context)
+    return TemplateResponse(request, template, context)

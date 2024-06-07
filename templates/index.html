@@ -1,7 +1,25 @@
 {% extends 'base.html' %}
+{% load partials %}
 {% block page_title %}
     Menu Scolastico
 {% endblock page_title %}
+{% partialdef search-result %}
+<div id="school-list"
+     class="{% if hidden %}hidden{% endif %} mt-6 p-2 bg-gray-50 border border-gray-100 rounded-md">
+    <ul>
+        {% if no_schools %}
+            <p class="italic font-light text-red-600">Nessuna scuola soddisfa i criteri di ricerca...</p>
+        {% else %}
+            {% for school in schools %}
+                <li class="mb-3">
+                    <a class="flex justify-start items-center font-medium text-gray-600 hover:text-green-600 hover:underline underline-offset-2"
+                       href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})</a>
+                </li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+</div>
+{% endpartialdef %}
 {% block content %}
     <section>
         <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">

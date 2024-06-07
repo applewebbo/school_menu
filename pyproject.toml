@@ -1,7 +1,7 @@
 [project]
 name = "school_menu"
 version = "0.2"
-requires-python = ">= 3.12"
+requires-python = ">= 3.11"
 dependencies = [
     "crispy-tailwind",
     "django >5.0",

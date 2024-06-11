@@ -30,7 +30,7 @@ def index(request):
     if request.user.is_authenticated:
         school = School.objects.filter(user=request.user).first()
         if not school:
-            redirect("school_menu:settings")
+            return redirect(reverse("school_menu:settings", args=[request.user.pk]))
         current_week, adjusted_day = get_current_date()
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)

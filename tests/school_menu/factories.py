@@ -1,7 +1,10 @@
 import factory
+from faker import Faker
 
 from school_menu.models import DetailedMeal, School, SimpleMeal
 from tests.users.factories import UserFactory
+
+SCHOOL_PRE = ["Scuola", "Istituto", "Liceo", "Collegio", "Convitto", "Istituto Tecnico"]
 
 MEAL_LIST = [
     "Pappa con formaggio\n200 cc brodo vegetale con verdure passate + 1 cucchiaio di lenticchie\n30 gr formaggio 1 cucchiaino olio d'oliva extravergine\n20 gr riso",
@@ -51,12 +54,21 @@ SNACK_LIST = [
     "Biscotti",
 ]
 
+fake = Faker()
+
+
+def generate_school_name():
+    # Assuming SCHOOL_PRE is a list of prefixes
+    prefix = fake.random_element(elements=SCHOOL_PRE)
+    words = " ".join(fake.words(nb=2))
+    return f"{prefix} {words}"
+
 
 class SchoolFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = School
 
-    name = factory.Faker("sentence", nb_words=3)
+    name = factory.LazyFunction(generate_school_name)
     city = factory.Faker("city")
     user = factory.SubFactory(UserFactory)
     season_choice = factory.Iterator(School.Seasons.choices, getter=lambda c: c[0])

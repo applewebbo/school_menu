@@ -54,7 +54,7 @@ SNACK_LIST = [
     "Biscotti",
 ]
 
-fake = Faker()
+fake = Faker(locale="it_IT")
 
 
 def generate_school_name():

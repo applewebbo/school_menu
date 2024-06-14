@@ -8,8 +8,6 @@ asgiref==3.8.1
     #   django-browser-reload
     #   django-htmx
     #   kolo
-black==24.4.2
-    # via school-menu (pyproject.toml)
 cerberus==1.3.5
     # via kolo
 certifi==2024.6.2
@@ -21,13 +19,16 @@ cfgv==3.4.0
     # via pre-commit
 click==8.1.7
     # via
-    #   black
     #   django-typer
     #   djlint
     #   kolo
     #   typer-slim
 colorama==0.4.6
     # via djlint
+coverage==7.5.3
+    # via
+    #   school-menu (pyproject.toml)
+    #   pytest-cov
 crispy-tailwind==1.0.3
     # via school-menu (pyproject.toml)
 cssbeautifier==1.15.1
@@ -87,8 +88,12 @@ editorconfig==0.12.4
     #   jsbeautifier
 et-xmlfile==1.1.0
     # via openpyxl
+execnet==2.1.1
+    # via pytest-xdist
 factory-boy==3.3.0
-    # via school-menu (pyproject.toml)
+    # via
+    #   school-menu (pyproject.toml)
+    #   pytest-factoryboy
 faker==25.8.0
     # via factory-boy
 filelock==3.14.0
@@ -113,6 +118,8 @@ idna==3.7
     # via
     #   anyio
     #   httpx
+inflection==0.5.1
+    # via pytest-factoryboy
 iniconfig==2.0.0
     # via pytest
 jinja2==3.1.4
@@ -131,8 +138,6 @@ more-itertools==10.3.0
     # via kolo
 msgpack==1.0.8
     # via kolo
-mypy-extensions==1.0.0
-    # via black
 neapolitan==24.4
     # via school-menu (pyproject.toml)
 nodeenv==1.9.1
@@ -143,19 +148,15 @@ openpyxl==3.1.2
     # via school-menu (pyproject.toml)
 packaging==24.1
     # via
-    #   black
     #   gunicorn
     #   pytest
+    #   pytest-factoryboy
 pandas==2.2.2
     # via school-menu (pyproject.toml)
 pathspec==0.12.1
-    # via
-    #   black
-    #   djlint
+    # via djlint
 platformdirs==4.2.2
-    # via
-    #   black
-    #   virtualenv
+    # via virtualenv
 pluggy==1.5.0
     # via pytest
 pre-commit==3.7.1
@@ -167,8 +168,17 @@ psycopg-binary==3.1.19
 pytest==8.2.2
     # via
     #   school-menu (pyproject.toml)
+    #   pytest-cov
     #   pytest-django
+    #   pytest-factoryboy
+    #   pytest-xdist
+pytest-cov==5.0.0
+    # via school-menu (pyproject.toml)
 pytest-django==4.8.0
+    # via school-menu (pyproject.toml)
+pytest-factoryboy==2.7.0
+    # via school-menu (pyproject.toml)
+pytest-xdist==3.6.1
     # via school-menu (pyproject.toml)
 python-dateutil==2.9.0.post0
     # via
@@ -214,6 +224,7 @@ typer-slim==0.12.3
 typing-extensions==4.12.2
     # via
     #   psycopg
+    #   pytest-factoryboy
     #   typer-slim
 tzdata==2024.1
     # via pandas

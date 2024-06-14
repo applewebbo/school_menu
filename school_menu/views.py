@@ -266,7 +266,6 @@ def create_weekly_menu(request, school_id, week, season):
     return render(request, "create-weekly-menu.html", context)
 
 
-# TODO: add city in search criteria
 def search_schools(request):
     """get the schools based on the search input via htmx"""
     context = {}

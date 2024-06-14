@@ -41,9 +41,6 @@ class Meal(models.Model):
     class Meta:
         abstract = True
 
-    def __str__(self):
-        return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
-
 
 class DetailedMeal(Meal):
     first_course = models.CharField(max_length=200)
@@ -52,10 +49,16 @@ class DetailedMeal(Meal):
     fruit = models.CharField(max_length=200, default="Frutta di Stagione")
     snack = models.CharField(max_length=200)
 
+    def __str__(self):
+        return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
+
 
 class SimpleMeal(Meal):
     menu = models.TextField(max_length=600)
     snack = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
 
 
 class School(models.Model):

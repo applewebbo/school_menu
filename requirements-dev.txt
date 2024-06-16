@@ -33,6 +33,8 @@ crispy-tailwind==1.0.3
     # via school-menu (pyproject.toml)
 cssbeautifier==1.15.1
     # via djlint
+decorator==5.1.1
+    # via mocket
 diff-match-patch==20230430
     # via django-import-export
 distlib==0.3.8
@@ -58,7 +60,7 @@ django-allauth==0.63.3
     # via school-menu (pyproject.toml)
 django-browser-reload==1.12.1
     # via school-menu (pyproject.toml)
-django-crispy-forms==2.1
+django-crispy-forms==2.2
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
@@ -70,7 +72,7 @@ django-filter==24.2
     # via neapolitan
 django-htmx==1.17.3
     # via school-menu (pyproject.toml)
-django-import-export==4.0.7
+django-import-export==4.0.8
     # via school-menu (pyproject.toml)
 django-tailwind-cli==2.13.0
     # via school-menu (pyproject.toml)
@@ -96,7 +98,7 @@ factory-boy==3.3.0
     #   pytest-factoryboy
 faker==25.8.0
     # via factory-boy
-filelock==3.14.0
+filelock==3.15.1
     # via virtualenv
 gunicorn==21.2.0
     # via school-menu (pyproject.toml)
@@ -110,6 +112,8 @@ html-void-elements==0.1.0
     # via djlint
 httpcore==1.0.5
     # via httpx
+httptools==0.6.1
+    # via mocket
 httpx==0.27.0
     # via kolo
 identify==2.5.36
@@ -130,10 +134,12 @@ jsbeautifier==1.15.1
     #   djlint
 json5==0.9.25
     # via djlint
-kolo==2.28.0
+kolo==2.30.1
     # via school-menu (pyproject.toml)
 markupsafe==2.1.5
     # via jinja2
+mocket==3.12.8
+    # via kolo
 more-itertools==10.3.0
     # via kolo
 msgpack==1.0.8
@@ -184,6 +190,8 @@ python-dateutil==2.9.0.post0
     # via
     #   faker
     #   pandas
+python-magic==0.4.27
+    # via mocket
 pytz==2024.1
     # via pandas
 pywatchman==2.0.0
@@ -194,7 +202,7 @@ pyyaml==6.0.1
     #   pre-commit
 regex==2023.12.25
     # via djlint
-ruff==0.4.8
+ruff==0.4.9
     # via school-menu (pyproject.toml)
 shellingham==1.5.4
     # via django-typer
@@ -207,7 +215,7 @@ sniffio==1.3.1
     # via
     #   anyio
     #   httpx
-sqlglot==25.0.3
+sqlglot==25.1.0
     # via kolo
 sqlparse==0.5.0
     # via django
@@ -230,6 +238,8 @@ tzdata==2024.1
     # via pandas
 ulid-py==1.1.0
     # via kolo
+urllib3==2.2.1
+    # via mocket
 virtualenv==20.26.2
     # via pre-commit
 whitenoise==6.6.0

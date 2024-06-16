@@ -20,13 +20,13 @@ django==5.0.6
     #   neapolitan
 django-allauth==0.63.3
     # via school-menu (pyproject.toml)
-django-crispy-forms==2.1
+django-crispy-forms==2.2
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
 django-filter==24.2
     # via neapolitan
-django-import-export==4.0.7
+django-import-export==4.0.8
     # via school-menu (pyproject.toml)
 django-template-partials==24.2
     # via school-menu (pyproject.toml)

@@ -70,10 +70,9 @@ class UploadMenuForm(forms.Form):
 
     def clean_file(self):
         file = self.cleaned_data.get("file")
-        if file:
-            ext = file.name.split(".")[-1].lower()
-            if ext not in ["xls", "xlsx"]:
-                raise forms.ValidationError("Il file deve essere in formato xls o xlsx")
+        ext = file.name.split(".")[-1].lower()
+        if ext not in ["xls", "xlsx"]:
+            raise forms.ValidationError("Il file deve essere in formato xls o xlsx")
         return file
 
     def __init__(self, *args, **kwargs):

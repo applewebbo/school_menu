@@ -35,7 +35,6 @@ def index(request):
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)
         season = get_season(school)
-        print(season)
         if school.menu_type == School.Types.SIMPLE:
             weekly_meals = SimpleMeal.objects.filter(
                 school=school, week=adjusted_week, season=season

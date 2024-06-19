@@ -1,14 +1,22 @@
 from datetime import datetime
 from unittest import mock
+from unittest.mock import MagicMock, patch
 
 import pytest
+from django.http import Http404
 
-from school_menu.utils import calculate_week, get_current_date
+from school_menu.models import School
+from school_menu.utils import (
+    calculate_week,
+    get_current_date,
+    get_season,
+    get_user,
+)
 
 pytestmark = pytest.mark.django_db
 
 
-class TestUtils:
+class TestCalculateWeek:
     @pytest.mark.parametrize(
         "week, bias, expected",
         [
@@ -26,6 +34,8 @@ class TestUtils:
             calculate_week(week, bias) == expected
         ), f"Failed for week: {week}, bias: {bias}"
 
+
+class TestGetCurrentDate:
     # Test scenarios for different days of the week
     @pytest.mark.parametrize(
         "test_date, expected_week, expected_day",
@@ -48,3 +58,82 @@ class TestUtils:
             assert (
                 current_day == expected_day
             ), f"Expected day {expected_day}, got {current_day}"
+
+
+class TestGetSeason:
+    @pytest.mark.parametrize(
+        "current_date, season_choice, expected_season",
+        [
+            (
+                datetime(2023, 1, 15),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.INVERNALE,
+            ),  # Winter case
+            (
+                datetime(2023, 6, 15),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.PRIMAVERILE,
+            ),  # Spring/Summer case
+            (
+                datetime(2023, 10, 1),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.INVERNALE,
+            ),  # Autumn, should be winter
+            (
+                datetime(2023, 9, 23),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.INVERNALE,
+            ),  # Winter Edge Case
+            (
+                datetime(2023, 6, 20),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.PRIMAVERILE,
+            ),  # Spring Edge Case
+            (
+                datetime(2023, 4, 1),
+                School.Seasons.INVERNALE,
+                School.Seasons.INVERNALE,
+            ),  # Explicitly set to winter
+            (
+                datetime(2023, 1, 1),
+                School.Seasons.PRIMAVERILE,
+                School.Seasons.PRIMAVERILE,
+            ),  # Explicitly set to spring
+        ],
+    )
+    def test_get_season(
+        self,
+        current_date: datetime,
+        season_choice: School.Seasons | School.Seasons | School.Seasons,
+        expected_season: School.Seasons | School.Seasons,
+    ):
+        with mock.patch("school_menu.utils.datetime") as mock_datetime:
+            mock_datetime.now.return_value = current_date
+            school = School(season_choice=season_choice)
+            assert get_season(school) == expected_season
+
+
+@pytest.fixture
+def mock_user_model():
+    class MockUserModel:
+        objects = MagicMock()
+
+    return MockUserModel
+
+
+class TestGetUser:
+    def test_get_user_success(self, mock_user_model):
+        with (
+            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
+            patch("school_menu.utils.get_object_or_404", return_value="mock_user"),
+        ):
+            user = get_user(pk=1)
+            assert user == "mock_user"
+
+    def test_get_user_not_found(self, mock_user_model):
+        with (
+            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
+            patch("school_menu.utils.get_object_or_404", side_effect=Http404),
+        ):
+            with pytest.raises(Http404):
+                get_user(pk=999)

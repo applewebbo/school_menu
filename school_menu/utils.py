@@ -46,15 +46,11 @@ def get_season(school):
         day, month = today.day, today.month
         if (
             month in [10, 11, 12, 1, 2]
-            or (month == 3 and day < 20)
-            or (month == 9 and day > 21)
+            or (month == 3 and day < 21)
+            or (month == 9 and day > 22)
         ):
             season = School.Seasons.INVERNALE
-        elif (
-            month in [4, 5, 6, 7, 8]
-            or (month == 3 and day > 20)
-            or (month == 9 and day < 21)
-        ):
+        else:
             season = School.Seasons.PRIMAVERILE
     return season
 

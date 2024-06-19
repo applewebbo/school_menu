@@ -117,7 +117,7 @@ def import_menu(request, file, menu_type, school, season):
             "<strong>Menu</strong> salvato correttamente",
         )
         return
-    elif menu_type == School.Types.SIMPLE:
+    else:
         # check if the file contains all the required columns
         required_columns = [
             "giorno",

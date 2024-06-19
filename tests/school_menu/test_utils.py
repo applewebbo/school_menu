@@ -2,15 +2,17 @@ from datetime import datetime
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
+import pandas as pd
 import pytest
 from django.http import Http404
 
-from school_menu.models import School
+from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.utils import (
     calculate_week,
     get_current_date,
     get_season,
     get_user,
+    import_menu,
 )
 
 pytestmark = pytest.mark.django_db
@@ -137,3 +139,211 @@ class TestGetUser:
         ):
             with pytest.raises(Http404):
                 get_user(pk=999)
+
+
+@pytest.fixture
+def simple_meal_file(tmp_path):
+    data = [
+        ["Lunedì", 1, "Pasta al Pomodoro", "Yogurt"],
+    ]
+    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo", "spuntino"])
+    file_path = tmp_path / "simple_meal_import.xlsx"
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+@pytest.fixture
+def simple_meal_file_missing_column(tmp_path):
+    data = [
+        ["Lunedì", 1, "Pasta al Pomodoro"],
+    ]
+    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo"])
+    file_path = tmp_path / "simple_meal_import.xlsx"
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+@pytest.fixture
+def simple_meal_file_wrong_day(tmp_path):
+    data = [
+        ["Lun", 1, "Pasta al Pomodoro", "Yogurt"],
+    ]
+    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo", "spuntino"])
+    file_path = tmp_path / "simple_meal_import.xlsx"
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+@pytest.fixture
+def detailed_meal_file(tmp_path):
+    data = [
+        [
+            "Lunedì",
+            1,
+            "Pasta al Pomodoro",
+            "Pollo Arrosto",
+            "Fagiolini",
+            "Mela",
+            "Yogurt",
+        ],
+    ]
+    df = pd.DataFrame(
+        data,
+        columns=[
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ],
+    )
+    file_path = tmp_path / "detailed_meal_import.xlsx"
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+@pytest.fixture
+def detailed_meal_file_missing_column(tmp_path):
+    data = [
+        ["Lunedì", 1, "Pasta al Pomodoro", "Pollo Arrosto", "Fagiolini", "Mela"],
+    ]
+    df = pd.DataFrame(
+        data,
+        columns=[
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+        ],
+    )
+    file_path = tmp_path / "detailed_meal_import.xlsx"
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+@pytest.fixture
+def detailed_meal_file_wrong_day(tmp_path):
+    data = [
+        [
+            "Lun",
+            1,
+            "Pasta al Pomodoro",
+            "Pollo Arrosto",
+            "Fagiolini",
+            "Mela",
+            "Yogurt",
+        ],
+    ]
+    df = pd.DataFrame(
+        data,
+        columns=[
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ],
+    )
+    file_path = tmp_path / "detailed_meal_import.xlsx"
+    df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+class TestImportMenu:
+    def test_simple_meal_import_success(self, simple_meal_file, school_factory):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            simple_meal_file,
+            School.Types.SIMPLE,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert SimpleMeal.objects.count() == 1
+
+    def test_simple_meal_import_missing_column(
+        self, simple_meal_file_missing_column, school_factory
+    ):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            simple_meal_file_missing_column,
+            School.Types.SIMPLE,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert SimpleMeal.objects.count() == 0
+
+    def test_simple_meal_import_wrong_day(
+        self, simple_meal_file_wrong_day, school_factory
+    ):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            simple_meal_file_wrong_day,
+            School.Types.SIMPLE,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert SimpleMeal.objects.count() == 0
+
+    def test_detailed_meal_import_success(self, detailed_meal_file, school_factory):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            detailed_meal_file,
+            School.Types.DETAILED,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert DetailedMeal.objects.count() == 1
+
+    def test_detailed_meal_wrong_day(
+        self, detailed_meal_file_wrong_day, school_factory
+    ):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            detailed_meal_file_wrong_day,
+            School.Types.DETAILED,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert DetailedMeal.objects.count() == 0
+
+    def test_detailed_meal_missing_column(
+        self, detailed_meal_file_missing_column, school_factory
+    ):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            detailed_meal_file_missing_column,
+            School.Types.DETAILED,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert DetailedMeal.objects.count() == 0

@@ -2,6 +2,8 @@ import logging
 
 from .common import *  # noqa
 
+SECRET_KEY = "my-test-secret-key"  # nosec
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",

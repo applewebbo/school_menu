@@ -28,6 +28,7 @@ dev = [
     "django-extensions",
     "django_htmx",
     "django-tailwind-cli",
+    "django-test-plus",
     "djlint",
     "factory_boy",
     "pre-commit",

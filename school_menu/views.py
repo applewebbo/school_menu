@@ -152,7 +152,7 @@ def school_create(request):
         messages.add_message(
             request,
             messages.SUCCESS,
-            f"<strong>{school.name}</strong> created successfully",
+            f"<strong>{school.name}</strong> creata con successo",
         )
         return render(request, "settings.html#school", {"school": school})
 

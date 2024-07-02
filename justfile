@@ -18,7 +18,7 @@ watch:
 	python manage.py tailwind watch
 
 test:
-	pytest --reuse-db
+	pytest --reuse-db -s
 
 quicktest:
 	pytest -n 8 --reuse-db

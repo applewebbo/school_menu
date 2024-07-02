@@ -235,6 +235,7 @@ def create_weekly_menu(request, school_id, week, season):
             extra=0,
             fields=("menu", "snack"),
         )
+        meals = SimpleMeal.objects.filter(week=week, season=season, school=school)
     else:
         MealFormSet = modelformset_factory(
             DetailedMeal,
@@ -242,13 +243,9 @@ def create_weekly_menu(request, school_id, week, season):
             extra=0,
             fields=("first_course", "second_course", "side_dish", "fruit", "snack"),
         )
-    if menu_type == School.Types.SIMPLE:
-        meals = SimpleMeal.objects.filter(week=week, season=season, school=school)
-    else:
         meals = DetailedMeal.objects.filter(week=week, season=season, school=school)
     formset = MealFormSet(request.POST or None, queryset=meals)
     if request.method == "POST":
-        print(formset.errors)
         if formset.is_valid():
             formset.save()
             messages.add_message(
@@ -270,7 +267,9 @@ def search_schools(request):
     schools = School.objects.filter(Q(name__icontains=query) | Q(city__icontains=query))
     referrer = request.headers.get("referer", None)
     # get a different partial if the search comes from the index page
-    if referrer == request.build_absolute_uri(reverse("school_menu:index")):
+    if referrer == request.build_absolute_uri(
+        reverse("school_menu:index")
+    ):  # pragma: no cover
         template = "index.html#search-result"
     else:
         template = "school-list.html#search-result"

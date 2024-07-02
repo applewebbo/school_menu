@@ -14,6 +14,41 @@ from tests.school_menu.factories import (
 from tests.users.factories import UserFactory
 
 
+def create_formset_post_data(response, new_form_data=None):
+    """Create the formset payload for a post() using the response obtained from a get() request."""
+    if new_form_data is None:
+        new_form_data = []
+    csrf_token = response.context["csrf_token"]
+    formset = response.context["formset"]
+    prefix_template = formset.empty_form.prefix  # default is 'form-__prefix__'
+
+    # Extract initial formset data
+    management_form_data = formset.management_form.initial
+    form_data_list = (
+        formset.initial if formset.initial is not None else []
+    )  # Ensure form_data_list is a list
+
+    # Add new form data and update management form data
+    form_data_list.extend(new_form_data)
+    management_form_data["TOTAL_FORMS"] = len(form_data_list)
+
+    # Initialize the post data dict
+    post_data = dict(csrf_token=csrf_token)
+
+    # Add properly prefixed management form fields
+    for key, value in management_form_data.items():
+        prefix = prefix_template.replace("__prefix__", "")
+        post_data[prefix + key] = value
+
+    # Add properly prefixed data form fields
+    for index, form_data in enumerate(form_data_list):
+        for key, value in form_data.items():
+            prefix = prefix_template.replace("__prefix__", f"{index}-")
+            post_data[prefix + key] = value
+
+    return post_data
+
+
 class IndexView(TestCase):
     def test_get(self):
         response = self.get("school_menu:index")
@@ -269,6 +304,7 @@ class CreateWeeklyMenuView(TestCase):
                 response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
 
             self.response_200(response)
+            assert "formset" in response.context
             assertTemplateUsed(response, "create-weekly-menu.html")
             assert response.context["school"] == school
             assert response.context["week"] == 1
@@ -287,8 +323,98 @@ class CreateWeeklyMenuView(TestCase):
             response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
 
         self.response_200(response)
+        assert "formset" in response.context
         assertTemplateUsed(response, "create-weekly-menu.html")
         assert response.context["school"] == school
         assert response.context["week"] == 1
         assert response.context["season"] == 1
         assert SimpleMeal.objects.filter(school=school).count() == 5
+
+    def test_post_with_valid_data(self):
+        user = self.make_user()
+        school = SchoolFactory(menu_type=School.Types.SIMPLE, user=user)
+        test_data = [
+            {"id": 1, "day": 1, "menu": "Pasta al Pomodoro", "snack": "Crackers"},
+            {"id": 2, "day": 2, "menu": "Riso al Sugo", "snack": "Yogurt"},
+            {"id": 3, "day": 3, "menu": "Pasta al Pesto", "snack": "Frutta"},
+            {"id": 4, "day": 4, "menu": "Riso al Tonno", "snack": "Crackers"},
+            {"id": 5, "day": 5, "menu": "Pasta al Ragù", "snack": "Yogurt"},
+        ]
+
+        with self.login(user):
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
+            self.response_200(response)
+            post_data = create_formset_post_data(response, new_form_data=test_data)
+            response = self.post(
+                "school_menu:create_weekly_menu", school.pk, 1, 1, data=post_data
+            )
+
+        self.response_302(response)
+        assert response.url == self.reverse("school_menu:settings", school.user.pk)
+
+    def test_post_with_invalid_data(self):
+        user = self.make_user()
+        school = SchoolFactory(menu_type=School.Types.SIMPLE, user=user)
+        test_data = [
+            {"id": 1, "day": 1, "menu": "Pasta al Pomodoro", "snack": "Crackers"},
+            {"id": 2, "day": 2, "menu": "Riso al Sugo", "snack": "Yogurt"},
+            {"id": 3, "day": 3, "menu": "Pasta al Pesto", "snack": "Frutta"},
+            {"id": 4, "day": 4, "menu": "Riso al Tonno", "snack": "Crackers"},
+            {"id": 5, "day": 5, "menu": "Pasta al Ragù", "snack": "Yogurt"},
+        ]
+
+        with self.login(user):
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
+            self.response_200(response)
+            post_data = create_formset_post_data(response, new_form_data=test_data)
+            post_data["form-0-menu"] = ""
+            response = self.post(
+                "school_menu:create_weekly_menu", school.pk, 1, 1, data=post_data
+            )
+
+        self.response_200(response)
+        assert "formset" in response.context
+        assert response.context["formset"].errors
+
+
+class SchoolSearchView(TestCase):
+    def setUp(self):
+        self.test_school = SchoolFactory(name="Test School", city="Milano")
+        SchoolFactory.create_batch(10)
+
+    def test_get_with_school_name(self):
+        response = self.get("school_menu:search_schools", data={"q": "test"})
+
+        self.response_200(response)
+        assert "Test School" in response.content.decode()
+
+    def test_get_with_school_city(self):
+        response = self.get("school_menu:search_schools", data={"q": "milano"})
+
+        self.response_200(response)
+        assert "Milano" in response.content.decode()
+
+    def test_with_empty_input(self):
+        response = self.get("school_menu:search_schools", data={"q": ""})
+
+        self.response_200(response)
+
+    def test_with_no_school_matching_search(self):
+        response = self.get(
+            "school_menu:search_schools", data={"q": "kjsdkjhsdkjhkslk"}
+        )
+
+        self.response_200(response)
+        assert (
+            "Nessuna scuola soddisfa i criteri di ricerca..."
+            in response.content.decode()
+        )
+
+    # def test_with_index_page_referer(self):
+    #     self.get(
+    #         "school_menu:search_schools",
+    #         data={"q": "test"},
+    #         extra={"HTTP_REFERER": "localhost:8000/"},
+    #     )
+
+    #     self.assertResponseHeaders({'HTTP_REFERER': 'localhost:8000/'})

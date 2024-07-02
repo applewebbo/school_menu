@@ -183,6 +183,7 @@ def school_list(request):
     return TemplateResponse(request, "school-list.html", context)
 
 
+@login_required
 def upload_menu(request, school_id):
     school = get_object_or_404(School, pk=school_id)
     menu_type = school.menu_type

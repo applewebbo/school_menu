@@ -254,8 +254,11 @@ class SchoolListView(TestCase):
 
 class UploadMenuView(TestCase):
     def test_get(self):
-        school = SchoolFactory()
-        response = self.get("school_menu:upload_menu", school.pk)
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:upload_menu", school.pk)
 
         self.response_200(response)
         assertTemplateUsed(response, "upload-menu.html")
@@ -263,7 +266,8 @@ class UploadMenuView(TestCase):
 
     @patch("school_menu.views.import_menu")
     def test_post_with_valid_data(self, mock_import_menu):
-        school = SchoolFactory()
+        user = self.make_user()
+        school = SchoolFactory(user=user)
         data = {
             "file": SimpleUploadedFile(
                 "test_menu.xlsx",
@@ -273,18 +277,21 @@ class UploadMenuView(TestCase):
             "season": School.Seasons.INVERNALE,
         }
 
-        response = self.post("school_menu:upload_menu", school.pk, data=data)
+        with self.login(user):
+            response = self.post("school_menu:upload_menu", school.pk, data=data)
 
         self.response_204(response)
         mock_import_menu.assert_called_once()
 
     def test_post_with_invalid_data(self):
-        school = SchoolFactory()
+        user = self.make_user()
+        school = SchoolFactory(user=user)
         data = {
             "season": "WINTER",
         }
 
-        response = self.post("school_menu:upload_menu", school.pk, data=data)
+        with self.login(user):
+            response = self.post("school_menu:upload_menu", school.pk, data=data)
 
         self.response_200(response)
         assertTemplateUsed(response, "upload-menu.html")

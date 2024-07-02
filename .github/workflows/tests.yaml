@@ -1,7 +1,7 @@
 name: Tests Runner
 on:
   - push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:

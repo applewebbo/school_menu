@@ -15,18 +15,6 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
-
-# # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = env("SECRET_KEY")
-
-# # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = env("DEBUG")
-
-# ALLOWED_HOSTS = []
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,7 +31,6 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "crispy_forms",
     "debug_toolbar",
-    "django_extensions",
     "django_browser_reload",
     "django_tailwind_cli",
     "heroicons",

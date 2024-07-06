@@ -2,6 +2,10 @@ from .common import *  # noqa
 
 DEBUG = True
 
+INSTALLED_APPS += [
+    "django_extensions",
+]
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",

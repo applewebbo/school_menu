@@ -5,7 +5,7 @@
             <a href="{% url 'school_menu:index' %}"
                class="flex items-center space-x-3 rtl:space-x-reverse grow">
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo">
-                <span class="self-center text-2xl font-semibold tracking-tight whitespace-nowrap dark:text-white">Menu Scolastico</span>
+                <span class="self-center text-base font-semibold tracking-tight whitespace-nowrap md:text-2xl dark:text-white">Menu Scolastico</span>
             </a>
             <div class="flex items-end space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
                 {% if user.is_authenticated %}

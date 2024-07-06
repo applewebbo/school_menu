@@ -4,7 +4,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = [env("ALLOWED_HOST")]
+ALLOWED_HOSTS = [env("ALLOWED_HOSTS")]
 
 DATABASES = {
     "default": {

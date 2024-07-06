@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "crispy_tailwind",
     "crispy_forms",
+    "debug_toolbar",
     "django_extensions",
     "django_browser_reload",
     "django_tailwind_cli",
@@ -64,8 +65,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
-    "kolo.middleware.KoloMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"

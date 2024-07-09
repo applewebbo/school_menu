@@ -1,9 +1,15 @@
 from .common import *  # noqa
 
 DEBUG = True
+NO_RELOAD = False
 
 INSTALLED_APPS += [
+    "django_browser_reload",
     "django_extensions",
+]
+
+MIDDLEWARE += [
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 DATABASES = {

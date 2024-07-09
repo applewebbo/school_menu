@@ -16,3 +16,5 @@ DATABASES = {
         "PORT": "5432",
     }
 }
+
+NO_RELOAD = env("NO_RELOAD", default=False)

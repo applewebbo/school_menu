@@ -2,9 +2,9 @@ from .common import *  # noqa
 
 SECRET_KEY = env("SECRET_KEY")
 
-DEBUG = env("DEBUG")
+DEBUG = env.bool("DEBUG", default=False)
 
-ALLOWED_HOSTS = [env("ALLOWED_HOST")]
+ALLOWED_HOSTS = [env("ALLOWED_HOSTS")]
 
 DATABASES = {
     "default": {
@@ -16,3 +16,5 @@ DATABASES = {
         "PORT": "5432",
     }
 }
+
+NO_RELOAD = env("NO_RELOAD", default=False)

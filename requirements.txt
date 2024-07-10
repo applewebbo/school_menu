@@ -60,6 +60,10 @@ djangorestframework==3.15.2
     # via school-menu (pyproject.toml)
 et-xmlfile==1.1.0
     # via openpyxl
+factory-boy==3.3.0
+    # via school-menu (pyproject.toml)
+faker==26.0.0
+    # via factory-boy
 gunicorn==22.0.0
     # via school-menu (pyproject.toml)
 heroicons==2.6.0
@@ -79,7 +83,9 @@ psycopg==3.2.1
 psycopg-binary==3.2.1
     # via psycopg
 python-dateutil==2.9.0.post0
-    # via pandas
+    # via
+    #   faker
+    #   pandas
 pytz==2024.1
     # via pandas
 shellingham==1.5.4

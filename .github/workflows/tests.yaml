@@ -11,6 +11,7 @@ jobs:
       ALLOWED_HOSTS: '*'
       DEBUG: 'on'
       SECRET_KEY: 'a secret to everybody'
+      NO_RELOAD: 'on'
 
     steps:
       - name: Get the code

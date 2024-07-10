@@ -3,6 +3,7 @@ import logging
 from .common import *  # noqa
 
 SECRET_KEY = "my-test-secret-key"  # nosec
+NO_RELOAD = False
 
 DATABASES = {
     "default": {

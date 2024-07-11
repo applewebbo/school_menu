@@ -15,7 +15,7 @@ crispy-tailwind==1.0.3
     # via school-menu (pyproject.toml)
 diff-match-patch==20230430
     # via django-import-export
-django==5.0.6
+django==5.0.7
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
@@ -32,7 +32,7 @@ django==5.0.6
     #   djangorestframework
     #   heroicons
     #   neapolitan
-django-allauth==0.63.3
+django-allauth==0.63.4
     # via school-menu (pyproject.toml)
 django-browser-reload==1.13.0
     # via school-menu (pyproject.toml)
@@ -40,7 +40,7 @@ django-crispy-forms==2.2
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
-django-debug-toolbar==4.4.5
+django-debug-toolbar==4.4.6
     # via school-menu (pyproject.toml)
 django-environ==0.11.2
     # via school-menu (pyproject.toml)
@@ -48,7 +48,7 @@ django-filter==24.2
     # via neapolitan
 django-htmx==1.18.0
     # via school-menu (pyproject.toml)
-django-import-export==4.1.0
+django-import-export==4.1.1
     # via school-menu (pyproject.toml)
 django-tailwind-cli==2.13.0
     # via school-menu (pyproject.toml)
@@ -68,7 +68,7 @@ gunicorn==22.0.0
     # via school-menu (pyproject.toml)
 heroicons==2.6.0
     # via school-menu (pyproject.toml)
-neapolitan==24.4
+neapolitan==24.5
     # via school-menu (pyproject.toml)
 numpy==2.0.0
     # via pandas

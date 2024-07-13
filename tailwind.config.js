@@ -26,11 +26,23 @@ module.exports = {
     require("@tailwindcss/forms"),
     require("@tailwindcss/aspect-ratio"),
     require("@tailwindcss/container-queries"),
+    require('daisyui'),
     plugin(function({ addVariant }) {
       addVariant('htmx-settling', ['&.htmx-settling', '.htmx-settling &'])
       addVariant('htmx-request',  ['&.htmx-request',  '.htmx-request &'])
       addVariant('htmx-swapping', ['&.htmx-swapping', '.htmx-swapping &'])
       addVariant('htmx-added',    ['&.htmx-added',    '.htmx-added &'])
     }),
-  ]
+  ],
+  daisyui: {
+    themes: [
+      {
+        light: {
+          ...require("daisyui/src/theming/themes")["light"],
+          primary: "green",
+          secondary: "teal",
+        },
+      },
+    ],
+  },
 };

@@ -40,12 +40,12 @@
                         </ul>
                     </div>
                     <div class="md:text-right">
-                        <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-danger"
+                        <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-secondary"
                                 hx-target="#school"
                                 hx-swap="innerHTML"
                                 hx-get="{% url 'school_menu:school_update' %}">
                             Modifica
-                            {% heroicon_solid 'pencil' class="hidden text-white md:block size-4 ms-2" %}
+                            {% heroicon_solid 'pencil' class="hidden md:block size-4 ms-2" %}
                         </button>
                     </div>
                 {% else %}
@@ -74,7 +74,7 @@
                             <span class="hidden sm:block">Scarica&nbsp;</span> Menu
                             {% heroicon_solid 'arrow-down-on-square-stack' class="text-gray-400 size-5 ms-2" %}
                         </button>
-                        <button class="inline-flex items-center group btn btn-sm btn-dark-outline"
+                        <button class="inline-flex items-center group btn btn-sm"
                                 hx-get="{% url 'school_menu:upload_menu' user.school.id %}"
                                 hx-target="#dialog"
                                 hx-swap="innerHTML"
@@ -92,11 +92,11 @@
                         {% for week in 4|weeks %}
                             <div class="flex items-center">
                                 <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
+                                <a class="inline-flex items-center btn btn-xs btn-outline btn-error group"
                                    href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 %}"
                                    hx-boost="true">
                                     Modifica
-                                    {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-danger size-4 ms-2" %}
                                 </a>
                             </div>
                         {% endfor %}
@@ -108,11 +108,11 @@
                         {% for week in 4|weeks %}
                             <div class="flex items-center">
                                 <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                <a class="inline-flex items-center btn btn-xs btn-danger-outline group"
+                                <a class="inline-flex items-center btn btn-xs btn-outline btn-error group"
                                    href="{% url 'school_menu:create_weekly_menu' user.school.id week 1 %}"
                                    hx-boost="true">
                                     Modifica
-                                    {% heroicon_mini 'pencil' class="text-red-700 group-hover:text-white size-4 ms-2" %}
+                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-danger size-4 ms-2" %}
                                 </a>
                             </div>
                         {% endfor %}

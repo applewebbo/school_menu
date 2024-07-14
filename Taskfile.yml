@@ -12,19 +12,22 @@ tasks:
     silent: true
 
   local:
-    cmds:
-      - python manage.py runserver --settings=core.settings.dev
-    silent: true
+    deps: [dev, watch]
 
   venv:
     cmds:
       - uv venv
-      - activate
+      - source .venv/bin/activate
     silent: true
 
   watch:
     cmds:
       - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch
+    silent: true
+
+  dev:
+    cmds:
+      - python manage.py runserver --settings=core.settings.dev
     silent: true
 
   requirements:

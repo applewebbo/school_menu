@@ -31,7 +31,6 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "crispy_forms",
     "debug_toolbar",
-    "django_tailwind_cli",
     "heroicons",
     "import_export",
     "neapolitan",

@@ -27,12 +27,12 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
-          cache: 'pip'
-          cache-dependency-path: 'requirements*.txt'
-
 
       - name: Install Python packages
-        run: pip install -r requirements.txt -r requirements-dev.txt
+        uses: yezz123/setup-uv@v4
+        with:
+          uv-venv: ".venv"
+      - run: uv pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Test it
         run: task test

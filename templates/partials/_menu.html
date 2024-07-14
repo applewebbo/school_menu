@@ -9,14 +9,14 @@
             {% else %}
                 {% include 'partials/_simple_menu.html' %}
             {% endif %}
-            <span class="py-1 px-3.5 text-xs font-medium text-green-800 bg-green-200 rounded-full me-2">
+            <span class="text-green-200 badge badge-primary me-2">
                 {% if meal.season == 2 %}
                     Autunno / Inverno
                 {% else %}
                     Primavera / Estate
                 {% endif %}
             </span>
-            <span class="py-1 px-3.5 text-xs font-medium text-yellow-800 bg-yellow-200 rounded-full me-2">2023/2024</span>
+            <span class="text-yellow-800 badge badge-warning me-2">2023/2024</span>
             <br>
         {% else %}
             <p class="p-12 text-xl font-medium text-gray-900">
@@ -32,14 +32,14 @@
         <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
            x-data
            x-tooltip="Condividi via email"
-           class="inline-flex items-center py-2.5 px-5 mb-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg border border-gray-200 shadow dark:text-gray-900 dark:bg-white dark:border-gray-700 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 focus:outline-none me-2 dark:focus:ring-gray-800 dark:hover:bg-gra2-200">
+           class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn me-2">
             {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-2" %}
             Email
         </a>
         <button x-data
                 x-tooltip="Condividi su Facebook"
                 type="button"
-                class="text-gray-900 bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:focus:ring-[#3b5998]/55 me-2 mb-2 shadow">
+                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn me-2">
             <svg class="w-5 h-5 text-blue-800 me-2"
                  aria-hidden="true"
                  xmlns="http://www.w3.org/2000/svg"
@@ -53,7 +53,7 @@
                 x-data
                 x-tooltip="Copia negli appunti"
                 x-clipboard="address"
-                class="inline-flex items-center py-2.5 px-5 mb-2 text-sm font-medium text-center text-gray-900 bg-white rounded-lg border border-gray-200 shadow dark:text-gray-900 dark:bg-white dark:border-gray-700 hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 focus:outline-none me-2 dark:focus:ring-gray-800 dark:hover:bg-gray-200">
+                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
             {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-2" %}
             Copia
         </button>

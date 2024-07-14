@@ -173,3 +173,6 @@ staticfiles/
 
 # TAILWIND DEV STUFF
 static/css/tailwind.css
+
+# BUN DEV STUFF
+node_modules/

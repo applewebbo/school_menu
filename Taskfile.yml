@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+
+  bootstrap:
+    cmds:
+      - task : venv
+      - task : requirements
+      - bun install -D tailwindcss @tailwindcss/typography @tailwindcss/forms @tailwindcss/aspect-ratio daisyui@latest
+    silent: true
+
+  local:
+    cmds:
+      - python manage.py runserver --settings=core.settings.dev
+    silent: true
+
+  venv:
+    cmds:
+      - uv venv
+      - activate
+    silent: true
+
+  watch:
+    cmds:
+      - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch
+    silent: true
+
+  requirements:
+    cmds:
+    - uv pip compile --extra dev -o requirements-dev.txt pyproject.toml
+    - uv pip compile pyproject.toml -o requirements.txt
+    - uv pip install -r requirements-dev.txt -r requirements.txt
+    silent: true
+
+  update_req:
+    cmds:
+    - uv pip compile --upgrade --extra dev -o requirements-dev.txt pyproject.toml
+    - uv pip compile --upgrade pyproject.toml -o requirements.txt
+    - uv pip install -r requirements-dev.txt -r requirements.txt
+
+  check-migrations:
+    cmds:
+      - python manage.py makemigrations --check --no-input --dry-run
+    silent: true
+
+  test:
+    cmds:
+      - pytest --reuse-db -s
+    silent: true

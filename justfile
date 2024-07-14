@@ -1,5 +1,5 @@
 local:
-	python manage.py tailwind --settings=core.settings.dev runserver
+	python scripts/dev_server.py
 
 requirements:
 	uv pip compile --extra dev -o requirements-dev.txt pyproject.toml
@@ -15,7 +15,7 @@ checkmigrations:
 	python manage.py makemigrations --check --no-input --dry-run
 
 watch:
-	python manage.py tailwind watch
+	bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch
 
 test:
 	pytest --reuse-db -s

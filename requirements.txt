@@ -5,12 +5,6 @@ asgiref==3.8.1
     #   django
     #   django-browser-reload
     #   django-htmx
-certifi==2024.7.4
-    # via django-tailwind-cli
-click==8.1.7
-    # via
-    #   django-typer
-    #   typer-slim
 crispy-tailwind==1.0.3
     # via school-menu (pyproject.toml)
 diff-match-patch==20230430
@@ -26,13 +20,11 @@ django==5.0.7
     #   django-filter
     #   django-htmx
     #   django-import-export
-    #   django-tailwind-cli
     #   django-template-partials
-    #   django-typer
     #   djangorestframework
     #   heroicons
     #   neapolitan
-django-allauth==0.63.4
+django-allauth==0.63.6
     # via school-menu (pyproject.toml)
 django-browser-reload==1.13.0
     # via school-menu (pyproject.toml)
@@ -50,12 +42,8 @@ django-htmx==1.18.0
     # via school-menu (pyproject.toml)
 django-import-export==4.1.1
     # via school-menu (pyproject.toml)
-django-tailwind-cli==2.13.0
-    # via school-menu (pyproject.toml)
 django-template-partials==24.2
     # via school-menu (pyproject.toml)
-django-typer==2.1.2
-    # via django-tailwind-cli
 djangorestframework==3.15.2
     # via school-menu (pyproject.toml)
 et-xmlfile==1.1.0
@@ -88,8 +76,6 @@ python-dateutil==2.9.0.post0
     #   pandas
 pytz==2024.1
     # via pandas
-shellingham==1.5.4
-    # via django-typer
 six==1.16.0
     # via python-dateutil
 sqlparse==0.5.0
@@ -98,12 +84,8 @@ sqlparse==0.5.0
     #   django-debug-toolbar
 tablib==3.5.0
     # via django-import-export
-typer-slim==0.12.3
-    # via django-typer
 typing-extensions==4.12.2
-    # via
-    #   psycopg
-    #   typer-slim
+    # via psycopg
 tzdata==2024.1
     # via pandas
 whitenoise==6.7.0

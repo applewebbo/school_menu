@@ -5,6 +5,10 @@ asgiref==3.8.1
     #   django
     #   django-browser-reload
     #   django-htmx
+certifi==2024.7.4
+    # via requests
+charset-normalizer==3.3.2
+    # via requests
 crispy-tailwind==1.0.3
     # via school-menu (pyproject.toml)
 diff-match-patch==20230430
@@ -14,6 +18,7 @@ django==5.0.7
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
     #   django-allauth
+    #   django-anymail
     #   django-browser-reload
     #   django-crispy-forms
     #   django-debug-toolbar
@@ -25,6 +30,8 @@ django==5.0.7
     #   heroicons
     #   neapolitan
 django-allauth==0.63.6
+    # via school-menu (pyproject.toml)
+django-anymail==11.0.1
     # via school-menu (pyproject.toml)
 django-browser-reload==1.13.0
     # via school-menu (pyproject.toml)
@@ -56,6 +63,8 @@ gunicorn==22.0.0
     # via school-menu (pyproject.toml)
 heroicons==2.6.0
     # via school-menu (pyproject.toml)
+idna==3.7
+    # via requests
 neapolitan==24.5
     # via school-menu (pyproject.toml)
 numpy==2.0.0
@@ -76,6 +85,8 @@ python-dateutil==2.9.0.post0
     #   pandas
 pytz==2024.1
     # via pandas
+requests==2.32.3
+    # via django-anymail
 six==1.16.0
     # via python-dateutil
 sqlparse==0.5.0
@@ -88,5 +99,9 @@ typing-extensions==4.12.2
     # via psycopg
 tzdata==2024.1
     # via pandas
+urllib3==2.2.2
+    # via
+    #   django-anymail
+    #   requests
 whitenoise==6.7.0
     # via school-menu (pyproject.toml)

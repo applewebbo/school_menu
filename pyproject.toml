@@ -6,6 +6,7 @@ dependencies = [
     "crispy-tailwind",
     "django >5.0",
     "django-allauth",
+    "django-anymail[mailgun]",
     "django-browser-reload",
     "django-crispy-forms",
     "django-debug-toolbar",

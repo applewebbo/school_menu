@@ -5,8 +5,12 @@ asgiref==3.8.1
     #   django
     #   django-browser-reload
     #   django-htmx
+certifi==2024.7.4
+    # via requests
 cfgv==3.4.0
     # via pre-commit
+charset-normalizer==3.3.2
+    # via requests
 click==8.1.7
     # via djlint
 colorama==0.4.6
@@ -28,6 +32,7 @@ django==5.0.7
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
     #   django-allauth
+    #   django-anymail
     #   django-browser-reload
     #   django-crispy-forms
     #   django-debug-toolbar
@@ -40,6 +45,8 @@ django==5.0.7
     #   heroicons
     #   neapolitan
 django-allauth==0.63.6
+    # via school-menu (pyproject.toml)
+django-anymail==11.0.1
     # via school-menu (pyproject.toml)
 django-browser-reload==1.13.0
     # via school-menu (pyproject.toml)
@@ -93,6 +100,8 @@ html-void-elements==0.1.0
     # via djlint
 identify==2.6.0
     # via pre-commit
+idna==3.7
+    # via requests
 inflection==0.5.1
     # via pytest-factoryboy
 iniconfig==2.0.0
@@ -159,6 +168,8 @@ pyyaml==6.0.1
     #   pre-commit
 regex==2023.12.25
     # via djlint
+requests==2.32.3
+    # via django-anymail
 ruff==0.5.1
     # via school-menu (pyproject.toml)
 six==1.16.0
@@ -180,6 +191,10 @@ typing-extensions==4.12.2
     #   pytest-factoryboy
 tzdata==2024.1
     # via pandas
+urllib3==2.2.2
+    # via
+    #   django-anymail
+    #   requests
 virtualenv==20.26.3
     # via pre-commit
 whitenoise==6.7.0

@@ -1,0 +1,12 @@
+{% extends "account/email/base_message.txt" %}
+
+{% block content %}{% autoescape off %}Hai ricevuto questo messaggio perchè qualcuno sta tentando di creare un account utilizzando questo indirizzo email:
+
+{{ email }}
+
+Esiste già un account registrato con questo indirizzo. Procedi se necessario con il reset della tua password al seguente indirizzo:
+
+{{ password_reset_url }}
+
+Oppure semplicemente ignora questo messaggio se non hai richiesto la creazione di un account.
+{% endautoescape %}{% endblock content %}

@@ -25,6 +25,10 @@ tasks:
       - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch
     silent: true
 
+  build:
+    cmds:
+      - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify
+
   dev:
     cmds:
       - python manage.py runserver --settings=core.settings.dev

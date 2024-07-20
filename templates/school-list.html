@@ -25,10 +25,13 @@
                                hx-swap="outerHTML"
                                hx-trigger="keyup changed delay:1s"
                                hx-target="#school-list"
+                               hx-indicator="#spinner"
                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:placeholder-gray-400 dark:text-white dark:bg-gray-700 dark:border-gray-600 focus:border-green-500 focus:ring-green-500 ps-10 dark:focus:ring-green-500 dark:focus:border-green-500"
                                placeholder="Cerca scuola o città..."
                                autocomplete="off"
                                required />
+                        <span id="spinner"
+                              class="absolute top-2 htmx-indicator loading loading-bars text-primary loading-md end-4"></span>
                     </div>
                 </div>
                 <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">

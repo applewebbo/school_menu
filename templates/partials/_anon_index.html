@@ -8,14 +8,6 @@
     </p>
     <div class="grid grid-cols-1 gap-2 p-2 mt-6 bg-center bg-cover rounded-xl md:grid-cols-2 md:gap-4 md:p-6 lg:gap-6 lg:p-8"
          id="anon-cta">
-        <div class="py-6 px-4 text-center bg-white rounded-xl border border-gray-300 shadow-md">
-            <p class="mb-6 text-xl font-medium tracking-tight">Crea il menu della tua scuola</p>
-            <a href="{% url 'account_signup' %}"
-               class="inline-flex items-center btn btn-xl btn-primary">
-                Registrati
-                {% heroicon_outline "arrow-right" class="w-4 h-4 ms-4" %}
-            </a>
-        </div>
         <div class="py-6 px-4 bg-white rounded-xl border border-gray-300 shadow-md">
             <p class="mb-6 text-xl font-medium tracking-tight text-center">Cerca la tua scuola</p>
             <div class="flex items-center mx-auto max-w-sm">
@@ -32,12 +24,23 @@
                            hx-swap="outerHTML"
                            hx-trigger="keyup changed delay:1s"
                            hx-target="#school-list"
+                           hx-indicator="#spinner"
                            placeholder="Cerca scuola o città..."
                            autocomplete="off"
                            required />
+                    <span id="spinner"
+                          class="absolute top-2 htmx-indicator loading loading-bars text-primary loading-md end-4"></span>
                 </div>
             </div>
             <div id="school-list"></div>
+        </div>
+        <div class="py-6 px-4 text-center bg-white rounded-xl border border-gray-300 shadow-md">
+            <p class="mb-6 text-xl font-medium tracking-tight">Crea il menu della tua scuola</p>
+            <a href="{% url 'account_signup' %}"
+               class="inline-flex items-center btn btn-xl btn-primary">
+                Registrati
+                {% heroicon_outline "arrow-right" class="w-4 h-4 ms-4" %}
+            </a>
         </div>
     </div>
 </div>

@@ -26,20 +26,20 @@
         {% endif %}
     </div>
     <div id="share"
-         class="mt-12 mb-4"
+         class="flex flex-col gap-3 justify-center mt-12 mb-4 sm:flex-row"
          x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
         <!--   https://www.alpinejs.dev/component/tooltip -->
         <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
            x-data
            x-tooltip="Condividi via email"
-           class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn me-2">
+           class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
             {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-2" %}
             Email
         </a>
         <button x-data
                 x-tooltip="Condividi su Facebook"
                 type="button"
-                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn me-2">
+                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
             <svg class="w-5 h-5 text-blue-800 me-2"
                  aria-hidden="true"
                  xmlns="http://www.w3.org/2000/svg"

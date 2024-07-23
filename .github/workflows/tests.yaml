@@ -12,6 +12,9 @@ jobs:
       DEBUG: 'on'
       SECRET_KEY: 'a secret to everybody'
       NO_RELOAD: 'on'
+      MAILGUN_API_KEY: 'key-123'
+      MAILGUN_API_URL: 'http://localhost:8000'
+      MAILGUN_SENDER_DOMAIN: 'sandbox123.mailgun.org'
 
     steps:
       - name: Get the code

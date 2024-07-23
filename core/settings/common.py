@@ -136,8 +136,6 @@ MEDIA_URL = "/media/"
 AUTH_USER_MODEL = "users.User"
 
 # DJANGO-ALLAUTH
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
     "django.contrib.auth.backends.ModelBackend",
@@ -154,11 +152,21 @@ ACCOUNT_SIGNUP_PASSWORD_ENTER_TWICE = False
 ACCOUNT_SESSION_REMEMBER = True
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_UNIQUE_EMAIL = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
 LOGIN_REDIRECT_URL = "school_menu:index"
 ACCOUNT_LOGOUT_REDIRECT_URL = "school_menu:index"
 
 # DJANGO CRISPY FORMS
 CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
-
 CRISPY_TEMPLATE_PACK = "tailwind"
+
+# DJANGO_ANYMAIL
+EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+DEFAULT_FROM_EMAIL = "info@mg.webbografico.com"
+
+ANYMAIL = {
+    "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
+    "MAILGUN_API_URL": env("MAILGUN_API_URL"),
+    "MAILGUN_SENDER_DOMAIN": env("MAILGUN_SENDER_DOMAIN"),
+}

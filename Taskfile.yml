@@ -36,16 +36,16 @@ tasks:
 
   requirements:
     cmds:
-    - uv pip compile --extra dev -o requirements-dev.txt pyproject.toml
+    - uv pip compile pyproject.toml --extra dev -o requirements-dev.txt
     - uv pip compile pyproject.toml -o requirements.txt
-    - uv pip install -r requirements-dev.txt -r requirements.txt
+    - uv pip install -r requirements-dev.txt
     silent: true
 
   update_req:
     cmds:
     - uv pip compile --upgrade --extra dev -o requirements-dev.txt pyproject.toml
     - uv pip compile --upgrade pyproject.toml -o requirements.txt
-    - uv pip install -r requirements-dev.txt -r requirements.txt
+    - uv pip install -r requirements-dev.txt
 
   check-migrations:
     cmds:

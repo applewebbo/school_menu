@@ -21,10 +21,12 @@ django==5.0.7
     #   django-anymail
     #   django-browser-reload
     #   django-crispy-forms
+    #   django-dbbackup
     #   django-debug-toolbar
     #   django-filter
     #   django-htmx
     #   django-import-export
+    #   django-storages
     #   django-template-partials
     #   djangorestframework
     #   heroicons
@@ -35,10 +37,12 @@ django-anymail==11.0.1
     # via school-menu (pyproject.toml)
 django-browser-reload==1.13.0
     # via school-menu (pyproject.toml)
-django-crispy-forms==2.2
+django-crispy-forms==2.3
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
+django-dbbackup==4.1.0
+    # via school-menu (pyproject.toml)
 django-debug-toolbar==4.4.6
     # via school-menu (pyproject.toml)
 django-environ==0.11.2
@@ -49,9 +53,13 @@ django-htmx==1.18.0
     # via school-menu (pyproject.toml)
 django-import-export==4.1.1
     # via school-menu (pyproject.toml)
+django-storages==1.14.4
+    # via school-menu (pyproject.toml)
 django-template-partials==24.2
     # via school-menu (pyproject.toml)
 djangorestframework==3.15.2
+    # via school-menu (pyproject.toml)
+dropbox==12.0.2
     # via school-menu (pyproject.toml)
 et-xmlfile==1.1.0
     # via openpyxl
@@ -67,7 +75,7 @@ idna==3.7
     # via requests
 neapolitan==24.5
     # via school-menu (pyproject.toml)
-numpy==2.0.0
+numpy==2.0.1
     # via pandas
 openpyxl==3.1.2
     # via school-menu (pyproject.toml)
@@ -75,6 +83,8 @@ packaging==24.1
     # via gunicorn
 pandas==2.2.2
     # via school-menu (pyproject.toml)
+ply==3.11
+    # via stone
 psycopg==3.2.1
     # via school-menu (pyproject.toml)
 psycopg-binary==3.2.1
@@ -84,15 +94,24 @@ python-dateutil==2.9.0.post0
     #   faker
     #   pandas
 pytz==2024.1
-    # via pandas
+    # via
+    #   django-dbbackup
+    #   pandas
 requests==2.32.3
-    # via django-anymail
+    # via
+    #   django-anymail
+    #   dropbox
 six==1.16.0
-    # via python-dateutil
-sqlparse==0.5.0
+    # via
+    #   dropbox
+    #   python-dateutil
+    #   stone
+sqlparse==0.5.1
     # via
     #   django
     #   django-debug-toolbar
+stone==3.3.1
+    # via dropbox
 tablib==3.5.0
     # via django-import-export
 typing-extensions==4.12.2

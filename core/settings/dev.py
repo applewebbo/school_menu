@@ -31,6 +31,7 @@ INTERNAL_IPS = [
 
 INSTALLED_APPS += [
     "dbbackup",
+    "django_q",
 ]
 
 # DBBACKUP
@@ -40,4 +41,15 @@ DBBACKUP_STORAGE_OPTIONS = {
     "oauth2_refresh_token": env("DROPBOX_OAUTH2_REFRESH_TOKEN"),
     "app_secret": env("DROPBOX_APP_SECRET"),
     "app_key": env("DROPBOX_APP_KEY"),
+}
+
+# DJANGO_Q
+Q_CLUSTER = {
+    "name": "DjangORM",
+    "workers": 4,
+    "timeout": 90,
+    "retry": 120,
+    "queue_limit": 50,
+    "bulk": 10,
+    "orm": "default",
 }

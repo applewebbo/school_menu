@@ -15,6 +15,7 @@ dependencies = [
   "django-social-share",
   "django-storages",
   "django-template-partials",
+  "django-unfold",
   "dropbox",
   "heroicons[django]",
   "factory_boy",

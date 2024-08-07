@@ -30,7 +30,9 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     "crispy_tailwind",
     "crispy_forms",
+    "dbbackup",
     "debug_toolbar",
+    "django_q",
     "heroicons",
     "import_export",
     "neapolitan",
@@ -73,20 +75,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-
-# # Database
-# # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-# DATABASES = {
-#     "default": {
-#         "ENGINE": "django.db.backends.sqlite3",
-#         "NAME": BASE_DIR / "db.sqlite3",
-#     }
-# }
-
-
-# Password validation
-# https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -169,4 +157,24 @@ ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
     "MAILGUN_API_URL": env("MAILGUN_API_URL"),
     "MAILGUN_SENDER_DOMAIN": env("MAILGUN_SENDER_DOMAIN"),
+}
+
+# DBBACKUP
+DBBACKUP_STORAGE = "storages.backends.dropbox.DropBoxStorage"
+DBBACKUP_STORAGE_OPTIONS = {
+    "oauth2_access_token": env("DROPBOX_OAUTH2_ACCESS_TOKEN"),
+    "oauth2_refresh_token": env("DROPBOX_OAUTH2_REFRESH_TOKEN"),
+    "app_secret": env("DROPBOX_APP_SECRET"),
+    "app_key": env("DROPBOX_APP_KEY"),
+}
+
+# DJANGO_Q
+Q_CLUSTER = {
+    "name": "DjangORM",
+    "workers": 4,
+    "timeout": 90,
+    "retry": 120,
+    "queue_limit": 50,
+    "bulk": 10,
+    "orm": "default",
 }

@@ -15,6 +15,10 @@ jobs:
       MAILGUN_API_KEY: 'key-123'
       MAILGUN_API_URL: 'http://localhost:8000'
       MAILGUN_SENDER_DOMAIN: 'sandbox123.mailgun.org'
+      DROPBOX_OAUTH2_ACCESS_TOKEN: '123'
+      DROPBOX_OAUTH2_REFRESH_TOKEN: '123'
+      DROPBOX_APP_SECRET: '123'
+      DROPBOX_APP_KEY: '123'
 
     steps:
       - name: Get the code

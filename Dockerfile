@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.11.8-slim-bookworm
+FROM python:3.11.9-slim-bookworm
 
 # set work directory
 WORKDIR /usr/src/app
@@ -12,7 +12,7 @@ ENV PYTHONPATH /srv
 ENV PYTHONUNBUFFERED 1
 
 #install uv
-RUN apt-get update && apt-get install -y postgresql-client
+RUN apt update && apt install -y postgresql-client-16
 RUN pip install --upgrade pip uv
 RUN python -m uv venv
 

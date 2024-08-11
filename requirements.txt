@@ -13,7 +13,7 @@ crispy-tailwind==1.0.3
     # via school-menu (pyproject.toml)
 diff-match-patch==20230430
     # via django-import-export
-django==5.0.7
+django==5.0.8
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
@@ -32,9 +32,9 @@ django==5.0.7
     #   django-template-partials
     #   heroicons
     #   neapolitan
-django-allauth==0.63.6
+django-allauth==64.0.0
     # via school-menu (pyproject.toml)
-django-anymail==11.0.1
+django-anymail==11.1
     # via school-menu (pyproject.toml)
 django-browser-reload==1.13.0
     # via school-menu (pyproject.toml)
@@ -48,9 +48,9 @@ django-debug-toolbar==4.4.6
     # via school-menu (pyproject.toml)
 django-environ==0.11.2
     # via school-menu (pyproject.toml)
-django-filter==24.2
+django-filter==24.3
     # via neapolitan
-django-htmx==1.18.0
+django-htmx==1.19.0
     # via school-menu (pyproject.toml)
 django-import-export==4.1.1
     # via school-menu (pyproject.toml)
@@ -68,15 +68,15 @@ et-xmlfile==1.1.0
     # via openpyxl
 factory-boy==3.3.0
     # via school-menu (pyproject.toml)
-faker==26.0.0
+faker==26.3.0
     # via factory-boy
-gunicorn==22.0.0
+gunicorn==23.0.0
     # via school-menu (pyproject.toml)
-heroicons==2.6.0
+heroicons==2.7.0
     # via school-menu (pyproject.toml)
 idna==3.7
     # via requests
-neapolitan==24.5
+neapolitan==24.6
     # via school-menu (pyproject.toml)
 numpy==2.0.1
     # via pandas

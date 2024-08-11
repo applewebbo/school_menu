@@ -4,7 +4,7 @@ version = "0.2"
 requires-python = ">= 3.11"
 dependencies = [
     "crispy-tailwind",
-    "django >5.0",
+    "django <5.1",
     "django-allauth",
     "django-anymail[mailgun]",
     "django-browser-reload",

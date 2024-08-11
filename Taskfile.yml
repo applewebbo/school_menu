@@ -54,5 +54,5 @@ tasks:
 
   test:
     cmds:
-      - pytest --reuse-db -s
+      - COVERAGE_CORE=sysmon python -m pytest --reuse-db -s
     silent: true

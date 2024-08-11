@@ -1,10 +1,10 @@
 [project]
 name = "school_menu"
-version = "0.2"
-requires-python = ">= 3.11"
+version = "0.3"
+requires-python = ">= 3.12"
 dependencies = [
     "crispy-tailwind",
-    "django >5.0",
+    "django <5.1",
     "django-allauth",
     "django-anymail[mailgun]",
     "django-browser-reload",
@@ -22,8 +22,8 @@ dependencies = [
     "factory_boy",
     "gunicorn",
     "neapolitan",
-    "pandas==2.2.2",
-    "openpyxl==3.1.2",
+    "pandas",
+    "openpyxl",
     "psycopg[binary]",
     "whitenoise",
 ]

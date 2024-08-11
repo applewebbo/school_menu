@@ -18,3 +18,6 @@ DATABASES = {
 }
 
 NO_RELOAD = env("NO_RELOAD", default=False)
+
+# DBBACKUP
+DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"

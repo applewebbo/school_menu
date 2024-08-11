@@ -80,7 +80,7 @@ neapolitan==24.6
     # via school-menu (pyproject.toml)
 numpy==2.0.1
     # via pandas
-openpyxl==3.1.2
+openpyxl==3.1.5
     # via school-menu (pyproject.toml)
 packaging==24.1
     # via gunicorn

@@ -58,6 +58,8 @@ django-picklefield==3.2
     # via django-q2
 django-q2==1.6.2
     # via school-menu (pyproject.toml)
+django-social-share==2.3.0
+    # via school-menu (pyproject.toml)
 django-storages==1.14.4
     # via school-menu (pyproject.toml)
 django-template-partials==24.2

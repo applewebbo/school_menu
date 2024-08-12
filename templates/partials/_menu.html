@@ -1,4 +1,4 @@
-{% load heroicons %}
+{% load heroicons social_share %}
 <div class="text-center" id="day_menu">
     {% include 'partials/_days_menu.html' %}
     <div id="current_menu" class="my-7 text-center">
@@ -25,36 +25,28 @@
             <br>
         {% endif %}
     </div>
+    <hr class="my-8">
+    <p class="text-lg font-bold tracking-tight text-secondary">Condivisione</p>
     <div id="share"
-         class="flex flex-col gap-3 justify-center mt-12 mb-4 sm:flex-row"
+         class="flex flex-col gap-3 justify-center mt-4 mb-4 sm:flex-row"
          x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
         <!--   https://www.alpinejs.dev/component/tooltip -->
         <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
            x-data
            x-tooltip="Condividi via email"
            class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
-            {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-2" %}
+            {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-1" %}
             Email
         </a>
-        <button x-data
-                x-tooltip="Condividi su Facebook"
-                type="button"
-                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
-            <svg class="w-5 h-5 text-blue-800 me-2"
-                 aria-hidden="true"
-                 xmlns="http://www.w3.org/2000/svg"
-                 fill="currentColor"
-                 viewBox="0 0 8 19">
-                <path fill-rule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clip-rule="evenodd" />
-            </svg>
-            Facebook
-        </button>
+        {% post_to_facebook object_or_url "Facebook" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
+        {% post_to_whatsapp object_or_url "Whatsapp" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
         <button type="button"
-                x-data
+                x-data="{ input: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}'}"
                 x-tooltip="Copia negli appunti"
                 x-clipboard="address"
+                @click="$clipboard(input)"
                 class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
-            {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-2" %}
+            {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-1" %}
             Copia
         </button>
     </div>

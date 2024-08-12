@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "dbbackup",
     "debug_toolbar",
     "django_q",
+    "django_social_share",
     "heroicons",
     "import_export",
     "neapolitan",

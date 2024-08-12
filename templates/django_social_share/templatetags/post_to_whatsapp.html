@@ -1,0 +1,12 @@
+{% load static %}
+<a x-data
+   x-tooltip="Condividi su Whatsapp"
+   type="button"
+   href="{{ whatsapp_url }}"
+   class="{{ link_class }}"
+   target="_blank">
+    <img src="{% static 'img/whatsapp.svg' %}"
+         alt="Whatsapp Logo"
+         class="w-5 h-5 me-1">
+    {{ link_text }}
+</a>

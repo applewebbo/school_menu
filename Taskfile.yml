@@ -6,9 +6,9 @@ tasks:
 
   bootstrap:
     cmds:
-      - task : venv
-      - task : requirements
-      - bun install -D tailwindcss @tailwindcss/typography @tailwindcss/forms @tailwindcss/aspect-ratio daisyui@latest
+    - task: venv
+    - task: requirements
+    - bun install -D tailwindcss @tailwindcss/typography @tailwindcss/forms @tailwindcss/aspect-ratio daisyui@latest
     silent: true
 
   local:
@@ -16,22 +16,22 @@ tasks:
 
   venv:
     cmds:
-      - uv venv
-      - source .venv/bin/activate
+    - uv venv
+    - source .venv/bin/activate
     silent: true
 
   watch:
     cmds:
-      - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch
+    - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --watch
     silent: true
 
   build:
     cmds:
-      - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify
+    - bunx tailwindcss -i ./static/src/input.css -o ./static/css/tailwind.css --minify
 
   dev:
     cmds:
-      - python manage.py runserver --settings=core.settings.dev
+    - python manage.py runserver --settings=core.settings.dev
     silent: true
 
   requirements:
@@ -49,10 +49,10 @@ tasks:
 
   check-migrations:
     cmds:
-      - python manage.py makemigrations --check --no-input --dry-run
+    - python manage.py makemigrations --check --no-input --dry-run
     silent: true
 
   test:
     cmds:
-      - COVERAGE_CORE=sysmon python -m pytest --reuse-db -s
+    - COVERAGE_CORE=sysmon python -m pytest --reuse-db -s
     silent: true

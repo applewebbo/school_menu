@@ -9,40 +9,40 @@ jobs:
     runs-on: ubuntu-22.04
     env:
       ALLOWED_HOSTS: '*'
-      DEBUG: 'on'
-      SECRET_KEY: 'a secret to everybody'
-      NO_RELOAD: 'on'
-      MAILGUN_API_KEY: 'key-123'
-      MAILGUN_API_URL: 'http://localhost:8000'
-      MAILGUN_SENDER_DOMAIN: 'sandbox123.mailgun.org'
+      DEBUG: on
+      SECRET_KEY: a secret to everybody
+      NO_RELOAD: on
+      MAILGUN_API_KEY: key-123
+      MAILGUN_API_URL: http://localhost:8000
+      MAILGUN_SENDER_DOMAIN: sandbox123.mailgun.org
       DROPBOX_OAUTH2_ACCESS_TOKEN: '123'
       DROPBOX_OAUTH2_REFRESH_TOKEN: '123'
       DROPBOX_APP_SECRET: '123'
       DROPBOX_APP_KEY: '123'
 
     steps:
-      - name: Get the code
-        uses: actions/checkout@v3
+    - name: Get the code
+      uses: actions/checkout@v3
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Install Task
+      uses: arduino/setup-task@v2
+      with:
+        version: 3.x
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
 
-      - name: Install Python packages
-        uses: yezz123/setup-uv@v4
-        with:
-          uv-venv: ".venv"
-      - run: uv pip install -r requirements.txt -r requirements-dev.txt
+    - name: Install Python packages
+      uses: yezz123/setup-uv@v4
+      with:
+        uv-venv: .venv
+    - run: uv pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Test it
-        run: task test
+    - name: Test it
+      run: task test
 
       # - name: Check deploy configuration
       #   run: ./manage.py check --deploy --fail-level WARNING

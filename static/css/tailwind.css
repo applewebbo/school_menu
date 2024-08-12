@@ -2652,6 +2652,10 @@ select ~ .pointer-events-none {
   margin-bottom: 2rem;
 }
 
+.me-1 {
+  margin-inline-end: 0.25rem;
+}
+
 .me-2 {
   margin-inline-end: 0.5rem;
 }
@@ -2684,10 +2688,6 @@ select ~ .pointer-events-none {
   margin-inline-start: auto;
 }
 
-.mt-12 {
-  margin-top: 3rem;
-}
-
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -2710,10 +2710,6 @@ select ~ .pointer-events-none {
 
 .mt-8 {
   margin-top: 2rem;
-}
-
-.me-1 {
-  margin-inline-end: 0.25rem;
 }
 
 .block {
@@ -2783,14 +2779,6 @@ select ~ .pointer-events-none {
   height: 1px;
 }
 
-.h-6 {
-  height: 1.5rem;
-}
-
-.h-7 {
-  height: 1.75rem;
-}
-
 .min-h-screen {
   min-height: 100vh;
 }
@@ -2817,14 +2805,6 @@ select ~ .pointer-events-none {
 
 .w-full {
   width: 100%;
-}
-
-.w-6 {
-  width: 1.5rem;
-}
-
-.w-7 {
-  width: 1.75rem;
 }
 
 .max-w-2xl {
@@ -3061,11 +3041,6 @@ select ~ .pointer-events-none {
   border-color: rgb(253 224 71 / var(--tw-border-opacity));
 }
 
-.border-teal-100 {
-  --tw-border-opacity: 1;
-  border-color: rgb(204 251 241 / var(--tw-border-opacity));
-}
-
 .bg-base-100 {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));
@@ -3233,20 +3208,12 @@ select ~ .pointer-events-none {
   padding-top: 2rem;
 }
 
-.text-left {
-  text-align: left;
-}
-
 .text-center {
   text-align: center;
 }
 
 .text-right {
   text-align: right;
-}
-
-.text-start {
-  text-align: start;
 }
 
 .text-2xl {
@@ -3413,6 +3380,11 @@ select ~ .pointer-events-none {
   color: rgb(153 27 27 / var(--tw-text-opacity));
 }
 
+.text-secondary {
+  --tw-text-opacity: 1;
+  color: var(--fallback-s,oklch(var(--s)/var(--tw-text-opacity)));
+}
+
 .text-sky-500 {
   --tw-text-opacity: 1;
   color: rgb(14 165 233 / var(--tw-text-opacity));
@@ -3431,11 +3403,6 @@ select ~ .pointer-events-none {
 .text-yellow-800 {
   --tw-text-opacity: 1;
   color: rgb(133 77 14 / var(--tw-text-opacity));
-}
-
-.text-secondary {
-  --tw-text-opacity: 1;
-  color: var(--fallback-s,oklch(var(--s)/var(--tw-text-opacity)));
 }
 
 .underline-offset-2 {

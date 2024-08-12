@@ -33,31 +33,23 @@
            x-data
            x-tooltip="Condividi via email"
            class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
-            {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-2" %}
+            {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-1" %}
             Email
         </a>
-        <div id="fb_share" x-data x-tooltip="Condividi su Facebook">
-            {% post_to_facebook object_or_url "Facebook" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
-        </div>
-        {% comment %} <a x-data x-tooltip="Condividi su Facebook" type="button" class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
-            <svg class="w-5 h-5 text-blue-800 me-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 8 19">
-                <path fill-rule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clip-rule="evenodd" />
-            </svg>
-        Facebook {% endcomment %}
-        {% comment %} </div> {% endcomment %}
-        <div x-data="{ input: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}'}">
-            <button type="button"
-                    x-data
-                    x-tooltip="Copia negli appunti"
-                    x-clipboard="address"
-                    @click="$clipboard(input)"
-                    class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
-                {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-2" %}
-                Copia
-            </button>
-        </div>
+        {% post_to_facebook object_or_url "Facebook" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
+        {% post_to_whatsapp object_or_url "Whatsapp" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
+        <button type="button"
+                x-data="{ input: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}'}"
+                x-tooltip="Copia negli appunti"
+                x-clipboard="address"
+                @click="$clipboard(input)"
+                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
+            {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-1" %}
+            Copia
+        </button>
     </div>
-    <script>
+</div>
+<script>
     document.addEventListener('alpine:init', () => {
         // Magic: $tooltip
         Alpine.magic('tooltip', el => message => {
@@ -77,4 +69,4 @@
             tippy(el, { content: expression })
         })
     })
-    </script>
+</script>

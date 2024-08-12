@@ -3061,6 +3061,11 @@ select ~ .pointer-events-none {
   border-color: rgb(253 224 71 / var(--tw-border-opacity));
 }
 
+.border-teal-100 {
+  --tw-border-opacity: 1;
+  border-color: rgb(204 251 241 / var(--tw-border-opacity));
+}
+
 .bg-base-100 {
   --tw-bg-opacity: 1;
   background-color: var(--fallback-b1,oklch(var(--b1)/var(--tw-bg-opacity)));
@@ -3228,12 +3233,20 @@ select ~ .pointer-events-none {
   padding-top: 2rem;
 }
 
+.text-left {
+  text-align: left;
+}
+
 .text-center {
   text-align: center;
 }
 
 .text-right {
   text-align: right;
+}
+
+.text-start {
+  text-align: start;
 }
 
 .text-2xl {
@@ -3418,6 +3431,11 @@ select ~ .pointer-events-none {
 .text-yellow-800 {
   --tw-text-opacity: 1;
   color: rgb(133 77 14 / var(--tw-text-opacity));
+}
+
+.text-secondary {
+  --tw-text-opacity: 1;
+  color: var(--fallback-s,oklch(var(--s)/var(--tw-text-opacity)));
 }
 
 .underline-offset-2 {

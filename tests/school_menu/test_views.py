@@ -189,7 +189,7 @@ class SettingView(TestCase):
             response = self.post("school_menu:school_create", data=data)
             school = School.objects.get(user=user)
 
-        self.response_200(response)
+        self.response_204(response)
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == f"<strong>{ school.name }</strong> creata con successo"
         assert School.objects.filter(user=user).count() == 1

@@ -154,7 +154,7 @@ def school_create(request):
             messages.SUCCESS,
             f"<strong>{school.name}</strong> creata con successo",
         )
-        return render(request, "settings.html#school", {"school": school})
+        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
 
     context = {"form": form, "create": True}
     return render(request, "partials/school.html", context)

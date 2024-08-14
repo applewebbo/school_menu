@@ -18,6 +18,8 @@ class DetailedMealAdmin(ModelAdmin, ImportExportModelAdmin):
 @admin.register(SimpleMeal)
 class SimpleMealAdmin(ModelAdmin, ImportExportModelAdmin):
     resource_classes = [SimpleMealResource]
+    list_display = ["__str__", "school"]
+    list_filter = ["school"]
 
 
 @admin.register(School)

@@ -14,13 +14,18 @@
         <h6 class="footer-title">Navigazione</h6>
         <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
         <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
-        <a href="#" class="link link-hover">Guida all'utilizzo</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'school_menu:settings' user.id %}"
+               class="link link-hover">Impostazioni</a>
+        {% endif %}
+        <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
     </nav>
     <nav>
-        <h6 class="footer-title">Links</h6>
-        <a class="link link-hover">Progetto</a>
-        <a class="link link-hover">Disclaimer</a>
-        <a class="link link-hover">Crediti</a>
+        <h6 class="footer-title">Altro</h6>
+        <a href="#" class="link link-hover">Disclaimer</a>
+        <a href="#" class="link link-hover">Crediti</a>
+        <a href="#" class="link link-hover">Progetto</a>
+        <a href="#" class="link link-hover">Contatti</a>
     </nav>
 </footer>
 <footer class="p-4 footer footer-center bg-base-200 text-base-content">

@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% load i18n crispy_forms_tags static %}
+{% load i18n crispy_forms_tags static heroicons %}
 {% load account %}
 {% block head_title %}
     {% trans "Confirm Email Address" %}
 {% endblock head_title %}
 {% block content %}
     <div class="my-12 border shadow card card-side bg-base-100 border-base-200">
-        <figure>
-            <img src="{% static 'img/check.png' %}" alt="Check mark" class="ms-3" />
-        </figure>
         <div class="card-body">
-            <h2 class="card-title text-primary">{% trans "Confirm Email Address" %}</h2>
+            <h2 class="card-title text-primary">
+                {% heroicon_solid 'check-circle' class="size-10 me-1 text-primary" %}
+                {% trans "Confirm Email Address" %}
+            </h2>
             {% if confirmation %}
                 {% user_display confirmation.email_address.user as user_display %}
                 {% if can_confirm %}
@@ -19,7 +19,9 @@
                         <form method="post"
                               action="{% url 'account_confirm_email' confirmation.key %}">
                             {% csrf_token %}
-                            <button class="btn btn-sm btn-primary" type="submit">{% trans 'Confirm' %}</button>
+                            <div class="text-right">
+                                <button class="btn btn-sm btn-primary" type="submit">{% trans 'Confirm' %}</button>
+                            </div>
                         </form>
                     </p>
                 {% else %}

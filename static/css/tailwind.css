@@ -3136,10 +3136,6 @@ select ~ .pointer-events-none {
   grid-column: span 1 / span 1;
 }
 
-.m-3 {
-  margin: 0.75rem;
-}
-
 .-mx-1 {
   margin-left: -0.25rem;
   margin-right: -0.25rem;
@@ -3285,18 +3281,6 @@ select ~ .pointer-events-none {
   margin-top: 2rem;
 }
 
-.ms-6 {
-  margin-inline-start: 1.5rem;
-}
-
-.ms-8 {
-  margin-inline-start: 2rem;
-}
-
-.me-8 {
-  margin-inline-end: 2rem;
-}
-
 .block {
   display: block;
 }
@@ -3321,6 +3305,11 @@ select ~ .pointer-events-none {
   display: none;
 }
 
+.size-10 {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .size-4 {
   width: 1rem;
   height: 1rem;
@@ -3339,21 +3328,6 @@ select ~ .pointer-events-none {
 .size-9 {
   width: 2.25rem;
   height: 2.25rem;
-}
-
-.size-12 {
-  width: 3rem;
-  height: 3rem;
-}
-
-.size-20 {
-  width: 5rem;
-  height: 5rem;
-}
-
-.size-10 {
-  width: 2.5rem;
-  height: 2.5rem;
 }
 
 .h-1 {
@@ -4024,11 +3998,6 @@ select ~ .pointer-events-none {
 .text-yellow-800 {
   --tw-text-opacity: 1;
   color: rgb(133 77 14 / var(--tw-text-opacity));
-}
-
-.text-secondary {
-  --tw-text-opacity: 1;
-  color: var(--fallback-s,oklch(var(--s)/var(--tw-text-opacity)));
 }
 
 .underline {

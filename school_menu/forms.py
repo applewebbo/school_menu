@@ -8,11 +8,21 @@ from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 class SchoolForm(forms.ModelForm):
     class Meta:
         model = School
-        fields = ["name", "city", "season_choice", "week_bias", "menu_type"]
+        fields = [
+            "name",
+            "city",
+            "season_choice",
+            "week_bias",
+            "menu_type",
+            "is_published",
+        ]
         widgets = {
             "season_choice": forms.Select(attrs={"class": "form-select"}),
             "week_bias": forms.NumberInput(),
             "menu_type": forms.Select(attrs={"class": "form-select"}),
+            "is_published": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+            ),
         }
         labels = {
             "name": "Nome",
@@ -20,11 +30,13 @@ class SchoolForm(forms.ModelForm):
             "season_choice": "Stagione",
             "week_bias": "Scarto",
             "menu_type": "Tipo di Menù",
+            "is_published": "Pubblico",
         }
         help_texts = {
-            "season_choice": "Selezionando AUTOMATICA il sistema sceglierà la stagione in base alla data attuale",
+            "season_choice": "Selezionando AUTOMATICA il sistema sceglierà la stagione in base alla data corrente, altrimenti rimarrà fissa al valore selezionato",
             "week_bias": "Modificare il valore per allineare la settimana in corso (max=3)",
-            "menu_type": "Seleziona Semplice per un singolo campo, Dettagliato per avere menu diviso in primo, secondo, contorno e spuntino",
+            "menu_type": "Seleziona Semplice per menu unificato + spuntino, Dettagliato per avere menu diviso in primo, secondo, contorno e frutta + spuntino",
+            "is_published": "Seleziona per rendere il menù visibile agli utenti",
         }
         error_messages = {
             "week_bias": {
@@ -42,6 +54,7 @@ class SchoolForm(forms.ModelForm):
                     "name",
                     "city",
                     "menu_type",
+                    "is_published",
                 ),
                 Div(
                     "season_choice",

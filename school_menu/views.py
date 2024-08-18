@@ -178,7 +178,7 @@ def school_update(request):
 
 
 def school_list(request):
-    schools = School.objects.all()
+    schools = School.objects.all().exclude(is_published=False)
     context = {"schools": schools}
     return TemplateResponse(request, "school-list.html", context)
 
@@ -265,7 +265,9 @@ def search_schools(request):
     """get the schools based on the search input via htmx"""
     context = {}
     query = request.GET.get("q")
-    schools = School.objects.filter(Q(name__icontains=query) | Q(city__icontains=query))
+    schools = School.objects.exclude(is_published=False).filter(
+        Q(name__icontains=query) | Q(city__icontains=query)
+    )
     referrer = request.headers.get("referer", None)
     # get a different partial if the search comes from the index page
     if referrer == request.build_absolute_uri(

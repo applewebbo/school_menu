@@ -1521,11 +1521,6 @@ html {
     border-color: var(--fallback-s,oklch(var(--s)/var(--tw-border-opacity)));
   }
 
-  .checkbox-success:hover {
-    --tw-border-opacity: 1;
-    border-color: var(--fallback-su,oklch(var(--su)/var(--tw-border-opacity)));
-  }
-
   .label a:hover {
     --tw-text-opacity: 1;
     color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
@@ -1881,11 +1876,6 @@ html {
   .footer-center {
     grid-auto-flow: row dense;
   }
-}
-
-.form-control {
-  display: flex;
-  flex-direction: column;
 }
 
 .label {
@@ -2470,27 +2460,6 @@ html {
   color: var(--fallback-sc,oklch(var(--sc)/var(--tw-text-opacity)));
 }
 
-.checkbox-success {
-  --chkbg: var(--fallback-su,oklch(var(--su)/1));
-  --chkfg: var(--fallback-suc,oklch(var(--suc)/1));
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-su,oklch(var(--su)/var(--tw-border-opacity)));
-}
-
-.checkbox-success:focus-visible {
-  outline-color: var(--fallback-su,oklch(var(--su)/1));
-}
-
-.checkbox-success:checked,
-    .checkbox-success[aria-checked="true"] {
-  --tw-border-opacity: 1;
-  border-color: var(--fallback-su,oklch(var(--su)/var(--tw-border-opacity)));
-  --tw-bg-opacity: 1;
-  background-color: var(--fallback-su,oklch(var(--su)/var(--tw-bg-opacity)));
-  --tw-text-opacity: 1;
-  color: var(--fallback-suc,oklch(var(--suc)/var(--tw-text-opacity)));
-}
-
 @keyframes checkmark {
   0% {
     background-position-y: 5px;
@@ -2510,13 +2479,6 @@ html {
   font-weight: 700;
   text-transform: uppercase;
   opacity: 0.6;
-}
-
-.label-text {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  --tw-text-opacity: 1;
-  color: var(--fallback-bc,oklch(var(--bc)/var(--tw-text-opacity)));
 }
 
 .input input {
@@ -3545,10 +3507,6 @@ select ~ .pointer-events-none {
 
 .grow {
   flex-grow: 1;
-}
-
-.cursor-pointer {
-  cursor: pointer;
 }
 
 .list-inside {

@@ -3,13 +3,17 @@
     Info
 {% endblock page_title %}
 {% block content %}
-    <div class="container px-3 my-4">
-        <h3 class="my-4">Informazioni</h3>
-        <p>
-            Questo sito permette di visualizzare il menu della Scuola Carlo Alberto di Novara (come specificato nel file fornito sul sito della scuola) in maniera piu intuitiva selezionando in AUTOMATICA il menu della settimana in corso in base alla data di visita.
-        </p>
-        <p>
-            Questo progetto non è in alcun modo collegato alla Scuola Carlo Alberto di Novara, non vuole sostituire le informazioni fornite dal loro sito istituzionale ma solo fornire un accesso più comodo al menu giornaliero e rispondere alla domanda: <em>"Cosa ha mangiato mio figlio oggi?"</em>
-        </p>
-    </div>
+    <section>
+        <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Progetto</h1>
+            <article class="max-w-none prose prose-img:w-full lg:prose-img:w-2/3 lg:prose-img:mx-auto">
+                <p>
+                    Questo sito permette di convertire in maniera semplice il menu fornito dalla scuola (di solito in formato PDF o XLSX, suddiviso in settimane senza fornire la settimana in contrassegnato) in un formato più leggibile e consultabile. Creando un account sarà possibile creare la scuola e impostare il menu (seguendo la <a href="{% url 'school_menu:help' %}">guida</a>). Successivamente sarà possibile consultare il menu giornaliero relativo ai giorni della settimana in corso e condividerlo con gli altri genitori utilizzando la sezione <b>Condividi</b>.
+                </p>
+                <p>
+                    Questo progetto non è in alcun modo collegato alle scuole, non vuole sostituire le informazioni fornite dai loro sito istituzionale ma solo fornire un accesso più comodo al menu giornaliero e rispondere alla domanda: <em>"Cosa ha mangiato mio figlio oggi?"</em>. Per qualsiasi segnalazione o richiesta di informazioni sarà possibile contattare l'autore del menu trasmite un form dedicato senza che sia reso pubblico il contatto dell'autore. Potete inoltre contattare il creatore del sito tramite il form di contatto.
+                </p>
+            </article>
+        </div>
+    </section>
 {% endblock content %}

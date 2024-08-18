@@ -1,0 +1,37 @@
+{% load static heroicons %}
+<footer class="p-10 footer bg-base-200 text-base-content">
+    <aside>
+        <img src="{% static 'img/bw_logo.png' %}"
+             alt="Logo Menu Scolastico in bianco e nero"
+             class="size-9">
+        <p class="font-extrabold">
+            Menu Scolastico
+            <br>
+            <span class="italic font-light">cosa mangia mio figlio oggi?</span>
+        </p>
+    </aside>
+    <nav>
+        <h6 class="footer-title">Navigazione</h6>
+        <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
+        <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'school_menu:settings' user.id %}"
+               class="link link-hover">Impostazioni</a>
+        {% endif %}
+        <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
+    </nav>
+    <nav>
+        <h6 class="footer-title">Altro</h6>
+        <a href="{% url 'school_menu:disclaimer' %}" class="link link-hover">Disclaimer</a>
+        <a href="{% url 'school_menu:credits' %}" class="link link-hover">Crediti</a>
+        <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
+        <a href="#" class="link link-hover">Contatti</a>
+    </nav>
+</footer>
+<footer class="p-4 footer footer-center bg-base-200 text-base-content">
+    <aside>
+        <p>
+            Copyright © 2024 - Made with {% heroicon_solid 'heart' class="inline-flex text-red-500 align-text-top size-4" %} by WEBBOgrafico
+        </p>
+    </aside>
+</footer>

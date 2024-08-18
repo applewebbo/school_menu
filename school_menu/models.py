@@ -84,6 +84,7 @@ class School(models.Model):
     menu_type = models.CharField(
         max_length=1, choices=Types.choices, default=Types.DETAILED
     )
+    is_published = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "scuola"

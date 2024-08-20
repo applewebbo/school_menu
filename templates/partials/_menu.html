@@ -3,6 +3,7 @@
     {% include 'partials/_days_menu.html' %}
     <div id="current_menu" class="my-7 text-center">
         {% if meal %}
+            {% if not school.is_published %}<span class="badge badge-lg badge-error badge-outline">PRIVATO</span>{% endif %}
             <h1 class="text-3xl font-semibold tracking-tight">Menu del giorno</h1>
             {% if school.menu_type == "D" %}
                 {% include 'partials/_detailed_menu.html' %}

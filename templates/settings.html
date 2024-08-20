@@ -29,6 +29,14 @@
                             <li>
                                 <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
                             </li>
+                            <li>
+                                <span class="font-bold">Pubblico:</span>
+                                {% if user.school.is_published %}
+                                    Sì
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </li>
                         </ul>
                         <ul class="leading-10" id="meal-settings">
                             <li>

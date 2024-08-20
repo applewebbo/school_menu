@@ -55,6 +55,8 @@ def index(request):
 def school_menu(request, slug):
     """Return school menu for the given school"""
     school = get_object_or_404(School, slug=slug)
+    if not school.is_published:
+        return render(request, "school-menu.html", {"not_published": True})
     current_week, adjusted_day = get_current_date()
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
@@ -178,7 +180,7 @@ def school_update(request):
 
 
 def school_list(request):
-    schools = School.objects.all()
+    schools = School.objects.all().exclude(is_published=False)
     context = {"schools": schools}
     return TemplateResponse(request, "school-list.html", context)
 
@@ -265,7 +267,9 @@ def search_schools(request):
     """get the schools based on the search input via htmx"""
     context = {}
     query = request.GET.get("q")
-    schools = School.objects.filter(Q(name__icontains=query) | Q(city__icontains=query))
+    schools = School.objects.exclude(is_published=False).filter(
+        Q(name__icontains=query) | Q(city__icontains=query)
+    )
     referrer = request.headers.get("referer", None)
     # get a different partial if the search comes from the index page
     if referrer == request.build_absolute_uri(

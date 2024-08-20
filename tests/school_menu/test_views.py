@@ -104,6 +104,13 @@ class SchoolMenuView(TestCase):
         assertTemplateUsed(response, "school-menu.html")
         assert response.context["school"] == school
 
+    def test_get_with_is_published_false(self):
+        school = SchoolFactory(is_published=False)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["not_published"]
+
 
 class GetMenuView(TestCase):
     def test_get_with_simple_menu(self):

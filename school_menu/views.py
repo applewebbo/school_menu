@@ -55,6 +55,8 @@ def index(request):
 def school_menu(request, slug):
     """Return school menu for the given school"""
     school = get_object_or_404(School, slug=slug)
+    if not school.is_published:
+        return render(request, "school-menu.html", {"not_published": True})
     current_week, adjusted_day = get_current_date()
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)

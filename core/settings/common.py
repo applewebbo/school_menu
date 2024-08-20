@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "dbbackup",
     "debug_toolbar",
-    "django_q",
+    # "django_q",
     "django_social_share",
     "heroicons",
     "import_export",
@@ -172,15 +172,15 @@ DBBACKUP_STORAGE_OPTIONS = {
 }
 
 # DJANGO_Q
-Q_CLUSTER = {
-    "name": "DjangORM",
-    "workers": 4,
-    "timeout": 90,
-    "retry": 120,
-    "queue_limit": 50,
-    "bulk": 10,
-    "orm": "default",
-}
+# Q_CLUSTER = {
+#     "name": "DjangORM",
+#     "workers": 4,
+#     "timeout": 90,
+#     "retry": 120,
+#     "queue_limit": 50,
+#     "bulk": 10,
+#     "orm": "default",
+# }
 
 # UNFOLD
 

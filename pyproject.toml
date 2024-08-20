@@ -11,7 +11,7 @@ dependencies = [
   "django-environ",
   "django-import-export",
   "django_htmx",
-  "django-q2",
+  # "django-q2",
   "django-social-share",
   "django-storages",
   "django-template-partials",

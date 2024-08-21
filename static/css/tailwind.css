@@ -4647,6 +4647,10 @@ select ~ .pointer-events-none {
 }
 
 @media (min-width: 1024px) {
+  .lg\:mt-8 {
+    margin-top: 2rem;
+  }
+
   .lg\:gap-6 {
     gap: 1.5rem;
   }

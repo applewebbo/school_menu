@@ -19,13 +19,15 @@
                class="link link-hover">Impostazioni</a>
         {% endif %}
         <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
+        <a href="#" class="link link-hover">Contatti</a>
     </nav>
     <nav>
         <h6 class="footer-title">Altro</h6>
-        <a href="{% url 'school_menu:disclaimer' %}" class="link link-hover">Disclaimer</a>
-        <a href="{% url 'school_menu:credits' %}" class="link link-hover">Crediti</a>
         <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
-        <a href="#" class="link link-hover">Contatti</a>
+        <a href="{% url 'school_menu:info' %}#disclaimer"
+           class="link link-hover">Disclaimer</a>
+        <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
+        <a href="{% url 'school_menu:info' %}#privacy" class="link link-hover">Privacy</a>
     </nav>
 </footer>
 <footer class="p-4 footer footer-center bg-base-200 text-base-content">

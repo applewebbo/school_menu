@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     # INTERNAL APPS
     "users",
     "school_menu",
+    "contacts",
 ]
 
 MIDDLEWARE = [

@@ -34,6 +34,10 @@
                         <a href="{% url 'school_menu:school_list' %}"
                            class="block p-0 text-gray-800 hover:text-green-800">Scuole</a>
                     </li>
+                    <li>
+                        <a href="{% url 'contacts:contact' %}"
+                           class="block p-0 text-gray-800 hover:text-green-800">Contatti</a>
+                    </li>
                     {% if user.is_authenticated %}
                         <li>
                             <a href="{% url 'school_menu:settings' user.id %}"

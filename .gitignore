@@ -160,7 +160,7 @@ cython_debug/
 #.idea/
 
 #  TAILWINDCSS
-tailwind.css
+static/css/tailwind.css
 
 #  Misc
 .DS_Store

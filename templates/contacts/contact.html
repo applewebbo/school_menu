@@ -7,7 +7,9 @@
             <p>
                 Compila il form sottostante per richiedere informazioni, aiuto oppure semplicemente per farci sapere che trovi il progetto utile. Anche suggerimenti su come migliorare il servizio sono ben accetti.
             </p>
-            {% crispy form %}
+            <form method="post">
+                {% crispy form %}
+            </form>
         </div>
     </section>
 {% endblock content %}

@@ -9,6 +9,7 @@ urlpatterns = (
         path("admin/", admin.site.urls),
         path("accounts/", include("allauth.urls")),
         path("", include("school_menu.urls")),
+        path("contacts/", include("contacts.urls")),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + debug_toolbar_urls()

@@ -69,7 +69,9 @@ class TestUploadMenuForm:
 
         # Assert the form is invalid
         assert form.is_valid() is False
-        assert form.errors == {"file": ["Il file deve essere in formato xls o xlsx"]}
+        assert form.errors == {
+            "file": ["Il file deve essere in formato xls, xlsx oppure csv"]
+        }
 
     def def_form_no_file(self):
         # Initialize the form with mock data and file

@@ -263,6 +263,7 @@ class TestImportMenu:
         import_menu(
             request,
             simple_meal_file,
+            ".xlsx",
             School.Types.SIMPLE,
             school,
             School.Seasons.PRIMAVERILE,
@@ -279,6 +280,7 @@ class TestImportMenu:
         import_menu(
             request,
             simple_meal_file_missing_column,
+            ".xlsx",
             School.Types.SIMPLE,
             school,
             School.Seasons.PRIMAVERILE,
@@ -295,6 +297,7 @@ class TestImportMenu:
         import_menu(
             request,
             simple_meal_file_wrong_day,
+            ".xlsx",
             School.Types.SIMPLE,
             school,
             School.Seasons.PRIMAVERILE,
@@ -309,6 +312,7 @@ class TestImportMenu:
         import_menu(
             request,
             detailed_meal_file,
+            ".xlsx",
             School.Types.DETAILED,
             school,
             School.Seasons.PRIMAVERILE,
@@ -325,6 +329,7 @@ class TestImportMenu:
         import_menu(
             request,
             detailed_meal_file_wrong_day,
+            ".xlsx",
             School.Types.DETAILED,
             school,
             School.Seasons.PRIMAVERILE,
@@ -341,6 +346,7 @@ class TestImportMenu:
         import_menu(
             request,
             detailed_meal_file_missing_column,
+            ".xlsx",
             School.Types.DETAILED,
             school,
             School.Seasons.PRIMAVERILE,

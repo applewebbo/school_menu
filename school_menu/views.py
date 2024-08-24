@@ -1,3 +1,5 @@
+import os
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -194,7 +196,8 @@ def upload_menu(request, school_id):
         if form.is_valid():
             file = form.cleaned_data["file"]
             season = form.cleaned_data["season"]
-            import_menu(request, file, menu_type, school, season)
+            name, type = os.path.splitext(request.FILES["file"].name)
+            import_menu(request, file, type, menu_type, school, season)
             return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
         context = {"form": form, "school": school}
         return TemplateResponse(request, "upload-menu.html", context)

@@ -153,6 +153,17 @@ def simple_meal_file(tmp_path):
 
 
 @pytest.fixture
+def simple_csv_meal_file(tmp_path):
+    data = [
+        ["Lunedì", 1, "Pasta al Pomodoro", "Yogurt"],
+    ]
+    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo", "spuntino"])
+    file_path = tmp_path / "simple_meal_import.csv"
+    df.to_csv(file_path, index=False)
+    yield file_path
+
+
+@pytest.fixture
 def simple_meal_file_missing_column(tmp_path):
     data = [
         ["Lunedì", 1, "Pasta al Pomodoro"],
@@ -201,6 +212,36 @@ def detailed_meal_file(tmp_path):
     )
     file_path = tmp_path / "detailed_meal_import.xlsx"
     df.to_excel(file_path, index=False, engine="openpyxl")
+    yield file_path
+
+
+@pytest.fixture
+def detailed_csv_meal_file(tmp_path):
+    data = [
+        [
+            "Lunedì",
+            1,
+            "Pasta al Pomodoro",
+            "Pollo Arrosto",
+            "Fagiolini",
+            "Mela",
+            "Yogurt",
+        ],
+    ]
+    df = pd.DataFrame(
+        data,
+        columns=[
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ],
+    )
+    file_path = tmp_path / "detailed_meal_import.csv"
+    df.to_csv(file_path, index=False)
     yield file_path
 
 
@@ -271,6 +312,21 @@ class TestImportMenu:
 
         assert SimpleMeal.objects.count() == 1
 
+    def test_simple_csv_meal_import_success(self, simple_csv_meal_file, school_factory):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            simple_csv_meal_file,
+            ".csv",
+            School.Types.SIMPLE,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert SimpleMeal.objects.count() == 1
+
     def test_simple_meal_import_missing_column(
         self, simple_meal_file_missing_column, school_factory
     ):
@@ -313,6 +369,23 @@ class TestImportMenu:
             request,
             detailed_meal_file,
             ".xlsx",
+            School.Types.DETAILED,
+            school,
+            School.Seasons.PRIMAVERILE,
+        )
+
+        assert DetailedMeal.objects.count() == 1
+
+    def test_detailed_csv_meal_import_success(
+        self, detailed_csv_meal_file, school_factory
+    ):
+        school = school_factory()
+        request = MagicMock()
+
+        import_menu(
+            request,
+            detailed_csv_meal_file,
+            ".csv",
             School.Types.DETAILED,
             school,
             School.Seasons.PRIMAVERILE,

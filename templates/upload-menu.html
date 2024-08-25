@@ -23,22 +23,42 @@
                 x-on:click="openModal = false">Annulla</button>
     </div>
 </form>
-<div class="p-1.5 my-4 mx-6 text-gray-700">
-    <p>Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio:</p>
-    <ol class="space-y-1 list-decimal list-inside">
-        <li>
-            <a href="{% static 'files/EsempioMenuSemplice.xlsx' %}"
-               class="text-green-600 hover:underline underline-offset-2"
-               download>Menu Semplice</a>
-        </li>
-        <li>
-            <a href="{% static 'files/EsempioMenuDettagliato.xlsx' %}"
-               class="text-green-600 hover:underline underline-offset-2"
-               download>Menu Dettagliato</a>
-        </li>
-    </ol>
-</div>
-<div class="flex items-center p-2 my-4 mx-6 text-center text-red-800 bg-red-50 rounded border border-red-200">
-    {% heroicon_solid 'exclamation-triangle' class="size-5 me-2" %}
-    <span class="text-sm italic">Attenzione, il caricamento del menu sovrascriverà il menu presente in maniera definitiva</span>
+<div class="py-3 px-5 my-4 mx-6 text-center bg-gray-50 rounded border border-gray-200">
+    <p class="mb-3 italic">Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio</p>
+    <div class="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2">
+        <div>
+            <h4 class="font-semibold tracking-tight">Formato csv</h4>
+            <ul>
+                <li>
+                    <a href="{% static 'files/EsempioMenuSemplice.csv' %}"
+                       class="text-green-600 hover:underline underline-offset-2"
+                       download>Menu Semplice</a>
+                </li>
+                <li>
+                    <a href="{% static 'files/EsempioMenuDettagliato.csv' %}"
+                       class="text-green-600 hover:underline underline-offset-2"
+                       download>Menu Dettagliato</a>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h4 class="font-semibold tracking-tight">Formato excel</h4>
+            <ul>
+                <li>
+                    <a href="{% static 'files/EsempioMenuSemplice.xlsx' %}"
+                       class="text-green-600 hover:underline underline-offset-2"
+                       download>Menu Semplice</a>
+                </li>
+                <li>
+                    <a href="{% static 'files/EsempioMenuDettagliato.xlsx' %}"
+                       class="text-green-600 hover:underline underline-offset-2"
+                       download>Menu Dettagliato</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="flex items-center p-2 mt-4 text-center text-red-800 bg-red-50 rounded border border-red-200">
+        {% heroicon_solid 'exclamation-triangle' class="size-5 me-2 lg:me-4" %}
+        <span class="text-sm italic">Attenzione, il menu caricato sovrascriverà il menu presente in maniera definitiva</span>
+    </div>
 </div>

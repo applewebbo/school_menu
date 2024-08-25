@@ -40,12 +40,26 @@ class TestSchoolForm:
 
 
 class TestUploadMenuForm:
-    def test_form(self):
+    def test_form_with_xlsx_file(self):
         # Create a mock file object
         mock_file = SimpleUploadedFile(
             "test.xlsx",
             b"file_content",
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+        # Initialize the form with mock data and file
+        form = UploadMenuForm(
+            data={"season": Meal.Seasons.INVERNALE}, files={"file": mock_file}
+        )
+
+        # Assert the form is valid
+        assert form.is_valid() is True
+
+    def test_form_with_csv_file(self):
+        # Create a mock file object
+        mock_file = SimpleUploadedFile(
+            "test.csv", b"file_content", content_type="text/csv"
         )
 
         # Initialize the form with mock data and file
@@ -69,7 +83,9 @@ class TestUploadMenuForm:
 
         # Assert the form is invalid
         assert form.is_valid() is False
-        assert form.errors == {"file": ["Il file deve essere in formato xls o xlsx"]}
+        assert form.errors == {
+            "file": ["Il file deve essere in formato xls, xlsx oppure csv"]
+        }
 
     def def_form_no_file(self):
         # Initialize the form with mock data and file

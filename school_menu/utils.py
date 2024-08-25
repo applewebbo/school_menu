@@ -62,9 +62,12 @@ def get_user(pk):
     return user
 
 
-def import_menu(request, file, menu_type, school, season):
+def import_menu(request, file, type, menu_type, school, season):
     """take a file and import the menu into the database dealing with validation errors and relative messages"""
-    df = pd.read_excel(file, engine="openpyxl")
+    if type == ".csv":
+        df = pd.read_csv(file)
+    else:
+        df = pd.read_excel(file, engine="openpyxl")
     # Check if 'day' rows contain only the day names
     day_mapping = {
         "Lunedì": 1,

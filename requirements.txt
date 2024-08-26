@@ -31,17 +31,17 @@ django==5.0.8
     #   django-unfold
     #   heroicons
     #   neapolitan
-django-allauth==64.0.0
+django-allauth==64.1.0
     # via school-menu (pyproject.toml)
 django-anymail==11.1
     # via school-menu (pyproject.toml)
-django-browser-reload==1.13.0
+django-browser-reload==1.15.0
     # via school-menu (pyproject.toml)
 django-crispy-forms==2.3
     # via
     #   school-menu (pyproject.toml)
     #   crispy-tailwind
-django-dbbackup==4.1.0
+django-dbbackup==4.2.1
     # via school-menu (pyproject.toml)
 django-debug-toolbar==4.4.6
     # via school-menu (pyproject.toml)
@@ -57,27 +57,27 @@ django-social-share==2.3.0
     # via school-menu (pyproject.toml)
 django-storages==1.14.4
     # via school-menu (pyproject.toml)
-django-template-partials==24.2
+django-template-partials==24.4
     # via school-menu (pyproject.toml)
-django-unfold==0.35.0
+django-unfold==0.37.0
     # via school-menu (pyproject.toml)
 dropbox==12.0.2
     # via school-menu (pyproject.toml)
 et-xmlfile==1.1.0
     # via openpyxl
-factory-boy==3.3.0
+factory-boy==3.3.1
     # via school-menu (pyproject.toml)
-faker==27.0.0
+faker==28.0.0
     # via factory-boy
 gunicorn==23.0.0
     # via school-menu (pyproject.toml)
-heroicons==2.7.0
+heroicons==2.8.0
     # via school-menu (pyproject.toml)
-idna==3.7
+idna==3.8
     # via requests
 neapolitan==24.6
     # via school-menu (pyproject.toml)
-numpy==2.0.1
+numpy==2.1.0
     # via pandas
 openpyxl==3.1.5
     # via school-menu (pyproject.toml)

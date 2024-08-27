@@ -2146,6 +2146,10 @@ html {
     --btn-color: var(--fallback-s);
   }
 
+  .btn-success {
+    --btn-color: var(--fallback-su);
+  }
+
   .btn-error {
     --btn-color: var(--fallback-er);
   }
@@ -2213,6 +2217,10 @@ html {
     --btn-color: var(--s);
   }
 
+  .btn-success {
+    --btn-color: var(--su);
+  }
+
   .btn-error {
     --btn-color: var(--er);
   }
@@ -2222,6 +2230,12 @@ html {
   --tw-text-opacity: 1;
   color: var(--fallback-sc,oklch(var(--sc)/var(--tw-text-opacity)));
   outline-color: var(--fallback-s,oklch(var(--s)/1));
+}
+
+.btn-success {
+  --tw-text-opacity: 1;
+  color: var(--fallback-suc,oklch(var(--suc)/var(--tw-text-opacity)));
+  outline-color: var(--fallback-su,oklch(var(--su)/1));
 }
 
 .btn-error {
@@ -3281,6 +3295,10 @@ select ~ .pointer-events-none {
   grid-column: span 3 / span 3;
 }
 
+.m-auto {
+  margin: auto;
+}
+
 .-mx-1 {
   margin-left: -0.25rem;
   margin-right: -0.25rem;
@@ -3555,6 +3573,14 @@ select ~ .pointer-events-none {
   max-width: 24rem;
 }
 
+.max-w-4 {
+  max-width: 1rem;
+}
+
+.max-w-1 {
+  max-width: 0.25rem;
+}
+
 .flex-shrink-0 {
   flex-shrink: 0;
 }
@@ -3583,6 +3609,10 @@ select ~ .pointer-events-none {
 
 .flex-wrap {
   flex-wrap: wrap;
+}
+
+.place-items-center {
+  place-items: center;
 }
 
 .items-end {
@@ -3617,6 +3647,10 @@ select ~ .pointer-events-none {
   gap: 1rem;
 }
 
+.gap-12 {
+  gap: 3rem;
+}
+
 .gap-x-0 {
   -moz-column-gap: 0px;
        column-gap: 0px;
@@ -3638,6 +3672,16 @@ select ~ .pointer-events-none {
 
 .gap-y-4 {
   row-gap: 1rem;
+}
+
+.gap-x-12 {
+  -moz-column-gap: 3rem;
+       column-gap: 3rem;
+}
+
+.gap-x-8 {
+  -moz-column-gap: 2rem;
+       column-gap: 2rem;
 }
 
 .space-x-3 > :not([hidden]) ~ :not([hidden]) {
@@ -4424,6 +4468,10 @@ select ~ .pointer-events-none {
 
   .sm\:max-w-md {
     max-width: 28rem;
+  }
+
+  .sm\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .sm\:flex-row {

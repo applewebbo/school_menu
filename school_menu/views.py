@@ -293,6 +293,12 @@ def search_schools(request):
     return TemplateResponse(request, template, context)
 
 
+def export_modal_view(request, school_id):
+    school = get_object_or_404(School, pk=school_id)
+    context = {"school": school}
+    return render(request, "export-menu.html", context)
+
+
 @login_required
 def export_menu(request, school_id):
     school = get_object_or_404(School, pk=school_id)
@@ -304,6 +310,5 @@ def export_menu(request, school_id):
         meals = DetailedMeal.objects.filter(school=school)
         data = DetailedMealResource().export(meals)
 
-    response = HttpResponse(data.csv)
-    response["Content-Disposition"] = 'attachment; filename="menu.csv"'
+    response = HttpResponse(data.csv, content_type="text/csv")
     return response

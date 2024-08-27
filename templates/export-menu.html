@@ -1,0 +1,26 @@
+{% load static heroicons %}
+<div class="modal-content">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scarica il tuo menu</h3>
+        <button type="button"
+                class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                x-on:click="openModal = false">
+            {% heroicon_solid 'x-mark' class="size-7" %}
+            <span class="sr-only">Close modal</span>
+        </button>
+    </div>
+    <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 sm:grid-cols-2 md:py-4 md:px-6">
+        <a href="{% url 'school_menu:export_menu' school.id %}"
+           class="inline-flex items-center btn btn-success"
+           download="menu_estivo">
+            Menu Estivo
+            {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+        </a>
+        <a href="{% url 'school_menu:export_menu' school.id %}"
+           class="inline-flex items-center btn btn-success"
+           download="menu_invernale">
+            Menu Invernale
+            {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+        </a>
+    </div>
+</div>

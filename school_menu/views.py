@@ -15,6 +15,7 @@ from school_menu.forms import (
     UploadMenuForm,
 )
 from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.resources import DetailedMealResource, SimpleMealResource
 from school_menu.utils import (
     calculate_week,
     get_current_date,
@@ -290,3 +291,19 @@ def search_schools(request):
     else:
         context["schools"] = schools
     return TemplateResponse(request, template, context)
+
+
+@login_required
+def export_menu(request, school_id):
+    school = get_object_or_404(School, pk=school_id)
+    menu_type = school.menu_type
+    if menu_type == School.Types.SIMPLE:
+        meals = SimpleMeal.objects.filter(school=school)
+        data = SimpleMealResource().export(meals)
+    else:
+        meals = DetailedMeal.objects.filter(school=school)
+        data = DetailedMealResource().export(meals)
+
+    response = HttpResponse(data.csv)
+    response["Content-Disposition"] = 'attachment; filename="menu.csv"'
+    return response

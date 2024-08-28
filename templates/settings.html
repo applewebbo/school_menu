@@ -77,8 +77,7 @@
                 <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
                     <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h3>
                     <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
-                        <button href="{% url 'school_menu:export_menu' user.school.id %}"
-                                class="inline-flex items-center mr-2 group btn btn-sm"
+                        <button class="inline-flex items-center mr-2 group btn btn-sm"
                                 hx-get="{% url 'school_menu:export_modal' user.school.id %}"
                                 hx-target="#dialog"
                                 hx-swap="innerHTML"

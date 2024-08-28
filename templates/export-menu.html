@@ -10,13 +10,13 @@
         </button>
     </div>
     <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 sm:grid-cols-2 md:py-4 md:px-6">
-        <a href="{% url 'school_menu:export_menu' school.id %}"
+        <a href="{% url 'school_menu:export_menu' school.id 1 %}"
            class="inline-flex items-center btn btn-success"
            download="menu_estivo">
             Menu Estivo
             {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
         </a>
-        <a href="{% url 'school_menu:export_menu' school.id %}"
+        <a href="{% url 'school_menu:export_menu' school.id 2 %}"
            class="inline-flex items-center btn btn-success"
            download="menu_invernale">
             Menu Invernale

@@ -300,14 +300,14 @@ def export_modal_view(request, school_id):
 
 
 @login_required
-def export_menu(request, school_id):
+def export_menu(request, school_id, season):
     school = get_object_or_404(School, pk=school_id)
     menu_type = school.menu_type
     if menu_type == School.Types.SIMPLE:
-        meals = SimpleMeal.objects.filter(school=school)
+        meals = SimpleMeal.objects.filter(school=school, season=season)
         data = SimpleMealResource().export(meals)
     else:
-        meals = DetailedMeal.objects.filter(school=school)
+        meals = DetailedMeal.objects.filter(school=school, season=season)
         data = DetailedMealResource().export(meals)
 
     response = HttpResponse(data.csv, content_type="text/csv")

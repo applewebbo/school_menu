@@ -9,18 +9,27 @@
             <span class="sr-only">Close modal</span>
         </button>
     </div>
-    <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 sm:grid-cols-2 md:py-4 md:px-6">
-        <a href="{% url 'school_menu:export_menu' school.id 1 %}"
-           class="inline-flex items-center btn btn-success"
-           download="menu_estivo">
-            Menu Estivo
-            {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
-        </a>
-        <a href="{% url 'school_menu:export_menu' school.id 2 %}"
-           class="inline-flex items-center btn btn-success"
-           download="menu_invernale">
-            Menu Invernale
-            {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
-        </a>
+    <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 {% if summer_meals or winter_meals %}sm:grid-cols-2{% endif %} md:py-4 md:px-6">
+        {% if not summer_meals and not winter_meals %}
+            <div class="flex items-center p-2 mb-4 text-center text-red-800 bg-red-50 rounded border border-red-200">
+                {% heroicon_solid 'exclamation-triangle' class="size-5 me-2 lg:me-4" %}
+                <span class="text-sm italic">Non hai ancora inserito nessun pasto nel menu della scuola.</span>
+            </div>
+        {% else %}
+            <a href="{% url 'school_menu:export_menu' school.id 2 %}"
+               class="inline-flex items-center btn btn-success"
+               download="menu_invernale"
+               {% if not winter_meals %}disabled="disabled"{% endif %}>
+                Menu Invernale
+                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+            </a>
+            <a href="{% url 'school_menu:export_menu' school.id 1 %}"
+               class="inline-flex items-center btn btn-success"
+               download="menu_estivo"
+               {% if not summer_meals %}disabled="disabled"{% endif %}>
+                Menu Estivo
+                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+            </a>
+        {% endif %}
     </div>
 </div>

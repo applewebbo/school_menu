@@ -295,7 +295,25 @@ def search_schools(request):
 
 def export_modal_view(request, school_id):
     school = get_object_or_404(School, pk=school_id)
-    context = {"school": school}
+    if school.menu_type == School.Types.SIMPLE:
+        summer_meals = SimpleMeal.objects.filter(
+            school=school, season=School.Seasons.PRIMAVERILE
+        ).exists()
+        winter_meals = SimpleMeal.objects.filter(
+            school=school, season=School.Seasons.INVERNALE
+        ).exists()
+    else:
+        summer_meals = DetailedMeal.objects.filter(
+            school=school, season=School.Seasons.PRIMAVERILE
+        ).exists()
+        winter_meals = DetailedMeal.objects.filter(
+            school=school, season=School.Seasons.INVERNALE
+        ).exists()
+    context = {
+        "school": school,
+        "summer_meals": summer_meals,
+        "winter_meals": winter_meals,
+    }
     return render(request, "export-menu.html", context)
 
 

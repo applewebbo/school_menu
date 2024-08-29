@@ -4,6 +4,7 @@ import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from import_export.widgets import Widget
 
 from school_menu.models import DetailedMeal, School, SimpleMeal
 
@@ -150,3 +151,25 @@ def import_menu(request, file, type, menu_type, school, season):
             "<strong>Menu</strong> salvato correttamente",
         )
         return
+
+
+class ChoicesWidget(Widget):
+    """
+    Widget that uses choice display values in place of database values
+    """
+
+    def __init__(self, choices, *args, **kwargs):
+        """
+        Creates a self.choices dict with a key, display value, and value,
+        db value, e.g. {'Chocolate': 'CHOC'}
+        """
+        self.choices = dict(choices)
+        self.revert_choices = {v: k for k, v in self.choices.items()}
+
+    def clean(self, value, row=None, *args, **kwargs):
+        """Returns the db value given the display value"""
+        return self.revert_choices.get(value, value) if value else None
+
+    def render(self, value, obj=None):
+        """Returns the display value given the db value"""
+        return self.choices.get(value, "")

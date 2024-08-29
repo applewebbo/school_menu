@@ -1,5 +1,3 @@
-import os
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -7,6 +5,7 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
+from tablib import Dataset
 
 from school_menu.forms import (
     DetailedMealForm,
@@ -21,7 +20,6 @@ from school_menu.utils import (
     get_current_date,
     get_season,
     get_user,
-    import_menu,
 )
 
 
@@ -195,10 +193,37 @@ def upload_menu(request, school_id):
     if request.method == "POST":
         form = UploadMenuForm(request.POST, request.FILES)
         if form.is_valid():
-            file = form.cleaned_data["file"]
+            file = request.FILES["file"]
             season = form.cleaned_data["season"]
-            name, type = os.path.splitext(request.FILES["file"].name)
-            import_menu(request, file, type, menu_type, school, season)
+            if menu_type == School.Types.SIMPLE:
+                resource = SimpleMealResource()
+                model = SimpleMeal
+            else:
+                resource = DetailedMealResource()
+                model = DetailedMeal
+            dataset = Dataset()
+            dataset.load(file.read().decode(), format="csv")
+            result = resource.import_data(
+                dataset, dry_run=True, school=school, season=season
+            )
+            for row in result:
+                for error in row.errors:
+                    print(error)
+
+            if not result.has_errors():
+                model.objects.filter(school=school, season=season).delete()
+                result = resource.import_data(
+                    dataset, dry_run=False, school=school, season=season
+                )
+                messages.add_message(
+                    request, messages.SUCCESS, "Menu caricato con successo"
+                )
+            else:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Qualcosa è andato storto..",
+                )
             return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
         context = {"form": form, "school": school}
         return TemplateResponse(request, "upload-menu.html", context)

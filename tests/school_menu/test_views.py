@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from pytest_django.asserts import assertTemplateUsed
@@ -271,8 +269,7 @@ class UploadMenuView(TestCase):
         assertTemplateUsed(response, "upload-menu.html")
         assert response.context["school"] == school
 
-    @patch("school_menu.views.import_menu")
-    def test_post_with_valid_data(self, mock_import_menu):
+    def test_post_with_valid_data(self):
         user = self.make_user()
         school = SchoolFactory(user=user)
         data = {
@@ -288,7 +285,6 @@ class UploadMenuView(TestCase):
             response = self.post("school_menu:upload_menu", school.pk, data=data)
 
         self.response_204(response)
-        mock_import_menu.assert_called_once()
 
     def test_post_with_invalid_data(self):
         user = self.make_user()

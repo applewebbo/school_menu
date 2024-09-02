@@ -515,3 +515,86 @@ class SchoolSearchView(TestCase):
     #     )
 
     #     self.assertResponseHeaders({'HTTP_REFERER': 'localhost:8000/'})
+
+
+class TestExportModalView(TestCase):
+    def test_get_simple_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        SimpleMealFactory.create_batch(
+            5, school=school, season=SimpleMeal.Seasons.ESTIVO
+        )
+
+        response = self.get("school_menu:export_modal", school.pk)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "export-menu.html")
+        assert response.context["school"] == school
+        assert response.context["summer_meals"] is True
+
+    def test_get_detailed_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
+        DetailedMealFactory.create_batch(
+            5, school=school, season=DetailedMeal.Seasons.INVERNALE
+        )
+
+        response = self.get("school_menu:export_modal", school.pk)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "export-menu.html")
+        assert response.context["school"] == school
+        assert response.context["winter_meals"] is True
+
+
+class TestExportMenuView(TestCase):
+    def test_get_simple_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        SimpleMeal.objects.create(
+            school=school,
+            week=1,
+            day=1,
+            menu="Pasta",
+            snack="Apple",
+            season=SimpleMeal.Seasons.ESTIVO,
+        )
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:export_menu",
+                school_id=school.pk,
+                season=SimpleMeal.Seasons.ESTIVO,
+            )
+
+        self.response_200(response)
+        assert response["Content-Type"] == "text/csv"
+        assert b"Pasta" in response.content
+        assert b"Apple" in response.content
+
+    def test_get_detailed_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
+        DetailedMeal.objects.create(
+            school=school,
+            week=1,
+            day=1,
+            first_course="Soup",
+            second_course="Fish",
+            side_dish="Salad",
+            snack="Fruit",
+            season=DetailedMeal.Seasons.ESTIVO,
+        )
+        with self.login(user):
+            response = self.get(
+                "school_menu:export_menu",
+                school_id=school.pk,
+                season=SimpleMeal.Seasons.ESTIVO,
+            )
+
+        self.response_200(response)
+        assert response["Content-Type"] == "text/csv"
+        assert b"Soup" in response.content
+        assert b"Fish" in response.content
+        assert b"Salad" in response.content
+        assert b"Fruit" in response.content

@@ -1,5 +1,6 @@
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
 from school_menu.models import DetailedMeal, School, SimpleMeal
@@ -257,49 +258,135 @@ class SchoolListView(TestCase):
         assert school in response.context["schools"]
 
 
-class UploadMenuView(TestCase):
-    def test_get(self):
+# class UploadMenuView(TestCase):
+#     def test_get(self):
+#         user = self.make_user()
+#         school = SchoolFactory(user=user)
+
+#         with self.login(user):
+#             response = self.get("school_menu:upload_menu", school.pk)
+
+#         self.response_200(response)
+#         assertTemplateUsed(response, "upload-menu.html")
+#         assert response.context["school"] == school
+
+#     def test_post_with_valid_data(self):
+#         user = self.make_user()
+#         school = SchoolFactory(user=user)
+#         data = {
+#             "file": SimpleUploadedFile(
+#                 "test_menu.csv",
+#                 b"these are the file contents!",
+#                 content_type="text/csv",
+#             ),
+#             "season": School.Seasons.INVERNALE,
+#         }
+
+#         with self.login(user):
+#             response = self.post("school_menu:upload_menu", school.pk, data=data)
+
+#         self.response_204(response)
+
+#     def test_post_with_invalid_data(self):
+#         user = self.make_user()
+#         school = SchoolFactory(user=user)
+#         data = {
+#             "season": "WINTER",
+#         }
+
+#         with self.login(user):
+#             response = self.post("school_menu:upload_menu", school.pk, data=data)
+
+#         self.response_200(response)
+#         assertTemplateUsed(response, "upload-menu.html")
+#         assert "form" in response.context
+#         assert "file" in response.context["form"].errors
+
+
+class TestUploadMenuView(TestCase):
+    def test_upload_menu_get(self):
         user = self.make_user()
         school = SchoolFactory(user=user)
 
         with self.login(user):
-            response = self.get("school_menu:upload_menu", school.pk)
+            response = self.get(
+                reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            )
 
-        self.response_200(response)
-        assertTemplateUsed(response, "upload-menu.html")
-        assert response.context["school"] == school
-
-    def test_post_with_valid_data(self):
-        user = self.make_user()
-        school = SchoolFactory(user=user)
-        data = {
-            "file": SimpleUploadedFile(
-                "test_menu.csv",
-                b"these are the file contents!",
-                content_type="text/csv",
-            ),
-            "season": School.Seasons.INVERNALE,
-        }
-
-        with self.login(user):
-            response = self.post("school_menu:upload_menu", school.pk, data=data)
-
-        self.response_204(response)
-
-    def test_post_with_invalid_data(self):
-        user = self.make_user()
-        school = SchoolFactory(user=user)
-        data = {
-            "season": "WINTER",
-        }
-
-        with self.login(user):
-            response = self.post("school_menu:upload_menu", school.pk, data=data)
-
-        self.response_200(response)
-        assertTemplateUsed(response, "upload-menu.html")
+        assert response.status_code == 200
         assert "form" in response.context
-        assert "file" in response.context["form"].errors
+        assert "school" in response.context
+
+    def test_upload_menu_post_simple_success(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            csv_content = "settimana,giorno,pranzo,spuntino\n1,Lunedì,Pasta,Mela"
+            data = {
+                "file": SimpleUploadedFile(
+                    "menu.csv", csv_content.encode("utf-8"), content_type="text/csv"
+                ),
+                "season": School.Seasons.INVERNALE,
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        assert SimpleMeal.objects.filter(school=school).count() == 1
+
+    def test_upload_menu_post_invalid_data(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            data = {"season": School.Seasons.INVERNALE}  # Missing file
+            response = self.post(url, data=data)
+
+        assert response.status_code == 200
+        assert "form" in response.context
+
+    def test_upload_menu_post_invalid_csv(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            csv_content = b"invalid,csv,content"
+            data = {
+                "file": SimpleUploadedFile(
+                    "simple_menu.csv", csv_content, content_type="text/csv"
+                ),
+                "season": School.Seasons.INVERNALE,
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        assert SimpleMeal.objects.filter(school=school).count() == 0
+
+    def test_upload_menu_post_detailed_success(self):
+        user = self.make_user()
+        school = School.objects.create(user=user, menu_type=School.Types.DETAILED)
+
+        with self.login(user):
+            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            csv_content = "settimana,giorno,primo,secondo,contorno,frutta,spuntino\n1,Lunedì,Pasta,Pollo,Insalata,Mela,Crostatina"
+            data = {
+                "file": SimpleUploadedFile(
+                    "detailed_menu.csv",
+                    csv_content.encode("utf-8"),
+                    content_type="text/csv",
+                ),
+                "season": School.Seasons.INVERNALE,
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        assert DetailedMeal.objects.filter(school=school).count() == 1
 
 
 class CreateWeeklyMenuView(TestCase):

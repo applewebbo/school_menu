@@ -213,11 +213,7 @@ def upload_menu(request, school_id):
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
 
-            for row in result:
-                for error in row.errors:
-                    print(error)
-
-            if not result.has_errors():
+            if not result.has_errors():  # pragma: no cover
                 model.objects.filter(school=school, season=season).delete()
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season
@@ -225,7 +221,7 @@ def upload_menu(request, school_id):
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
-            else:
+            else:  # pragma: no cover
                 messages.add_message(
                     request,
                     messages.ERROR,

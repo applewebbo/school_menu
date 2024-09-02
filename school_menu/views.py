@@ -20,6 +20,7 @@ from school_menu.utils import (
     get_current_date,
     get_season,
     get_user,
+    validate_dataset,
 )
 
 
@@ -203,9 +204,15 @@ def upload_menu(request, school_id):
                 model = DetailedMeal
             dataset = Dataset()
             dataset.load(file.read().decode(), format="csv")
+            validates, message = validate_dataset(dataset, menu_type)
             result = resource.import_data(
                 dataset, dry_run=True, school=school, season=season
             )
+
+            if not validates:
+                messages.add_message(request, messages.ERROR, message)
+                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
+
             for row in result:
                 for error in row.errors:
                     print(error)

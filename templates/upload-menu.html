@@ -23,41 +23,30 @@
                 x-on:click="openModal = false">Annulla</button>
     </div>
 </form>
-<div class="py-3 px-5 my-4 mx-6 text-center bg-gray-50 rounded border border-gray-200">
+<div class="m-12 mb-4">
+    <div class="divider">FILE DI ESEMPIO</div>
+</div>
+<div class="py-3 px-5 my-4 mx-6">
     <p class="mb-3 italic">Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio</p>
-    <div class="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2">
-        <div>
-            <h4 class="font-semibold tracking-tight">Formato csv</h4>
-            <ul>
-                <li>
-                    <a href="{% static 'files/EsempioMenuSemplice.csv' %}"
-                       class="text-green-600 hover:underline underline-offset-2"
-                       download>Menu Semplice</a>
-                </li>
-                <li>
-                    <a href="{% static 'files/EsempioMenuDettagliato.csv' %}"
-                       class="text-green-600 hover:underline underline-offset-2"
-                       download>Menu Dettagliato</a>
-                </li>
-            </ul>
-        </div>
-        <div>
-            <h4 class="font-semibold tracking-tight">Formato excel</h4>
-            <ul>
-                <li>
-                    <a href="{% static 'files/EsempioMenuSemplice.xlsx' %}"
-                       class="text-green-600 hover:underline underline-offset-2"
-                       download>Menu Semplice</a>
-                </li>
-                <li>
-                    <a href="{% static 'files/EsempioMenuDettagliato.xlsx' %}"
-                       class="text-green-600 hover:underline underline-offset-2"
-                       download>Menu Dettagliato</a>
-                </li>
-            </ul>
-        </div>
-    </div>
-    <div class="flex items-center p-2 mt-4 text-center text-red-800 bg-red-50 rounded border border-red-200">
+    <ul class="space-y-4 text-center">
+        <li>
+            <a href="{% static 'files/EsempioMenuSemplice.csv' %}"
+               class="inline-flex items-center btn btn-secondary btn-outline btn-sm"
+               download>
+                Menu Semplice
+                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+            </a>
+        </li>
+        <li>
+            <a href="{% static 'files/EsempioMenuDettagliato.csv' %}"
+               class="inline-flex items-center btn btn-secondary btn-outline btn-sm"
+               download>
+                Menu Dettagliato
+                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+            </a>
+        </li>
+    </ul>
+    <div class="flex items-center p-2 mt-5 text-center text-red-800 bg-red-50 rounded border border-red-200">
         {% heroicon_solid 'exclamation-triangle' class="size-5 me-2 lg:me-4" %}
         <span class="text-sm italic">Attenzione, il menu caricato sovrascriverà il menu presente in maniera definitiva</span>
     </div>

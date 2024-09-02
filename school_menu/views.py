@@ -1,5 +1,3 @@
-import os
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -7,6 +5,7 @@ from django.forms import modelformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
+from tablib import Dataset
 
 from school_menu.forms import (
     DetailedMealForm,
@@ -15,12 +14,13 @@ from school_menu.forms import (
     UploadMenuForm,
 )
 from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.resources import DetailedMealResource, SimpleMealResource
 from school_menu.utils import (
     calculate_week,
     get_current_date,
     get_season,
     get_user,
-    import_menu,
+    validate_dataset,
 )
 
 
@@ -194,10 +194,39 @@ def upload_menu(request, school_id):
     if request.method == "POST":
         form = UploadMenuForm(request.POST, request.FILES)
         if form.is_valid():
-            file = form.cleaned_data["file"]
+            file = request.FILES["file"]
             season = form.cleaned_data["season"]
-            name, type = os.path.splitext(request.FILES["file"].name)
-            import_menu(request, file, type, menu_type, school, season)
+            if menu_type == School.Types.SIMPLE:
+                resource = SimpleMealResource()
+                model = SimpleMeal
+            else:
+                resource = DetailedMealResource()
+                model = DetailedMeal
+            dataset = Dataset()
+            dataset.load(file.read().decode(), format="csv")
+            validates, message = validate_dataset(dataset, menu_type)
+            result = resource.import_data(
+                dataset, dry_run=True, school=school, season=season
+            )
+
+            if not validates:
+                messages.add_message(request, messages.ERROR, message)
+                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
+
+            if not result.has_errors():  # pragma: no cover
+                model.objects.filter(school=school, season=season).delete()
+                result = resource.import_data(
+                    dataset, dry_run=False, school=school, season=season
+                )
+                messages.add_message(
+                    request, messages.SUCCESS, "Menu caricato con successo"
+                )
+            else:  # pragma: no cover
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Qualcosa è andato storto..",
+                )
             return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
         context = {"form": form, "school": school}
         return TemplateResponse(request, "upload-menu.html", context)
@@ -290,3 +319,42 @@ def search_schools(request):
     else:
         context["schools"] = schools
     return TemplateResponse(request, template, context)
+
+
+def export_modal_view(request, school_id):
+    school = get_object_or_404(School, pk=school_id)
+    if school.menu_type == School.Types.SIMPLE:
+        summer_meals = SimpleMeal.objects.filter(
+            school=school, season=School.Seasons.PRIMAVERILE
+        ).exists()
+        winter_meals = SimpleMeal.objects.filter(
+            school=school, season=School.Seasons.INVERNALE
+        ).exists()
+    else:
+        summer_meals = DetailedMeal.objects.filter(
+            school=school, season=School.Seasons.PRIMAVERILE
+        ).exists()
+        winter_meals = DetailedMeal.objects.filter(
+            school=school, season=School.Seasons.INVERNALE
+        ).exists()
+    context = {
+        "school": school,
+        "summer_meals": summer_meals,
+        "winter_meals": winter_meals,
+    }
+    return render(request, "export-menu.html", context)
+
+
+@login_required
+def export_menu(request, school_id, season):
+    school = get_object_or_404(School, pk=school_id)
+    menu_type = school.menu_type
+    if menu_type == School.Types.SIMPLE:
+        meals = SimpleMeal.objects.filter(school=school, season=season)
+        data = SimpleMealResource().export(meals)
+    else:
+        meals = DetailedMeal.objects.filter(school=school, season=season)
+        data = DetailedMealResource().export(meals)
+
+    response = HttpResponse(data.csv, content_type="text/csv")
+    return response

@@ -24,6 +24,7 @@ urlpatterns = [
         views.create_weekly_menu,
         name="create_weekly_menu",
     ),
+    path("export/<int:school_id>/<int:season>/", views.export_menu, name="export_menu"),
 ]
 
 htmx_urlpatterns = [
@@ -33,6 +34,7 @@ htmx_urlpatterns = [
     path("menu/<int:school_id>/upload/", views.upload_menu, name="upload_menu"),
     path("settings/<int:pk>/menu/", views.menu_settings_partial, name="menu_settings"),
     path("search-schools/", views.search_schools, name="search_schools"),
+    path("export-modal/<int:school_id>/", views.export_modal_view, name="export_modal"),
 ]
 
 urlpatterns += htmx_urlpatterns

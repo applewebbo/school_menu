@@ -129,7 +129,9 @@ nodeenv==1.9.1
 numpy==2.1.0
     # via pandas
 openpyxl==3.1.5
-    # via school-menu (pyproject.toml)
+    # via
+    #   school-menu (pyproject.toml)
+    #   tablib
 packaging==24.1
     # via
     #   gunicorn
@@ -202,7 +204,9 @@ sqlparse==0.5.1
 stone==3.3.1
     # via dropbox
 tablib==3.5.0
-    # via django-import-export
+    # via
+    #   school-menu (pyproject.toml)
+    #   django-import-export
 tqdm==4.66.5
     # via djlint
 typing-extensions==4.12.2

@@ -24,6 +24,7 @@ dependencies = [
   "pandas",
   "openpyxl",
   "psycopg[binary]",
+  "tablib[xlsx]",
   "whitenoise"
 ]
 name = "school_menu"

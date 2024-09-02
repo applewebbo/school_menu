@@ -6,6 +6,8 @@ DEBUG = env.bool("DEBUG", default=False)
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS").split(",")
 
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",

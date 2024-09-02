@@ -2,17 +2,18 @@ from datetime import datetime
 from unittest import mock
 from unittest.mock import MagicMock, patch
 
-import pandas as pd
 import pytest
 from django.http import Http404
+from tablib import Dataset
 
-from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.models import School
 from school_menu.utils import (
+    ChoicesWidget,
     calculate_week,
     get_current_date,
     get_season,
     get_user,
-    import_menu,
+    validate_dataset,
 )
 
 pytestmark = pytest.mark.django_db
@@ -141,288 +142,249 @@ class TestGetUser:
                 get_user(pk=999)
 
 
-@pytest.fixture
-def simple_meal_file(tmp_path):
-    data = [
-        ["Lunedì", 1, "Pasta al Pomodoro", "Yogurt"],
-    ]
-    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo", "spuntino"])
-    file_path = tmp_path / "simple_meal_import.xlsx"
-    df.to_excel(file_path, index=False, engine="openpyxl")
-    yield file_path
-
-
-@pytest.fixture
-def simple_csv_meal_file(tmp_path):
-    data = [
-        ["Lunedì", 1, "Pasta al Pomodoro", "Yogurt"],
-    ]
-    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo", "spuntino"])
-    file_path = tmp_path / "simple_meal_import.csv"
-    df.to_csv(file_path, index=False)
-    yield file_path
-
-
-@pytest.fixture
-def simple_meal_file_missing_column(tmp_path):
-    data = [
-        ["Lunedì", 1, "Pasta al Pomodoro"],
-    ]
-    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo"])
-    file_path = tmp_path / "simple_meal_import.xlsx"
-    df.to_excel(file_path, index=False, engine="openpyxl")
-    yield file_path
-
-
-@pytest.fixture
-def simple_meal_file_wrong_day(tmp_path):
-    data = [
-        ["Lun", 1, "Pasta al Pomodoro", "Yogurt"],
-    ]
-    df = pd.DataFrame(data, columns=["giorno", "settimana", "pranzo", "spuntino"])
-    file_path = tmp_path / "simple_meal_import.xlsx"
-    df.to_excel(file_path, index=False, engine="openpyxl")
-    yield file_path
-
-
-@pytest.fixture
-def detailed_meal_file(tmp_path):
-    data = [
-        [
-            "Lunedì",
-            1,
-            "Pasta al Pomodoro",
-            "Pollo Arrosto",
-            "Fagiolini",
-            "Mela",
-            "Yogurt",
-        ],
-    ]
-    df = pd.DataFrame(
-        data,
-        columns=[
-            "giorno",
-            "settimana",
-            "primo",
-            "secondo",
-            "contorno",
-            "frutta",
-            "spuntino",
-        ],
-    )
-    file_path = tmp_path / "detailed_meal_import.xlsx"
-    df.to_excel(file_path, index=False, engine="openpyxl")
-    yield file_path
-
-
-@pytest.fixture
-def detailed_csv_meal_file(tmp_path):
-    data = [
-        [
-            "Lunedì",
-            1,
-            "Pasta al Pomodoro",
-            "Pollo Arrosto",
-            "Fagiolini",
-            "Mela",
-            "Yogurt",
-        ],
-    ]
-    df = pd.DataFrame(
-        data,
-        columns=[
-            "giorno",
-            "settimana",
-            "primo",
-            "secondo",
-            "contorno",
-            "frutta",
-            "spuntino",
-        ],
-    )
-    file_path = tmp_path / "detailed_meal_import.csv"
-    df.to_csv(file_path, index=False)
-    yield file_path
-
-
-@pytest.fixture
-def detailed_meal_file_missing_column(tmp_path):
-    data = [
-        ["Lunedì", 1, "Pasta al Pomodoro", "Pollo Arrosto", "Fagiolini", "Mela"],
-    ]
-    df = pd.DataFrame(
-        data,
-        columns=[
-            "giorno",
-            "settimana",
-            "primo",
-            "secondo",
-            "contorno",
-            "frutta",
-        ],
-    )
-    file_path = tmp_path / "detailed_meal_import.xlsx"
-    df.to_excel(file_path, index=False, engine="openpyxl")
-    yield file_path
-
-
-@pytest.fixture
-def detailed_meal_file_wrong_day(tmp_path):
-    data = [
-        [
-            "Lun",
-            1,
-            "Pasta al Pomodoro",
-            "Pollo Arrosto",
-            "Fagiolini",
-            "Mela",
-            "Yogurt",
-        ],
-    ]
-    df = pd.DataFrame(
-        data,
-        columns=[
-            "giorno",
-            "settimana",
-            "primo",
-            "secondo",
-            "contorno",
-            "frutta",
-            "spuntino",
-        ],
-    )
-    file_path = tmp_path / "detailed_meal_import.xlsx"
-    df.to_excel(file_path, index=False, engine="openpyxl")
-    yield file_path
-
-
 class TestImportMenu:
-    def test_simple_meal_import_success(self, simple_meal_file, school_factory):
-        school = school_factory()
-        request = MagicMock()
+    def test_simple_meal_validate_success(self):
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
+        dataset.append(["Lunedì", 1, "Pasta al Pomodoro", "Yogurt"])
 
-        import_menu(
-            request,
-            simple_meal_file,
-            ".xlsx",
-            School.Types.SIMPLE,
-            school,
-            School.Seasons.PRIMAVERILE,
+        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+
+        assert validates is True
+        assert message is None
+
+    def test_simple_meal_validate_missing_column(self):
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo"]
+        dataset.append(["Lunedì", 1, "Pasta al Pomodoro"])
+
+        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+
+        assert validates is False
+        assert (
+            message
+            == "Formato non valido. Il file non contiene tutte le colonne richieste."
         )
 
-        assert SimpleMeal.objects.count() == 1
+    def test_simple_meal_validate_wrong_day(self):
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
+        dataset.append(["Lun", 1, "Pasta al Pomodoro", "Yogurt"])
 
-    def test_simple_csv_meal_import_success(self, simple_csv_meal_file, school_factory):
-        school = school_factory()
-        request = MagicMock()
+        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 
-        import_menu(
-            request,
-            simple_csv_meal_file,
-            ".csv",
-            School.Types.SIMPLE,
-            school,
-            School.Seasons.PRIMAVERILE,
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "giorno" contiene valori diversi dai giorni della settimana.'
         )
 
-        assert SimpleMeal.objects.count() == 1
+    def test_simple_meal_validate_non_integer_week(self):
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
+        dataset.append(["Lunedì", "prima", "Pasta al Pomodoro", "Yogurt"])
 
-    def test_simple_meal_import_missing_column(
-        self, simple_meal_file_missing_column, school_factory
-    ):
-        school = school_factory()
-        request = MagicMock()
+        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 
-        import_menu(
-            request,
-            simple_meal_file_missing_column,
-            ".xlsx",
-            School.Types.SIMPLE,
-            school,
-            School.Seasons.PRIMAVERILE,
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "settimana" contiene valori non numerici.'
         )
 
-        assert SimpleMeal.objects.count() == 0
+    def test_simple_meal_validate_wrong_week(self):
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
+        dataset.append(["Lunedì", 5, "Pasta al Pomodoro", "Yogurt"])
 
-    def test_simple_meal_import_wrong_day(
-        self, simple_meal_file_wrong_day, school_factory
-    ):
-        school = school_factory()
-        request = MagicMock()
+        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 
-        import_menu(
-            request,
-            simple_meal_file_wrong_day,
-            ".xlsx",
-            School.Types.SIMPLE,
-            school,
-            School.Seasons.PRIMAVERILE,
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "settimana" contiene valori non compresi fra 1 e 4.'
         )
 
-        assert SimpleMeal.objects.count() == 0
-
-    def test_detailed_meal_import_success(self, detailed_meal_file, school_factory):
-        school = school_factory()
-        request = MagicMock()
-
-        import_menu(
-            request,
-            detailed_meal_file,
-            ".xlsx",
-            School.Types.DETAILED,
-            school,
-            School.Seasons.PRIMAVERILE,
+    def test_detailed_meal_validate_success(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        dataset.append(
+            [
+                "Lunedì",
+                1,
+                "Pasta al Pomodoro",
+                "Pollo Arrosto",
+                "Fagiolini",
+                "Mela",
+                "Yogurt",
+            ]
         )
 
-        assert DetailedMeal.objects.count() == 1
+        validates, message = validate_dataset(dataset, School.Types.DETAILED)
 
-    def test_detailed_csv_meal_import_success(
-        self, detailed_csv_meal_file, school_factory
-    ):
-        school = school_factory()
-        request = MagicMock()
+        assert validates is True
+        assert message is None
 
-        import_menu(
-            request,
-            detailed_csv_meal_file,
-            ".csv",
-            School.Types.DETAILED,
-            school,
-            School.Seasons.PRIMAVERILE,
+    def test_detailed_meal_validate_missing_column(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+        ]
+        dataset.append(
+            [
+                "Lunedì",
+                1,
+                "Pasta al Pomodoro",
+                "Pollo Arrosto",
+                "Fagiolini",
+                "Mela",
+            ]
         )
 
-        assert DetailedMeal.objects.count() == 1
+        validates, message = validate_dataset(dataset, School.Types.DETAILED)
 
-    def test_detailed_meal_wrong_day(
-        self, detailed_meal_file_wrong_day, school_factory
-    ):
-        school = school_factory()
-        request = MagicMock()
-
-        import_menu(
-            request,
-            detailed_meal_file_wrong_day,
-            ".xlsx",
-            School.Types.DETAILED,
-            school,
-            School.Seasons.PRIMAVERILE,
+        assert validates is False
+        assert (
+            message
+            == "Formato non valido. Il file non contiene tutte le colonne richieste."
         )
 
-        assert DetailedMeal.objects.count() == 0
-
-    def test_detailed_meal_missing_column(
-        self, detailed_meal_file_missing_column, school_factory
-    ):
-        school = school_factory()
-        request = MagicMock()
-
-        import_menu(
-            request,
-            detailed_meal_file_missing_column,
-            ".xlsx",
-            School.Types.DETAILED,
-            school,
-            School.Seasons.PRIMAVERILE,
+    def test_detailed_meal_validate_wrong_day(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        dataset.append(
+            [
+                "Lun",
+                1,
+                "Pasta al Pomodoro",
+                "Pollo Arrosto",
+                "Fagiolini",
+                "Mela",
+                "Yogurt",
+            ]
         )
 
-        assert DetailedMeal.objects.count() == 0
+        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "giorno" contiene valori diversi dai giorni della settimana.'
+        )
+
+    def test_detailed_meal_validate_non_integer_week(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        dataset.append(
+            [
+                "Lunedì",
+                "prima",
+                "Pasta al Pomodoro",
+                "Pollo Arrosto",
+                "Fagiolini",
+                "Mela",
+                "Yogurt",
+            ]
+        )
+
+        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "settimana" contiene valori non numerici.'
+        )
+
+    def test_detailed_meal_validate_wrong_week(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        dataset.append(
+            [
+                "Lunedì",
+                5,
+                "Pasta al Pomodoro",
+                "Pollo Arrosto",
+                "Fagiolini",
+                "Mela",
+                "Yogurt",
+            ]
+        )
+
+        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "settimana" contiene valori non compresi fra 1 e 4.'
+        )
+
+
+class TestChoicesWidget:
+    @pytest.fixture
+    def choices_widget(self):
+        choices = [("CHOC", "Chocolate"), ("VAN", "Vanilla"), ("STRAW", "Strawberry")]
+        return ChoicesWidget(choices)
+
+    def test_initialization(self, choices_widget):
+        expected_choices = {
+            "CHOC": "Chocolate",
+            "VAN": "Vanilla",
+            "STRAW": "Strawberry",
+        }
+        expected_revert_choices = {
+            "Chocolate": "CHOC",
+            "Vanilla": "VAN",
+            "Strawberry": "STRAW",
+        }
+        assert choices_widget.choices == expected_choices
+        assert choices_widget.revert_choices == expected_revert_choices
+
+    def test_clean(self, choices_widget):
+        assert choices_widget.clean("Chocolate") == "CHOC"
+        assert choices_widget.clean("Vanilla") == "VAN"
+        assert choices_widget.clean("Strawberry") == "STRAW"
+        assert choices_widget.clean("Nonexistent") == "Nonexistent"
+        assert choices_widget.clean(None) is None
+
+    def test_render(self, choices_widget):
+        assert choices_widget.render("CHOC") == "Chocolate"
+        assert choices_widget.render("VAN") == "Vanilla"
+        assert choices_widget.render("STRAW") == "Strawberry"
+        assert choices_widget.render("Nonexistent") == ""

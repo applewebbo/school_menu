@@ -274,9 +274,9 @@ class UploadMenuView(TestCase):
         school = SchoolFactory(user=user)
         data = {
             "file": SimpleUploadedFile(
-                "test_menu.xlsx",
+                "test_menu.csv",
                 b"these are the file contents!",
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                content_type="text/csv",
             ),
             "season": School.Seasons.INVERNALE,
         }

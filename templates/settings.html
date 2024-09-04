@@ -4,68 +4,67 @@
     Impostazioni
 {% endblock page_title %}
 {% block content %}
-    <section>
-        <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Impostazioni</h1>
-            <p>
-                Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio. Puoi caricare i menu settimanali oppure modificare quelli già presenti. Se hai bisogno di aiuto per capire come funziona il sistema, puoi consultare la <a href="{% url 'school_menu:help' %}" class="underline text-primary">guida</a>.
-            </p>
-            <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
-                 id="school">
-                <!-- SCHOOL -->
-                {% partialdef school inline=True %}
-                <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
-                    Scuola
-                </h3>
-                {% if user.school %}
-                    <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
-                        <ul class="leading-10" id="school-settings">
-                            <li>
-                                <span class="font-bold">Nome:</span> {{ user.school.name }}
-                            </li>
-                            <li>
-                                <span class="font-bold">Città:</span> {{ user.school.city }}
-                            </li>
-                            <li>
-                                <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
-                            </li>
-                            <li>
-                                <span class="font-bold">Pubblico:</span>
-                                {% if user.school.is_published %}
-                                    Sì
-                                {% else %}
-                                    No
-                                {% endif %}
-                            </li>
-                        </ul>
-                        <ul class="leading-10" id="meal-settings">
-                            <li>
-                                <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
-                            </li>
-                            <li>
-                                <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="md:text-right">
-                        <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-secondary"
-                                hx-target="#school"
-                                hx-swap="innerHTML"
-                                hx-get="{% url 'school_menu:school_update' %}">
-                            Modifica
-                            {% heroicon_solid 'pencil' class="hidden md:block size-4 ms-2" %}
-                        </button>
-                    </div>
-                {% else %}
-                    <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
-                    <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
+    <section class="grid py-8 px-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+        <!-- INFO -->
+        <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Impostazioni</h1>
+        <p>
+            Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio. Puoi caricare i menu settimanali oppure modificare quelli già presenti. Se hai bisogno di aiuto per capire come funziona il sistema, puoi consultare la <a href="{% url 'school_menu:help' %}" class="underline text-primary">guida</a>.
+        </p>
+        <!-- SCHOOL -->
+        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
+             id="school">
+            {% partialdef school inline=True %}
+            <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                Scuola
+            </h3>
+            {% if user.school %}
+                <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
+                    <ul class="leading-10" id="school-settings">
+                        <li>
+                            <span class="font-bold">Nome:</span> {{ user.school.name }}
+                        </li>
+                        <li>
+                            <span class="font-bold">Città:</span> {{ user.school.city }}
+                        </li>
+                        <li>
+                            <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
+                        </li>
+                        <li>
+                            <span class="font-bold">Pubblico:</span>
+                            {% if user.school.is_published %}
+                                Sì
+                            {% else %}
+                                No
+                            {% endif %}
+                        </li>
+                    </ul>
+                    <ul class="leading-10" id="meal-settings">
+                        <li>
+                            <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
+                        </li>
+                        <li>
+                            <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
+                        </li>
+                    </ul>
+                </div>
+                <div class="md:text-right">
+                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-secondary"
                             hx-target="#school"
                             hx-swap="innerHTML"
-                            hx-get="{% url 'school_menu:school_create' %}">Crea</button>
-                {% endif %}
-                <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
-            {% endpartialdef %}
-        </div>
+                            hx-get="{% url 'school_menu:school_update' %}">
+                        Modifica
+                        {% heroicon_solid 'pencil' class="hidden md:block size-4 ms-2" %}
+                    </button>
+                </div>
+            {% else %}
+                <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
+                <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
+                        hx-target="#school"
+                        hx-swap="innerHTML"
+                        hx-get="{% url 'school_menu:school_create' %}">Crea</button>
+            {% endif %}
+            <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
+        {% endpartialdef %}
         <!-- MENU  -->
         {% partialdef menu inline=true %}
         {% if user.school %}
@@ -94,7 +93,6 @@
                             {% heroicon_solid 'arrow-up-tray' class="size-4 ms-2" %}
                         </button>
                     </div>
-                    <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
                 </div>
                 <div class="grid grid-cols-1 gap-y-2 gap-x-4 md:grid-cols-2 md:gap-x-6 md:gp-y-4">
                     <!--  Settimane Autunno/Inverno  -->
@@ -128,6 +126,7 @@
                             </div>
                         {% endfor %}
                     </div>
+                    <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
                 </div>
             {% endif %}
         {% endpartialdef %}

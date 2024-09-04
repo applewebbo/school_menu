@@ -135,6 +135,8 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
+ACCOUNT_FORMS = {"signup": "users.forms.MyCustomSignupForm"}
+
 SITE_ID = 1
 
 ACCOUNT_EMAIL_REQUIRED = True

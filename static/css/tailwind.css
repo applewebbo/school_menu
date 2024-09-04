@@ -1906,6 +1906,11 @@ html {
   }
 }
 
+.form-control {
+  display: flex;
+  flex-direction: column;
+}
+
 .label {
   display: flex;
   -webkit-user-select: none;
@@ -2677,8 +2682,17 @@ html {
   margin-inline-start: calc(var(--border-btn) * -1);
 }
 
+.link-primary {
+  --tw-text-opacity: 1;
+  color: var(--fallback-p,oklch(var(--p)/var(--tw-text-opacity)));
+}
+
 @supports (color:color-mix(in oklab,black,black)) {
   @media (hover:hover) {
+    .link-primary:hover {
+      color: color-mix(in oklab,var(--fallback-p,oklch(var(--p)/1)) 80%,black);
+    }
+
     .link-error:hover {
       color: color-mix(in oklab,var(--fallback-er,oklch(var(--er)/1)) 80%,black);
     }

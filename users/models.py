@@ -8,6 +8,9 @@ from .managers import UserManager
 class User(AbstractUser):
     username = None
     email = models.EmailField(_("email address"), unique=True)
+    tc_agreement = models.BooleanField(
+        default=False, verbose_name="Termini e condizioni"
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

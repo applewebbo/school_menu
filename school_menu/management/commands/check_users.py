@@ -21,26 +21,31 @@ class Command(BaseCommand):
         users_to_delete = User.objects.filter(last_login__lte=one_year_ago)
         deleted_count = users_to_delete.count()
         users_to_delete.delete()
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Deleted {deleted_count} users who have not logged in for a year."
-            )
-        )
 
         # Notify users who haven't logged in for 11 months
         users_to_notify = User.objects.filter(
             last_login__lte=eleven_months_ago, last_login__gt=one_year_ago
         )
+        notified_count = users_to_notify.count()
         for user in users_to_notify:
             send_mail(
                 "Account Inactivity Notice",
-                "Abbiamo notato che non hai eseguito il login nel nostro sito negli ultimi 11 mesi. Se non hai ancora eseguito il login, ti invitiamo a farlo entro il prossimo mese, altrimenti il tuo account verrà eliminato. Grazie per aver utilizzato il nostro sito!",
+                "Your account has been inactive for 11 months. It will be deleted in 1 month if you do not log in.",
                 settings.DEFAULT_FROM_EMAIL,
                 [user.email],
                 fail_silently=False,
             )
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"Notified {users_to_notify.count()} users about account inactivity."
-            )
+
+        # Prepare and send result email
+        result_message = f"Controllo Utenti Inattivi su menu.webbografico.com\n\nUtenti cancellati: {deleted_count}\nUtenti avvisati: {notified_count}"
+        self.stdout.write(self.style.SUCCESS(result_message))
+
+        send_mail(
+            "Controllo Utenti Inattivi su menu.webbografico.com",
+            result_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.ADMIN_EMAIL],  # Assuming you have an ADMIN_EMAIL setting
+            fail_silently=False,
         )
+
+        self.stdout.write(self.style.SUCCESS("Results email sent to admin."))

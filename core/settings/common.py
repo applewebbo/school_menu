@@ -158,6 +158,7 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # DJANGO_ANYMAIL
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 DEFAULT_FROM_EMAIL = "info@mg.webbografico.com"
+ADMIN_EMAIL = env("ADMIN_EMAIL")
 
 ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),

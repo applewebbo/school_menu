@@ -1,0 +1,22 @@
+{% load static heroicons %}
+<div class="modal-content">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Elimina il tuo account</h3>
+        <button type="button"
+                class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                x-on:click="openModal = false">
+            {% heroicon_solid 'x-mark' class="size-7" %}
+            <span class="sr-only">Close modal</span>
+        </button>
+    </div>
+    <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 md:py-4 md:px-6">
+        <p class="text-sm text-gray-500">
+            Ciao <strong>{{ user.email }}</strong>, ci dispiace vederti andare via. Se desideri procedere con l'eliminazione del tuo account clicca sul bottone sottostante.
+        </p>
+        <button class="mb-4 btn btn-error btn-block">Elimina Account</button>
+        <div class="flex items-center py-2 px-6 m-auto mb-4 text-red-800 bg-red-50 rounded border border-red-200">
+            {% heroicon_solid 'exclamation-triangle' class="size-5 me-2 lg:me-4" %}
+            <span class="text-sm italic">Attenzione, l'eliminazione del tuo account è immediata e definitiva.</span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block page_title %}
+    Info
+{% endblock page_title %}
+{% block content %}
+    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+        <section id="privacy" class="mt-4 lg:mt-8">
+            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Informativa sulla Privacy</h1>
+            <article class="max-w-none prose prose-img:w-full lg:prose-img:w-2/3 lg:prose-img:mx-auto">
+                <h4>1. Introduzione</h4>
+                <p>
+                    Benvenuti sul nostro sito web. La vostra privacy è importante per noi. Questa Informativa sulla Privacy spiega come raccogliamo, utilizziamo e proteggiamo i vostri dati personali.
+                </p>
+                <h4>2. Dati raccolti</h4>
+                <p>
+                    L'unico dato personale che raccogliamo è il vostro indirizzo email. Non richiediamo né conserviamo alcun altro dato personale.
+                </p>
+                <h4>3. Utilizzo dei dati</h4>
+                <p>Utilizziamo il vostro indirizzo email esclusivamente per:</p>
+                <ul class="leading-tight list-none">
+                    <li>Inviarvi comunicazioni relative al nostro servizio</li>
+                    <li>Gestire il vostro account</li>
+                    <li>Rispondere alle vostre richieste</li>
+                </ul>
+                <h4>4. Conservazione dei dati</h4>
+                <p>
+                    Conserviamo il vostro indirizzo email per tutto il tempo in cui utilizzate attivamente il nostro servizio. Se non utilizzate il vostro account per un periodo di 12 mesi consecutivi, il vostro indirizzo email verrà automaticamente cancellato dai nostri sistemi.
+                </p>
+                <h4>5. Sicurezza dei dati</h4>
+                <p>
+                    Adottiamo misure di sicurezza appropriate per proteggere il vostro indirizzo email da accessi non autorizzati, alterazioni, divulgazioni o distruzioni.
+                </p>
+                <h4>6. I vostri diritti</h4>
+                <p>Avete il diritto di:</p>
+                <ul class="leading-tight list-none">
+                    <li>Accedere al vostro indirizzo email memorizzato nei nostri sistemi</li>
+                    <li>Richiedere la correzione di eventuali errori</li>
+                    <li>Richiedere la cancellazione del vostro indirizzo email</li>
+                </ul>
+                <h4>7. Modifiche alla privacy policy</h4>
+                <p>
+                    Ci riserviamo il diritto di modificare questa privacy policy in qualsiasi momento. Eventuali modifiche verranno pubblicate su questa pagina.
+                </p>
+                <h4>8. Contatti</h4>
+                <p>
+                    Per qualsiasi domanda riguardante questa privacy policy o i vostri dati personali, potete contattarci utilizzando il form di contatto che trovate <a href="{% url 'contacts:contact' %}">qui</a>
+                </p>
+                <p class="mt-8 mb-4 italic text-right">
+                    Data di ultima modifica: <strong>6 settembre 2024</strong>
+                </p>
+            </article>
+        </section>
+    </div>
+{% endblock content %}

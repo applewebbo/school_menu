@@ -3714,6 +3714,14 @@ select ~ .pointer-events-none {
   margin-top: 1.5rem;
 }
 
+.mt-0 {
+  margin-top: 0px;
+}
+
+.mt-8 {
+  margin-top: 2rem;
+}
+
 .block {
   display: block;
 }
@@ -3741,6 +3749,11 @@ select ~ .pointer-events-none {
 .size-10 {
   width: 2.5rem;
   height: 2.5rem;
+}
+
+.size-3 {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .size-4 {
@@ -3837,6 +3850,10 @@ select ~ .pointer-events-none {
 
 .grow {
   flex-grow: 1;
+}
+
+.list-none {
+  list-style-type: none;
 }
 
 .appearance-none {
@@ -4234,10 +4251,6 @@ select ~ .pointer-events-none {
   font-weight: 600;
 }
 
-.uppercase {
-  text-transform: uppercase;
-}
-
 .italic {
   font-style: italic;
 }
@@ -4407,61 +4420,6 @@ select ~ .pointer-events-none {
 }
 
 @media (min-width: 768px) {
-  .md\:badge-outline {
-    border-color: currentColor;
-    --tw-border-opacity: 0.5;
-    background-color: transparent;
-    color: currentColor;
-  }
-
-  .md\:badge-outline.badge-neutral {
-    --tw-text-opacity: 1;
-    color: var(--fallback-n,oklch(var(--n)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-primary {
-    --tw-text-opacity: 1;
-    color: var(--fallback-p,oklch(var(--p)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-secondary {
-    --tw-text-opacity: 1;
-    color: var(--fallback-s,oklch(var(--s)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-accent {
-    --tw-text-opacity: 1;
-    color: var(--fallback-a,oklch(var(--a)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-info {
-    --tw-text-opacity: 1;
-    color: var(--fallback-in,oklch(var(--in)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-success {
-    --tw-text-opacity: 1;
-    color: var(--fallback-su,oklch(var(--su)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-warning {
-    --tw-text-opacity: 1;
-    color: var(--fallback-wa,oklch(var(--wa)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-outline.badge-error {
-    --tw-text-opacity: 1;
-    color: var(--fallback-er,oklch(var(--er)/var(--tw-text-opacity)));
-  }
-
-  .md\:badge-sm {
-    height: 1rem;
-    font-size: 0.75rem;
-    line-height: 1rem;
-    padding-left: 0.438rem;
-    padding-right: 0.438rem;
-  }
-
   .md\:badge-md {
     height: 1.25rem;
     font-size: 0.875rem;

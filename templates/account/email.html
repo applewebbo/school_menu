@@ -22,9 +22,9 @@
                 {% with emailaddress=radio.emailaddress %}
                     {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id class="radio" %}
                     {% slot label %}
-                    {{ emailaddress.email }}
+                    <span class="font-medium text-gray-600 me-4">{{ emailaddress.email }}</span>
                     {% if emailaddress.verified %}
-                        {% element badge tags="success,email,verified" class="badge-default" %}
+                        {% element badge tags="success,email,verified" class="badge-success" %}
                         {% translate "Verified" %}
                     {% endelement %}
                 {% else %}
@@ -33,7 +33,7 @@
                 {% endelement %}
             {% endif %}
             {% if emailaddress.primary %}
-                {% element badge tags="email,primary" class="badge-default" %}
+                {% element badge tags="email,primary" class="badge-secondary" %}
                 {% translate "Primary" %}
             {% endelement %}
         {% endif %}
@@ -43,8 +43,9 @@
 {% endfor %}
 {% endslot %}
 {% slot actions %}
-{% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2" %}
-{% trans 'Make Primary' %}
+<div class="grid grid-cols-1 gap-2 mt-6 md:grid-cols-3">
+    {% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2" %}
+    {% trans 'Make Primary' %}
 {% endelement %}
 {% element button tags="secondary" type="submit" name="action_send" class="btn btn-sm btn-outline btn-secondary me-2" %}
 {% trans 'Re-send Verification' %}
@@ -52,6 +53,7 @@
 {% element button tags="danger,delete" type="submit" name="action_remove" class="btn btn-sm btn-outline btn-error me-2" %}
 {% trans 'Remove' %}
 {% endelement %}
+</div>
 {% endslot %}
 {% endelement %}
 {% else %}
@@ -59,20 +61,22 @@
 {% endif %}
 </div>
 {% if can_add_email %}
-    {% element h2 %}
-    {% trans "Add Email Address" %}
-{% endelement %}
-{% url 'account_email' as action_url %}
-{% element form form=form method="post" action=action_url tags="email,add" %}
-{% slot body %}
-{% csrf_token %}
-{% element fields form=form %}
+    <div class="m-12 mb-4">
+        <div class="divider">{% trans "Add Email Address"|upper %}</div>
+    </div>
+    {% url 'account_email' as action_url %}
+    {% element form form=form method="post" action=action_url tags="email,add" %}
+    {% slot body %}
+    {% csrf_token %}
+    {% element fields form=form %}
 {% endelement %}
 {% endslot %}
 {% slot actions %}
-{% element button name="action_add" type="submit" class="btn btn-sm btn-outline btn-secondary me-2" %}
-{% trans "Add Email" %}
+<div class="text-center md:text-right">
+    {% element button name="action_add" type="submit" class="btn btn-sm btn-outline btn-secondary me-2" %}
+    {% trans "Add Email" %}
 {% endelement %}
+</div>
 {% endslot %}
 {% endelement %}
 {% endif %}

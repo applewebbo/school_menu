@@ -1,4 +1,4 @@
-{% load static %}
+{% load static cookiebanner %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -45,6 +45,7 @@
         <script defer src="{% static 'js/custom.js' %}"></script>
     </head>
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        {% cookiebanner_modal 'vanilla' %}
         <div id="fb-root"></div>
         <script async
                 defer

@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import environ
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "cookiebanner",
     "crispy_tailwind",
     "crispy_forms",
     "dbbackup",
@@ -205,4 +207,44 @@ UNFOLD = {
             950: "#04160A",
         },
     },
+}
+
+# COOKIEBANNER
+
+
+COOKIEBANNER = {
+    "title": _("Cookie settings"),
+    "header_text": _(
+        "We are using only technical cookies on this website. We do not use any cookies for tracking purposes."
+    ),
+    "footer_text": _("Please accept our cookies"),
+    "footer_links": [
+        {"title": _("Imprint"), "href": "/imprint"},
+        {"title": _("Privacy"), "href": "/privacy"},
+    ],
+    "groups": [
+        {
+            "id": "essential",
+            "name": _("Essential"),
+            "description": _("Essential cookies allow this page to work."),
+            "cookies": [
+                {
+                    "pattern": "cookiebanner",
+                    "description": _("Meta cookie for the cookies that are set."),
+                },
+                {
+                    "pattern": "csrftoken",
+                    "description": _(
+                        "This cookie prevents Cross-Site-Request-Forgery attacks."
+                    ),
+                },
+                {
+                    "pattern": "sessionid",
+                    "description": _(
+                        "This cookie is necessary to allow logging in, for example."
+                    ),
+                },
+            ],
+        },
+    ],
 }

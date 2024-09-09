@@ -213,35 +213,50 @@ UNFOLD = {
 
 
 COOKIEBANNER = {
-    "title": _("Cookie settings"),
+    "title": _("Impostazioni cookie"),
     "header_text": _(
-        "We are using only technical cookies on this website. We do not use any cookies for tracking purposes."
+        "Questo sito utilizza cookie tecnici per garantire la corretta funzionalità del sito. Inoltre monitora in maniera anonima il traffico e il comportamento degli utenti in ottica di miglioramento delle funzionalità. Consulta le nostre policy cliccando sui link in fondo.",
     ),
-    "footer_text": _("Please accept our cookies"),
-    "footer_links": [
-        {"title": _("Imprint"), "href": "/imprint"},
-        {"title": _("Privacy"), "href": "/privacy"},
-    ],
     "groups": [
         {
             "id": "essential",
-            "name": _("Essential"),
-            "description": _("Essential cookies allow this page to work."),
+            "name": _("Essenziali"),
+            "description": _(
+                "Questi cookie sono essenziali per il corretto funzionamento del sito."
+            ),
             "cookies": [
                 {
                     "pattern": "cookiebanner",
-                    "description": _("Meta cookie for the cookies that are set."),
+                    "description": _(
+                        "Registra le preferenze rispetto agli altri cookie."
+                    ),
                 },
                 {
                     "pattern": "csrftoken",
                     "description": _(
-                        "This cookie prevents Cross-Site-Request-Forgery attacks."
+                        "Previene attacchi di tipo cross-site request forgery."
                     ),
                 },
                 {
                     "pattern": "sessionid",
                     "description": _(
-                        "This cookie is necessary to allow logging in, for example."
+                        "Registra la sessione utente e permette ad esempio il login."
+                    ),
+                },
+            ],
+        },
+        {
+            "id": "analytics",
+            "name": _("Analisi Utilizzo"),
+            "description": _(
+                "Questi cookie registrano i dati relativi al comportamento degli utenti sul sito in maniera anonima."
+            ),
+            "optional": True,
+            "cookies": [
+                {
+                    "pattern": "_pk_.*",
+                    "description": _(
+                        "Registra i dati anonimi di utilizzo tramite piattaforma Matomo."
                     ),
                 },
             ],

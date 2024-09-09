@@ -28,7 +28,8 @@
            class="link link-hover">Disclaimer</a>
         <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
         <a href="{% url 'school_menu:privacy' %}" class="link link-hover">Privacy</a>
-        <button onclick="cookiebannerModal.showModal()" class="link link-hover">Cookies</button>
+        <button onclick="document.querySelector('#cookiebannerModal').classList.remove('hidden')"
+                class="link link-hover">Cookies</button>
     </nav>
 </footer>
 <footer class="p-4 footer footer-center bg-base-200 text-base-content">

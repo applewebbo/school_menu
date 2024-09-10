@@ -13,7 +13,7 @@
               method="post"
               action="{% url 'account_signup' %}">
             {% csrf_token %}
-            {{ form|crispy }}
+            {% crispy form %}
             {% if redirect_field_value %}
                 <input type="hidden"
                        name="{{ redirect_field_name }}"

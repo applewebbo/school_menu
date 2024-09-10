@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import environ
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "cookiebanner",
     "crispy_tailwind",
     "crispy_forms",
     "dbbackup",
@@ -135,6 +137,8 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
+ACCOUNT_FORMS = {"signup": "users.forms.MyCustomSignupForm"}
+
 SITE_ID = 1
 
 ACCOUNT_EMAIL_REQUIRED = True
@@ -156,6 +160,7 @@ CRISPY_TEMPLATE_PACK = "tailwind"
 # DJANGO_ANYMAIL
 EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
 DEFAULT_FROM_EMAIL = "info@mg.webbografico.com"
+ADMIN_EMAIL = env("ADMIN_EMAIL")
 
 ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
@@ -202,4 +207,59 @@ UNFOLD = {
             950: "#04160A",
         },
     },
+}
+
+# COOKIEBANNER
+
+
+COOKIEBANNER = {
+    "title": _("Impostazioni cookie"),
+    "header_text": _(
+        "Questo sito utilizza cookie tecnici per garantire la corretta funzionalità del sito. Inoltre monitora in maniera anonima il traffico e il comportamento degli utenti in ottica di miglioramento delle funzionalità. Consulta le nostre policy cliccando sui link in fondo.",
+    ),
+    "groups": [
+        {
+            "id": "essential",
+            "name": _("Essenziali"),
+            "description": _(
+                "Questi cookie sono essenziali per il corretto funzionamento del sito."
+            ),
+            "cookies": [
+                {
+                    "pattern": "cookiebanner",
+                    "description": _(
+                        "Registra le preferenze rispetto agli altri cookie."
+                    ),
+                },
+                {
+                    "pattern": "csrftoken",
+                    "description": _(
+                        "Previene attacchi di tipo cross-site request forgery."
+                    ),
+                },
+                {
+                    "pattern": "sessionid",
+                    "description": _(
+                        "Registra la sessione utente e permette ad esempio il login."
+                    ),
+                },
+            ],
+        },
+        {
+            "id": "analytics",
+            "name": _("Analisi Utilizzo"),
+            "description": _(
+                "Questi cookie registrano i dati relativi al comportamento degli utenti sul sito in maniera anonima."
+            ),
+            "optional": True,
+            "cookies": [
+                {
+                    "pattern": "_pk_.*",
+                    "description": _(
+                        "Registra i dati anonimi di utilizzo tramite piattaforma Matomo."
+                    ),
+                },
+            ],
+        },
+    ],
 }

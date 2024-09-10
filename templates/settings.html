@@ -48,12 +48,12 @@
                     </ul>
                 </div>
                 <div class="md:text-right">
-                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-secondary"
+                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline"
                             hx-target="#school"
                             hx-swap="innerHTML"
                             hx-get="{% url 'school_menu:school_update' %}">
                         Modifica
-                        {% heroicon_solid 'pencil' class="hidden md:block size-4 ms-2" %}
+                        {% heroicon_solid 'pencil' class="hidden md:block size-4" %}
                     </button>
                 </div>
             {% else %}
@@ -101,11 +101,11 @@
                         {% for week in 4|weeks %}
                             <div class="flex items-center">
                                 <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                <a class="inline-flex items-center btn btn-xs btn-outline btn-error group"
+                                <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
                                    href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 %}"
                                    hx-boost="true">
                                     Modifica
-                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-danger size-4 ms-2" %}
+                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}
                                 </a>
                             </div>
                         {% endfor %}
@@ -117,11 +117,11 @@
                         {% for week in 4|weeks %}
                             <div class="flex items-center">
                                 <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                <a class="inline-flex items-center btn btn-xs btn-outline btn-error group"
+                                <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
                                    href="{% url 'school_menu:create_weekly_menu' user.school.id week 1 %}"
                                    hx-boost="true">
                                     Modifica
-                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-danger size-4 ms-2" %}
+                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}
                                 </a>
                             </div>
                         {% endfor %}
@@ -130,6 +130,43 @@
                 </div>
             {% endif %}
         {% endpartialdef %}
+        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
+            <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                Account
+            </h3>
+            <div x-data class="grid grid-cols-1 gap-y-2">
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Gestisci il tuo indirizzo mail</h5>
+                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                       href="{% url 'account_email' %}">
+                        Gestisci
+                        {% heroicon_solid 'adjustments-vertical' class="group-hover:text-white size-4" %}
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
+                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                       hx-get="{% url 'school_menu:export_modal' user.school.id %}"
+                       hx-target="#dialog"
+                       hx-swap="innerHTML"
+                       @click="$dispatch('open-modal')">
+                        Scarica
+                        {% heroicon_solid 'arrow-down-tray' class="group-hover:text-white size-4" %}
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Cancella dati e account</h5>
+                    <button class="inline-flex items-center btn btn-sm btn-error btn-outline group"
+                            hx-get="{% url 'users:user_delete' %}"
+                            hx-target="#dialog"
+                            hx-swap="innerHTML"
+                            @click="$dispatch('open-modal')">
+                        Cancella
+                        {% heroicon_solid 'trash' class="text-danger size-4 group-hover:text-danger" %}
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 </section>

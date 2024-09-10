@@ -5,6 +5,7 @@ dependencies = [
   "django-allauth",
   "django-anymail[mailgun]",
   "django-browser-reload",
+  'django-cookiebanner',
   "django-crispy-forms",
   "django-dbbackup",
   "django-debug-toolbar",

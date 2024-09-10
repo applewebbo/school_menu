@@ -20,6 +20,7 @@ django==5.0.8
     #   django-allauth
     #   django-anymail
     #   django-browser-reload
+    #   django-cookiebanner
     #   django-crispy-forms
     #   django-dbbackup
     #   django-debug-toolbar
@@ -36,6 +37,8 @@ django-allauth==64.1.0
 django-anymail==11.1
     # via school-menu (pyproject.toml)
 django-browser-reload==1.15.0
+    # via school-menu (pyproject.toml)
+django-cookiebanner==0.2.8
     # via school-menu (pyproject.toml)
 django-crispy-forms==2.3
     # via

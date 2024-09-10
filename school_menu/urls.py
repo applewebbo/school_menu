@@ -15,6 +15,11 @@ urlpatterns = [
         name="get_menu",
     ),
     path("info", TemplateView.as_view(template_name="pages/info.html"), name="info"),
+    path(
+        "privacy",
+        TemplateView.as_view(template_name="pages/privacy.html"),
+        name="privacy",
+    ),
     path("help", TemplateView.as_view(template_name="pages/help.html"), name="help"),
     # TODO: get this url back when ISSUE #34 is implemented
     # path("json_menu", views.json_menu, name="json_menu"),

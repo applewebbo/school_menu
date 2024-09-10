@@ -1,36 +1,128 @@
 {% load static heroicons %}
-<footer class="p-10 footer bg-base-200 text-base-content">
+<footer class="dark:bg-gray-900 bg-base-200">
+    <div class="mx-auto w-full max-w-screen-lg">
+        <div class="grid grid-cols-2 gap-8 py-6 px-4 md:grid-cols-4 lg:py-8">
+            <div class="order-last col-span-2 md:order-first">
+                <img src="{% static 'img/bw_logo.png' %}"
+                     alt="Logo Menu Scolastico in bianco e nero"
+                     class="mb-2 size-9">
+                <p class="font-extrabold">
+                    Menu Scolastico
+                    <br>
+                    <span class="italic font-light">cosa mangia mio figlio oggi?</span>
+                </p>
+            </div>
+            <div>
+                <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Navigazione</h2>
+                <ul class="font-medium text-gray-500 dark:text-gray-400">
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="mb-4">
+                            <a href="{% url 'school_menu:settings' user.id %}"
+                               class="link link-hover">Impostazioni</a>
+                        </li>
+                    {% endif %}
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'contacts:contact' %}" class="link link-hover">Contatti</a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Altro</h2>
+                <ul class="font-medium text-gray-500 dark:text-gray-400">
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:info' %}#disclaimer"
+                           class="link link-hover">Disclaimer</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="{% url 'school_menu:privacy' %}" class="link link-hover">Privacy</a>
+                    </li>
+                    <li class="mb-4">
+                        <button onclick="document.querySelector('#cookiebannerModal').classList.remove('hidden')"
+                                class="link link-hover">Cookies</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="py-6 px-4 bg-gray-100 md:flex md:justify-between md:items-center dark:bg-gray-700">
+            <aside>
+                <p class="text-sm text-gray-500">
+                    Made with {% heroicon_solid 'heart' class="inline-flex align-text-top size-4" %} by WEBBOgrafico - © 2024
+                </p>
+            </aside>
+            <div class="flex mt-4 space-x-5 sm:justify-center md:mt-0 rtl:space-x-reverse">
+                <a href="https://hachyderm.io/@webbografico"
+                   class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                    <svg class="w-4 h-4"
+                         aria-hidden="true"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="currentColor"
+                         viewBox="0 0 32 32">
+                        <path d="M 15.9375 4.03125 C 12.917 4.0435 9.9179219 4.4269844 8.3574219 5.1464844 C 8.3574219 5.1464844 5 6.6748594 5 11.880859 C 5 18.077859 4.9955 25.860234 10.5625 27.365234 C 12.6945 27.938234 14.527953 28.061562 16.001953 27.976562 C 18.676953 27.825562 20 27.005859 20 27.005859 L 19.910156 25.029297 C 19.910156 25.029297 18.176297 25.640313 16.029297 25.570312 C 13.902297 25.495313 11.6615 25.335688 11.3125 22.679688 C 11.2805 22.432688 11.264625 22.182594 11.265625 21.933594 C 15.772625 23.052594 19.615828 22.420969 20.673828 22.292969 C 23.627828 21.933969 26.199344 20.081672 26.527344 18.388672 C 27.041344 15.720672 26.998047 11.880859 26.998047 11.880859 C 26.998047 6.6748594 23.646484 5.1464844 23.646484 5.1464844 C 22.000984 4.3779844 18.958 4.019 15.9375 4.03125 z M 12.705078 8.0019531 C 13.739953 8.0297031 14.762578 8.4927031 15.392578 9.4707031 L 16.001953 10.505859 L 16.609375 9.4707031 C 17.874375 7.5037031 20.709594 7.6264375 22.058594 9.1484375 C 23.302594 10.596438 23.025391 11.531 23.025391 18 L 23.025391 18.001953 L 20.578125 18.001953 L 20.578125 12.373047 C 20.578125 9.7380469 17.21875 9.6362812 17.21875 12.738281 L 17.21875 16 L 14.787109 16 L 14.787109 12.738281 C 14.787109 9.6362812 11.429688 9.7360938 11.429688 12.371094 L 11.429688 18 L 8.9765625 18 C 8.9765625 11.526 8.7043594 10.585438 9.9433594 9.1484375 C 10.622859 8.3824375 11.670203 7.9742031 12.705078 8.0019531 z">
+                        </path>
+                    </svg>
+                    <span class="sr-only">Mastodon account</span>
+                </a>
+                <a href="https://github.com/applewebbo"
+                   class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                    <svg class="w-4 h-4"
+                         aria-hidden="true"
+                         xmlns="http://www.w3.org/2000/svg"
+                         fill="currentColor"
+                         viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 .333A9.911 9.911 0 0 0 6.866 19.65c.5.092.678-.215.678-.477 0-.237-.01-1.017-.014-1.845-2.757.6-3.338-1.169-3.338-1.169a2.627 2.627 0 0 0-1.1-1.451c-.9-.615.07-.6.07-.6a2.084 2.084 0 0 1 1.518 1.021 2.11 2.11 0 0 0 2.884.823c.044-.503.268-.973.63-1.325-2.2-.25-4.516-1.1-4.516-4.9A3.832 3.832 0 0 1 4.7 7.068a3.56 3.56 0 0 1 .095-2.623s.832-.266 2.726 1.016a9.409 9.409 0 0 1 4.962 0c1.89-1.282 2.717-1.016 2.717-1.016.366.83.402 1.768.1 2.623a3.827 3.827 0 0 1 1.02 2.659c0 3.807-2.319 4.644-4.525 4.889a2.366 2.366 0 0 1 .673 1.834c0 1.326-.012 2.394-.012 2.72 0 .263.18.572.681.475A9.911 9.911 0 0 0 10 .333Z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="sr-only">GitHub account</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+{% comment %} <footer class="p-10 bg-base-200 text-base-content">
+    <div class="container grid grid-cols-1 md:grid-cols-3">
     <aside>
-        <img src="{% static 'img/bw_logo.png' %}"
-             alt="Logo Menu Scolastico in bianco e nero"
-             class="size-9">
+        <img src="{% static 'img/bw_logo.png' %}" alt="Logo Menu Scolastico in bianco e nero" class="mb-2 size-9">
         <p class="font-extrabold">
             Menu Scolastico
             <br>
             <span class="italic font-light">cosa mangia mio figlio oggi?</span>
         </p>
     </aside>
-    <nav>
-        <h6 class="footer-title">Navigazione</h6>
-        <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
-        <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
-        {% if user.is_authenticated %}
-            <a href="{% url 'school_menu:settings' user.id %}"
-               class="link link-hover">Impostazioni</a>
-        {% endif %}
-        <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
-        <a href="{% url 'contacts:contact' %}" class="link link-hover">Contatti</a>
-    </nav>
-    <nav x-data>
-        <h6 class="footer-title">Altro</h6>
-        <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
-        <a href="{% url 'school_menu:info' %}#disclaimer"
-           class="link link-hover">Disclaimer</a>
-        <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
-        <a href="{% url 'school_menu:privacy' %}" class="link link-hover">Privacy</a>
-        <button onclick="document.querySelector('#cookiebannerModal').classList.remove('hidden')"
-                class="link link-hover">Cookies</button>
-    </nav>
+    <div class="col-span-1 md:col-span-2">
+        <nav>
+            <h6 class="footer-title">Navigazione</h6>
+            <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
+            <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'school_menu:settings' user.id %}" class="link link-hover">Impostazioni</a>
+            {% endif %}
+            <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
+            <a href="{% url 'contacts:contact' %}" class="link link-hover">Contatti</a>
+        </nav>
+        <nav x-data>
+            <h6 class="footer-title">Altro</h6>
+            <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
+            <a href="{% url 'school_menu:info' %}#disclaimer" class="link link-hover">Disclaimer</a>
+            <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
+            <a href="{% url 'school_menu:privacy' %}" class="link link-hover">Privacy</a>
+            <button onclick="document.querySelector('#cookiebannerModal').classList.remove('hidden')" class="link link-hover">Cookies</button>
+        </nav>
+    </div>
+    </div>
 </footer>
 <footer class="p-4 footer footer-center bg-base-200 text-base-content">
     <aside>
@@ -38,4 +130,4 @@
             Copyright © 2024 - Made with {% heroicon_solid 'heart' class="inline-flex text-red-500 align-text-top size-4" %} by WEBBOgrafico
         </p>
     </aside>
-</footer>
+</footer> {% endcomment %}

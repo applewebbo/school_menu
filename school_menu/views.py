@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -50,6 +52,7 @@ def index(request):
             "weekly_meals": weekly_meals,
             "week": adjusted_week,
             "day": adjusted_day,
+            "year": datetime.now().year,
         }
     return render(request, "index.html", context)
 

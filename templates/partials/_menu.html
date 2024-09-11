@@ -3,21 +3,22 @@
     {% include 'partials/_days_menu.html' %}
     <div id="current_menu" class="my-7 text-center">
         {% if meal %}
-            {% if not school.is_published %}<span class="badge badge-lg badge-error badge-outline">PRIVATO</span>{% endif %}
+            {% if not school.is_published %}<span class="badge badge-error badge-outline">PRIVATO</span>{% endif %}
             <h1 class="text-3xl font-semibold tracking-tight">Menu del giorno</h1>
             {% if school.menu_type == "D" %}
                 {% include 'partials/_detailed_menu.html' %}
             {% else %}
                 {% include 'partials/_simple_menu.html' %}
             {% endif %}
-            <span class="text-green-200 badge badge-primary me-2">
+            <span class="badge badge-secondary me-1">Settimana {{ week }}</span>
+            <span class="text-green-200 badge badge-primary me-1">
                 {% if meal.season == 2 %}
                     Autunno / Inverno
                 {% else %}
                     Primavera / Estate
                 {% endif %}
             </span>
-            <span class="text-yellow-800 badge badge-warning me-2">2023/2024</span>
+            <span class="text-yellow-800 badge badge-warning">{{ year }}/{{ year|add:1 }}</span>
             <br>
         {% else %}
             <p class="p-12 text-xl font-medium text-gray-900">

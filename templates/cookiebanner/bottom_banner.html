@@ -3,7 +3,7 @@
      tabindex="-1"
      class="hidden fixed bottom-0 z-50 justify-between p-4 w-full bg-gray-50 border-t border-gray-300 start-0">
     <div class="m-auto max-w-screen-lg" x-data="{ openChoices : false }">
-        <h3 class="p-3 pb-4 text-xl font-semibold text-gray-900 md:p-4">{{ cb_settings.title }}</h3>
+        <h3 class="p-3 pb-4 text-xl font-semibold text-center text-gray-900 sm:text-left md:p-4">{{ cb_settings.title }}</h3>
         {% if cb_settings.header_text %}
             <p class="py-3 px-5 mt-3 md:py-4 md:px-6">{{ cb_settings.header_text|safe }}</p>
         {% endif %}
@@ -68,15 +68,15 @@
             </div>
         </div>
         <div id="cookiebannerModalFooter"
-             class="py-3 px-5 text-right md:py-4 md:px-6">
+             class="py-3 px-5 text-center sm:text-right md:py-4 md:px-6">
             {% if cb_settings.footer_text %}<p class="text-left">{{ cb_settings.footer_text|safe }}</p>{% endif %}
             <button type="button"
-                    class="btn btn-sm me-2 btn-secondary"
+                    class="mb-2 btn btn-sm me-2 btn-secondary"
                     x-on:click="openChoices = ! openChoices"
                     x-show="!openChoices">Gestisci Preferenze</button>
             <input type="submit"
                    name="save"
-                   class="btn btn-sm btn-secondary me-2"
+                   class="mb-2 btn btn-sm btn-secondary me-2"
                    value="Salva Preferenze"
                    x-show="openChoices">
             <input type="submit"

@@ -10,42 +10,46 @@ User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Check if users have logged in at least once in 11 months. Send an email to the user if they haven't to notify them that their account will be deleted in 1 month. Delete users who haven't logged in in 1 year."
+    help = "Check if users have logged in at least once in 12 months. Send an email to the user if they haven't to notify them that their account will be deleted in 1 month. Delete users who haven't logged in in 13 months."
 
     def handle(self, *args, **options):
         now = timezone.now()
-        eleven_months_ago = now - timedelta(days=330)
         one_year_ago = now - timedelta(days=365)
+        thirteen_months_ago = now - timedelta(days=395)
 
-        # Delete users who haven't logged in for a year
-        users_to_delete = User.objects.filter(last_login__lte=one_year_ago)
+        # Get total number of users
+        total_users = User.objects.count()
+
+        # Delete users who haven't logged in for 13 months
+        users_to_delete = User.objects.filter(last_login__lte=thirteen_months_ago)
         deleted_count = users_to_delete.count()
         users_to_delete.delete()
 
-        # Notify users who haven't logged in for 11 months
+        # Notify users who haven't logged in for 12 months
         users_to_notify = User.objects.filter(
-            last_login__lte=eleven_months_ago, last_login__gt=one_year_ago
+            last_login__lte=one_year_ago, last_login__gt=thirteen_months_ago
         )
         notified_count = users_to_notify.count()
         for user in users_to_notify:
             send_mail(
-                "Account Inactivity Notice",
-                "Your account has been inactive for 11 months. It will be deleted in 1 month if you do not log in.",
+                "Notifica di inattività",
+                "Abbiamo notato che non hai effettuato nessuna attività sul nostro sito negli ultimi 12 mesi.\n Se intendi continuare ad utilizzare i nostri servizi, ti preghiamo di effettuare l'accesso al tuo account entro il prossimo mese.\n\nSe non intendi continuare ad utilizzare i nostri servizi, puoi cancellare il tuo account in qualsiasi momento.\n\nGrazie per aver utilizzato i nostri servizi.",
                 settings.DEFAULT_FROM_EMAIL,
                 [user.email],
                 fail_silently=False,
             )
 
         # Prepare and send result email
-        result_message = f"Controllo Utenti Inattivi su menu.webbografico.com\n\nUtenti cancellati: {deleted_count}\nUtenti avvisati: {notified_count}"
+        result_message = f"Controllo Utenti Inattivi su menu.webbografico.com\n\nUtenti totali: {total_users}\nUtenti cancellati: {deleted_count}\nUtenti avvisati: {notified_count}"
         self.stdout.write(self.style.SUCCESS(result_message))
 
         send_mail(
             "Controllo Utenti Inattivi su menu.webbografico.com",
             result_message,
             settings.DEFAULT_FROM_EMAIL,
-            [settings.ADMIN_EMAIL],  # Assuming you have an ADMIN_EMAIL setting
+            [settings.ADMIN_EMAIL],
             fail_silently=False,
         )
 
+        self.stdout.write(self.style.SUCCESS("Results email sent to admin."))
         self.stdout.write(self.style.SUCCESS("Results email sent to admin."))

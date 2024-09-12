@@ -76,14 +76,16 @@
                 <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
                     <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h3>
                     <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
-                        <button class="inline-flex items-center mr-2 group btn btn-sm"
-                                hx-get="{% url 'school_menu:export_modal' user.school.id %}"
-                                hx-target="#dialog"
-                                hx-swap="innerHTML"
-                                @click="$dispatch('open-modal')">
-                            <span class="hidden sm:block">Scarica</span> Menu
-                            {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
-                        </button>
+                        {% if user.school %}
+                            <button class="inline-flex items-center mr-2 group btn btn-sm"
+                                    hx-get="{% url 'school_menu:export_modal' user.school.id %}"
+                                    hx-target="#dialog"
+                                    hx-swap="innerHTML"
+                                    @click="$dispatch('open-modal')">
+                                <span class="hidden sm:block">Scarica</span> Menu
+                                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+                            </button>
+                        {% endif %}
                         <button class="inline-flex items-center btn btn-sm"
                                 hx-get="{% url 'school_menu:upload_menu' user.school.id %}"
                                 hx-target="#dialog"
@@ -146,10 +148,7 @@
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
                     <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
-                       hx-get="{% url 'school_menu:export_modal' user.school.id %}"
-                       hx-target="#dialog"
-                       hx-swap="innerHTML"
-                       @click="$dispatch('open-modal')">
+                       {% if user.school %} hx-get="{% url 'school_menu:export_modal' user.school.id %}" hx-target="#dialog" hx-swap="innerHTML" @click="$dispatch('open-modal')" {% else %} disabled=disabled {% endif %}>
                         Scarica
                         {% heroicon_solid 'arrow-down-tray' class="group-hover:text-white size-4" %}
                     </a>

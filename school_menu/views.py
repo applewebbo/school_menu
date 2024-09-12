@@ -34,7 +34,7 @@ def index(request):
             return redirect(reverse("school_menu:settings", args=[request.user.pk]))
         current_week, adjusted_day = get_current_date()
         bias = school.week_bias
-        adjusted_week = calculate_week(current_week, bias)
+        adjusted_week = calculate_week(current_week, bias) + 1
         season = get_season(school)
         if school.menu_type == School.Types.SIMPLE:
             weekly_meals = SimpleMeal.objects.filter(

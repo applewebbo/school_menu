@@ -50,3 +50,12 @@ lint:
 
 _pre-commit *args:
     uvx --with pre-commit-uv pre-commit {{ args }}
+
+docker up:
+    docker compose up -d
+
+docker build:
+    docker compose up -d --build
+
+docker down:
+    docker compose down -v

@@ -51,11 +51,11 @@ lint:
 _pre-commit *args:
     uvx --with pre-commit-uv pre-commit {{ args }}
 
-docker up:
+docker_up:
     docker compose up -d
 
-docker build:
+docker_build:
     docker compose up -d --build
 
-docker down:
+docker_down:
     docker compose down -v

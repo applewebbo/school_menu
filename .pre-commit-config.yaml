@@ -60,6 +60,3 @@ repos:
   - id: pip-compile
     name: pip-compile pyproject.toml
     args: [pyproject.toml, -o, requirements.txt]
-  - id: pip-compile
-    name: pip-compile pyproject.toml --extra dev
-    args: [pyproject.toml, --extra, dev, -o, requirements-dev.txt]

@@ -1,52 +1,51 @@
+[dependency-groups]
+dev = [
+  "coverage>=7.6.4",
+  "django-test-plus>=2.2.4",
+  "djlint>=1.36.0",
+  "pre-commit>=4.0.1",
+  "pytest-cov>=6.0.0",
+  "pytest-django>=4.9.0",
+  "pytest-factoryboy>=2.7.0",
+  "pytest-xdist>=3.6.1",
+  "pytest>=8.3.3",
+  "pywatchman>=2.0.0",
+  "ruff>=0.7.2"
+]
+
 [project]
 dependencies = [
-  "crispy-tailwind",
-  "django <5.1",
-  "django-allauth",
-  "django-anymail[mailgun]",
-  "django-browser-reload",
-  'django-cookiebanner',
-  "django-crispy-forms",
-  "django-dbbackup",
-  "django-debug-toolbar",
-  "django-environ",
-  "django-import-export",
-  "django_htmx",
-  # "django-q2",
-  "django-social-share",
-  "django-storages",
-  "django-template-partials",
-  "django-unfold",
-  "dropbox",
-  "heroicons[django]",
-  "factory_boy",
-  "gunicorn",
-  "neapolitan",
-  "pandas",
-  "openpyxl",
-  "psycopg[binary]",
-  "tablib[xlsx]",
-  "whitenoise"
+  "crispy-tailwind>=1.0.3",
+  "django>=5.0.9",
+  "django-tailwind-cli[django-extensions]>=2.19.0",
+  "django-allauth>=65.1.0",
+  "django-anymail[mailgun]>=12.0",
+  "django-browser-reload>=1.17.0",
+  "django-cookiebanner>=0.2.8",
+  "django-crispy-forms>=2.3",
+  "django-dbbackup>=4.2.1",
+  "django-debug-toolbar>=4.4.6",
+  "django-environ>=0.11.2",
+  "django-import-export>=4.2.0",
+  "django-htmx>=1.21.0",
+  "django-social-share>=2.3.0",
+  "django-storages>=1.14.4",
+  "django-template-partials>=24.4",
+  "django-unfold>=0.40.0",
+  "dropbox>=12.0.2",
+  "heroicons[django]>=2.9.0",
+  "factory-boy>=3.3.1",
+  "gunicorn>=23.0.0",
+  "pandas>=2.2.3",
+  "openpyxl>=3.1.5",
+  "psycopg[binary]>=3.2.3",
+  "tablib[xlsx]>=3.7.0",
+  "whitenoise>=6.8.2",
+  "neapolitan>=24.7"
 ]
 name = "school_menu"
 requires-python = ">= 3.12"
 version = "0.3"
-
-[project.optional-dependencies]
-dev = [
-  "coverage",
-  "django-extensions",
-  "django-test-plus",
-  "djlint",
-  "pre-commit",
-  "pywatchman",
-  "pytest",
-  "pytest-cov",
-  "pytest-django",
-  "pytest-factoryboy",
-  "pytest-xdist",
-  "ruff"
-]
 
 [tool.bandit]
 skips = ["B101", "B311"]

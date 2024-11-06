@@ -6,13 +6,18 @@ asgiref==3.8.1
     #   django-browser-reload
     #   django-htmx
 certifi==2024.8.30
-    # via requests
+    # via
+    #   django-tailwind-cli
+    #   requests
 cfgv==3.4.0
     # via pre-commit
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
-    # via djlint
+    # via
+    #   django-typer
+    #   djlint
+    #   typer-slim
 colorama==0.4.6
     # via djlint
 coverage==7.6.1
@@ -33,6 +38,7 @@ django==5.0.9
     #   crispy-tailwind
     #   django-allauth
     #   django-anymail
+    #   django-appconf
     #   django-browser-reload
     #   django-cookiebanner
     #   django-crispy-forms
@@ -43,7 +49,9 @@ django==5.0.9
     #   django-htmx
     #   django-import-export
     #   django-storages
+    #   django-tailwind-cli
     #   django-template-partials
+    #   django-typer
     #   django-unfold
     #   heroicons
     #   neapolitan
@@ -51,6 +59,8 @@ django-allauth==64.2.1
     # via school-menu (pyproject.toml)
 django-anymail==12.0
     # via school-menu (pyproject.toml)
+django-appconf==1.0.6
+    # via django-tailwind-cli
 django-browser-reload==1.15.0
     # via school-menu (pyproject.toml)
 django-cookiebanner==0.2.8
@@ -66,7 +76,9 @@ django-debug-toolbar==4.4.6
 django-environ==0.11.2
     # via school-menu (pyproject.toml)
 django-extensions==3.2.3
-    # via school-menu (pyproject.toml)
+    # via
+    #   school-menu (pyproject.toml)
+    #   django-tailwind-cli
 django-filter==24.3
     # via neapolitan
 django-htmx==1.19.0
@@ -77,10 +89,14 @@ django-social-share==2.3.0
     # via school-menu (pyproject.toml)
 django-storages==1.14.4
     # via school-menu (pyproject.toml)
+django-tailwind-cli==2.19.0
+    # via school-menu (pyproject.toml)
 django-template-partials==24.4
     # via school-menu (pyproject.toml)
 django-test-plus==2.2.4
     # via school-menu (pyproject.toml)
+django-typer==2.3.0
+    # via django-tailwind-cli
 django-unfold==0.38.0
     # via school-menu (pyproject.toml)
 djlint==1.35.2
@@ -125,6 +141,8 @@ jsbeautifier==1.15.1
     #   djlint
 json5==0.9.25
     # via djlint
+markupsafe==3.0.2
+    # via werkzeug
 neapolitan==24.6
     # via school-menu (pyproject.toml)
 nodeenv==1.9.1
@@ -193,6 +211,8 @@ requests==2.32.3
     #   dropbox
 ruff==0.6.4
     # via school-menu (pyproject.toml)
+shellingham==1.5.4
+    # via django-typer
 six==1.16.0
     # via
     #   cssbeautifier
@@ -212,10 +232,13 @@ tablib==3.5.0
     #   django-import-export
 tqdm==4.66.5
     # via djlint
+typer-slim==0.12.5
+    # via django-typer
 typing-extensions==4.12.2
     # via
     #   psycopg
     #   pytest-factoryboy
+    #   typer-slim
 tzdata==2024.1
     # via pandas
 urllib3==2.2.2
@@ -224,5 +247,7 @@ urllib3==2.2.2
     #   requests
 virtualenv==20.26.4
     # via pre-commit
+werkzeug==3.1.2
+    # via django-tailwind-cli
 whitenoise==6.7.0
     # via school-menu (pyproject.toml)

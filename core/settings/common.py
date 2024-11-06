@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "debug_toolbar",
     # "django_q",
     "django_social_share",
+    "django_tailwind_cli",
     "heroicons",
     "import_export",
     "neapolitan",

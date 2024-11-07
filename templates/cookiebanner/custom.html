@@ -1,4 +1,4 @@
-{% load i18n heroicons %}
+{% load heroicons i18n %}
 <dialog id="cookiebannerModal" class="modal">
     <div class="w-11/12 max-w-3xl modal-box" x-data="{ openChoices : false }">
         <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4">
@@ -84,7 +84,7 @@
                    name="enable_all"
                    class="btn btn-sm btn-primary"
                    value="Accetta Tutti">
-            {% comment %} <input type="submit" name="save" class="btn btn-sm btn-primary" value="{% trans 'Save' %}"> {% endcomment %}
+            {% comment %} <input type="submit" name="save" class="btn btn-sm btn-primary" value="{% translate 'Save' %}"> {% endcomment %}
             <ul class="menu menu-horizontal">
                 {% for link in cb_settings.footer_links %}
                     <li>

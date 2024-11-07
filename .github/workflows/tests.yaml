@@ -25,29 +25,17 @@ jobs:
     - name: Get the code
       uses: actions/checkout@v3
 
-    - name: Install Task
-      uses: arduino/setup-task@v2
+    - name: Install astral/uv
+      uses: astral-sh/setup-uv@v3
       with:
-        version: 3.x
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        enable-cache: true
+        github-token: ${{ secrets.MY_GITHUB_TOKEN }}
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+    - name: Install Python
+      run: uv python install 3.12
 
-    - name: Install Python packages
-      uses: yezz123/setup-uv@v4
-      with:
-        uv-venv: .venv
-    - run: uv pip install -r requirements.txt -r requirements-dev.txt
+    - name: Install Packages
+      run: uv sync --all-extras
 
     - name: Test it
-      run: task test
-
-      # - name: Check deploy configuration
-      #   run: ./manage.py check --deploy --fail-level WARNING
-      #   env:
-      #     DATABASE_URL: 'sqlite://:memory:'
-      #     SECRET_KEY: 'zt(6jlr#oquxm2t%ryh#n+-72p^(3knbf&q$5x16#o%1im-s7!'
-      #     SECURE_SSL_REDIRECT: 'on'
+      run: uv run --config-setting COVERAGE_CORE=sysmon python -m pytest --reuse-db -s

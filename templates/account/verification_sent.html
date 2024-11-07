@@ -1,17 +1,18 @@
 {% extends "base.html" %}
-{% load static i18n heroicons %}
+{% load heroicons i18n static %}
 {% block page_title %}
-    {% trans "Verify Your Email Address" %}
+    {% translate "Verify Your Email Address" %}
 {% endblock page_title %}
+
 {% block content %}
     <div class="my-12 border shadow card card-side bg-base-100 border-base-200">
         <div class="card-body">
             <h2 class="card-title text-primary">
                 {% heroicon_solid 'envelope-open' class="size-10 me-1 text-primary" %}
-                {% trans "Verify Your Email Address" %}
+                {% translate "Verify Your Email Address" %}
             </h2>
             <p>
-                {% blocktrans %}We have sent an email to you for verification. Follow the link provided to finalize the signup process. If you do not see the verification email in your main inbox, check your spam folder. Please contact us if you do not receive the verification email within a few minutes.{% endblocktrans %}
+                {% blocktranslate %}We have sent an email to you for verification. Follow the link provided to finalize the signup process. If you do not see the verification email in your main inbox, check your spam folder. Please contact us if you do not receive the verification email within a few minutes.{% endblocktranslate %}
             </p>
         </div>
     </div>

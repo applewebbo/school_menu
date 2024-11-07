@@ -1,10 +1,9 @@
 {% extends "base-simplified.html" %}
-{% load static i18n crispy_forms_tags %}
-{% load account socialaccount %}
+{% load account crispy_forms_tags i18n socialaccount static %}
 {% block content %}
     <div class="my-8 mx-auto max-w-sm">
         <h1 class="text-xl font-bold tracking-tight leading-tight text-center text-gray-900 md:text-2xl dark:text-white">
-            {% trans "Sign In" %}
+            {% translate "Sign In" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
               method="post"
@@ -18,12 +17,12 @@
             {% endif %}
             <div class="mb-3 text-sm text-right">
                 <a href="{% url 'account_reset_password' %}"
-                   class="text-green-600 hover:underline">{% trans "Forgot Password?" %}</a>
+                   class="text-green-600 hover:underline">{% translate "Forgot Password?" %}</a>
             </div>
-            <button type="submit" class="w-full btn btn-primary">{% trans "Sign In" %}</button>
+            <button type="submit" class="w-full btn btn-primary">{% translate "Sign In" %}</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-                {% blocktrans %}Non hai ancora un account?
-    <a href="{{ signup_url }}">Registrati qui</a>{% endblocktrans %}
+                {% blocktranslate %}Non hai ancora un account?
+    <a href="{{ signup_url }}">Registrati qui</a>{% endblocktranslate %}
             </p>
         </form>
     </div>

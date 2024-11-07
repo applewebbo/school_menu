@@ -1,12 +1,13 @@
 {% extends "base-simplified.html" %}
-{% load static i18n crispy_forms_tags %}
+{% load crispy_forms_tags i18n static %}
 {% block page_title %}
-    {% trans "Signup" %}
+    {% translate "Signup" %}
 {% endblock page_title %}
+
 {% block content %}
     <div class="my-6 mx-auto max-w-sm">
         <h1 class="text-xl font-bold tracking-tight leading-tight text-gray-900 md:text-2xl dark:text-white">
-            {% trans "Sign Up" %}
+            {% translate "Sign Up" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
               id="signup_form"
@@ -19,9 +20,9 @@
                        name="{{ redirect_field_name }}"
                        value="{{ redirect_field_value }}" />
             {% endif %}
-            <button class="w-full btn btn-primary" type="submit">{% trans "Sign Up" %}</button>
+            <button class="w-full btn btn-primary" type="submit">{% translate "Sign Up" %}</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-                {% blocktrans %}Hai già un account? Allora puoi <a href="{{ login_url }}">entrare qui</a>{% endblocktrans %}
+                {% blocktranslate %}Hai già un account? Allora puoi <a href="{{ login_url }}">entrare qui</a>{% endblocktranslate %}
             </p>
         </form>
     </div>

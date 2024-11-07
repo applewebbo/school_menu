@@ -15,15 +15,20 @@ RUN apt-get update && apt-get install -y curl unzip
 RUN pip install --upgrade pip uv
 RUN python -m uv venv
 
+# copy project
+WORKDIR /app
+COPY . /app
+
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash
 
-# Install DaisyUI using Bun
-RUN ~/.bun/bin/bun add -D daisyui@latest
+# # Install DaisyUI using Bun
+# RUN ~/.bun/bin/bun add -D daisyui@latest
+RUN ~/.bun/bin/bun install
 
 # activate virtual env
-ARG VIRTUAL_ENV=/usr/src/app/.venv
-ENV PATH=/usr/src/app/.venv/bin:$PATH
+ARG VIRTUAL_ENV=/app/.venv
+ENV PATH=/app/.venv/bin:$PATH
 
 # install dependencies
 COPY pyproject.toml ./

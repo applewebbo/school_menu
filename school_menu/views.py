@@ -19,7 +19,11 @@ from school_menu.forms import (
 )
 from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.resources import DetailedMealResource, SimpleMealResource
-from school_menu.serializers import SchoolSerializer
+from school_menu.serializers import (
+    DetailedMealSerializer,
+    SchoolSerializer,
+    SimpleMealSerializer,
+)
 from school_menu.utils import (
     calculate_week,
     get_current_date,
@@ -118,6 +122,28 @@ def get_schools_json_list(request):
     schools = School.objects.filter(is_published=True)
     serializer = SchoolSerializer(schools, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@require_http_methods(["GET"])
+def get_school_json_menu(request, slug):
+    school = get_object_or_404(School, slug=slug)
+    current_week, adjusted_day = get_current_date()
+    bias = school.week_bias
+    adjusted_week = calculate_week(current_week, bias)
+    season = get_season(school)
+    if school.menu_type == School.Types.SIMPLE:
+        weekly_meals = SimpleMeal.objects.filter(
+            school=school, week=adjusted_week, season=season
+        ).order_by("day")
+        serializer = SimpleMealSerializer(weekly_meals, many=True)
+    else:
+        weekly_meals = DetailedMeal.objects.filter(
+            school=school, week=adjusted_week, season=season
+        ).order_by("day")
+        serializer = DetailedMealSerializer(weekly_meals, many=True)
+    meals = list(serializer.data)
+    data = {"current_day": adjusted_day, "meals": meals}
+    return JsonResponse(data, safe=False)
 
 
 # TODO: get this view working as requested in ISSUE #34

@@ -1,12 +1,28 @@
 from rest_framework import serializers
 
-from .models import DetailedMeal, School
+from .models import DetailedMeal, School, SimpleMeal
 
 
 class DetailedMealSerializer(serializers.ModelSerializer):
+    menu = serializers.SerializerMethodField()
+
+    def get_menu(self, obj):
+        return f"{obj.first_course}, {obj.second_course}, {obj.fruit}, {obj.side_dish}"
+
     class Meta:
         model = DetailedMeal
-        fields = ["day", "first_course", "second_course", "fruit", "side_dish", "snack"]
+        fields = ["day", "menu", "snack"]
+
+
+class SimpleMealSerializer(serializers.ModelSerializer):
+    menu_stripped = serializers.SerializerMethodField()
+
+    def get_menu_stripped(self, obj):
+        return obj.menu.replace("\n", ", ").strip()
+
+    class Meta:
+        model = SimpleMeal
+        fields = ["day", "menu_stripped", "snack"]
 
 
 class SchoolSerializer(serializers.ModelSerializer):

@@ -4,9 +4,11 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.forms import modelformset_factory
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 
 from school_menu.forms import (
@@ -17,6 +19,7 @@ from school_menu.forms import (
 )
 from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.resources import DetailedMealResource, SimpleMealResource
+from school_menu.serializers import SchoolSerializer
 from school_menu.utils import (
     calculate_week,
     get_current_date,
@@ -110,6 +113,13 @@ def get_menu(request, week, day, type, school_id):
     return render(request, "partials/_menu.html", context)
 
 
+@require_http_methods(["GET"])
+def get_schools_json_list(request):
+    schools = School.objects.filter(is_published=True)
+    serializer = SchoolSerializer(schools, many=True)
+    return JsonResponse(serializer.data, safe=False)
+
+
 # TODO: get this view working as requested in ISSUE #34
 # @require_http_methods(["GET"])
 # def json_menu(request):
@@ -119,7 +129,7 @@ def get_menu(request, week, day, type, school_id):
 #     meal_for_today = DetailedMeal.objects.filter(
 #         week=adjusted_week, type=1, season=season
 #     )
-#     serializer = MealSerializer(meal_for_today, many=True)
+#     serializer = DetailedMealSerializer(meal_for_today, many=True)
 #     meals = list(serializer.data)
 #     data = {"current_day": adjusted_day, "meals": meals}
 #     return JsonResponse(data, safe=False)

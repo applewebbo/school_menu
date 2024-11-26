@@ -23,6 +23,7 @@ urlpatterns = [
     path("help", TemplateView.as_view(template_name="pages/help.html"), name="help"),
     # TODO: get this url back when ISSUE #34 is implemented
     # path("json_menu", views.json_menu, name="json_menu"),
+    path("json/schools/", views.get_schools_json_list, name="get_schools_json_list"),
     path("menu/<slug:slug>/", views.school_menu, name="school_menu"),
     path(
         "menu/<int:school_id>/<int:week>/<int:season>/",

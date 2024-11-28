@@ -31,21 +31,3 @@
     display: none !important;
 }
 }
-
-#anon-cta {
-  background-image: url('../img/anon_header.jpg');
-}
-
-[x-cloak] { display: none !important; }
-
-#logo-credits {
-  text-decoration: none;
-}
-
-#logo-credits:hover {
-  text-decoration: underline;
-}
-
-.menu-list {
-  font-size: 1.1rem
-}

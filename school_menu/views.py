@@ -26,6 +26,7 @@ from school_menu.serializers import (
 )
 from school_menu.utils import (
     calculate_week,
+    get_adjusted_year,
     get_current_date,
     get_season,
     get_user,
@@ -83,12 +84,14 @@ def school_menu(request, slug):
             school=school, week=adjusted_week, season=season
         ).order_by("day")
         meal_for_today = weekly_meals.filter(day=adjusted_day).first()
+    year = get_adjusted_year()
     context = {
         "school": school,
         "meal": meal_for_today,
         "weekly_meals": weekly_meals,
         "week": adjusted_week,
         "day": adjusted_day,
+        "year": year,
     }
     return render(request, "school-menu.html", context)
 

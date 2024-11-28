@@ -54,6 +54,14 @@ def get_season(school):
     return season
 
 
+def get_adjusted_year():
+    """Get current year if date is after September 1st, otherwise previous year"""
+    today = datetime.now()
+    adjusted_year = today.year if today.month >= 9 else today.year - 1
+
+    return adjusted_year
+
+
 def get_user(pk):
     User = get_user_model()
     queryset = User.objects.select_related("school")

@@ -31,11 +31,11 @@ class TestSchoolForm:
 
         assert form.is_valid() is False
         assert form.errors == {
-            "name": ["Questo campo è obbligatorio."],
-            "city": ["Questo campo è obbligatorio."],
-            "season_choice": ["Questo campo è obbligatorio."],
-            "week_bias": ["Questo campo è obbligatorio."],
-            "menu_type": ["Questo campo è obbligatorio."],
+            "name": ["Campo obbligatorio."],
+            "city": ["Campo obbligatorio."],
+            "season_choice": ["Campo obbligatorio."],
+            "week_bias": ["Campo obbligatorio."],
+            "menu_type": ["Campo obbligatorio."],
         }
 
 

@@ -15,14 +15,14 @@ class DetailedMealSerializer(serializers.ModelSerializer):
 
 
 class SimpleMealSerializer(serializers.ModelSerializer):
-    menu_stripped = serializers.SerializerMethodField()
+    menu = serializers.SerializerMethodField()
 
-    def get_menu_stripped(self, obj):
+    def get_menu(self, obj):
         return obj.menu.replace("\n", ", ").strip()
 
     class Meta:
         model = SimpleMeal
-        fields = ["day", "menu_stripped", "snack"]
+        fields = ["day", "menu", "snack"]
 
 
 class SchoolSerializer(serializers.ModelSerializer):

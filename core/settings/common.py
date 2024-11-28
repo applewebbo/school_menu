@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "heroicons",
     "import_export",
     "neapolitan",
+    "rest_framework",
     "template_partials",
     # INTERNAL APPS
     "users",

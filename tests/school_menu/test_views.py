@@ -5,6 +5,7 @@ from pytest_django.asserts import assertTemplateUsed
 
 from school_menu.models import DetailedMeal, School, SimpleMeal
 from school_menu.test import TestCase
+from school_menu.utils import calculate_week, get_current_date, get_season
 from tests.school_menu.factories import (
     DetailedMealFactory,
     SchoolFactory,
@@ -46,6 +47,29 @@ def create_formset_post_data(response, new_form_data=None):
             post_data[prefix + key] = value
 
     return post_data
+
+
+def get_test_meal(school):
+    current_week, adjusted_day = get_current_date()
+    bias = school.week_bias
+    adjusted_week = calculate_week(current_week, bias)
+    season = get_season(school)
+    if school.menu_type == School.Types.SIMPLE:
+        test_meal = SimpleMeal.objects.get(
+            school=school,
+            week=adjusted_week,
+            day=adjusted_day,
+            season=season,
+        )
+    else:
+        test_meal = DetailedMeal.objects.get(
+            school=school,
+            week=adjusted_week,
+            day=adjusted_day,
+            season=season,
+        )
+
+    return test_meal
 
 
 class IndexView(TestCase):
@@ -256,51 +280,6 @@ class SchoolListView(TestCase):
         self.response_200(response)
         assertTemplateUsed(response, "school-list.html")
         assert school in response.context["schools"]
-
-
-# class UploadMenuView(TestCase):
-#     def test_get(self):
-#         user = self.make_user()
-#         school = SchoolFactory(user=user)
-
-#         with self.login(user):
-#             response = self.get("school_menu:upload_menu", school.pk)
-
-#         self.response_200(response)
-#         assertTemplateUsed(response, "upload-menu.html")
-#         assert response.context["school"] == school
-
-#     def test_post_with_valid_data(self):
-#         user = self.make_user()
-#         school = SchoolFactory(user=user)
-#         data = {
-#             "file": SimpleUploadedFile(
-#                 "test_menu.csv",
-#                 b"these are the file contents!",
-#                 content_type="text/csv",
-#             ),
-#             "season": School.Seasons.INVERNALE,
-#         }
-
-#         with self.login(user):
-#             response = self.post("school_menu:upload_menu", school.pk, data=data)
-
-#         self.response_204(response)
-
-#     def test_post_with_invalid_data(self):
-#         user = self.make_user()
-#         school = SchoolFactory(user=user)
-#         data = {
-#             "season": "WINTER",
-#         }
-
-#         with self.login(user):
-#             response = self.post("school_menu:upload_menu", school.pk, data=data)
-
-#         self.response_200(response)
-#         assertTemplateUsed(response, "upload-menu.html")
-#         assert "form" in response.context
-#         assert "file" in response.context["form"].errors
 
 
 class TestUploadMenuView(TestCase):
@@ -598,3 +577,61 @@ class TestExportMenuView(TestCase):
         assert b"Fish" in response.content
         assert b"Salad" in response.content
         assert b"Fruit" in response.content
+
+
+class JsonSchoolsListView(TestCase):
+    def test_get(self):
+        SchoolFactory.create_batch(3)
+        school = School.objects.first()
+
+        response = self.get("school_menu:get_schools_json_list")
+        data = response.json()
+
+        self.response_200(response)
+        assert school.name in [s["name"] for s in data]
+
+
+class JsonSchoolMenuView(TestCase):
+    def test_get_with_simple_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        for season in SimpleMeal.Seasons.choices:
+            for week in SimpleMeal.Weeks.choices:
+                for day in SimpleMeal.Days.choices:
+                    SimpleMealFactory.create(
+                        school=school,
+                        day=day[0],
+                        week=week[0],
+                        season=season[0],
+                    )
+        test_meal = get_test_meal(school)
+        test_meal.menu = test_meal.menu.replace("\n", ", ").strip()
+
+        response = self.get("school_menu:get_school_json_menu", school.slug)
+        data = response.json()
+
+        self.response_200(response)
+        assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
+        assert test_meal.menu in [meal["menu"] for meal in data["meals"]]
+
+    def test_get_with_detailed_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
+        for season in DetailedMeal.Seasons.choices:
+            for week in DetailedMeal.Weeks.choices:
+                for day in DetailedMeal.Days.choices:
+                    DetailedMealFactory.create(
+                        school=school,
+                        day=day[0],
+                        week=week[0],
+                        season=season[0],
+                    )
+        test_meal = get_test_meal(school)
+
+        response = self.get("school_menu:get_school_json_menu", school.slug)
+        data = response.json()
+
+        self.response_200(response)
+        assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
+        expected_menu = f"{test_meal.first_course}, {test_meal.second_course}, {test_meal.fruit}, {test_meal.side_dish}"
+        assert expected_menu in [s["menu"] for s in data["meals"]]

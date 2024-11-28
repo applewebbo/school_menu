@@ -18,7 +18,7 @@ class TestContactForm:
 
         assert form.is_valid() is False
         assert form.errors == {
-            "name": ["Questo campo è obbligatorio."],
-            "email": ["Questo campo è obbligatorio."],
-            "message": ["Questo campo è obbligatorio."],
+            "name": ["Campo obbligatorio."],
+            "email": ["Campo obbligatorio."],
+            "message": ["Campo obbligatorio."],
         }

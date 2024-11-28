@@ -22,7 +22,9 @@ DATABASES = {
 
 SECRET_KEY = env("SECRET_KEY")
 
-ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
+ALLOWED_HOSTS: list[str] = [
+    "localhost",
+]
 
 # DJANGO-DEBUG-TOOLBAR
 INTERNAL_IPS = [

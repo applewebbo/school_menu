@@ -6,6 +6,7 @@ app_name = "contacts"
 
 urlpatterns = [
     path("", views.contact, name="contact"),
+    path("menu/<int:school_id>/report/", views.menu_report, name="menu_report"),
 ]
 
 htmx_urlpatterns = []

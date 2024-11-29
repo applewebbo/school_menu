@@ -51,11 +51,12 @@
             {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-1" %}
             Copia
         </button>
-        <button class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn"
-                x-tooltip="Segnala un problema">
+        <a href="{% url 'contacts:menu_report' school.pk %}"
+            class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn"
+            x-tooltip="Segnala un problema">
             {% heroicon_outline "exclamation-triangle" class="w-5 h-5 text-red-500 me-1" %}
             Segnala
-        </button>
+        </a>
     </div>
 </div>
 <script>

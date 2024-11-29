@@ -1,8 +1,9 @@
 from django.contrib import messages
 from django.core.mail import send_mail
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import ContactForm
+from contacts.forms import ContactForm, MenuReportForm
+from school_menu.models import School
 
 
 def contact(request):
@@ -27,3 +28,10 @@ def contact(request):
 
     context = {"form": form, "create": True}
     return render(request, "contacts/contact.html", context)
+
+
+def menu_report(request, school_id):
+    school = get_object_or_404(School, id=school_id)
+    form = MenuReportForm(request.POST or None)
+    context = {"form": form, "school": school}
+    return render(request, "contacts/menu-report.html", context)

@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Layout, Submit
+from crispy_forms.layout import Div, Layout
 from django import forms
 
 from contacts.models import MenuReport
@@ -22,14 +22,14 @@ class ContactForm(forms.Form):
                     "message",
                 ),
             ),
-            Div(
-                Submit(
-                    "submit",
-                    "Invia Messaggio",
-                    css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
-                ),
-                css_class="md:text-right",
-            ),
+            # Div(
+            #     Submit(
+            #         "submit",
+            #         "Invia Messaggio",
+            #         css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
+            #     ),
+            #     css_class="md:text-right",
+            # ),
         )
 
 
@@ -70,13 +70,5 @@ class MenuReportForm(forms.ModelForm):
                     "get_notified",
                     "email",
                 ),
-            ),
-            Div(
-                Submit(
-                    "submit",
-                    "Invia Messaggio",
-                    css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
-                ),
-                css_class="md:text-right",
             ),
         )

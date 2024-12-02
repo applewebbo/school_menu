@@ -9,3 +9,10 @@ class MenuReport(models.Model):
     email = models.EmailField(null=True, blank=True)
     receiver = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "segnalazione"
+        verbose_name_plural = "segnalazioni"
+
+    def __str__(self):
+        return f"Segnalazione da {self.name}"

@@ -41,10 +41,23 @@ def menu_report(request, school_id):
         report = form.save(commit=False)
         report.receiver = school.user
         report.save()
+        name = report.name
+        email = report.receiver
+        if report.get_notified:
+            message = f"{report.message}\n\n{name} ha chiesto di poter ricevere una risposta alla sua segnalazione. Puoi farlo entro 30gg nella sezione Account/Visualizza segnalazioni del tuo profilo."
+        else:
+            message = f"{report.message}"
+        send_mail(
+            f"Segnalazione ricevuta da {name} su menu.webbografico.com",
+            message,
+            None,
+            [email],
+            fail_silently=False,
+        )
         messages.add_message(
             request,
             messages.SUCCESS,
-            "Messaggio inviato con successo",
+            "Segnalazione inviata con successo",
         )
         return redirect("school_menu:school_menu", school.slug)
 

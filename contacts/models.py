@@ -7,7 +7,7 @@ class MenuReport(models.Model):
     message = models.TextField(max_length=1000)
     get_notified = models.BooleanField(default=False)
     email = models.EmailField(null=True, blank=True)
-    receiver = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

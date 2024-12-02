@@ -148,11 +148,14 @@
                 </div>
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Visualizza Segnalazioni</h5>
-                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
-                       href="#">
+                    <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                        hx-get="{% url 'contacts:report_list' %}"
+                        hx-target="#dialog"
+                        hx-swap="innerHTML"
+                        @click="$dispatch('open-modal')">
                         Visualizza
                         {% heroicon_outline 'eye' class="group-hover:text-white size-4" %}
-                    </a>
+                    </button>
                 </div>
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>

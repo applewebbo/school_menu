@@ -1,8 +1,10 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
 
 from contacts.forms import ContactForm, MenuReportForm
+from contacts.models import MenuReport
 from school_menu.models import School
 
 
@@ -63,3 +65,10 @@ def menu_report(request, school_id):
 
     context = {"form": form, "school": school}
     return render(request, "contacts/menu-report.html", context)
+
+
+@login_required
+def report_list(request):
+    reports = MenuReport.objects.filter(receiver=request.user)
+    context = {"reports": reports}
+    return render(request, "contacts/report-list.html", context)

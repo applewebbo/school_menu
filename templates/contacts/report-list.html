@@ -1,0 +1,46 @@
+{% load filters heroicons %}
+<div class="modal-content">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Segnalazioni</h3>
+        <button type="button"
+                class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                x-on:click="openModal = false">
+            {% heroicon_solid 'x-mark' class="size-7" %}
+            <span class="sr-only">Close modal</span>
+        </button>
+    </div>
+    <div class="m-4">
+        <table class="table">
+            <!-- head -->
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Mittente</th>
+                    <th>Ricevuto</th>
+                    <th>Scadenza</th>
+                    <th>Azioni</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for report in reports %}
+                    <tr>
+                        <th>{{ forloop.counter0|add:1 }}</th>
+                        <td>{{ report.name }}</td>
+                        <td>{{ report.created_at|date:"d.m.y" }}</td>
+                        <td>{{ report.created_at|days }}</td>
+                        <td>
+                            <div class="flex gap-2 justify-start">
+                                <button class="flex items-center btn btn-xs btn-default">{% heroicon_mini 'eye' class='size-4' %}</button>
+                                <button class="flex items-center btn btn-xs btn-default"
+                                        {% if not report.get_notified %}disabled{% endif %}>
+                                    {% heroicon_mini 'envelope' class='size-4' %}
+                                </button>
+                                <button class="flex items-center btn btn-xs btn-default">{% heroicon_mini 'check-circle' class='size-4' %}</button>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

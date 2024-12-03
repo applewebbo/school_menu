@@ -10,11 +10,7 @@ from school_menu.models import School
 
 
 def contact(request):
-    print("Request method:", request.method)
-    print("POST data:", request.POST)
-    print("Headers:", request.headers)
     form = ContactForm(request.POST or None)
-    print("Form errors:", form.errors)
     if form.is_valid():
         name = form.cleaned_data["name"]
         email = form.cleaned_data["email"]

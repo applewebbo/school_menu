@@ -302,7 +302,9 @@ class TestUploadMenuView(TestCase):
 
         with self.login(user):
             url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
-            csv_content = "settimana,giorno,pranzo,spuntino\n1,Lunedì,Pasta,Mela"
+            csv_content = (
+                "giorno,settimana,pranzo,spuntino\nLunedì,1,Pasta al Pomodoro,Mela"
+            )
             data = {
                 "file": SimpleUploadedFile(
                     "menu.csv", csv_content.encode("utf-8"), content_type="text/csv"
@@ -635,3 +637,15 @@ class JsonSchoolMenuView(TestCase):
         assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
         expected_menu = f"{test_meal.first_course}, {test_meal.second_course}, {test_meal.fruit}, {test_meal.side_dish}"
         assert expected_menu in [s["menu"] for s in data["meals"]]
+
+
+# this is a contacts view test but if run inside contacts/test_views.py it make another test fail
+class MenuReportView(TestCase):
+    def test_get(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        response = self.get("contacts:menu_report", school_id=school.pk)
+
+        self.response_200(response)
+        assert response.context["school"] == school

@@ -45,8 +45,8 @@ class MenuReportForm(forms.ModelForm):
         get_notified = cleaned_data.get("get_notified")
         email = cleaned_data.get("email")
         if get_notified and not email:
-            raise forms.ValidationError(
-                "Se vuoi essere ricontattato devi inserire un indirizzo email"
+            self.add_error(
+                "email", "Se vuoi essere ricontattato devi inserire un indirizzo email"
             )
         return cleaned_data
 

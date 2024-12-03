@@ -1,5 +1,6 @@
 from pytest_factoryboy import register
 
+from tests.contacts.factories import MenuReportFactory
 from tests.school_menu.factories import (
     DetailedMealFactory,
     SchoolFactory,
@@ -11,3 +12,4 @@ register(UserFactory)
 register(SchoolFactory)
 register(SimpleMealFactory)
 register(DetailedMealFactory)
+register(MenuReportFactory)

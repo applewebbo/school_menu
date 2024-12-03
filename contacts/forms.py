@@ -22,14 +22,6 @@ class ContactForm(forms.Form):
                     "message",
                 ),
             ),
-            # Div(
-            #     Submit(
-            #         "submit",
-            #         "Invia Messaggio",
-            #         css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
-            #     ),
-            #     css_class="md:text-right",
-            # ),
         )
 
 
@@ -69,6 +61,22 @@ class MenuReportForm(forms.ModelForm):
                     "message",
                     "get_notified",
                     "email",
+                ),
+            ),
+        )
+
+
+class ReportFeedbackForm(forms.Form):
+    message = forms.CharField(widget=forms.Textarea, label="Messaggio")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Div(
+                Div(
+                    "message",
                 ),
             ),
         )

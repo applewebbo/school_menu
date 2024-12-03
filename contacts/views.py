@@ -2,8 +2,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
-from contacts.forms import ContactForm, MenuReportForm
+from contacts.forms import ContactForm, MenuReportForm, ReportFeedbackForm
 from contacts.models import MenuReport
 from school_menu.models import School
 
@@ -69,6 +70,47 @@ def menu_report(request, school_id):
 
 @login_required
 def report_list(request):
+    reports = MenuReport.objects.filter(receiver=request.user)
+    context = {"reports": reports}
+    return render(request, "contacts/report-list.html", context)
+
+
+@login_required
+def report_detail(request, report_id):
+    report = get_object_or_404(MenuReport, id=report_id, receiver=request.user)
+    context = {"report": report}
+    return render(request, "contacts/report-detail.html", context)
+
+
+@login_required
+def report_feedback(request, report_id):
+    report = get_object_or_404(MenuReport, id=report_id)
+    form = ReportFeedbackForm(request.POST or None)
+    if form.is_valid():
+        message = form.cleaned_data["message"]
+        send_mail(
+            f"Risposta a segnalazione ricevuta da {report.name} su menu.webbografico.com",
+            message,
+            None,
+            [report.email],
+            fail_silently=False,
+        )
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            "Risposta inviata con successo",
+        )
+        return redirect(reverse("school_menu:settings", args=[request.user.pk]))
+    context = {"form": form, "report": report}
+    return render(request, "contacts/report-feedback.html", context)
+
+
+@login_required
+def report_delete(request, report_id):
+    report = get_object_or_404(MenuReport, id=report_id)
+    if report.receiver == request.user:
+        report.delete()
+
     reports = MenuReport.objects.filter(receiver=request.user)
     context = {"reports": reports}
     return render(request, "contacts/report-list.html", context)

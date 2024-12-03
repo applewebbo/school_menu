@@ -9,33 +9,32 @@
             <span class="sr-only">Close modal</span>
         </button>
     </div>
-    <div class="m-4">
-        <table class="table">
+    <div class="overflow-x-auto m-4">
+        <table class="table text-center">
             <!-- head -->
             <thead>
                 <tr>
-                    <th></th>
                     <th>Mittente</th>
                     <th>Ricevuto</th>
-                    <th>Scadenza</th>
+                    <th class="hidden md:block">Scadenza</th>
                     <th>Azioni</th>
                 </tr>
             </thead>
             <tbody>
                 {% for report in reports %}
                     <tr>
-                        <th>{{ forloop.counter0|add:1 }}</th>
                         <td>{{ report.name }}</td>
                         <td>{{ report.created_at|date:"d.m.y" }}</td>
-                        <td>{{ report.created_at|days }}</td>
+                        <td class="hidden md:block">{{ report.created_at|days }}</td>
                         <td>
-                            <div class="flex gap-2 justify-start">
-                                <button class="flex items-center btn btn-xs btn-default">{% heroicon_mini 'eye' class='size-4' %}</button>
+                            <div class="flex gap-2 justify-center" x-data>
                                 <button class="flex items-center btn btn-xs btn-default"
-                                        {% if not report.get_notified %}disabled{% endif %}>
-                                    {% heroicon_mini 'envelope' class='size-4' %}
+                                        hx-get="{% url 'contacts:report_detail' report.pk %}"
+                                        hx-target="#dialog"
+                                        hx-swap="innerHTML"
+                                        @click="$dispatch('open-modal')">
+                                    {% heroicon_mini 'eye' class='size-4' %} <span class="hidden md:block">Visualizza</span>
                                 </button>
-                                <button class="flex items-center btn btn-xs btn-default">{% heroicon_mini 'check-circle' class='size-4' %}</button>
                             </div>
                         </td>
                     </tr>

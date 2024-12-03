@@ -1,0 +1,44 @@
+{% load filters heroicons %}
+<div class="modal-content">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Segnalazione da {{ report.name }}</h3>
+        <button type="button"
+                class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                x-on:click="openModal = false">
+            {% heroicon_solid 'x-mark' class="size-7" %}
+            <span class="sr-only">Close modal</span>
+        </button>
+    </div>
+    <div class="overflow-x-auto m-4">
+        <div class="flex items-center p-4 my-4 text-sm text-blue-800 bg-blue-50 rounded-lg border border-blue-300 md:my-8" role="alert">
+            {% heroicon_solid 'envelope' class='inline flex-shrink-0 w-4 h-4 me-3' %}
+            <span class="sr-only">Messaggio Ricevuto</span>
+            <div>
+              {{ report.message }}
+            </div>
+          </div>
+        <div id="actions" class="flex gap-2 justify-end items-center mb-4">
+            <button class="flex items-center btn btn-sm btn-default"
+                    hx-get="{% url 'contacts:report_list' %}"
+                    hx-target="#dialog"
+                    hx-swap="innerHTML"
+                    @click="$dispatch('open-modal')">
+                {% heroicon_outline 'arrow-left' class='size-5' %}Indietro</button>
+            <button class="flex items-center btn btn-sm btn-default"
+                    hx-get="{% url 'contacts:report_feedback' report.pk %}"
+                    hx-target="#dialog"
+                    hx-swap="innerHTML"
+                    @click="$dispatch('open-modal')"
+                    {% if not report.get_notified %}disabled{% endif %}>
+                {% heroicon_outline 'envelope' class='size-5' %}Rispondi
+            </button>
+            <button class="flex items-center btn btn-sm btn-error"
+                    hx-get="{% url 'contacts:report_delete' report.pk %}"
+                    hx-target="#dialog"
+                    hx-swap="innerHTML"
+                    @click="$dispatch('open-modal')">
+                {% heroicon_outline 'check-circle' class='size-5' %}Completa
+            </button>
+        </div>
+    </div>
+</div>

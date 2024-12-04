@@ -99,7 +99,7 @@ def school_menu(request, slug):
 def get_menu(request, week, day, type, school_id):
     """get menu for the given school, day, week and type"""
     school = School.objects.get(pk=school_id)
-    season = school.season_choice
+    season = get_season(school)
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
             week=week, type=type, season=season, school=school
@@ -116,6 +116,7 @@ def get_menu(request, week, day, type, school_id):
         "week": week,
         "day": day,
         "type": type,
+        "year": datetime.now().year,
     }
     return render(request, "partials/_menu.html", context)
 

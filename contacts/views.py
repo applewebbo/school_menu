@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 
 from contacts.forms import ContactForm, MenuReportForm, ReportFeedbackForm
 from contacts.models import MenuReport
@@ -102,6 +103,7 @@ def report_feedback(request, report_id):
 
 
 @login_required
+@require_http_methods(["POST"])
 def report_delete(request, report_id):
     report = get_object_or_404(MenuReport, id=report_id)
     if report.receiver == request.user:

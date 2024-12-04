@@ -10,20 +10,20 @@
         </button>
     </div>
     <div class="overflow-x-auto m-4">
-        <div class="flex items-center p-4 my-4 text-sm text-blue-800 bg-blue-50 rounded-lg border border-blue-300 md:my-8" role="alert">
+        <div class="flex items-center p-4 my-4 text-sm text-blue-800 bg-blue-50 rounded-lg border border-blue-300 md:my-8"
+             role="alert">
             {% heroicon_solid 'envelope' class='inline flex-shrink-0 w-4 h-4 me-3' %}
             <span class="sr-only">Messaggio Ricevuto</span>
-            <div>
-              {{ report.message }}
-            </div>
-          </div>
+            <div>{{ report.message }}</div>
+        </div>
         <div id="actions" class="flex gap-2 justify-end items-center mb-4">
             <button class="flex items-center btn btn-sm btn-default"
                     hx-get="{% url 'contacts:report_list' %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"
                     @click="$dispatch('open-modal')">
-                {% heroicon_outline 'arrow-left' class='size-5' %}Indietro</button>
+                {% heroicon_outline 'arrow-left' class='size-5' %}Indietro
+            </button>
             <button class="flex items-center btn btn-sm btn-default"
                     hx-get="{% url 'contacts:report_feedback' report.pk %}"
                     hx-target="#dialog"
@@ -33,7 +33,7 @@
                 {% heroicon_outline 'envelope' class='size-5' %}Rispondi
             </button>
             <button class="flex items-center btn btn-sm btn-error"
-                    hx-get="{% url 'contacts:report_delete' report.pk %}"
+                    hx-post="{% url 'contacts:report_delete' report.pk %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"
                     @click="$dispatch('open-modal')">

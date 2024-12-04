@@ -1,0 +1,16 @@
+{% load heroicons %}
+{% if form.non_field_errors %}
+  <div class="flex items-center p-4 mb-4 text-sm rounded-lg text-error-content bg-error">
+    {% heroicon_mini 'exclamation-circle' class='w-4 h-4 me-3' %}
+    <div>
+    {% if form_error_title %}
+      <div class="font-bold">
+        {{ form_error_title }}
+      </div>
+    {% endif %}
+      <ul>
+        {{ form.non_field_errors|unordered_list }}
+      </ul>
+    </div>
+  </div>
+{% endif %}

@@ -302,7 +302,9 @@ class TestUploadMenuView(TestCase):
 
         with self.login(user):
             url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
-            csv_content = "settimana,giorno,pranzo,spuntino\n1,Lunedì,Pasta,Mela"
+            csv_content = (
+                "giorno,settimana,pranzo,spuntino\nLunedì,1,Pasta al Pomodoro,Mela"
+            )
             data = {
                 "file": SimpleUploadedFile(
                     "menu.csv", csv_content.encode("utf-8"), content_type="text/csv"

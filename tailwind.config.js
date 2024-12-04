@@ -41,6 +41,7 @@ module.exports = {
           ...require("daisyui/src/theming/themes")["light"],
           primary: "green",
           secondary: "teal",
+          error: "#FF7171",
         },
       },
     ],

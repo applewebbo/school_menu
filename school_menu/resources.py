@@ -35,7 +35,6 @@ class DetailedMealResource(resources.ModelResource):
             "fruit",
             "snack",
         )
-        exclude = ["id"]
 
 
 class SimpleMealResource(resources.ModelResource):
@@ -63,4 +62,3 @@ class SimpleMealResource(resources.ModelResource):
             "morning_snack",
             "afternoon_snack",
         )
-        exclude = ["id"]

@@ -22,7 +22,7 @@ class SimpleMealSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SimpleMeal
-        fields = ["day", "menu", "snack"]
+        fields = ["day", "morning_snack", "menu", "afternoon_snack"]
 
 
 class SchoolSerializer(serializers.ModelSerializer):

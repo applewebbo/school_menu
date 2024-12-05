@@ -255,7 +255,6 @@ def upload_menu(request, school_id):
             if not validates:
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
-
             if not result.has_errors():  # pragma: no cover
                 model.objects.filter(school=school, season=season).delete()
                 result = resource.import_data(

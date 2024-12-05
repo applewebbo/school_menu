@@ -145,7 +145,8 @@ class GetMenuView(TestCase):
             day=1,
             week=1,
             menu="Pasta al Pomodoro",
-            snack="Crackers",
+            morning_snack="Crackers",
+            afternoon_snack="Yogurt",
             season=School.Seasons.PRIMAVERILE,
         )
 
@@ -302,9 +303,7 @@ class TestUploadMenuView(TestCase):
 
         with self.login(user):
             url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
-            csv_content = (
-                "giorno,settimana,pranzo,spuntino\nLunedì,1,Pasta al Pomodoro,Mela"
-            )
+            csv_content = "giorno,settimana,pranzo,spuntino,merenda\nLunedì,1,Pasta al Pomodoro,Mela,Yogurt"
             data = {
                 "file": SimpleUploadedFile(
                     "menu.csv", csv_content.encode("utf-8"), content_type="text/csv"
@@ -537,7 +536,8 @@ class TestExportMenuView(TestCase):
             week=1,
             day=1,
             menu="Pasta",
-            snack="Apple",
+            morning_snack="Apple",
+            afternoon_snack="Orange",
             season=SimpleMeal.Seasons.ESTIVO,
         )
 
@@ -613,7 +613,9 @@ class JsonSchoolMenuView(TestCase):
         data = response.json()
 
         self.response_200(response)
-        assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
+        assert test_meal.morning_snack in [
+            meal["morning_snack"] for meal in data["meals"]
+        ]
         assert test_meal.menu in [meal["menu"] for meal in data["meals"]]
 
     def test_get_with_detailed_menu(self):

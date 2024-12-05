@@ -105,10 +105,11 @@ class UploadMenuForm(forms.Form):
 class SimpleMealForm(forms.ModelForm):
     class Meta:
         model = SimpleMeal
-        fields = ["menu", "snack"]
+        fields = ["menu", "morning_snack", "afternoon_snack"]
         labels = {
             "menu": "Menù",
-            "snack": "Spuntino",
+            "morning_snack": "Spuntino mattino",
+            "afternoon_snack": "Merenda pomeriggio",
         }
 
     def __init__(self, *args, **kwargs):
@@ -117,7 +118,8 @@ class SimpleMealForm(forms.ModelForm):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             Field("menu", css_class="h-36"),
-            "snack",
+            "morning_snack",
+            "afternoon_snack",
         )
 
 

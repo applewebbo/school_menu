@@ -35,7 +35,6 @@ class DetailedMealResource(resources.ModelResource):
             "fruit",
             "snack",
         )
-        esclude = ["id"]
 
 
 class SimpleMealResource(resources.ModelResource):
@@ -46,7 +45,8 @@ class SimpleMealResource(resources.ModelResource):
     )
     week = Field(attribute="week", column_name="settimana")
     menu = Field(attribute="menu", column_name="pranzo")
-    snack = Field(attribute="snack", column_name="spuntino")
+    morning_snack = Field(attribute="morning_snack", column_name="spuntino")
+    afternoon_snack = Field(attribute="afternoon_snack", column_name="merenda")
 
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
@@ -54,5 +54,11 @@ class SimpleMealResource(resources.ModelResource):
 
     class Meta:
         model = SimpleMeal
-        fields = ("id", "week", "day", "menu", "snack")
-        esclude = ["id"]
+        fields = (
+            "id",
+            "week",
+            "day",
+            "menu",
+            "morning_snack",
+            "afternoon_snack",
+        )

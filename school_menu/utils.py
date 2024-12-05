@@ -76,7 +76,13 @@ def validate_dataset(dataset, menu_type):
     # check required headers presence
     columns = dataset.headers
     if menu_type == School.Types.SIMPLE:
-        required_columns = ["giorno", "settimana", "pranzo", "spuntino"]
+        required_columns = [
+            "giorno",
+            "settimana",
+            "pranzo",
+            "spuntino",
+            "merenda",
+        ]
     else:
         required_columns = [
             "giorno",

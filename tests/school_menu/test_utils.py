@@ -145,8 +145,8 @@ class TestGetUser:
 class TestImportMenu:
     def test_simple_meal_validate_success(self):
         dataset = Dataset()
-        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
-        dataset.append(["Lunedì", 1, "Pasta al Pomodoro", "Yogurt"])
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lunedì", 1, "Pasta al Pomodoro", "Yogurt", "Mela"])
 
         validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 
@@ -168,8 +168,8 @@ class TestImportMenu:
 
     def test_simple_meal_validate_wrong_day(self):
         dataset = Dataset()
-        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
-        dataset.append(["Lun", 1, "Pasta al Pomodoro", "Yogurt"])
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lun", 1, "Pasta al Pomodoro", "Yogurt", "Mela"])
 
         validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 
@@ -181,8 +181,8 @@ class TestImportMenu:
 
     def test_simple_meal_validate_non_integer_week(self):
         dataset = Dataset()
-        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
-        dataset.append(["Lunedì", "prima", "Pasta al Pomodoro", "Yogurt"])
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lunedì", "prima", "Pasta al Pomodoro", "Yogurt", "Mela"])
 
         validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 
@@ -194,8 +194,8 @@ class TestImportMenu:
 
     def test_simple_meal_validate_wrong_week(self):
         dataset = Dataset()
-        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino"]
-        dataset.append(["Lunedì", 5, "Pasta al Pomodoro", "Yogurt"])
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lunedì", 5, "Pasta al Pomodoro", "Yogurt", "Mela"])
 
         validates, message = validate_dataset(dataset, School.Types.SIMPLE)
 

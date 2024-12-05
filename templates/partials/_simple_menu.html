@@ -1,8 +1,12 @@
-<p class="my-3 text-xl font-medium">
+<p class="mt-3 mb-2 text-xl font-medium">
+    <strong>Spuntino Mattino</strong>
+</p>
+<p class="mb-1">{{ meal.morning_snack }}</p>
+<p class="mt-3 mb-2 text-xl font-medium">
     <strong>Pranzo</strong>
 </p>
-<p class="mb-3">{{ meal.menu|linebreaks }}</p>
-<p class="my-3 text-xl font-medium">
-    <strong>Spuntino</strong>
+<p class="mb-1">{{ meal.menu|linebreaks }}</p>
+<p class="mt-3 mb-2 text-xl font-medium">
+    <strong>Merenda Pomeriggio</strong>
 </p>
-<p class="mb-3">{{ meal.snack }}</p>
+<p class="mb-1">{{ meal.afternoon_snack }}</p>

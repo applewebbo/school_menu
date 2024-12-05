@@ -10,16 +10,17 @@
             {% else %}
                 {% include 'partials/_simple_menu.html' %}
             {% endif %}
-            <span class="badge badge-secondary me-1">Settimana {{ week }}</span>
-            <span class="text-green-200 badge badge-primary me-1">
-                {% if meal.season == 2 %}
-                    Autunno / Inverno
-                {% else %}
-                    Primavera / Estate
-                {% endif %}
-            </span>
-            <span class="text-yellow-800 badge badge-warning">{{ year }}/{{ year|add:1 }}</span>
-            <br>
+            <div class="flex flex-col gap-1 justify-center items-center mt-3 md:flex-row md:gap-2 md:mt-6">
+                <div class="badge badge-secondary me-1">Settimana {{ week }}</div>
+                <div class="text-green-200 badge badge-primary me-1">
+                    {% if meal.season == 2 %}
+                        Autunno / Inverno
+                    {% else %}
+                        Primavera / Estate
+                    {% endif %}
+                </div>
+                <div class="text-yellow-800 badge badge-warning">{{ year }}/{{ year|add:1 }}</div>
+            </div>
         {% else %}
             <p class="p-12 text-xl font-medium text-gray-900">
                 <em>Nessun menù caricato per il giorno selezionato</em>

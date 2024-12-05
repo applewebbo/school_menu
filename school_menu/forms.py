@@ -96,7 +96,7 @@ class UploadMenuForm(forms.Form):
             "season",
             Field(
                 "file",
-                css_class="file-upload-input mb-2",
+                css_class="file-input file-input-sm file-input-bordered mb-2",
                 accept=".csv",
             ),
         )

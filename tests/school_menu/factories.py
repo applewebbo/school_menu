@@ -54,6 +54,12 @@ SNACK_LIST = [
     "Biscotti",
 ]
 
+SNACK_LIST_2 = [
+    "Yogurt",
+    "Frutta Fresca",
+    "The deteinato con biscotti",
+]
+
 fake = Faker(locale="it_IT")
 
 
@@ -85,7 +91,8 @@ class SimpleMealFactory(factory.django.DjangoModelFactory):
     week = factory.Iterator(SimpleMeal.Weeks.choices, getter=lambda c: c[0])
     season = factory.Iterator(SimpleMeal.Seasons.choices, getter=lambda c: c[0])
     menu = factory.Iterator(MEAL_LIST)
-    snack = factory.Iterator(FRUIT_LIST)
+    morning_snack = factory.Iterator(FRUIT_LIST)
+    afternoon_snack = factory.Iterator(SNACK_LIST_2)
 
 
 class DetailedMealFactory(factory.django.DjangoModelFactory):

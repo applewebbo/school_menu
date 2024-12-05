@@ -311,7 +311,7 @@ def create_weekly_menu(request, school_id, week, season):
             SimpleMeal,
             form=SimpleMealForm,
             extra=0,
-            fields=("menu", "snack"),
+            fields=("menu", "morning_snack", "afternoon_snack"),
         )
         meals = SimpleMeal.objects.filter(week=week, season=season, school=school)
     else:

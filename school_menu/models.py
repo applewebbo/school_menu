@@ -55,8 +55,8 @@ class DetailedMeal(Meal):
 
 class SimpleMeal(Meal):
     menu = models.TextField(max_length=600)
-    morning_snack = models.CharField(max_length=200, blank=True, default="-")
-    afternoon_snack = models.CharField(max_length=200, blank=True, default="-")
+    morning_snack = models.CharField(max_length=200, blank=True)
+    afternoon_snack = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"

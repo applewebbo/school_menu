@@ -95,7 +95,7 @@ class School(models.Model):
         return f"{self.name} - {self.city} ({str(self.user)})"
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
+        self.slug = slugify(f"{self.name}-{self.city}")
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

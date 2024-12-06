@@ -2,31 +2,33 @@
 {% if messages %}
     <div class="toast toast-top toast-center">
         {% for message in messages %}
-            <div class="alert {% if message.tags == 'info' %} alert-info {% elif message.tags == 'success' %} alert-success {% elif message.tags == 'error' %} alert-error {% elif message.tags == 'warning' %} alert-warning {% elif message.tags == 'debug' %} {% endif %}"
+            <div class="flex items-center p-4 w-full max-w-md rounded-lg border-2 shadow md:max-w-lg text-pretty text-base-content bg-base-100 border-base-300 md:text-nowrap"
                  role="alert"
                  x-cloak
                  x-data="{ show: true }"
                  x-show="show"
                  x-init="setTimeout(() => show = false, 4000)">
-                {% if message.tags == 'info' %}
-                    {% heroicon_mini 'information-circle' class="w-5 h-5" %}
-                {% elif message.tags == 'success' %}
-                    {% heroicon_mini 'check-circle' class="w-5 h-5" %}
-                {% elif message.tags == 'error' %}
-                    {% heroicon_mini 'exclamation-circle' class="w-5 h-5" %}
-                {% elif message.tags == 'warning' %}
-                    {% heroicon_mini 'bell' class="w-5 h-5" %}
-                {% elif message.tags == 'debug' %}
-                    {% heroicon_mini 'bug-ant' class="w-5 h-5" %}
-                {% endif %}
-                <span class="sr-only">Info</span>
-                <span>{{ message|safe }}</span>
+                <div>
+                    {% if message.tags == 'info' %}
+                    {% heroicon_mini 'information-circle' class="w-5 h-5 text-info" %}
+                    {% elif message.tags == 'success' %}
+                        {% heroicon_mini 'check-circle' class="w-5 h-5 text-success" %}
+                    {% elif message.tags == 'error' %}
+                        {% heroicon_mini 'exclamation-circle' class="w-5 h-5 text-error" %}
+                    {% elif message.tags == 'warning' %}
+                        {% heroicon_mini 'bell' class="w-5 h-5 text-warning" %}
+                    {% elif message.tags == 'debug' %}
+                        {% heroicon_mini 'bug-ant' class="w-5 h-5 text-neutral" %}
+                    {% endif %}
+                    <span class="sr-only">Info</span>
+                </div>
+                <div class="text-sm font-normal ms-3 me-1">{{ message|safe }}</div>
                 <button type="button"
-                        class="btn btn-circle btn-xs"
+                        class="inline-flex justify-center items-center p-1.5 -my-1.5 -mx-1.5 w-8 h-8 rounded-lg hover:text-gray-900 ms-auto text-base-content bg-base-100 hover:bg-base-200"
                         @click="show = !show"
                         aria-label="Close">
                     <span class="sr-only">Close</span>
-                    {% heroicon_mini 'x-mark' class="w-4 h-4" %}
+                    {% heroicon_mini "x-mark" class="w-5 h-5" %}
                 </button>
             </div>
         {% endfor %}

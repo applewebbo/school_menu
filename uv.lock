@@ -407,18 +407,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-unfold"
-version = "0.42.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/af/6cb4ec46bcdb32d5dc4dc6a7dcea825d3fe14fabea7b40930edfd2f5f4ae/django_unfold-0.42.0.tar.gz", hash = "sha256:1c0a3cb142972d0f7222987e82991899d369b0b19126eaad296a9aabe43337c4", size = 741544 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f2/dd/549b4ef6db5d1855a7a8aa0f2f69f922f5b0e84d748c5540818b1830bfb6/django_unfold-0.42.0-py3-none-any.whl", hash = "sha256:474bfe0ba69f2590b475f343dfb2462b5618b87fe4084e80bb6dd1abb0514c40", size = 808251 },
-]
-
-[[package]]
 name = "djangorestframework"
 version = "3.15.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1087,7 +1075,6 @@ dependencies = [
     { name = "django-storages" },
     { name = "django-tailwind-cli", extra = ["django-extensions"] },
     { name = "django-template-partials" },
-    { name = "django-unfold" },
     { name = "djangorestframework" },
     { name = "dropbox" },
     { name = "factory-boy" },
@@ -1134,7 +1121,6 @@ requires-dist = [
     { name = "django-storages", specifier = ">=1.14.4" },
     { name = "django-tailwind-cli", extras = ["django-extensions"], specifier = ">=2.19.0" },
     { name = "django-template-partials", specifier = ">=24.4" },
-    { name = "django-unfold", specifier = ">=0.40.0" },
     { name = "djangorestframework", specifier = ">=3.15.2" },
     { name = "dropbox", specifier = ">=12.0.2" },
     { name = "factory-boy", specifier = ">=3.3.1" },

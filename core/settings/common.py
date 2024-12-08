@@ -20,8 +20,6 @@ env = environ.Env(
 # Application definition
 
 INSTALLED_APPS = [
-    "unfold",
-    "unfold.contrib.import_export",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -178,38 +176,6 @@ DBBACKUP_STORAGE_OPTIONS = {
     "oauth2_refresh_token": env("DROPBOX_OAUTH2_REFRESH_TOKEN"),
     "app_secret": env("DROPBOX_APP_SECRET"),
     "app_key": env("DROPBOX_APP_KEY"),
-}
-
-# DJANGO_Q
-# Q_CLUSTER = {
-#     "name": "DjangORM",
-#     "workers": 4,
-#     "timeout": 90,
-#     "retry": 120,
-#     "queue_limit": 50,
-#     "bulk": 10,
-#     "orm": "default",
-# }
-
-# UNFOLD
-
-UNFOLD = {
-    "SITE_HEADER": "Menu Scolastico",
-    "COLORS": {
-        "primary": {
-            50: "#E9FBF0",
-            100: "#CFF7DE",
-            200: "#9FEFBC",
-            300: "#6FE69B",
-            400: "#40DE7A",
-            500: "#22C55E",
-            600: "#1B9D4B",
-            700: "#147538",
-            800: "#0D4E25",
-            900: "#072713",
-            950: "#04160A",
-        },
-    },
 }
 
 # COOKIEBANNER

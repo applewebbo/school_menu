@@ -31,7 +31,6 @@ dependencies = [
   "django-social-share>=2.3.0",
   "django-storages>=1.14.4",
   "django-template-partials>=24.4",
-  "django-unfold>=0.40.0",
   "dropbox>=12.0.2",
   "heroicons[django]>=2.9.0",
   "factory-boy>=3.3.1",

@@ -28,7 +28,7 @@ class SimpleMealSerializer(serializers.ModelSerializer):
 
 
 class SchoolSerializer(serializers.ModelSerializer):
-    url = serializers.URLField(source="get_absolute_url", read_only=True)
+    url = serializers.URLField(source="get_json_url", read_only=True)
 
     class Meta:
         model = School

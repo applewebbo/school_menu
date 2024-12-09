@@ -100,3 +100,7 @@ class School(models.Model):
 
     def get_absolute_url(self):
         return reverse("school_menu:school_menu", kwargs={"slug": self.slug})
+
+    @property
+    def get_json_url(self):
+        return reverse("school_menu:get_school_json_menu", kwargs={"slug": self.slug})

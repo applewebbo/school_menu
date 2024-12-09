@@ -7,7 +7,9 @@ class DetailedMealSerializer(serializers.ModelSerializer):
     menu = serializers.SerializerMethodField()
 
     def get_menu(self, obj):
-        return f"{obj.first_course}, {obj.second_course}, {obj.fruit}, {obj.side_dish}"
+        """Return a string with only items different from - or empty"""
+        menu_items = [obj.first_course, obj.second_course, obj.fruit, obj.side_dish]
+        return ", ".join(item for item in menu_items if item != "-" and item.strip())
 
     class Meta:
         model = DetailedMeal
@@ -18,7 +20,7 @@ class SimpleMealSerializer(serializers.ModelSerializer):
     menu = serializers.SerializerMethodField()
 
     def get_menu(self, obj):
-        return obj.menu.replace("\n", ", ").strip()
+        return obj.menu.replace("\n", ", ").replace("\r", " ").strip()
 
     class Meta:
         model = SimpleMeal

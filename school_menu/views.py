@@ -18,7 +18,12 @@ from school_menu.forms import (
     UploadMenuForm,
 )
 from school_menu.models import DetailedMeal, School, SimpleMeal
-from school_menu.resources import DetailedMealResource, SimpleMealResource
+from school_menu.resources import (
+    DetailedMealExportResource,
+    DetailedMealResource,
+    SimpleMealExportResource,
+    SimpleMealResource,
+)
 from school_menu.serializers import (
     DetailedMealSerializer,
     SchoolSerializer,
@@ -393,10 +398,10 @@ def export_menu(request, school_id, season):
     menu_type = school.menu_type
     if menu_type == School.Types.SIMPLE:
         meals = SimpleMeal.objects.filter(school=school, season=season)
-        data = SimpleMealResource().export(meals)
+        data = SimpleMealExportResource().export(meals)
     else:
         meals = DetailedMeal.objects.filter(school=school, season=season)
-        data = DetailedMealResource().export(meals)
+        data = DetailedMealExportResource().export(meals)
 
     response = HttpResponse(data.csv, content_type="text/csv")
     return response

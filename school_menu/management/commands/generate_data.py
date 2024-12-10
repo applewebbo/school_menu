@@ -25,16 +25,15 @@ class Command(BaseCommand):
         self.stdout.write("Deleting old data...")
         # deleting all user except superuser
         User.objects.exclude(is_superuser=True).delete()
-        # deleting all trips, notes, links, places
-        models = [School, DetailedMeal, SimpleMeal]
-        for model in models:
-            model.objects.all().delete()
+        # deleting all school (except superuser) and cascading all meals
+        superuser = User.objects.get(is_superuser=True)
+        School.objects.exclude(user=superuser).delete()
 
         self.stdout.write("Creating new data...")
         # creating users with email=user_*@test.com and password=1234
         UserFactory.create_batch(NUMBER_OF_USERS)
         # creating schools
-        for user in User.objects.all():
+        for user in User.objects.exclude(is_superuser=True):
             SchoolFactory.create(user=user)
         # creating meals
         for school in School.objects.all():

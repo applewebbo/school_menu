@@ -9,6 +9,7 @@
             <span class="sr-only">Close modal</span>
         </button>
     </div>
+    {% if reports %}
     <div class="overflow-x-auto m-4">
         <table class="table text-center">
             <!-- head -->
@@ -42,4 +43,9 @@
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="p-4 md:p-8">
+        <p class="text-center text-gray-500">Nessuna segnalazione ricevuta</p>
+    </div>
+    {% endif %}
 </div>

@@ -11,7 +11,8 @@ class Meal(models.Model):
         STANDARD = 1
         GLUTEN_FREE = 2
         LACTOSE_FREE = 3
-        VEGAN = 4
+        VEGETARIAN = 4
+        SPECIAL = 5
 
     class Seasons(models.IntegerChoices):
         ESTIVO = 1
@@ -86,6 +87,10 @@ class School(models.Model):
         max_length=1, choices=Types.choices, default=Types.DETAILED
     )
     is_published = models.BooleanField(default=True)
+    no_gluten = models.BooleanField(default=False)
+    no_lactose = models.BooleanField(default=False)
+    vegetarian = models.BooleanField(default=False)
+    special = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "scuola"

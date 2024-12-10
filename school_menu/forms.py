@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Field, Layout, Submit
+from crispy_forms.layout import Div, Field, Fieldset, Layout, Submit
 from django import forms
 
 from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
@@ -15,12 +15,28 @@ class SchoolForm(forms.ModelForm):
             "week_bias",
             "menu_type",
             "is_published",
+            "no_gluten",
+            "no_lactose",
+            "vegetarian",
+            "special",
         ]
         widgets = {
             "season_choice": forms.Select(attrs={"class": "form-select"}),
             "week_bias": forms.NumberInput(),
             "menu_type": forms.Select(attrs={"class": "form-select"}),
             "is_published": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+            ),
+            "no_gluten": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+            ),
+            "no_lactose": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+            ),
+            "vegetarian": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+            ),
+            "special": forms.CheckboxInput(
                 attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
             ),
         }
@@ -31,12 +47,20 @@ class SchoolForm(forms.ModelForm):
             "week_bias": "Scarto",
             "menu_type": "Tipo di Menù",
             "is_published": "Pubblico",
+            "no_gluten": "No Glutine",
+            "no_lactose": "No Lattosio",
+            "vegetarian": "Vegetariano",
+            "special": "Speciale",
         }
         help_texts = {
             "season_choice": "Selezionando AUTOMATICA il sistema sceglierà la stagione in base alla data corrente, altrimenti rimarrà fissa al valore selezionato",
             "week_bias": "Modificare il valore per allineare la settimana in corso (max=3)",
             "menu_type": "Seleziona Semplice per menu unificato + spuntino, Dettagliato per avere menu diviso in primo, secondo, contorno e frutta + spuntino",
             "is_published": "Seleziona per rendere il menù visibile agli utenti",
+            "no_gluten": "No Glutine",
+            "no_lactose": "No Lattosio",
+            "vegetarian": "Vegetariano",
+            "special": "Speciale",
         }
         error_messages = {
             "week_bias": {
@@ -48,17 +72,24 @@ class SchoolForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
+        self.fields["no_gluten"].label = False
+        self.fields["no_lactose"].label = False
+        self.fields["vegetarian"].label = False
+        self.fields["special"].label = False
         self.helper.layout = Layout(
             Div(
-                Div(
-                    "name",
-                    "city",
-                    "menu_type",
-                    "is_published",
-                ),
+                Div("name", "city", "menu_type", "is_published"),
                 Div(
                     "season_choice",
                     "week_bias",
+                ),
+                Fieldset(
+                    "Menu Alternativi",
+                    Div("no_gluten", css_class="flex items-center me-4"),
+                    Div("no_lactose", css_class="flex items-center me-4"),
+                    Div("vegetarian", css_class="flex items-center me-4"),
+                    Div("special", css_class="flex items-center me-4"),
+                    css_class="flex col-span-1 md:col-span-2",
                 ),
                 css_class="grid grid-cols-1 md:grid-cols-2 md:gap-4",
             ),

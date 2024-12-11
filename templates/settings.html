@@ -100,13 +100,18 @@
         <!-- MENU  -->
         {% partialdef menu inline=true %}
         {% if user.school %}
-            <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
+            <div class="block relative p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
                  id="menu"
                  hx-get="{% url 'school_menu:menu_settings' user.pk %}"
                  hx-swap="outerHTML"
                  hx-trigger="menuModified from:body">
                 <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
-                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h3>
+                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900 md:flex md:items-center {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}flex items-start mx-auto {% endif %}">
+                        Menu
+                        {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
+                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">standard</span>
+                        {% endif %}
+                    </h3>
                     <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
                         {% if user.school %}
                             <button class="inline-flex items-center mr-2 group btn btn-sm"
@@ -171,8 +176,7 @@
                                 </div>
                                 <div class="text-center grow md:grow-0">
                                     <select class="select select-bordered select-sm" id="alt_menu_select">
-                                        <option disabled selected>Seleziona il menu</option>
-                                        <option value="1">Standard</option>
+                                        <option value="1" selected>Standard</option>
                                         {% if user.school.no_gluten %}<option value="2">No Glutine</option>{% endif %}
                                         {% if user.school.no_lactose %}<option value="3">No Lattosio</option>{% endif %}
                                         {% if user.school.vegetarian %}<option value="4">Vegetariano</option>{% endif %}

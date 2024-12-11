@@ -223,7 +223,10 @@ def school_update(request):
             messages.SUCCESS,
             f"<strong>{school.name}</strong> aggiornata con successo",
         )
-        return render(request, "settings.html#school", {"school": school})
+        # refresh also the menu section of the settings page for alternatives menu selection if needed
+        response = render(request, "settings.html#school", {"school": school})
+        response["HX-Trigger"] = "menuModified"
+        return response
 
     context = {"form": form}
     return render(request, "partials/school.html", context)

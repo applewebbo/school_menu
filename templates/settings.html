@@ -21,63 +21,63 @@
             {% if user.school %}
                 <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
                     <div>
-                    <ul class="leading-10" id="school-settings">
-                        <li>
-                            <span class="font-bold">Nome:</span> {{ user.school.name }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Città:</span> {{ user.school.city }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Pubblico:</span>
-                            {% if user.school.is_published %}
-                                Sì
-                            {% else %}
-                                No
-                            {% endif %}
-                        </li>
-                    </ul>
-                </div>
-                <div>
-                    <ul class="leading-10" id="meal-settings">
-                        <li>
-                            <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
-                        </li>
-                    </ul>
-                    {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
-                    <ul class="mt-2 leading-5" id="alternate-meal-settings">
-                        <li>
-                            <p class="font-bold">Menu Alternativi</p>
-                            {% if user.school.no_gluten %}
-                                <img src="{% static 'img/no-gluten.png' %}"
-                                     alt="Icona menu senza glutine"
-                                     class="inline w-5 h-auto me-1">
-                            {% endif %}
-                            {% if user.school.no_lactose %}
-                                <img src="{% static 'img/no-lactose.png' %}"
-                                     alt="Icona menu senza lattosio"
-                                     class="inline w-5 h-auto me-1">
-                            {% endif %}
-                            {% if user.school.vegetarian %}
-                                <img src="{% static 'img/vegetarian.png' %}"
-                                     alt="Icona menu vegetariano"
-                                     class="inline w-5 h-auto me-1">
-                            {% endif %}
-                            {% if user.school.special %}
-                                <img src="{% static 'img/special.png' %}"
-                                     alt="Icona menu speciale"
-                                     class="inline w-5 h-auto me-1">
-                            {% endif %}
-                        </li>
-                    </ul>
-                    {% endif %}
-                </div>
+                        <ul class="leading-10" id="school-settings">
+                            <li>
+                                <span class="font-bold">Nome:</span> {{ user.school.name }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Città:</span> {{ user.school.city }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Pubblico:</span>
+                                {% if user.school.is_published %}
+                                    Sì
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="leading-10" id="meal-settings">
+                            <li>
+                                <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
+                            </li>
+                            <li>
+                                <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
+                            </li>
+                        </ul>
+                        {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
+                            <ul class="mt-2 leading-5" id="alternate-meal-settings">
+                                <li>
+                                    <p class="font-bold">Menu Alternativi</p>
+                                    {% if user.school.no_gluten %}
+                                        <img src="{% static 'img/no-gluten.png' %}"
+                                             alt="Icona menu senza glutine"
+                                             class="inline w-5 h-auto me-1">
+                                    {% endif %}
+                                    {% if user.school.no_lactose %}
+                                        <img src="{% static 'img/no-lactose.png' %}"
+                                             alt="Icona menu senza lattosio"
+                                             class="inline w-5 h-auto me-1">
+                                    {% endif %}
+                                    {% if user.school.vegetarian %}
+                                        <img src="{% static 'img/vegetarian.png' %}"
+                                             alt="Icona menu vegetariano"
+                                             class="inline w-5 h-auto me-1">
+                                    {% endif %}
+                                    {% if user.school.special %}
+                                        <img src="{% static 'img/special.png' %}"
+                                             alt="Icona menu speciale"
+                                             class="inline w-5 h-auto me-1">
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="md:text-right">
                     <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline"
@@ -159,6 +159,24 @@
                                 </a>
                             </div>
                         {% endfor %}
+                    </div>
+                    <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
+                    <div class="grid grid-cols-1 col-span-1 gap-y-2 md:col-span-2" id="alt_menu">
+                        <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:mt-6 md:text-left">Menu Alternativi</h4>
+                        <div class="flex items-center">
+                            <div class="hidden md:block grow">
+                                <label for="alt_menu_select">Seleziona il menu alternativo</label>
+                            </div>
+                            <div class="text-center grow md:grow-0">
+                                <select class="select select-bordered select-sm" id="alt_menu_select">
+                                    <option disabled selected>Seleziona il menu alternativo</option>
+                                    <option>No Glutine</option>
+                                    <option>No Lattosio</option>
+                                    <option>Vegetariano</option>
+                                    <option>Speciale</option>
+                                </select>
+                            </div>
+                    </div>
                     </div>
                     <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
                 </div>

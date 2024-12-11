@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load filters heroicons partials %}
+{% load filters heroicons partials static %}
 {% block page_title %}
     Impostazioni
 {% endblock page_title %}
@@ -20,6 +20,7 @@
             </h3>
             {% if user.school %}
                 <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
+                    <div>
                     <ul class="leading-10" id="school-settings">
                         <li>
                             <span class="font-bold">Nome:</span> {{ user.school.name }}
@@ -39,6 +40,8 @@
                             {% endif %}
                         </li>
                     </ul>
+                </div>
+                <div>
                     <ul class="leading-10" id="meal-settings">
                         <li>
                             <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
@@ -47,6 +50,34 @@
                             <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
                         </li>
                     </ul>
+                    {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
+                    <ul class="mt-2 leading-5" id="alternate-meal-settings">
+                        <li>
+                            <p class="font-bold">Menu Alternativi</p>
+                            {% if user.school.no_gluten %}
+                                <img src="{% static 'img/no-gluten.png' %}"
+                                     alt="Icona menu senza glutine"
+                                     class="inline w-5 h-auto me-1">
+                            {% endif %}
+                            {% if user.school.no_lactose %}
+                                <img src="{% static 'img/no-lactose.png' %}"
+                                     alt="Icona menu senza lattosio"
+                                     class="inline w-5 h-auto me-1">
+                            {% endif %}
+                            {% if user.school.vegetarian %}
+                                <img src="{% static 'img/vegetarian.png' %}"
+                                     alt="Icona menu vegetariano"
+                                     class="inline w-5 h-auto me-1">
+                            {% endif %}
+                            {% if user.school.special %}
+                                <img src="{% static 'img/special.png' %}"
+                                     alt="Icona menu speciale"
+                                     class="inline w-5 h-auto me-1">
+                            {% endif %}
+                        </li>
+                    </ul>
+                    {% endif %}
+                </div>
                 </div>
                 <div class="md:text-right">
                     <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline"
@@ -149,10 +180,10 @@
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Visualizza Segnalazioni</h5>
                     <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
-                        hx-get="{% url 'contacts:report_list' %}"
-                        hx-target="#dialog"
-                        hx-swap="innerHTML"
-                        @click="$dispatch('open-modal')">
+                            hx-get="{% url 'contacts:report_list' %}"
+                            hx-target="#dialog"
+                            hx-swap="innerHTML"
+                            @click="$dispatch('open-modal')">
                         Visualizza
                         {% heroicon_outline 'eye' class="group-hover:text-white size-4" %}
                     </button>

@@ -159,7 +159,8 @@ def get_school_json_menu(request, slug):
 def settings_view(request, pk):
     """Get the settings page"""
     user, alt_menu = get_user(pk)
-    context = {"user": user, "alt_menu": alt_menu}
+    active_menu = "S"
+    context = {"user": user, "alt_menu": alt_menu, "active_menu": active_menu}
     return render(request, "settings.html", context)
 
 
@@ -171,7 +172,12 @@ def menu_settings_partial(request, pk):
     if not active_menu:
         active_menu = "S"
     menu_label = [choice for choice in Meal.Types.choices if choice[0] == active_menu][0][1]  # fmt: skip
-    context = {"user": user, "alt_menu": alt_menu, "menu_label": menu_label}
+    context = {
+        "user": user,
+        "alt_menu": alt_menu,
+        "menu_label": menu_label,
+        "active_menu": active_menu,
+    }
     return render(request, "settings.html#menu", context)
 
 
@@ -276,30 +282,30 @@ def upload_menu(request, school_id):
 
 
 @login_required
-def create_weekly_menu(request, school_id, week, season):
+def create_weekly_menu(request, school_id, week, season, meal_type):
     qs = School.objects.all().select_related("user")
     school = get_object_or_404(qs, pk=school_id)
     menu_type = school.menu_type
     # check if the meal for the given week and season already exists
     if menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
-            week=week, season=season, school=school
+            week=week, season=season, school=school, type=meal_type
         )
     else:
         weekly_meals = DetailedMeal.objects.filter(
-            week=week, season=season, school=school
+            week=week, season=season, school=school, type=meal_type
         )
     # if the meals don't exist, create them with blank values
     if not weekly_meals.exists():
         if menu_type == School.Types.SIMPLE:
             for day in range(1, 6):
                 SimpleMeal.objects.create(
-                    week=week, day=day, season=season, school=school
+                    week=week, day=day, season=season, school=school, type=meal_type
                 )
         else:
             for day in range(1, 6):
                 DetailedMeal.objects.create(
-                    week=week, day=day, season=season, school=school
+                    week=week, day=day, season=season, school=school, type=meal_type
                 )
     # create a formset for editing the meals for the week
     if menu_type == School.Types.SIMPLE:
@@ -309,7 +315,9 @@ def create_weekly_menu(request, school_id, week, season):
             extra=0,
             fields=("menu", "morning_snack", "afternoon_snack"),
         )
-        meals = SimpleMeal.objects.filter(week=week, season=season, school=school)
+        meals = SimpleMeal.objects.filter(
+            week=week, season=season, school=school, type=meal_type
+        )
     else:
         MealFormSet = modelformset_factory(
             DetailedMeal,
@@ -317,7 +325,9 @@ def create_weekly_menu(request, school_id, week, season):
             extra=0,
             fields=("first_course", "second_course", "side_dish", "fruit", "snack"),
         )
-        meals = DetailedMeal.objects.filter(week=week, season=season, school=school)
+        meals = DetailedMeal.objects.filter(
+            week=week, season=season, school=school, type=meal_type
+        )
     formset = MealFormSet(request.POST or None, queryset=meals)
     if request.method == "POST":
         if formset.is_valid():

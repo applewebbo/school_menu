@@ -29,7 +29,7 @@ urlpatterns = [
     ),
     path("menu/<slug:slug>/", views.school_menu, name="school_menu"),
     path(
-        "menu/<int:school_id>/<int:week>/<int:season>/",
+        "menu/<int:school_id>/<int:week>/<int:season>/<str:meal_type>/",
         views.create_weekly_menu,
         name="create_weekly_menu",
     ),

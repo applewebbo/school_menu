@@ -126,12 +126,60 @@ def mock_user_model():
 
 class TestGetUser:
     def test_get_user_success(self, mock_user_model):
+        # Create a mock school with dietary attributes
+        mock_school = MagicMock()
+        mock_school.no_gluten = False
+        mock_school.no_lactose = False
+        mock_school.vegetarian = False
+        mock_school.special = False
+
+        # Create mock user with proper school relationship
+        mock_user = MagicMock()
+        mock_user.school = mock_school
+
+        # Setup the queryset chain
+        mock_queryset = MagicMock()
+        mock_user_model.objects.select_related.return_value = mock_queryset
+
         with (
             patch("school_menu.utils.get_user_model", return_value=mock_user_model),
-            patch("school_menu.utils.get_object_or_404", return_value="mock_user"),
+            patch("school_menu.utils.get_object_or_404", return_value=mock_user),
         ):
-            user = get_user(pk=1)
-            assert user == "mock_user"
+            user, alt_menu = get_user(pk=1)
+
+            # Verify the correct query chain
+            mock_user_model.objects.select_related.assert_called_once_with("school")
+
+            assert user == mock_user
+            assert alt_menu is False
+
+    def test_get_user_success_with_alt_menu(self, mock_user_model):
+        # Create a mock school with dietary attributes
+        mock_school = MagicMock()
+        mock_school.no_gluten = True
+        mock_school.no_lactose = False
+        mock_school.vegetarian = False
+        mock_school.special = False
+
+        # Create mock user with proper school relationship
+        mock_user = MagicMock()
+        mock_user.school = mock_school
+
+        # Setup the queryset chain
+        mock_queryset = MagicMock()
+        mock_user_model.objects.select_related.return_value = mock_queryset
+
+        with (
+            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
+            patch("school_menu.utils.get_object_or_404", return_value=mock_user),
+        ):
+            user, alt_menu = get_user(pk=1)
+
+            # Verify the correct query chain
+            mock_user_model.objects.select_related.assert_called_once_with("school")
+
+            assert user == mock_user
+            assert alt_menu is True
 
     def test_get_user_not_found(self, mock_user_model):
         with (

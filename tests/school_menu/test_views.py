@@ -150,7 +150,7 @@ class GetMenuView(TestCase):
             season=School.Seasons.PRIMAVERILE,
         )
 
-        response = self.get("school_menu:get_menu", 1, 1, 1, school.pk)
+        response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
 
         self.response_200(response)
         assert response.context["meal"] == meal
@@ -168,7 +168,7 @@ class GetMenuView(TestCase):
             season=School.Seasons.PRIMAVERILE,
         )
 
-        response = self.get("school_menu:get_menu", 1, 1, 1, school.pk)
+        response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
 
         self.response_200(response)
         assert response.context["meal"] == meal
@@ -195,6 +195,19 @@ class SettingView(TestCase):
 
         self.response_200(response)
         assert response.context["user"] == user
+
+    def test_partial_reload_with_alt_menu(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:menu_settings", pk=user.pk, data={"active_menu": "G"}
+            )
+
+        self.response_200(response)
+        assert response.context["user"] == user
+        assert response.context["menu_label"] == "No Glutine"
 
     def test_school_partial_view(self):
         user = self.make_user()
@@ -378,7 +391,9 @@ class CreateWeeklyMenuView(TestCase):
             school = SchoolFactory(menu_type=menu_type, user=user)
 
             with self.login(user):
-                response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
+                response = self.get(
+                    "school_menu:create_weekly_menu", school.pk, 1, 1, "S"
+                )
 
             self.response_200(response)
             assert "formset" in response.context
@@ -397,7 +412,7 @@ class CreateWeeklyMenuView(TestCase):
         SimpleMealFactory.create_batch(5, school=school)
 
         with self.login(user):
-            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")
 
         self.response_200(response)
         assert "formset" in response.context
@@ -419,11 +434,11 @@ class CreateWeeklyMenuView(TestCase):
         ]
 
         with self.login(user):
-            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")
             self.response_200(response)
             post_data = create_formset_post_data(response, new_form_data=test_data)
             response = self.post(
-                "school_menu:create_weekly_menu", school.pk, 1, 1, data=post_data
+                "school_menu:create_weekly_menu", school.pk, 1, 1, "S", data=post_data
             )
 
         self.response_302(response)
@@ -441,12 +456,12 @@ class CreateWeeklyMenuView(TestCase):
         ]
 
         with self.login(user):
-            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1)
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")
             self.response_200(response)
             post_data = create_formset_post_data(response, new_form_data=test_data)
             post_data["form-0-menu"] = ""
             response = self.post(
-                "school_menu:create_weekly_menu", school.pk, 1, 1, data=post_data
+                "school_menu:create_weekly_menu", school.pk, 1, 1, "S", data=post_data
             )
 
         self.response_200(response)

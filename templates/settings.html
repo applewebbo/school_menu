@@ -109,7 +109,13 @@
                     <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900 md:flex md:items-center {% if alt_menu %}flex items-start mx-auto{% endif %}">
                         Menu
                         {% if alt_menu %}
-                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">{% if menu_label %}{{ menu_label }}{% else %}Standard{% endif %}</span>
+                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">
+                                {% if menu_label %}
+                                    {{ menu_label }}
+                                {% else %}
+                                    Standard
+                                {% endif %}
+                            </span>
                         {% endif %}
                     </h3>
                     <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
@@ -141,7 +147,7 @@
                             <div class="flex items-center">
                                 <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
                                 <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
-                                   href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 %}"
+                                   href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 active_menu %}"
                                    hx-boost="true">
                                     Modifica
                                     {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}
@@ -157,7 +163,7 @@
                             <div class="flex items-center">
                                 <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
                                 <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
-                                   href="{% url 'school_menu:create_weekly_menu' user.school.id week 1 %}"
+                                   href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 active_menu %}"
                                    hx-boost="true">
                                     Modifica
                                     {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}

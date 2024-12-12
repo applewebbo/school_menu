@@ -312,14 +312,16 @@ class TestUploadMenuView(TestCase):
 
     def test_upload_menu_post_simple_success(self):
         user = self.make_user()
-        school = SchoolFactory(user=user)
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
 
         with self.login(user):
             url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
             csv_content = "giorno,settimana,pranzo,spuntino,merenda\nLunedì,1,Pasta al Pomodoro,Mela,Yogurt"
             data = {
                 "file": SimpleUploadedFile(
-                    "menu.csv", csv_content.encode("utf-8"), content_type="text/csv"
+                    "simple_menu.csv",
+                    csv_content.encode("utf-8"),
+                    content_type="text/csv",
                 ),
                 "season": School.Seasons.INVERNALE,
             }

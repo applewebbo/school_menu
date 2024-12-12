@@ -39,3 +39,19 @@ def remaining_days(value):
     remaining = (target_date.date() - today).days
 
     return max(0, remaining)
+
+
+@register.filter(name="type_label")
+def type_label(meal_type):
+    """
+    Return the label for the given meal type.
+    """
+    values = {
+        "S": "standard",
+        "G": "no glutine",
+        "L": "no lattosio",
+        "V": "vegetariano",
+        "P": "speciale",
+    }
+
+    return values.get(meal_type, meal_type)

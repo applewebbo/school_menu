@@ -3,7 +3,7 @@
     <button type="button"
             hx-target="#day_menu"
             hx-swap="outerHTML"
-            hx-get="{% url 'school_menu:get_menu' week meal.day meal.type school.pk %}"
+            hx-get="{% url 'school_menu:get_menu' school.pk week meal.day meal.type %}"
             class="btn btn-primary btn-xs sm:btn-sm {% if day == meal.day %}{% else %}btn-outline{% endif %}">
         {{ meal.get_day_display|upper|truncate:3 }}
     </button>

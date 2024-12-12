@@ -17,7 +17,7 @@ from school_menu.forms import (
     SimpleMealForm,
     UploadMenuForm,
 )
-from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
     DetailedMealExportResource,
     DetailedMealResource,
@@ -101,7 +101,7 @@ def school_menu(request, slug):
     return render(request, "school-menu.html", context)
 
 
-def get_menu(request, week, day, type, school_id):
+def get_menu(request, school_id, week, day, type):
     """get menu for the given school, day, week and type"""
     school = School.objects.get(pk=school_id)
     season = get_season(school)
@@ -167,7 +167,11 @@ def settings_view(request, pk):
 def menu_settings_partial(request, pk):
     """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
     user, alt_menu = get_user(pk)
-    context = {"user": user, "alt_menu": alt_menu}
+    active_menu = request.GET.get("active_menu")
+    if not active_menu:
+        active_menu = "S"
+    menu_label = [choice for choice in Meal.Types.choices if choice[0] == active_menu][0][1]  # fmt: skip
+    context = {"user": user, "alt_menu": alt_menu, "menu_label": menu_label}
     return render(request, "settings.html#menu", context)
 
 

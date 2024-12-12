@@ -7,12 +7,19 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Meal(models.Model):
-    class Types(models.IntegerChoices):
-        STANDARD = 1
-        GLUTEN_FREE = 2
-        LACTOSE_FREE = 3
-        VEGETARIAN = 4
-        SPECIAL = 5
+    # class Types(models.IntegerChoices):
+    #     STANDARD = 1
+    #     GLUTEN_FREE = 2
+    #     LACTOSE_FREE = 3
+    #     VEGETARIAN = 4
+    #     SPECIAL = 5
+
+    class Types(models.TextChoices):
+        STANDARD = "S", _("Standard")
+        GLUTEN_FREE = "G", _("No Glutine")
+        LACTOSE_FREE = "L", _("No Lattosio")
+        VEGETARIAN = "V", _("Vegetariano")
+        SPECIAL = "P", _("Speciale")
 
     class Seasons(models.IntegerChoices):
         ESTIVO = 1
@@ -36,7 +43,7 @@ class Meal(models.Model):
     season = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.INVERNALE
     )
-    type = models.SmallIntegerField(choices=Types.choices, default=Types.STANDARD)
+    type = models.CharField(max_length=1, choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
 
     class Meta:

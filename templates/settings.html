@@ -106,10 +106,10 @@
                  hx-swap="outerHTML"
                  hx-trigger="menuModified from:body">
                 <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
-                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900 md:flex md:items-center {% if alt_menu %}flex items-start mx-auto {% endif %}">
+                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900 md:flex md:items-center {% if alt_menu %}flex items-start mx-auto{% endif %}">
                         Menu
                         {% if alt_menu %}
-                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">standard</span>
+                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">{% if menu_label %}{{ menu_label }}{% else %}Standard{% endif %}</span>
                         {% endif %}
                     </h3>
                     <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
@@ -175,12 +175,19 @@
                                     <label for="alt_menu_select">Seleziona il menu che vuoi modificare</label>
                                 </div>
                                 <div class="text-center grow md:grow-0">
-                                    <select class="select select-bordered select-sm" id="alt_menu_select">
-                                        <option value="1" selected>Standard</option>
-                                        {% if user.school.no_gluten %}<option value="2">No Glutine</option>{% endif %}
-                                        {% if user.school.no_lactose %}<option value="3">No Lattosio</option>{% endif %}
-                                        {% if user.school.vegetarian %}<option value="4">Vegetariano</option>{% endif %}
-                                        {% if user.school.special %}<option value="5">Speciale</option>{% endif %}
+                                    <select class="select select-bordered select-sm"
+                                            id="alt_menu_select"
+                                            name="active_menu"
+                                            hx-get="{% url 'school_menu:menu_settings' user.pk %}"
+                                            hx-trigger="change"
+                                            hx-swap="outerHTML"
+                                            hx-target="#menu">
+                                        <option disabled selected>Seleziona Menu</option>
+                                        <option value="S">Standard</option>
+                                        {% if user.school.no_gluten %}<option value="G">No Glutine</option>{% endif %}
+                                        {% if user.school.no_lactose %}<option value="L">No Lattosio</option>{% endif %}
+                                        {% if user.school.vegetarian %}<option value="V">Vegetariano</option>{% endif %}
+                                        {% if user.school.special %}<option value="P">Speciale</option>{% endif %}
                                     </select>
                                 </div>
                             </div>

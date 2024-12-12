@@ -10,7 +10,7 @@ urlpatterns = [
     path("settings/<int:pk>/", views.settings_view, name="settings"),
     path("school_list", views.school_list, name="school_list"),
     path(
-        "get-menu/<int:week>/<int:day>/<int:type>/<int:school_id>/",
+        "get-menu/<int:school_id>/<int:week>/<int:day>/<str:type>/",
         views.get_menu,
         name="get_menu",
     ),
@@ -21,8 +21,6 @@ urlpatterns = [
         name="privacy",
     ),
     path("help", TemplateView.as_view(template_name="pages/help.html"), name="help"),
-    # TODO: get this url back when ISSUE #34 is implemented
-    # path("json_menu", views.json_menu, name="json_menu"),
     path("json/schools/", views.get_schools_json_list, name="get_schools_json_list"),
     path(
         "json/menu/<slug:slug>/",

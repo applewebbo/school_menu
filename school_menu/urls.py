@@ -33,7 +33,11 @@ urlpatterns = [
         views.create_weekly_menu,
         name="create_weekly_menu",
     ),
-    path("export/<int:school_id>/<int:season>/", views.export_menu, name="export_menu"),
+    path(
+        "export/<int:school_id>/<int:season>/<str:meal_type>/",
+        views.export_menu,
+        name="export_menu",
+    ),
 ]
 
 htmx_urlpatterns = [

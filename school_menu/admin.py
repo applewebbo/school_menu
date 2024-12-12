@@ -11,14 +11,14 @@ from .resources import DetailedMealResource, SimpleMealResource
 class DetailedMealAdmin(ImportExportModelAdmin):
     resource_classes = [DetailedMealResource]
     list_display = ["__str__", "school"]
-    list_filter = ["school"]
+    list_filter = ["school", "type"]
 
 
 @admin.register(SimpleMeal)
 class SimpleMealAdmin(ImportExportModelAdmin):
     resource_classes = [SimpleMealResource]
     list_display = ["__str__", "school"]
-    list_filter = ["school"]
+    list_filter = ["school", "type"]
 
 
 @admin.register(School)

@@ -390,19 +390,22 @@ def export_modal_view(request, school_id, meal_type):
         "school": school,
         "summer_meals": summer_meals,
         "winter_meals": winter_meals,
+        "active_menu": meal_type,
     }
     return render(request, "export-menu.html", context)
 
 
 @login_required
-def export_menu(request, school_id, season):
+def export_menu(request, school_id, season, meal_type):
     school = get_object_or_404(School, pk=school_id)
     menu_type = school.menu_type
     if menu_type == School.Types.SIMPLE:
-        meals = SimpleMeal.objects.filter(school=school, season=season)
+        meals = SimpleMeal.objects.filter(school=school, season=season, type=meal_type)
         data = SimpleMealExportResource().export(meals)
     else:
-        meals = DetailedMeal.objects.filter(school=school, season=season)
+        meals = DetailedMeal.objects.filter(
+            school=school, season=season, type=meal_type
+        )
         data = DetailedMealExportResource().export(meals)
 
     response = HttpResponse(data.csv, content_type="text/csv")

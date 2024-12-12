@@ -16,16 +16,16 @@
                 <span class="text-sm italic">Non hai ancora inserito nessun pasto nel menu della scuola.</span>
             </div>
         {% else %}
-            <a href="{% url 'school_menu:export_menu' school.id 2 %}"
+            <a href="{% url 'school_menu:export_menu' school.id 2 active_menu %}"
                class="inline-flex items-center btn btn-success"
-               download="menu_invernale"
+               download="menu_{{ school.name }}_inv_{{ active_menu }}"
                {% if not winter_meals %}disabled="disabled"{% endif %}>
                 Menu Invernale
                 {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
             </a>
-            <a href="{% url 'school_menu:export_menu' school.id 1 %}"
+            <a href="{% url 'school_menu:export_menu' school.id 1 active_menu %}"
                class="inline-flex items-center btn btn-success"
-               download="menu_estivo"
+               download="menu_{{ school.name }}_est_{{ active_menu }}"
                {% if not summer_meals %}disabled="disabled"{% endif %}>
                 Menu Estivo
                 {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}

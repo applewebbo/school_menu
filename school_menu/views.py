@@ -155,34 +155,19 @@ def get_school_json_menu(request, slug):
     return JsonResponse(data, safe=False)
 
 
-# TODO: get this view working as requested in ISSUE #34
-# @require_http_methods(["GET"])
-# def json_menu(request):
-#     current_week, adjusted_day = get_current_date()
-#     adjusted_week = calculate_week(current_week, 0)
-#     season = School.objects.first().season_choice
-#     meal_for_today = DetailedMeal.objects.filter(
-#         week=adjusted_week, type=1, season=season
-#     )
-#     serializer = DetailedMealSerializer(meal_for_today, many=True)
-#     meals = list(serializer.data)
-#     data = {"current_day": adjusted_day, "meals": meals}
-#     return JsonResponse(data, safe=False)
-
-
 @login_required
 def settings_view(request, pk):
     """Get the settings page"""
-    user = get_user(pk)
-    context = {"user": user}
+    user, alt_menu = get_user(pk)
+    context = {"user": user, "alt_menu": alt_menu}
     return render(request, "settings.html", context)
 
 
 @login_required
 def menu_settings_partial(request, pk):
     """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
-    user = get_user(pk)
-    context = {"user": user}
+    user, alt_menu = get_user(pk)
+    context = {"user": user, "alt_menu": alt_menu}
     return render(request, "settings.html#menu", context)
 
 

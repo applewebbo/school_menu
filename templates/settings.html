@@ -50,7 +50,7 @@
                                 <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
                             </li>
                         </ul>
-                        {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
+                        {% if alt_menu %}
                             <ul class="mt-2 leading-5" id="alternate-meal-settings">
                                 <li>
                                     <p class="font-bold">Menu Alternativi</p>
@@ -106,9 +106,9 @@
                  hx-swap="outerHTML"
                  hx-trigger="menuModified from:body">
                 <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
-                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900 md:flex md:items-center {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}flex items-start mx-auto {% endif %}">
+                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900 md:flex md:items-center {% if alt_menu %}flex items-start mx-auto {% endif %}">
                         Menu
-                        {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
+                        {% if alt_menu %}
                             <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">standard</span>
                         {% endif %}
                     </h3>
@@ -166,7 +166,7 @@
                         {% endfor %}
                     </div>
                     <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
-                    {% if user.school.no_gluten or user.school.no_lactose or user.school.vegetarian or user.school.special %}
+                    {% if alt_menu %}
                         <div class="grid grid-cols-1 col-span-1 gap-y-2 md:col-span-2"
                              id="alt_menu">
                             <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:mt-6 md:text-left">Menu Alternativi</h4>

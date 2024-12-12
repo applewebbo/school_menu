@@ -64,9 +64,19 @@ def get_adjusted_year():
 
 def get_user(pk):
     User = get_user_model()
+    alt_menu = False
     queryset = User.objects.select_related("school")
     user = get_object_or_404(queryset, pk=pk)
-    return user
+    if any(
+        [
+            user.school.no_gluten,
+            user.school.no_lactose,
+            user.school.vegetarian,
+            user.school.special,
+        ]
+    ):
+        alt_menu = True
+    return user, alt_menu
 
 
 def validate_dataset(dataset, menu_type):

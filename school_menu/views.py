@@ -370,21 +370,21 @@ def search_schools(request):
     return TemplateResponse(request, template, context)
 
 
-def export_modal_view(request, school_id):
+def export_modal_view(request, school_id, meal_type):
     school = get_object_or_404(School, pk=school_id)
     if school.menu_type == School.Types.SIMPLE:
         summer_meals = SimpleMeal.objects.filter(
-            school=school, season=School.Seasons.PRIMAVERILE
+            school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
         ).exists()
         winter_meals = SimpleMeal.objects.filter(
-            school=school, season=School.Seasons.INVERNALE
+            school=school, season=School.Seasons.INVERNALE, type=meal_type
         ).exists()
     else:
         summer_meals = DetailedMeal.objects.filter(
-            school=school, season=School.Seasons.PRIMAVERILE
+            school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
         ).exists()
         winter_meals = DetailedMeal.objects.filter(
-            school=school, season=School.Seasons.INVERNALE
+            school=school, season=School.Seasons.INVERNALE, type=meal_type
         ).exists()
     context = {
         "school": school,

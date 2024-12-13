@@ -79,6 +79,20 @@ def get_user(pk):
     return user, alt_menu
 
 
+def get_alt_menu(user):
+    alt_menu = False
+    if any(
+        [
+            user.school.no_gluten,
+            user.school.no_lactose,
+            user.school.vegetarian,
+            user.school.special,
+        ]
+    ):
+        alt_menu = True
+    return alt_menu
+
+
 def validate_dataset(dataset, menu_type):
     """validates menu import dataset for required columns and values before importing into database and return validates = False and message if not valid"""
     validates = True

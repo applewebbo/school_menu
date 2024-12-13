@@ -1,7 +1,7 @@
 {% load filters heroicons static %}
 <div class="modal-content">
     <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scarica il tuo menu {{ active_menu|type_label }}</h3>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scarica il tuo menu ({{ active_menu|type_label|capfirst }})</h3>
         <button type="button"
                 class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
                 x-on:click="openModal = false">

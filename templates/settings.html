@@ -53,26 +53,38 @@
                         {% if alt_menu %}
                             <ul class="mt-2 leading-5" id="alternate-meal-settings">
                                 <li>
-                                    <p class="font-bold">Menu Alternativi</p>
+                                    <p class="mb-1 font-bold md:mb-3">Menu Alternativi</p>
                                     {% if user.school.no_gluten %}
-                                        <img src="{% static 'img/no-gluten.png' %}"
-                                             alt="Icona menu senza glutine"
-                                             class="inline w-5 h-auto me-1">
+                                        <div class="inline-flex flex-col gap-1 items-center me-2">
+                                            <img src="{% static 'img/no-gluten.png' %}"
+                                                 alt="Icona menu senza glutine"
+                                                 class="inline w-5 h-auto">
+                                            <span class="hidden text-xs tracking-tight md:block">No Glutine</span>
+                                        </div>
                                     {% endif %}
                                     {% if user.school.no_lactose %}
-                                        <img src="{% static 'img/no-lactose.png' %}"
-                                             alt="Icona menu senza lattosio"
-                                             class="inline w-5 h-auto me-1">
+                                        <div class="inline-flex flex-col gap-1 items-center me-2">
+                                            <img src="{% static 'img/no-lactose.png' %}"
+                                                 alt="Icona menu senza lattosio"
+                                                 class="inline w-5 h-auto">
+                                            <span class="hidden text-xs tracking-tight md:block">No Lattosio</span>
+                                        </div>
                                     {% endif %}
                                     {% if user.school.vegetarian %}
-                                        <img src="{% static 'img/vegetarian.png' %}"
-                                             alt="Icona menu vegetariano"
-                                             class="inline w-5 h-auto me-1">
+                                        <div class="inline-flex flex-col gap-1 items-center me-2">
+                                            <img src="{% static 'img/vegetarian.png' %}"
+                                                 alt="Icona menu vegetariano"
+                                                 class="inline w-5 h-auto">
+                                            <span class="hidden text-xs tracking-tight md:block">Vegetariano</span>
+                                        </div>
                                     {% endif %}
                                     {% if user.school.special %}
-                                        <img src="{% static 'img/special.png' %}"
-                                             alt="Icona menu speciale"
-                                             class="inline w-5 h-auto me-1">
+                                        <div class="inline-flex flex-col gap-1 items-center me-2">
+                                            <img src="{% static 'img/special.png' %}"
+                                                 alt="Icona menu speciale"
+                                                 class="inline w-5 h-auto">
+                                            <span class="hidden text-xs tracking-tight md:block">Speciale</span>
+                                        </div>
                                     {% endif %}
                                 </li>
                             </ul>
@@ -130,7 +142,7 @@
                             </button>
                         {% endif %}
                         <button class="inline-flex items-center btn btn-sm"
-                                hx-get="{% url 'school_menu:upload_menu' user.school.id %}"
+                                hx-get="{% url 'school_menu:upload_menu' user.school.id active_menu %}"
                                 hx-target="#dialog"
                                 hx-swap="innerHTML"
                                 @click="$dispatch('open-modal')">
@@ -229,7 +241,8 @@
                 </div>
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
-                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group" disabled=disabled
+                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                       disabled="disabled"
                        {% if user.school %} hx-get="#" hx-target="#dialog" hx-swap="innerHTML" @click="$dispatch('open-modal')" {% else %} disabled=disabled {% endif %}>
                         Scarica
                         {% heroicon_solid 'arrow-down-tray' class="group-hover:text-white size-4" %}

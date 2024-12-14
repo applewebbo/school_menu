@@ -172,7 +172,8 @@ def menu_settings_partial(request, pk):
     active_menu = request.GET.get("active_menu")
     if not active_menu:
         active_menu = "S"
-    menu_label = [choice for choice in Meal.Types.choices if choice[0] == active_menu][0][1]  # fmt: skip
+    menu_label_dict = dict(Meal.Types.choices)
+    menu_label = menu_label_dict.get(active_menu)
     context = {
         "user": user,
         "alt_menu": alt_menu,

@@ -67,15 +67,16 @@ def get_user(pk):
     alt_menu = False
     queryset = User.objects.select_related("school")
     user = get_object_or_404(queryset, pk=pk)
-    if any(
-        [
-            user.school.no_gluten,
-            user.school.no_lactose,
-            user.school.vegetarian,
-            user.school.special,
-        ]
-    ):
-        alt_menu = True
+    if hasattr(user, "school"):
+        if any(
+            [
+                user.school.no_gluten,
+                user.school.no_lactose,
+                user.school.vegetarian,
+                user.school.special,
+            ]
+        ):
+            alt_menu = True
     return user, alt_menu
 
 

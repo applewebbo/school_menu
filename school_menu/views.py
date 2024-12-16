@@ -160,8 +160,16 @@ def get_school_json_menu(request, slug):
 def settings_view(request, pk):
     """Get the settings page"""
     user, alt_menu = get_user(pk)
-    active_menu = "S"
-    context = {"user": user, "alt_menu": alt_menu, "active_menu": active_menu}
+    active_menu = request.session.get("active_menu", "S")
+    print(f"Session active_menu read as: {active_menu}")
+    menu_label_dict = dict(Meal.Types.choices)
+    menu_label = menu_label_dict.get(active_menu)
+    context = {
+        "user": user,
+        "alt_menu": alt_menu,
+        "menu_label": menu_label,
+        "active_menu": active_menu,
+    }
     return render(request, "settings.html", context)
 
 
@@ -169,9 +177,8 @@ def settings_view(request, pk):
 def menu_settings_partial(request, pk):
     """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
     user, alt_menu = get_user(pk)
-    active_menu = request.GET.get("active_menu")
-    if not active_menu:
-        active_menu = "S"
+    active_menu = request.GET.get("active_menu", "S")
+    request.session["active_menu"] = active_menu
     menu_label_dict = dict(Meal.Types.choices)
     menu_label = menu_label_dict.get(active_menu)
     context = {
@@ -222,6 +229,7 @@ def school_update(request):
             messages.SUCCESS,
             f"<strong>{school.name}</strong> aggiornata con successo",
         )
+        request.session["active_menu"] = "S"
         return HttpResponse(status=204, headers={"HX-Refresh": "true"})
 
     context = {"form": form}
@@ -276,6 +284,7 @@ def upload_menu(request, school_id, meal_type):
                     messages.ERROR,
                     "Qualcosa è andato storto..",
                 )
+            request.session["active_menu"] = active_menu
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         context = {"form": form, "school": school, "active_menu": active_menu}
         return TemplateResponse(request, "upload-menu.html", context)

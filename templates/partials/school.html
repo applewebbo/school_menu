@@ -1,9 +1,10 @@
 {% load crispy_forms_tags %}
-<div class="mb-4">
-    <h5 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white grow">Scuola</h5>
+<div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
+     id="school">
+    <h5 class="mb-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white grow">Scuola</h5>
+    <form hx-post="{% if create %} {% url 'school_menu:school_create' %} {% else %} {% url 'school_menu:school_update' %} {% endif %}"
+          hx-target="#school"
+          hx-swap="outerHTML">
+        {% crispy form %}
+    </form>
 </div>
-<form hx-post="{% if create %} {% url 'school_menu:school_create' %} {% else %} {% url 'school_menu:school_update' %} {% endif %}"
-      hx-target="#school"
-      hx-swap="innerHTML">
-    {% crispy form %}
-</form>

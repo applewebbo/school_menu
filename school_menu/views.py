@@ -214,7 +214,7 @@ def school_update(request):
     user = request.user
     school = get_object_or_404(School, user=user)
     form = SchoolForm(request.POST or None, instance=school)
-    alt_menu = get_alt_menu(user)
+    get_alt_menu(user)
     if form.is_valid():
         school = form.save()
         messages.add_message(
@@ -222,12 +222,7 @@ def school_update(request):
             messages.SUCCESS,
             f"<strong>{school.name}</strong> aggiornata con successo",
         )
-        # refresh also the menu section of the settings page for alternatives menu selection if needed
-        response = render(
-            request, "settings.html#school", {"school": school, "alt_menu": alt_menu}
-        )
-        response["HX-Trigger"] = "menuModified"
-        return response
+        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
 
     context = {"form": form}
     return render(request, "partials/school.html", context)
@@ -281,7 +276,7 @@ def upload_menu(request, school_id, meal_type):
                     messages.ERROR,
                     "Qualcosa è andato storto..",
                 )
-            return HttpResponse(status=204)
+            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         context = {"form": form, "school": school, "active_menu": active_menu}
         return TemplateResponse(request, "upload-menu.html", context)
     else:

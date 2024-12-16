@@ -55,10 +55,8 @@
                 src="https://connect.facebook.net/it_IT/sdk.js#xfbml=1&version=v20.0"
                 nonce="6qSLf5Dz"></script>
         {% include 'partials/navbar.html' %}
-        <div class="container mx-auto">
-            {% block content %}
-            {% endblock content %}
-        </div>
+        {% block content %}
+        {% endblock content %}
         {% include 'partials/footer.html' %}
         <!-- Modal -->
         {% include 'partials/modal.html' %}

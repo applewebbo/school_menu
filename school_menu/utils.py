@@ -94,6 +94,20 @@ def get_alt_menu(user):
     return alt_menu
 
 
+def get_alt_menu_from_school(school):
+    alt_menu = False
+    if any(
+        [
+            school.no_gluten,
+            school.no_lactose,
+            school.vegetarian,
+            school.special,
+        ]
+    ):
+        alt_menu = True
+    return alt_menu
+
+
 def validate_dataset(dataset, menu_type):
     """validates menu import dataset for required columns and values before importing into database and return validates = False and message if not valid"""
     validates = True

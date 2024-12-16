@@ -33,6 +33,7 @@ from school_menu.utils import (
     calculate_week,
     get_adjusted_year,
     get_alt_menu,
+    get_alt_menu_from_school,
     get_current_date,
     get_season,
     get_user,
@@ -50,6 +51,7 @@ def index(request):
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)
         season = get_season(school)
+        alt_menu = get_alt_menu_from_school(school)
         if school.menu_type == School.Types.SIMPLE:
             weekly_meals = SimpleMeal.objects.filter(
                 school=school, week=adjusted_week, season=season
@@ -67,6 +69,7 @@ def index(request):
             "week": adjusted_week,
             "day": adjusted_day,
             "year": datetime.now().year,
+            "alt_menu": alt_menu,
         }
     return render(request, "index.html", context)
 
@@ -80,6 +83,7 @@ def school_menu(request, slug):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
+    alt_menu = get_alt_menu_from_school(school)
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
             school=school, week=adjusted_week, season=season
@@ -98,6 +102,7 @@ def school_menu(request, slug):
         "week": adjusted_week,
         "day": adjusted_day,
         "year": year,
+        "alt_menu": alt_menu,
     }
     return render(request, "school-menu.html", context)
 

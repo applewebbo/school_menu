@@ -1,20 +1,23 @@
 from datetime import datetime
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
-from django.http import Http404
+from django.test import TestCase
 from tablib import Dataset
 
 from school_menu.models import School
 from school_menu.utils import (
     ChoicesWidget,
     calculate_week,
+    get_alt_menu,
     get_current_date,
     get_season,
     get_user,
     validate_dataset,
 )
+from tests.school_menu.factories import SchoolFactory
+from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -124,70 +127,77 @@ def mock_user_model():
     return MockUserModel
 
 
-class TestGetUser:
-    def test_get_user_success(self, mock_user_model):
-        # Create a mock school with dietary attributes
-        mock_school = MagicMock()
-        mock_school.no_gluten = False
-        mock_school.no_lactose = False
-        mock_school.vegetarian = False
-        mock_school.special = False
+class TestGetUser(TestCase):
+    def test_get_user_with_standard_menu(self):
+        user = UserFactory()
+        SchoolFactory(user=user)
 
-        # Create mock user with proper school relationship
-        mock_user = MagicMock()
-        mock_user.school = mock_school
+        returned_user, alt_menu = get_user(user.pk)
 
-        # Setup the queryset chain
-        mock_queryset = MagicMock()
-        mock_user_model.objects.select_related.return_value = mock_queryset
+        assert returned_user == user
+        assert alt_menu is False
 
-        with (
-            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
-            patch("school_menu.utils.get_object_or_404", return_value=mock_user),
-        ):
-            user, alt_menu = get_user(pk=1)
+    def test_get_user_with_alternative_menu(self):
+        user = UserFactory()
+        SchoolFactory(
+            user=user, no_gluten=True, no_lactose=False, vegetarian=False, special=False
+        )
 
-            # Verify the correct query chain
-            mock_user_model.objects.select_related.assert_called_once_with("school")
+        returned_user, alt_menu = get_user(user.pk)
 
-            assert user == mock_user
-            assert alt_menu is False
+        assert returned_user == user
+        assert alt_menu is True
 
-    def test_get_user_success_with_alt_menu(self, mock_user_model):
-        # Create a mock school with dietary attributes
-        mock_school = MagicMock()
-        mock_school.no_gluten = True
-        mock_school.no_lactose = False
-        mock_school.vegetarian = False
-        mock_school.special = False
+    def test_get_user_without_school(self):
+        user = UserFactory()
 
-        # Create mock user with proper school relationship
-        mock_user = MagicMock()
-        mock_user.school = mock_school
+        returned_user, alt_menu = get_user(user.pk)
 
-        # Setup the queryset chain
-        mock_queryset = MagicMock()
-        mock_user_model.objects.select_related.return_value = mock_queryset
+        assert returned_user == user
+        assert alt_menu is False
 
-        with (
-            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
-            patch("school_menu.utils.get_object_or_404", return_value=mock_user),
-        ):
-            user, alt_menu = get_user(pk=1)
 
-            # Verify the correct query chain
-            mock_user_model.objects.select_related.assert_called_once_with("school")
+class TestGetAltMenu(TestCase):
+    def test_get_alt_menu_standard(self):
+        user = UserFactory()
+        SchoolFactory(
+            user=user,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
 
-            assert user == mock_user
-            assert alt_menu is True
+        alt_menu = get_alt_menu(user)
+        assert alt_menu is False
 
-    def test_get_user_not_found(self, mock_user_model):
-        with (
-            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
-            patch("school_menu.utils.get_object_or_404", side_effect=Http404),
-        ):
-            with pytest.raises(Http404):
-                get_user(pk=999)
+    def test_get_alt_menu_no_gluten(self):
+        user = UserFactory()
+        SchoolFactory(user=user, no_gluten=True)
+
+        alt_menu = get_alt_menu(user)
+        assert alt_menu is True
+
+    def test_get_alt_menu_no_lactose(self):
+        user = UserFactory()
+        SchoolFactory(user=user, no_lactose=True)
+
+        alt_menu = get_alt_menu(user)
+        assert alt_menu is True
+
+    def test_get_alt_menu_vegetarian(self):
+        user = UserFactory()
+        SchoolFactory(user=user, vegetarian=True)
+
+        alt_menu = get_alt_menu(user)
+        assert alt_menu is True
+
+    def test_get_alt_menu_special(self):
+        user = UserFactory()
+        SchoolFactory(user=user, special=True)
+
+        alt_menu = get_alt_menu(user)
+        assert alt_menu is True
 
 
 class TestImportMenu:

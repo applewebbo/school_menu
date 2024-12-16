@@ -161,7 +161,6 @@ def settings_view(request, pk):
     """Get the settings page"""
     user, alt_menu = get_user(pk)
     active_menu = request.session.get("active_menu", "S")
-    print(f"Session active_menu read as: {active_menu}")
     menu_label_dict = dict(Meal.Types.choices)
     menu_label = menu_label_dict.get(active_menu)
     context = {

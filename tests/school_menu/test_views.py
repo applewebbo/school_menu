@@ -3,7 +3,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
-from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 from school_menu.test import TestCase
 from school_menu.utils import calculate_week, get_current_date, get_season
 from tests.school_menu.factories import (
@@ -109,6 +109,16 @@ class IndexView(TestCase):
         self.response_200(response)
         assert response.context["school"] == school
 
+    def test_get_with_simple_meal_setting(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+
+        with self.login(user):
+            response = self.get("school_menu:index")
+
+        self.response_200(response)
+        assert response.context["school"] == school
+
 
 class SchoolMenuView(TestCase):
     def test_get(self):
@@ -120,7 +130,7 @@ class SchoolMenuView(TestCase):
         assert response.context["school"] == school
 
     def test_get_with_detailed_menu(self):
-        school = SchoolFactory(menu_type=School.Types.SIMPLE)
+        school = SchoolFactory(menu_type=School.Types.DETAILED)
         response = self.get("school_menu:school_menu", slug=school.slug)
 
         self.response_200(response)
@@ -265,7 +275,7 @@ class SettingView(TestCase):
         with self.login(user):
             response = self.post("school_menu:school_update", data=data)
 
-        self.response_200(response)
+        self.response_204(response)
         school = School.objects.get(user=user)
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == f"<strong>{ school.name }</strong> aggiornata con successo"
@@ -303,7 +313,10 @@ class TestUploadMenuView(TestCase):
 
         with self.login(user):
             response = self.get(
-                reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+                reverse(
+                    "school_menu:upload_menu",
+                    kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+                )
             )
 
         assert response.status_code == 200
@@ -315,7 +328,10 @@ class TestUploadMenuView(TestCase):
         school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
 
         with self.login(user):
-            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            url = reverse(
+                "school_menu:upload_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
             csv_content = "giorno,settimana,pranzo,spuntino,merenda\nLunedì,1,Pasta al Pomodoro,Mela,Yogurt"
             data = {
                 "file": SimpleUploadedFile(
@@ -328,7 +344,7 @@ class TestUploadMenuView(TestCase):
             response = self.post(url, data=data)
 
         assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
+        assert "HX-Refresh" in response.headers
         assert SimpleMeal.objects.filter(school=school).count() == 1
 
     def test_upload_menu_post_invalid_data(self):
@@ -336,7 +352,10 @@ class TestUploadMenuView(TestCase):
         school = SchoolFactory(user=user)
 
         with self.login(user):
-            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            url = reverse(
+                "school_menu:upload_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
             data = {"season": School.Seasons.INVERNALE}  # Missing file
             response = self.post(url, data=data)
 
@@ -348,7 +367,10 @@ class TestUploadMenuView(TestCase):
         school = SchoolFactory(user=user)
 
         with self.login(user):
-            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            url = reverse(
+                "school_menu:upload_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
             csv_content = b"invalid,csv,content"
             data = {
                 "file": SimpleUploadedFile(
@@ -367,7 +389,10 @@ class TestUploadMenuView(TestCase):
         school = School.objects.create(user=user, menu_type=School.Types.DETAILED)
 
         with self.login(user):
-            url = reverse("school_menu:upload_menu", kwargs={"school_id": school.id})
+            url = reverse(
+                "school_menu:upload_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
             csv_content = "settimana,giorno,primo,secondo,contorno,frutta,spuntino\n1,Lunedì,Pasta,Pollo,Insalata,Mela,Crostatina"
             data = {
                 "file": SimpleUploadedFile(
@@ -380,7 +405,7 @@ class TestUploadMenuView(TestCase):
             response = self.post(url, data=data)
 
         assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
+        assert "HX-Refresh" in response.headers
         assert DetailedMeal.objects.filter(school=school).count() == 1
 
 
@@ -519,10 +544,10 @@ class TestExportModalView(TestCase):
         user = self.make_user()
         school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
         SimpleMealFactory.create_batch(
-            5, school=school, season=SimpleMeal.Seasons.ESTIVO
+            5, school=school, season=SimpleMeal.Seasons.ESTIVO, type=Meal.Types.STANDARD
         )
 
-        response = self.get("school_menu:export_modal", school.pk)
+        response = self.get("school_menu:export_modal", school.pk, Meal.Types.STANDARD)
 
         self.response_200(response)
         assertTemplateUsed(response, "export-menu.html")
@@ -533,10 +558,13 @@ class TestExportModalView(TestCase):
         user = self.make_user()
         school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
         DetailedMealFactory.create_batch(
-            5, school=school, season=DetailedMeal.Seasons.INVERNALE
+            5,
+            school=school,
+            season=DetailedMeal.Seasons.INVERNALE,
+            type=Meal.Types.STANDARD,
         )
 
-        response = self.get("school_menu:export_modal", school.pk)
+        response = self.get("school_menu:export_modal", school.pk, Meal.Types.STANDARD)
 
         self.response_200(response)
         assertTemplateUsed(response, "export-menu.html")
@@ -563,6 +591,7 @@ class TestExportMenuView(TestCase):
                 "school_menu:export_menu",
                 school_id=school.pk,
                 season=SimpleMeal.Seasons.ESTIVO,
+                meal_type=Meal.Types.STANDARD,
             )
 
         self.response_200(response)
@@ -588,6 +617,7 @@ class TestExportMenuView(TestCase):
                 "school_menu:export_menu",
                 school_id=school.pk,
                 season=SimpleMeal.Seasons.ESTIVO,
+                meal_type=Meal.Types.STANDARD,
             )
 
         self.response_200(response)

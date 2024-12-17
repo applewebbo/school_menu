@@ -9,8 +9,10 @@ from tablib import Dataset
 from school_menu.models import School
 from school_menu.utils import (
     ChoicesWidget,
+    build_types_menu,
     calculate_week,
     get_alt_menu,
+    get_alt_menu_from_school,
     get_current_date,
     get_season,
     get_user,
@@ -160,15 +162,10 @@ class TestGetUser(TestCase):
 class TestGetAltMenu(TestCase):
     def test_get_alt_menu_standard(self):
         user = UserFactory()
-        SchoolFactory(
-            user=user,
-            no_gluten=False,
-            no_lactose=False,
-            vegetarian=False,
-            special=False,
-        )
+        SchoolFactory(user=user)
 
         alt_menu = get_alt_menu(user)
+
         assert alt_menu is False
 
     def test_get_alt_menu_no_gluten(self):
@@ -176,6 +173,7 @@ class TestGetAltMenu(TestCase):
         SchoolFactory(user=user, no_gluten=True)
 
         alt_menu = get_alt_menu(user)
+
         assert alt_menu is True
 
     def test_get_alt_menu_no_lactose(self):
@@ -183,6 +181,7 @@ class TestGetAltMenu(TestCase):
         SchoolFactory(user=user, no_lactose=True)
 
         alt_menu = get_alt_menu(user)
+
         assert alt_menu is True
 
     def test_get_alt_menu_vegetarian(self):
@@ -190,6 +189,7 @@ class TestGetAltMenu(TestCase):
         SchoolFactory(user=user, vegetarian=True)
 
         alt_menu = get_alt_menu(user)
+
         assert alt_menu is True
 
     def test_get_alt_menu_special(self):
@@ -197,7 +197,52 @@ class TestGetAltMenu(TestCase):
         SchoolFactory(user=user, special=True)
 
         alt_menu = get_alt_menu(user)
+
         assert alt_menu is True
+
+
+class TestGetAltMenuFromSchool(TestCase):
+    def test_get_false(self):
+        user = UserFactory()
+        school = SchoolFactory(user=user)
+
+        alt_menu = get_alt_menu_from_school(school)
+
+        assert alt_menu is False
+
+    def test_get_true(self):
+        user = UserFactory()
+        school = SchoolFactory(user=user, no_gluten=True)
+
+        alt_menu = get_alt_menu_from_school(school)
+
+        assert alt_menu is True
+
+
+class TestBuildTypesMenu(TestCase):
+    def test_with_standard_only(self):
+        user = UserFactory()
+        school = SchoolFactory(user=user)
+
+        types_menu = build_types_menu(school)
+
+        assert types_menu == {"Standard": "S"}
+
+    def test_with_other_types(self):
+        user = UserFactory()
+        school = SchoolFactory(
+            user=user, no_gluten=True, no_lactose=True, vegetarian=True, special=True
+        )
+
+        types_menu = build_types_menu(school)
+
+        assert types_menu == {
+            "Standard": "S",
+            "No Glutine": "G",
+            "No Lattosio": "L",
+            "Vegetariano": "V",
+            "Speciale": "P",
+        }
 
 
 class TestImportMenu:

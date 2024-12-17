@@ -1,184 +1,20 @@
 {% extends 'base.html' %}
-{% load filters heroicons partials %}
+{% load filters heroicons partials static %}
 {% block page_title %}
     Impostazioni
 {% endblock page_title %}
 
 {% block content %}
-    <section class="grid py-8 px-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-        <!-- INFO -->
-        <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Impostazioni</h1>
-        <p>
-            Bentornato <span class="font-bold">{{ user.email }}</span>. Qui di seguito puoi rivedere e modificare le tue impostazioni relative alla scuola e al menu di tuo figlio. Puoi caricare i menu settimanali oppure modificare quelli già presenti. Se hai bisogno di aiuto per capire come funziona il sistema, puoi consultare la <a href="{% url 'school_menu:help' %}" class="underline text-primary">guida</a>.
-        </p>
-        <!-- SCHOOL -->
-        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
-             id="school">
-            {% partialdef school inline=True %}
-            <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
-                Scuola
-            </h3>
-            {% if user.school %}
-                <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
-                    <ul class="leading-10" id="school-settings">
-                        <li>
-                            <span class="font-bold">Nome:</span> {{ user.school.name }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Città:</span> {{ user.school.city }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Pubblico:</span>
-                            {% if user.school.is_published %}
-                                Sì
-                            {% else %}
-                                No
-                            {% endif %}
-                        </li>
-                    </ul>
-                    <ul class="leading-10" id="meal-settings">
-                        <li>
-                            <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
-                        </li>
-                        <li>
-                            <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
-                        </li>
-                    </ul>
-                </div>
-                <div class="md:text-right">
-                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline"
-                            hx-target="#school"
-                            hx-swap="innerHTML"
-                            hx-get="{% url 'school_menu:school_update' %}">
-                        Modifica
-                        {% heroicon_solid 'pencil' class="hidden md:block size-4" %}
-                    </button>
-                </div>
-            {% else %}
-                <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
-                <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
-                        hx-target="#school"
-                        hx-swap="innerHTML"
-                        hx-get="{% url 'school_menu:school_create' %}">Crea</button>
-            {% endif %}
-            <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
-        {% endpartialdef %}
-        <!-- MENU  -->
-        {% partialdef menu inline=true %}
-        {% if user.school %}
-            <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700"
-                 id="menu"
-                 hx-get="{% url 'school_menu:menu_settings' user.pk %}"
-                 hx-swap="innerHTML"
-                 hx-trigger="menuModified from:body">
-                <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
-                    <h3 class="col-span-1 mb-2 text-2xl font-bold tracking-tight text-gray-900">Menu</h3>
-                    <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
-                        {% if user.school %}
-                            <button class="inline-flex items-center mr-2 group btn btn-sm"
-                                    hx-get="{% url 'school_menu:export_modal' user.school.id %}"
-                                    hx-target="#dialog"
-                                    hx-swap="innerHTML"
-                                    @click="$dispatch('open-modal')">
-                                <span class="hidden sm:block">Scarica</span> Menu
-                                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
-                            </button>
-                        {% endif %}
-                        <button class="inline-flex items-center btn btn-sm"
-                                hx-get="{% url 'school_menu:upload_menu' user.school.id %}"
-                                hx-target="#dialog"
-                                hx-swap="innerHTML"
-                                @click="$dispatch('open-modal')">
-                            <span class="hidden sm:block">Carica</span> Menu
-                            {% heroicon_solid 'arrow-up-tray' class="size-4 ms-2" %}
-                        </button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 gap-y-2 gap-x-4 md:grid-cols-2 md:gap-x-6 md:gp-y-4">
-                    <!--  Settimane Autunno/Inverno  -->
-                    <div class="grid grid-cols-1 gap-y-2" id="winter-weeks">
-                        <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:text-left">Autunno / Inverno</h4>
-                        {% for week in 4|weeks %}
-                            <div class="flex items-center">
-                                <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
-                                   href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 %}"
-                                   hx-boost="true">
-                                    Modifica
-                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}
-                                </a>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
-                    <!--  Settimane Primavera/Estate  -->
-                    <div class="grid grid-cols-1 gap-y-2" id="spring-weeks">
-                        <h4 class="mb-2 text-lg font-bold tracking-tight text-center md:text-left">Primavera / Estate</h4>
-                        {% for week in 4|weeks %}
-                            <div class="flex items-center">
-                                <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
-                                   href="{% url 'school_menu:create_weekly_menu' user.school.id week 1 %}"
-                                   hx-boost="true">
-                                    Modifica
-                                    {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}
-                                </a>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    <div hx-swap-oob="innerHTML:#messages">{% include "partials/messages.html" %}</div>
-                </div>
-            {% endif %}
-        {% endpartialdef %}
-        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
-            <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
-                Account
-            </h3>
-            <div x-data class="grid grid-cols-1 gap-y-2">
-                <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Gestisci il tuo indirizzo mail</h5>
-                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
-                       href="{% url 'account_email' %}">
-                        Gestisci
-                        {% heroicon_solid 'adjustments-vertical' class="group-hover:text-white size-4" %}
-                    </a>
-                </div>
-                <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Visualizza Segnalazioni</h5>
-                    <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
-                        hx-get="{% url 'contacts:report_list' %}"
-                        hx-target="#dialog"
-                        hx-swap="innerHTML"
-                        @click="$dispatch('open-modal')">
-                        Visualizza
-                        {% heroicon_outline 'eye' class="group-hover:text-white size-4" %}
-                    </button>
-                </div>
-                <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
-                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
-                       {% if user.school %} hx-get="{% url 'school_menu:export_modal' user.school.id %}" hx-target="#dialog" hx-swap="innerHTML" @click="$dispatch('open-modal')" {% else %} disabled=disabled {% endif %}>
-                        Scarica
-                        {% heroicon_solid 'arrow-down-tray' class="group-hover:text-white size-4" %}
-                    </a>
-                </div>
-                <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Cancella dati e account</h5>
-                    <button class="inline-flex items-center btn btn-sm btn-error btn-outline group"
-                            hx-get="{% url 'users:user_delete' %}"
-                            hx-target="#dialog"
-                            hx-swap="innerHTML"
-                            @click="$dispatch('open-modal')">
-                        Cancella
-                        {% heroicon_outline 'trash' class="text-danger size-4 group-hover:text-danger" %}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-</section>
+<!-- INFO -->
+{% include 'partials/_settings_info.html' %}
+<!-- SCHOOL -->
+{% partialdef school inline %}
+{% include 'partials/_settings_school.html' %}
+{% endpartialdef %}
+<!-- MENU  -->
+{% partialdef menu inline %}
+{% include 'partials/_settings_menu.html' %}
+{% endpartialdef %}
+<!-- ACCOUNT -->
+{% include 'partials/_settings_account.html' %}
 {% endblock content %}

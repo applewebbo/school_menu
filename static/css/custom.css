@@ -2,16 +2,20 @@
     background-image: url('../img/anon_header.jpg');
   }
 
-  [x-cloak] { display: none !important; }
+[x-cloak] { display: none !important; }
 
-  #logo-credits {
+#logo-credits {
     text-decoration: none;
   }
 
-  #logo-credits:hover {
+#logo-credits:hover {
     text-decoration: underline;
   }
 
-  .menu-list {
+.menu-list {
     font-size: 1.1rem
+  }
+
+#alt_menu_select {
+    line-height: 1rem;
   }

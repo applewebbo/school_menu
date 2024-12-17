@@ -1,20 +1,25 @@
 from datetime import datetime
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
-from django.http import Http404
+from django.test import TestCase
 from tablib import Dataset
 
 from school_menu.models import School
 from school_menu.utils import (
     ChoicesWidget,
+    build_types_menu,
     calculate_week,
+    get_alt_menu,
+    get_alt_menu_from_school,
     get_current_date,
     get_season,
     get_user,
     validate_dataset,
 )
+from tests.school_menu.factories import SchoolFactory
+from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -124,22 +129,120 @@ def mock_user_model():
     return MockUserModel
 
 
-class TestGetUser:
-    def test_get_user_success(self, mock_user_model):
-        with (
-            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
-            patch("school_menu.utils.get_object_or_404", return_value="mock_user"),
-        ):
-            user = get_user(pk=1)
-            assert user == "mock_user"
+class TestGetUser(TestCase):
+    def test_get_user_with_standard_menu(self):
+        user = UserFactory()
+        SchoolFactory(user=user)
 
-    def test_get_user_not_found(self, mock_user_model):
-        with (
-            patch("school_menu.utils.get_user_model", return_value=mock_user_model),
-            patch("school_menu.utils.get_object_or_404", side_effect=Http404),
-        ):
-            with pytest.raises(Http404):
-                get_user(pk=999)
+        returned_user, alt_menu = get_user(user.pk)
+
+        assert returned_user == user
+        assert alt_menu is False
+
+    def test_get_user_with_alternative_menu(self):
+        user = UserFactory()
+        SchoolFactory(
+            user=user, no_gluten=True, no_lactose=False, vegetarian=False, special=False
+        )
+
+        returned_user, alt_menu = get_user(user.pk)
+
+        assert returned_user == user
+        assert alt_menu is True
+
+    def test_get_user_without_school(self):
+        user = UserFactory()
+
+        returned_user, alt_menu = get_user(user.pk)
+
+        assert returned_user == user
+        assert alt_menu is False
+
+
+class TestGetAltMenu(TestCase):
+    def test_get_alt_menu_standard(self):
+        user = UserFactory()
+        SchoolFactory(user=user)
+
+        alt_menu = get_alt_menu(user)
+
+        assert alt_menu is False
+
+    def test_get_alt_menu_no_gluten(self):
+        user = UserFactory()
+        SchoolFactory(user=user, no_gluten=True)
+
+        alt_menu = get_alt_menu(user)
+
+        assert alt_menu is True
+
+    def test_get_alt_menu_no_lactose(self):
+        user = UserFactory()
+        SchoolFactory(user=user, no_lactose=True)
+
+        alt_menu = get_alt_menu(user)
+
+        assert alt_menu is True
+
+    def test_get_alt_menu_vegetarian(self):
+        user = UserFactory()
+        SchoolFactory(user=user, vegetarian=True)
+
+        alt_menu = get_alt_menu(user)
+
+        assert alt_menu is True
+
+    def test_get_alt_menu_special(self):
+        user = UserFactory()
+        SchoolFactory(user=user, special=True)
+
+        alt_menu = get_alt_menu(user)
+
+        assert alt_menu is True
+
+
+class TestGetAltMenuFromSchool(TestCase):
+    def test_get_false(self):
+        user = UserFactory()
+        school = SchoolFactory(user=user)
+
+        alt_menu = get_alt_menu_from_school(school)
+
+        assert alt_menu is False
+
+    def test_get_true(self):
+        user = UserFactory()
+        school = SchoolFactory(user=user, no_gluten=True)
+
+        alt_menu = get_alt_menu_from_school(school)
+
+        assert alt_menu is True
+
+
+class TestBuildTypesMenu(TestCase):
+    def test_with_standard_only(self):
+        user = UserFactory()
+        school = SchoolFactory(user=user)
+
+        types_menu = build_types_menu(school)
+
+        assert types_menu == {"Standard": "S"}
+
+    def test_with_other_types(self):
+        user = UserFactory()
+        school = SchoolFactory(
+            user=user, no_gluten=True, no_lactose=True, vegetarian=True, special=True
+        )
+
+        types_menu = build_types_menu(school)
+
+        assert types_menu == {
+            "Standard": "S",
+            "No Glutine": "G",
+            "No Lattosio": "L",
+            "Vegetariano": "V",
+            "Speciale": "P",
+        }
 
 
 class TestImportMenu:

@@ -1,7 +1,7 @@
-{% load heroicons static %}
+{% load filters heroicons static %}
 <div class="modal-content">
     <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scarica il tuo menu</h3>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Scarica il tuo menu ({{ active_menu|type_label|capfirst }})</h3>
         <button type="button"
                 class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
                 x-on:click="openModal = false">
@@ -16,16 +16,16 @@
                 <span class="text-sm italic">Non hai ancora inserito nessun pasto nel menu della scuola.</span>
             </div>
         {% else %}
-            <a href="{% url 'school_menu:export_menu' school.id 2 %}"
+            <a href="{% url 'school_menu:export_menu' school.id 2 active_menu %}"
                class="inline-flex items-center btn btn-success"
-               download="menu_invernale"
+               download="menu_{{ school.name }}_inv_{{ active_menu|type_label }}"
                {% if not winter_meals %}disabled="disabled"{% endif %}>
                 Menu Invernale
                 {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
             </a>
-            <a href="{% url 'school_menu:export_menu' school.id 1 %}"
+            <a href="{% url 'school_menu:export_menu' school.id 1 active_menu %}"
                class="inline-flex items-center btn btn-success"
-               download="menu_estivo"
+               download="menu_{{ school.name }}_est_{{ active_menu|type_label }}"
                {% if not summer_meals %}disabled="disabled"{% endif %}>
                 Menu Estivo
                 {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}

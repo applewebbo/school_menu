@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from import_export.widgets import Widget
 
-from school_menu.models import School
+from school_menu.models import Meal, School
 
 
 # TODO: need to refactor this function when number of weeks is different than 4 in settings
@@ -64,9 +64,62 @@ def get_adjusted_year():
 
 def get_user(pk):
     User = get_user_model()
+    alt_menu = False
     queryset = User.objects.select_related("school")
     user = get_object_or_404(queryset, pk=pk)
-    return user
+    if hasattr(user, "school"):
+        if any(
+            [
+                user.school.no_gluten,
+                user.school.no_lactose,
+                user.school.vegetarian,
+                user.school.special,
+            ]
+        ):
+            alt_menu = True
+    return user, alt_menu
+
+
+def get_alt_menu(user):
+    alt_menu = False
+    if any(
+        [
+            user.school.no_gluten,
+            user.school.no_lactose,
+            user.school.vegetarian,
+            user.school.special,
+        ]
+    ):
+        alt_menu = True
+    return alt_menu
+
+
+def get_alt_menu_from_school(school):
+    alt_menu = False
+    if any(
+        [
+            school.no_gluten,
+            school.no_lactose,
+            school.vegetarian,
+            school.special,
+        ]
+    ):
+        alt_menu = True
+    return alt_menu
+
+
+def build_types_menu(school):
+    """Build the alternate meal menu based for the given school"""
+    types_menu = {"Standard": "S"}
+    if school.no_gluten:
+        types_menu[Meal.Types.GLUTEN_FREE.label] = "G"
+    if school.no_lactose:
+        types_menu[Meal.Types.LACTOSE_FREE.label] = "L"
+    if school.vegetarian:
+        types_menu[Meal.Types.VEGETARIAN.label] = "V"
+    if school.special:
+        types_menu[Meal.Types.SPECIAL.label] = "P"
+    return types_menu
 
 
 def validate_dataset(dataset, menu_type):

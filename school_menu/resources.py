@@ -22,6 +22,7 @@ class DetailedMealResource(resources.ModelResource):
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
         instance.season = kwargs.get("season")
+        instance.type = kwargs.get("type")
 
     class Meta:
         model = DetailedMeal
@@ -51,6 +52,7 @@ class SimpleMealResource(resources.ModelResource):
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
         instance.season = kwargs.get("season")
+        instance.type = kwargs.get("type")
 
     class Meta:
         model = SimpleMeal

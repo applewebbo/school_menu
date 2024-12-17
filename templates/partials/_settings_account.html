@@ -1,0 +1,51 @@
+{% load heroicons %}
+<section class="container mx-auto max-w-screen-lg" id="account">
+    <div class="px-4 my-8">
+        <div class="p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
+            <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
+                Account
+            </h3>
+            <div x-data class="grid grid-cols-1 gap-y-2">
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Gestisci il tuo indirizzo mail</h5>
+                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                    href="{% url 'account_email' %}">
+                        Gestisci
+                        {% heroicon_solid 'adjustments-vertical' class="group-hover:text-white size-4" %}
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Visualizza Segnalazioni</h5>
+                    <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                            hx-get="{% url 'contacts:report_list' %}"
+                            hx-target="#dialog"
+                            hx-swap="innerHTML"
+                            @click="$dispatch('open-modal')">
+                        Visualizza
+                        {% heroicon_outline 'eye' class="group-hover:text-white size-4" %}
+                    </button>
+                </div>
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
+                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                    disabled="disabled"
+                    {% if user.school %} hx-get="#" hx-target="#dialog" hx-swap="innerHTML" @click="$dispatch('open-modal')" {% else %} disabled=disabled {% endif %}>
+                        Scarica
+                        {% heroicon_solid 'arrow-down-tray' class="group-hover:text-white size-4" %}
+                    </a>
+                </div>
+                <div class="flex items-center">
+                    <h5 class="mr-8 font-medium grow">Cancella dati e account</h5>
+                    <button class="inline-flex items-center btn btn-sm btn-error btn-outline group"
+                            hx-get="{% url 'users:user_delete' %}"
+                            hx-target="#dialog"
+                            hx-swap="innerHTML"
+                            @click="$dispatch('open-modal')">
+                        Cancella
+                        {% heroicon_outline 'trash' class="text-danger size-4 group-hover:text-danger" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

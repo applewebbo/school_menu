@@ -158,6 +158,7 @@ class GetMenuView(TestCase):
             morning_snack="Crackers",
             afternoon_snack="Yogurt",
             season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
         )
 
         response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
@@ -176,6 +177,7 @@ class GetMenuView(TestCase):
             first_course="Pasta al Pomodoro",
             snack="Crackers",
             season=School.Seasons.PRIMAVERILE,
+            type=DetailedMeal.Types.STANDARD,
         )
 
         response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
@@ -435,8 +437,15 @@ class CreateWeeklyMenuView(TestCase):
 
     def test_get_with_meals_already_present(self):
         user = self.make_user()
-        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
-        SimpleMealFactory.create_batch(5, school=school)
+        school = SchoolFactory(
+            user=user,
+            menu_type=School.Types.SIMPLE,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
+        SimpleMealFactory.create_batch(5, school=school, type=Meal.Types.STANDARD)
 
         with self.login(user):
             response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")

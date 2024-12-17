@@ -132,7 +132,13 @@ def mock_user_model():
 class TestGetUser(TestCase):
     def test_get_user_with_standard_menu(self):
         user = UserFactory()
-        SchoolFactory(user=user)
+        SchoolFactory(
+            user=user,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
 
         returned_user, alt_menu = get_user(user.pk)
 
@@ -162,7 +168,13 @@ class TestGetUser(TestCase):
 class TestGetAltMenu(TestCase):
     def test_get_alt_menu_standard(self):
         user = UserFactory()
-        SchoolFactory(user=user)
+        SchoolFactory(
+            user=user,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
 
         alt_menu = get_alt_menu(user)
 
@@ -204,7 +216,13 @@ class TestGetAltMenu(TestCase):
 class TestGetAltMenuFromSchool(TestCase):
     def test_get_false(self):
         user = UserFactory()
-        school = SchoolFactory(user=user)
+        school = SchoolFactory(
+            user=user,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
 
         alt_menu = get_alt_menu_from_school(school)
 
@@ -222,7 +240,13 @@ class TestGetAltMenuFromSchool(TestCase):
 class TestBuildTypesMenu(TestCase):
     def test_with_standard_only(self):
         user = UserFactory()
-        school = SchoolFactory(user=user)
+        school = SchoolFactory(
+            user=user,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
 
         types_menu = build_types_menu(school)
 

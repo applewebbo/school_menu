@@ -10,7 +10,7 @@ urlpatterns = [
     path("settings/<int:pk>/", views.settings_view, name="settings"),
     path("school_list", views.school_list, name="school_list"),
     path(
-        "get-menu/<int:school_id>/<int:week>/<int:day>/<str:type>/",
+        "get-menu/<int:school_id>/<int:week>/<int:day>/<str:meal_type>/",
         views.get_menu,
         name="get_menu",
     ),

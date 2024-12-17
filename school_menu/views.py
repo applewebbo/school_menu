@@ -30,6 +30,7 @@ from school_menu.serializers import (
     SimpleMealSerializer,
 )
 from school_menu.utils import (
+    build_types_menu,
     calculate_week,
     get_adjusted_year,
     get_alt_menu,
@@ -52,14 +53,16 @@ def index(request):
         adjusted_week = calculate_week(current_week, bias)
         season = get_season(school)
         alt_menu = get_alt_menu_from_school(school)
+        meal_type = "S"
+        types_menu = build_types_menu(school)
         if school.menu_type == School.Types.SIMPLE:
             weekly_meals = SimpleMeal.objects.filter(
-                school=school, week=adjusted_week, season=season
+                school=school, week=adjusted_week, season=season, type=meal_type
             ).order_by("day")
             meal_for_today = weekly_meals.filter(day=adjusted_day).first()
         else:
             weekly_meals = DetailedMeal.objects.filter(
-                school=school, week=adjusted_week, season=season
+                school=school, week=adjusted_week, season=season, type=meal_type
             ).order_by("day")
             meal_for_today = weekly_meals.filter(day=adjusted_day).first()
         context = {
@@ -70,11 +73,12 @@ def index(request):
             "day": adjusted_day,
             "year": datetime.now().year,
             "alt_menu": alt_menu,
+            "types_menu": types_menu,
         }
     return render(request, "index.html", context)
 
 
-def school_menu(request, slug):
+def school_menu(request, slug, meal_type="S"):
     """Return school menu for the given school"""
     school = get_object_or_404(School, slug=slug)
     if not school.is_published:
@@ -84,14 +88,16 @@ def school_menu(request, slug):
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
     alt_menu = get_alt_menu_from_school(school)
+    meal_type = meal_type
+    types_menu = build_types_menu(school)
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
+            school=school, week=adjusted_week, season=season, type=meal_type
         ).order_by("day")
         meal_for_today = weekly_meals.filter(day=adjusted_day).first()
     else:
         weekly_meals = DetailedMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
+            school=school, week=adjusted_week, season=season, type=meal_type
         ).order_by("day")
         meal_for_today = weekly_meals.filter(day=adjusted_day).first()
     year = get_adjusted_year()
@@ -103,21 +109,25 @@ def school_menu(request, slug):
         "day": adjusted_day,
         "year": year,
         "alt_menu": alt_menu,
+        "types_menu": types_menu,
     }
     return render(request, "school-menu.html", context)
 
 
-def get_menu(request, school_id, week, day, type):
+def get_menu(request, school_id, week, day, meal_type):
     """get menu for the given school, day, week and type"""
     school = School.objects.get(pk=school_id)
     season = get_season(school)
+    year = get_adjusted_year()
+    alt_menu = get_alt_menu_from_school(school)
+    types_menu = build_types_menu(school)
     if school.menu_type == School.Types.SIMPLE:
         weekly_meals = SimpleMeal.objects.filter(
-            week=week, type=type, season=season, school=school
+            week=week, season=season, school=school, type=meal_type
         ).order_by("day")
     else:
         weekly_meals = DetailedMeal.objects.filter(
-            week=week, type=type, season=season, school=school
+            week=week, season=season, school=school, type=meal_type
         ).order_by("day")
     meal_of_the_day = weekly_meals.get(day=day)
     context = {
@@ -126,8 +136,10 @@ def get_menu(request, school_id, week, day, type):
         "weekly_meals": weekly_meals,
         "week": week,
         "day": day,
-        "type": type,
-        "year": datetime.now().year,
+        "type": meal_type,
+        "year": year,
+        "alt_menu": alt_menu,
+        "types_menu": types_menu,
     }
     return render(request, "partials/_menu.html", context)
 

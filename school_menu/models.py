@@ -7,13 +7,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Meal(models.Model):
-    # class Types(models.IntegerChoices):
-    #     STANDARD = 1
-    #     GLUTEN_FREE = 2
-    #     LACTOSE_FREE = 3
-    #     VEGETARIAN = 4
-    #     SPECIAL = 5
-
     class Types(models.TextChoices):
         STANDARD = "S", _("Standard")
         GLUTEN_FREE = "G", _("No Glutine")

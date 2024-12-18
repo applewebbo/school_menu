@@ -1,4 +1,5 @@
 import factory
+from allauth.account.models import EmailAddress
 from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -22,6 +23,16 @@ class Command(BaseCommand):
     @transaction.atomic
     @factory.Faker.override_default_locale("it_IT")
     def handle(self, *args, **kwargs):
+        self.stdout.write("Verifying Superuser email..")
+        if User.objects.filter(is_superuser=True).exists():
+            user = User.objects.get(is_superuser=True)
+            EmailAddress.objects.create(
+                user=user, email=user.email, verified=True, primary=True
+            )
+            self.stdout.write("Email verified")
+        else:
+            self.stdout.write("Superuser not found, please create one first")
+
         self.stdout.write("Deleting old data...")
         # deleting all user except superuser
         User.objects.exclude(is_superuser=True).delete()

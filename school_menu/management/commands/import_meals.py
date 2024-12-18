@@ -26,6 +26,7 @@ class Command(BaseCommand):
                 no_gluten=True,
                 no_lactose=True,
                 vegetarian=True,
+                special=False,
             )
         else:
             school = School.objects.get(user=superuser)
@@ -35,6 +36,7 @@ class Command(BaseCommand):
             school.no_gluten = True
             school.no_lactose = True
             school.vegetarian = True
+            school.special = False
             school.save()
 
         seasons = {

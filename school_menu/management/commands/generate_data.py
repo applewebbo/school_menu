@@ -25,9 +25,8 @@ class Command(BaseCommand):
         self.stdout.write("Deleting old data...")
         # deleting all user except superuser
         User.objects.exclude(is_superuser=True).delete()
-        # deleting all school (except superuser) and cascading all meals
-        superuser = User.objects.get(is_superuser=True)
-        School.objects.exclude(user=superuser).delete()
+        # deleting all school and cascading all meals
+        School.objects.all().delete()
 
         self.stdout.write("Creating new data...")
         # creating users with email=user_*@test.com and password=1234
@@ -36,7 +35,7 @@ class Command(BaseCommand):
         for user in User.objects.exclude(is_superuser=True):
             SchoolFactory.create(user=user)
         # creating meals
-        for school in School.objects.all():
+        for school in School.objects.exclude(user__is_superuser=True):
             if school.menu_type == School.Types.SIMPLE:
                 meal_types = [SimpleMeal.Types.STANDARD]
                 if school.no_gluten:

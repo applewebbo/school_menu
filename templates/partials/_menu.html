@@ -10,7 +10,7 @@
             {% else %}
                 {% include 'partials/_simple_menu.html' %}
             {% endif %}
-                {% include 'partials/_types_menu.html' %}
+            {% include 'partials/_types_menu.html' %}
             <div class="flex flex-col gap-1 justify-center items-center mt-4 md:flex-row md:gap-2 md:mt-8">
                 <div class="badge badge-secondary me-1">Settimana {{ week }}</div>
                 <div class="text-green-200 badge badge-primary me-1">
@@ -53,31 +53,10 @@
             Copia
         </button>
         <a href="{% url 'contacts:menu_report' school.pk %}"
-            class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn"
-            x-tooltip="Segnala un problema">
+           class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn"
+           x-tooltip="Segnala un problema">
             {% heroicon_outline "exclamation-triangle" class="w-5 h-5 text-red-500 me-1" %}
             Segnala
         </a>
     </div>
 </div>
-<script>
-    document.addEventListener('alpine:init', () => {
-        // Magic: $tooltip
-        Alpine.magic('tooltip', el => message => {
-            let instance = tippy(el, { content: message, trigger: 'manual' })
-
-            instance.show()
-
-            setTimeout(() => {
-                instance.hide()
-
-                setTimeout(() => instance.destroy(), 150)
-            }, 2000)
-        })
-
-        // Directive: x-tooltip
-        Alpine.directive('tooltip', (el, { expression }) => {
-            tippy(el, { content: expression })
-        })
-    })
-</script>

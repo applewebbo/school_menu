@@ -108,18 +108,12 @@ def get_alt_menu_from_school(school):
     return alt_menu
 
 
-def build_types_menu(school):
-    """Build the alternate meal menu based for the given school"""
-    types_menu = {"Standard": "S"}
-    if school.no_gluten:
-        types_menu[Meal.Types.GLUTEN_FREE.label] = "G"
-    if school.no_lactose:
-        types_menu[Meal.Types.LACTOSE_FREE.label] = "L"
-    if school.vegetarian:
-        types_menu[Meal.Types.VEGETARIAN.label] = "V"
-    if school.special:
-        types_menu[Meal.Types.SPECIAL.label] = "P"
-    return types_menu
+def build_types_menu(weekly_meals):
+    """Build the alternate meal menu for the given school based on presence of meal for the given day"""
+    return {
+        Meal.Types(type).label: type
+        for type in weekly_meals.values_list("type", flat=True).distinct()
+    }
 
 
 def validate_dataset(dataset, menu_type):

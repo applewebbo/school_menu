@@ -7,10 +7,10 @@
                  x-cloak
                  x-data="{ show: true }"
                  x-show="show"
-                 x-init="setTimeout(() => show = false, 4000)">
+                 x-init="setTimeout(() => show = false, 3000)">
                 <div>
                     {% if message.tags == 'info' %}
-                    {% heroicon_mini 'information-circle' class="w-5 h-5 text-info" %}
+                        {% heroicon_mini 'information-circle' class="w-5 h-5 text-info" %}
                     {% elif message.tags == 'success' %}
                         {% heroicon_mini 'check-circle' class="w-5 h-5 text-success" %}
                     {% elif message.tags == 'error' %}

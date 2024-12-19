@@ -121,8 +121,8 @@ class IndexView(TestCase):
 
 
 class SchoolMenuView(TestCase):
-    def test_get(self):
-        school = SchoolFactory()
+    def test_get_with_simple_menu(self):
+        school = SchoolFactory(menu_type=School.Types.SIMPLE)
         response = self.get("school_menu:school_menu", slug=school.slug)
 
         self.response_200(response)

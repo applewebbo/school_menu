@@ -6,7 +6,7 @@ import pytest
 from django.test import TestCase
 from tablib import Dataset
 
-from school_menu.models import School
+from school_menu.models import School, SimpleMeal
 from school_menu.utils import (
     ChoicesWidget,
     build_types_menu,
@@ -18,7 +18,7 @@ from school_menu.utils import (
     get_user,
     validate_dataset,
 )
-from tests.school_menu.factories import SchoolFactory
+from tests.school_menu.factories import SchoolFactory, SimpleMealFactory
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -240,15 +240,12 @@ class TestGetAltMenuFromSchool(TestCase):
 class TestBuildTypesMenu(TestCase):
     def test_with_standard_only(self):
         user = UserFactory()
-        school = SchoolFactory(
-            user=user,
-            no_gluten=False,
-            no_lactose=False,
-            vegetarian=False,
-            special=False,
-        )
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        SimpleMealFactory.create_batch(5, school=school, type=SimpleMeal.Types.STANDARD)
 
-        types_menu = build_types_menu(school)
+        meals = SimpleMeal.objects.all()
+
+        types_menu = build_types_menu(meals)
 
         assert types_menu == {"Standard": "S"}
 
@@ -257,8 +254,11 @@ class TestBuildTypesMenu(TestCase):
         school = SchoolFactory(
             user=user, no_gluten=True, no_lactose=True, vegetarian=True, special=True
         )
+        for type in SimpleMeal.Types.choices:
+            SimpleMealFactory(school=school, type=type[0])
+        meals = SimpleMeal.objects.all()
 
-        types_menu = build_types_menu(school)
+        types_menu = build_types_menu(meals)
 
         assert types_menu == {
             "Standard": "S",

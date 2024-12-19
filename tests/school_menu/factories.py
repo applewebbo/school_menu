@@ -80,6 +80,10 @@ class SchoolFactory(factory.django.DjangoModelFactory):
     season_choice = factory.Iterator(School.Seasons.choices, getter=lambda c: c[0])
     menu_type = factory.Iterator(School.Types.choices, getter=lambda c: c[0])
     week_bias = factory.Faker("random_int", min=0, max=3)
+    no_gluten = factory.Faker("boolean")
+    no_lactose = factory.Faker("boolean")
+    vegetarian = factory.Faker("boolean")
+    special = factory.Faker("boolean")
 
 
 class SimpleMealFactory(factory.django.DjangoModelFactory):
@@ -90,9 +94,21 @@ class SimpleMealFactory(factory.django.DjangoModelFactory):
     day = factory.Iterator(SimpleMeal.Days.choices, getter=lambda c: c[0])
     week = factory.Iterator(SimpleMeal.Weeks.choices, getter=lambda c: c[0])
     season = factory.Iterator(SimpleMeal.Seasons.choices, getter=lambda c: c[0])
+    type = factory.Iterator(SimpleMeal.Types.choices, getter=lambda c: c[0])
     menu = factory.Iterator(MEAL_LIST)
     morning_snack = factory.Iterator(FRUIT_LIST)
     afternoon_snack = factory.Iterator(SNACK_LIST_2)
+
+    @factory.post_generation
+    def add_type_to_menu(self, create, extracted, **kwargs):
+        if create:  # Only run if the object was created, not built
+            self.afternoon_snack = f"{self.afternoon_snack} [{self.get_type_display()}]"
+            self.save()
+
+    @classmethod
+    def _after_postgeneration(cls, instance, create, results=None):
+        # Don't save again after post-generation
+        pass
 
 
 class DetailedMealFactory(factory.django.DjangoModelFactory):
@@ -100,11 +116,23 @@ class DetailedMealFactory(factory.django.DjangoModelFactory):
         model = DetailedMeal
 
     school = factory.SubFactory(SchoolFactory)
-    day = factory.Iterator(SimpleMeal.Days.choices, getter=lambda c: c[0])
-    week = factory.Iterator(SimpleMeal.Weeks.choices, getter=lambda c: c[0])
-    season = factory.Iterator(SimpleMeal.Seasons.choices, getter=lambda c: c[0])
+    day = factory.Iterator(DetailedMeal.Days.choices, getter=lambda c: c[0])
+    week = factory.Iterator(DetailedMeal.Weeks.choices, getter=lambda c: c[0])
+    season = factory.Iterator(DetailedMeal.Seasons.choices, getter=lambda c: c[0])
+    type = factory.Iterator(DetailedMeal.Types.choices, getter=lambda c: c[0])
     first_course = factory.Iterator(FIRST_COURSE_LIST)
     second_course = factory.Iterator(SECOND_COURSE_LIST)
     side_dish = factory.Iterator(SIDE_DISH_LIST)
     fruit = factory.Iterator(FRUIT_LIST)
     snack = factory.Iterator(SNACK_LIST)
+
+    @factory.post_generation
+    def add_type_to_menu(self, create, extracted, **kwargs):
+        if create:  # Only run if the object was created, not built
+            self.snack = f"{self.snack} [{self.get_type_display()}]"
+            self.save()
+
+    @classmethod
+    def _after_postgeneration(cls, instance, create, results=None):
+        # Don't save again after post-generation
+        pass

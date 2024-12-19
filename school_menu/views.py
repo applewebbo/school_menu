@@ -64,7 +64,7 @@ def index(request):
                 school=school, week=adjusted_week, season=season
             ).order_by("day")
             meal_for_today = weekly_meals.filter(day=adjusted_day).first()
-        types_menu = build_types_menu(weekly_meals)
+        types_menu = build_types_menu(weekly_meals, school)
         weekly_meals = weekly_meals.filter(type=meal_type)
         context = {
             "school": school,
@@ -101,7 +101,7 @@ def school_menu(request, slug, meal_type="S"):
         ).order_by("day")
         meal_for_today = weekly_meals.filter(day=adjusted_day).first()
     year = get_adjusted_year()
-    types_menu = build_types_menu(weekly_meals)
+    types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
     context = {
         "school": school,
@@ -130,7 +130,7 @@ def get_menu(request, school_id, week, day, meal_type):
         weekly_meals = DetailedMeal.objects.filter(
             week=week, season=season, school=school
         ).order_by("day")
-    types_menu = build_types_menu(weekly_meals)
+    types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
     meal_of_the_day = weekly_meals.filter(day=day).first()
     context = {

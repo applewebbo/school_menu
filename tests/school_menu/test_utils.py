@@ -245,7 +245,7 @@ class TestBuildTypesMenu(TestCase):
 
         meals = SimpleMeal.objects.all()
 
-        types_menu = build_types_menu(meals)
+        types_menu = build_types_menu(meals, school)
 
         assert types_menu == {"Standard": "S"}
 
@@ -258,7 +258,7 @@ class TestBuildTypesMenu(TestCase):
             SimpleMealFactory(school=school, type=type[0])
         meals = SimpleMeal.objects.all()
 
-        types_menu = build_types_menu(meals)
+        types_menu = build_types_menu(meals, school)
 
         assert types_menu == {
             "Standard": "S",
@@ -266,6 +266,23 @@ class TestBuildTypesMenu(TestCase):
             "No Lattosio": "L",
             "Vegetariano": "V",
             "Speciale": "P",
+        }
+
+    def test_with_some_inactive_types(self):
+        user = UserFactory()
+        school = SchoolFactory(
+            user=user, no_gluten=True, no_lactose=False, vegetarian=True, special=False
+        )
+        for type in SimpleMeal.Types.choices:
+            SimpleMealFactory(school=school, type=type[0])
+        meals = SimpleMeal.objects.all()
+
+        types_menu = build_types_menu(meals, school)
+
+        assert types_menu == {
+            "Standard": "S",
+            "No Glutine": "G",
+            "Vegetariano": "V",
         }
 
 

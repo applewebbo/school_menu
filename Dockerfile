@@ -11,16 +11,14 @@ ENV PYTHONPATH=/srv
 ENV PYTHONUNBUFFERED=1
 
 #install uv and postgresql client
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt \
-    apt update && \
+RUN apt update && \
     apt install --no-install-recommends -y libpq-dev curl unzip gnupg2 lsb-release apt-transport-https ca-certificates
 # RUN apt-get update && apt-get install -y curl unzip postgresql-client-16
 # Add the PGDG apt repo
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 # Trust the PGDG gpg key
 RUN curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc| gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,id=apt \
-    apt update \
+RUN apt update \
     && apt -y install postgresql-16 \
     && rm -rf /var/lib/apt/lists/*
 RUN pip install --upgrade pip uv

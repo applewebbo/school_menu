@@ -117,12 +117,14 @@ def build_types_menu(weekly_meals, school):
         "V" if school.vegetarian else None,
         "P" if school.special else None,
     ]
-    active_menu = {menu for menu in active_menu if menu is not None}
-    meals = {
-        Meal.Types(type).label: type
-        for type in weekly_meals.values_list("type", flat=True).distinct()
-        if type in active_menu
-    }
+    active_menu = [menu for menu in active_menu if menu is not None]
+    available_types = weekly_meals.values_list("type", flat=True).distinct()
+
+    meals = {}
+    for menu_type in active_menu:
+        if menu_type in available_types:
+            meals[Meal.Types(menu_type).label] = menu_type
+
     return meals
 
 

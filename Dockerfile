@@ -11,7 +11,7 @@ ENV PYTHONPATH=/srv
 ENV PYTHONUNBUFFERED=1
 
 #install uv
-RUN apt-get update && apt-get install -y curl unzip
+RUN apt-get update && apt-get install -y curl unzip postgresql-client
 RUN pip install --upgrade pip uv
 RUN python -m uv venv
 

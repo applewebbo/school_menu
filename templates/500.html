@@ -1,0 +1,19 @@
+{% extends 'base-simplified.html' %}
+
+{% block page_title %}
+    Errore 500
+{% endblock page_title %}
+
+{% block content %}
+<section class="flex items-center p-16 h-screen bg-white">
+    <div class="container flex flex-col items-center">
+        <div class="flex flex-col gap-2 max-w-md text-center md:gap-4">
+            <h1 class="text-5xl font-extrabold text-red-500 md:text-8xl">
+                <span class="sr-only">Errore</span>500
+            </h1>
+            <p class="text-2xl md:text-3xl">Qualcosa è andato storto...</p>
+            <p class="text-lg italic text-gray-500">Ci scusiamo per il disagio. Riprovare più tardi</p>
+        </div>
+    </div>
+</section>
+{% endblock content %}

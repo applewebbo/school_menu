@@ -1,6 +1,6 @@
 from .common import *  # noqa
 
-DEBUG = True
+DEBUG = env("DEBUG", default=True)
 NO_RELOAD = False
 
 INSTALLED_APPS += [

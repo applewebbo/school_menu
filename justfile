@@ -14,6 +14,12 @@ bootstrap:
 local:
     python manage.py tailwind --settings=core.settings.dev runserver
 
+
+# Run Django with DEBUG=False locally
+prod_local:
+    python manage.py collectstatic --noinput --settings=core.settings.dev
+    python manage.py runserver --settings=core.settings.dev --insecure
+
 # Install requirements
 requirements:
     uv sync
@@ -37,11 +43,6 @@ test:
 # Run fast tests
 ftest:
     pytest -n 8 --reuse-db
-
-# Run tests excluding mapbox and generate coverage report
-mptest:
-    COVERAGE_CORE=sysmon python -m pytest -m "not mapbox" --cov-report html:htmlcov --cov-report term:skip-covered --cov-fail-under 100
-
 
 lint:
     uv run ruff check --fix --unsafe-fixes .

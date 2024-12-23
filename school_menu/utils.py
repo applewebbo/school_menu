@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from import_export.widgets import Widget
 
-from school_menu.models import Meal, School
+from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 
 
 # TODO: need to refactor this function when number of weeks is different than 4 in settings
@@ -202,3 +202,16 @@ class ChoicesWidget(Widget):
     def render(self, value, obj=None):
         """Returns the display value given the db value"""
         return self.choices.get(value, "")
+
+
+def get_meals(school, season, week, day):
+    if school.menu_type == School.Types.SIMPLE:
+        meal = SimpleMeal
+    else:
+        meal = DetailedMeal
+    weekly_meals = meal.objects.filter(
+        school=school, week=week, season=season
+    ).order_by("day")
+    meal_for_today = weekly_meals.filter(day=day).first()
+
+    return weekly_meals, meal_for_today

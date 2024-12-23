@@ -140,6 +140,29 @@ class UploadMenuForm(forms.Form):
         )
 
 
+class UploadAnnualMenuForm(forms.Form):
+    file = forms.FileField(label="Carica Menu")
+
+    def clean_file(self):
+        file = self.cleaned_data.get("file")
+        ext = file.name.split(".")[-1].lower()
+        if ext not in ["csv"]:
+            raise forms.ValidationError("Il file deve essere in formato csv")
+        return file
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            Field(
+                "file",
+                css_class="file-input file-input-sm file-input-bordered mb-2",
+                accept=".csv",
+            ),
+        )
+
+
 class SimpleMealForm(forms.ModelForm):
     class Meta:
         model = SimpleMeal

@@ -15,10 +15,12 @@ from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
     SimpleMealForm,
+    UploadAnnualMenuForm,
     UploadMenuForm,
 )
 from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
+    AnnualMenuResource,
     DetailedMealExportResource,
     DetailedMealResource,
     SimpleMealExportResource,
@@ -39,6 +41,7 @@ from school_menu.utils import (
     get_meals,
     get_season,
     get_user,
+    validate_annual_dataset,
     validate_dataset,
 )
 
@@ -263,7 +266,6 @@ def upload_menu(request, school_id, meal_type):
             result = resource.import_data(
                 dataset, dry_run=True, school=school, season=season, type=meal_type
             )
-
             if not validates:
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
@@ -289,6 +291,46 @@ def upload_menu(request, school_id, meal_type):
         return TemplateResponse(request, "upload-menu.html", context)
     else:
         form = UploadMenuForm()
+    context = {"form": form, "school": school, "active_menu": active_menu}
+    return TemplateResponse(request, "upload-menu.html", context)
+
+
+@login_required
+def upload_annual_menu(request, school_id):
+    school = get_object_or_404(School, pk=school_id)
+    active_menu = "S"
+    if request.method == "POST":
+        form = UploadAnnualMenuForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = request.FILES["file"]
+            resource = AnnualMenuResource()
+            model = SimpleMeal
+            dataset = Dataset()
+            dataset.load(file.read().decode(), format="csv")
+            validates, message = validate_annual_dataset(dataset)
+            result = resource.import_data(dataset, dry_run=True, school=school)
+            if not validates:
+                messages.add_message(request, messages.ERROR, message)
+                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
+            if not result.has_errors():  # pragma: no cover
+                model.objects.filter(school=school).delete()
+                result = resource.import_data(dataset, dry_run=False, school=school)
+                messages.add_message(
+                    request, messages.SUCCESS, "Menu caricato con successo"
+                )
+            else:
+                print(result.row_errors())  # pragma: no cover
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Qualcosa è andato storto..",
+                )
+            request.session["active_menu"] = active_menu
+            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+        context = {"form": form, "school": school, "active_menu": active_menu}
+        return TemplateResponse(request, "upload-menu.html", context)
+    else:
+        form = UploadAnnualMenuForm()
     context = {"form": form, "school": school, "active_menu": active_menu}
     return TemplateResponse(request, "upload-menu.html", context)
 

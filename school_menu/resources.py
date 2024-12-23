@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from import_export import resources
 from import_export.fields import Field
 
@@ -120,3 +122,64 @@ class SimpleMealExportResource(resources.ModelResource):
             "morning_snack",
             "afternoon_snack",
         )
+
+
+class AnnualMenuResource(resources.ModelResource):
+    date = Field(attribute="date")
+    menu = Field(attribute="menu")
+
+    def before_import_row(self, row, **kwargs):
+        # Skip 'giorno' column and get date from 'data'
+        date_str = row.get("data")
+        if date_str:
+            date_obj = datetime.strptime(date_str, "%d/%m/%Y")
+            row["date"] = date_obj.date()
+
+        # Join all menu fields with newlines
+        menu_items = [
+            row.get("primo", ""),
+            row.get("secondo", ""),
+            row.get("contorno", ""),
+            row.get("frutta", ""),
+            row.get("pane", ""),
+        ]
+        # Filter out empty items and join with newlines
+        row["menu"] = "\n".join(item for item in menu_items if item)
+
+    def after_init_instance(self, instance, new, row, **kwargs):
+        instance.school = kwargs.get("school")
+        instance.season = kwargs.get("season")
+
+    class Meta:
+        model = SimpleMeal
+        fields = ("id", "date", "menu")
+
+
+class AnnualMenuExportResource(resources.ModelResource):
+    date = Field(attribute="date")
+    menu = Field(attribute="menu")
+
+    def before_import_row(self, row, **kwargs):
+        # Skip 'giorno' column and get date from 'data'
+        date_str = row.get("data")
+        if date_str:
+            date_obj = datetime.strptime(date_str, "%d/%m/%Y")
+            row["date"] = date_obj.date()
+
+        # Join all menu fields with newlines
+        menu_items = [
+            row.get("primo", ""),
+            row.get("secondo", ""),
+            row.get("contorno", ""),
+            row.get("frutta", ""),
+            row.get("altro", ""),
+        ]
+        # Filter out empty items and join with newlines
+        row["menu"] = "\n".join(item for item in menu_items if item)
+
+    def after_init_instance(self, instance, new, row, **kwargs):
+        instance.school = kwargs.get("school")
+        instance.season = kwargs.get("season")
+
+    class Meta:
+        fields = ("date", "menu")

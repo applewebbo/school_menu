@@ -182,6 +182,33 @@ def validate_dataset(dataset, menu_type):
     return validates, message
 
 
+def validate_annual_dataset(dataset):
+    """validates menu import dataset for required columns and values before importing into database and return validates = False and message if not valid"""
+    validates = True
+    message = None
+
+    # check required headers presence
+    columns = dataset.headers
+    required_columns = ["data", "primo", "secondo", "contorno", "frutta", "altro"]
+    if not all(column in columns for column in required_columns):
+        validates = False
+        message = "Formato non valido. Il file non contiene tutte le colonne richieste."
+        return validates, message
+
+    # check if data column contain valid data values
+    dates = dataset["data"]
+    for date_str in dates:
+        try:
+            datetime.strptime(date_str, "%d/%m/%Y")
+        except ValueError:
+            validates = False
+            message = 'Formato non valido. La colonna "data" contiene date in formato non valido. Usa il formato GG/MM/AAAA'
+            return validates, message
+
+    # if everything ok return validates = True and no message
+    return validates, message
+
+
 class ChoicesWidget(Widget):
     """
     Widget that uses choice display values in place of database values

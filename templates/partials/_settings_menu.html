@@ -33,7 +33,11 @@
                             </button>
                         {% endif %}
                         <button class="inline-flex items-center btn btn-sm"
+                                {% if not user.school.annual_menu %}
                                 hx-get="{% url 'school_menu:upload_menu' user.school.id active_menu %}"
+                                {% else %}
+                                hx-get="{% url 'school_menu:upload_annual_menu' user.school.id %}"
+                                {% endif %}
                                 hx-target="#dialog"
                                 hx-swap="innerHTML"
                                 @click="$dispatch('open-modal')">

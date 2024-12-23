@@ -34,7 +34,7 @@ class Meal(models.Model):
     day = models.SmallIntegerField(choices=Days.choices, default=Days.LUNEDÌ)
     week = models.SmallIntegerField(choices=Weeks.choices, default=Weeks.SETTIMANA_1)
     season = models.SmallIntegerField(
-        choices=Seasons.choices, default=Seasons.INVERNALE
+        choices=Seasons.choices, default=Seasons.INVERNALE, null=True, blank=True
     )
     type = models.CharField(max_length=1, choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)

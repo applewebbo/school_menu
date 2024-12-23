@@ -38,6 +38,7 @@ class Meal(models.Model):
     )
     type = models.CharField(max_length=1, choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
+    date = models.DateField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -91,6 +92,7 @@ class School(models.Model):
     no_lactose = models.BooleanField(default=False)
     vegetarian = models.BooleanField(default=False)
     special = models.BooleanField(default=False)
+    annual_menu = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "scuola"

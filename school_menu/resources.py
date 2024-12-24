@@ -5,7 +5,7 @@ from import_export.fields import Field
 
 from school_menu.utils import ChoicesWidget
 
-from .models import DetailedMeal, SimpleMeal
+from .models import AnnualMeal, DetailedMeal, SimpleMeal
 
 
 class DetailedMealResource(resources.ModelResource):
@@ -151,7 +151,7 @@ class AnnualMenuResource(resources.ModelResource):
         instance.season = kwargs.get("season")
 
     class Meta:
-        model = SimpleMeal
+        model = AnnualMeal
         fields = ("id", "date", "menu")
 
 
@@ -182,4 +182,5 @@ class AnnualMenuExportResource(resources.ModelResource):
         instance.season = kwargs.get("season")
 
     class Meta:
+        model = AnnualMeal
         fields = ("date", "menu")

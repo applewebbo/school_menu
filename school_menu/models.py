@@ -38,7 +38,6 @@ class Meal(models.Model):
     )
     type = models.CharField(max_length=1, choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
-    date = models.DateField(null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -62,6 +61,15 @@ class SimpleMeal(Meal):
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
+
+
+class AnnualMeal(Meal):
+    menu = models.TextField(max_length=600)
+    snack = models.CharField(max_length=200, blank=True)
+    date = models.DateField()
+
+    def __str__(self):
+        return f"{self.date} [{self.school.name}]"
 
 
 class School(models.Model):

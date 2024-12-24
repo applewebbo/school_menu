@@ -18,7 +18,7 @@ from school_menu.forms import (
     UploadAnnualMenuForm,
     UploadMenuForm,
 )
-from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
     AnnualMenuResource,
     DetailedMealExportResource,
@@ -304,7 +304,7 @@ def upload_annual_menu(request, school_id):
         if form.is_valid():
             file = request.FILES["file"]
             resource = AnnualMenuResource()
-            model = SimpleMeal
+            model = AnnualMeal
             dataset = Dataset()
             dataset.load(file.read().decode(), format="csv")
             validates, message = validate_annual_dataset(dataset)

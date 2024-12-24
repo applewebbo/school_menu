@@ -23,6 +23,7 @@
                 x-on:click="openModal = false">Annulla</button>
     </div>
 </form>
+{% if not school.annual_menu %}
 <div class="m-12 mb-4">
     <div class="divider">FILE DI ESEMPIO</div>
 </div>
@@ -51,3 +52,4 @@
         <span class="text-sm italic">Attenzione, il menu caricato sovrascriverà il menu presente in maniera definitiva</span>
     </div>
 </div>
+{% endif %}

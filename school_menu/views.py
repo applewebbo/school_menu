@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -39,6 +39,7 @@ from school_menu.utils import (
     get_alt_menu_from_school,
     get_current_date,
     get_meals,
+    get_meals_for_annual_menu,
     get_season,
     get_user,
     validate_annual_dataset,
@@ -87,9 +88,14 @@ def school_menu(request, slug, meal_type="S"):
     season = get_season(school)
     alt_menu = get_alt_menu_from_school(school)
     meal_type = meal_type
-    weekly_meals, meal_for_today = get_meals(
-        school, season, adjusted_week, adjusted_day
-    )
+    if school.annual_menu:
+        weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
+        print(weekly_meals)
+        print(meal_for_today.menu)
+    else:
+        weekly_meals, meal_for_today = get_meals(
+            school, season, adjusted_week, adjusted_day
+        )
     year = get_adjusted_year()
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
@@ -315,6 +321,25 @@ def upload_annual_menu(request, school_id):
             if not result.has_errors():  # pragma: no cover
                 model.objects.filter(school=school).delete()
                 result = resource.import_data(dataset, dry_run=False, school=school)
+                existing_dates = set(
+                    AnnualMeal.objects.filter(school=school).values_list(
+                        "date", flat=True
+                    )
+                )
+                start_date = min(existing_dates)
+                end_date = max(existing_dates)
+                current_date = start_date
+
+                while current_date <= end_date:
+                    if current_date.weekday() < 5:  # Monday to Friday
+                        if current_date not in existing_dates:
+                            AnnualMeal.objects.create(
+                                school=school,
+                                date=current_date,
+                                day=current_date.weekday() + 1,
+                                menu="",
+                            )
+                    current_date += timedelta(days=1)
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )

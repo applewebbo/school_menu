@@ -71,6 +71,9 @@ class AnnualMeal(Meal):
     def __str__(self):
         return f"{self.date} [{self.school.name}]"
 
+    class Meta:
+        ordering = ["-date"]
+
 
 class School(models.Model):
     class Seasons(models.IntegerChoices):

@@ -127,6 +127,7 @@ class SimpleMealExportResource(resources.ModelResource):
 class AnnualMenuResource(resources.ModelResource):
     date = Field(attribute="date")
     menu = Field(attribute="menu")
+    day = Field(attribute="day")
 
     def before_import_row(self, row, **kwargs):
         # Skip 'giorno' column and get date from 'data'
@@ -134,6 +135,11 @@ class AnnualMenuResource(resources.ModelResource):
         if date_str:
             date_obj = datetime.strptime(date_str, "%d/%m/%Y")
             row["date"] = date_obj.date()
+        # Get weekday as integer (0-6) and add 1 to match Meal.Days values (1-5)
+        weekday = date_obj.weekday() + 1
+        # Only assign if it's a weekday (1-5)
+        if 1 <= weekday <= 5:
+            row["day"] = weekday
 
         # Join all menu fields with newlines
         menu_items = [
@@ -148,11 +154,10 @@ class AnnualMenuResource(resources.ModelResource):
 
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
-        instance.season = kwargs.get("season")
 
     class Meta:
         model = AnnualMeal
-        fields = ("id", "date", "menu")
+        fields = ("id", "date", "menu", "day")
 
 
 class AnnualMenuExportResource(resources.ModelResource):
@@ -179,7 +184,6 @@ class AnnualMenuExportResource(resources.ModelResource):
 
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
-        instance.season = kwargs.get("season")
 
     class Meta:
         model = AnnualMeal

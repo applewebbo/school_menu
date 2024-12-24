@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from import_export.widgets import Widget
 
-from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 
 
 # TODO: need to refactor this function when number of weeks is different than 4 in settings
@@ -241,4 +241,18 @@ def get_meals(school, season, week, day):
     ).order_by("day")
     meal_for_today = weekly_meals.filter(day=day).first()
 
+    return weekly_meals, meal_for_today
+
+
+def get_meals_for_annual_menu(school):
+    """Get current week's meals and today's meal for annual menu"""
+    today = datetime(2025, 1, 16).date()
+
+    # Get meals for the current week (Monday to Friday)
+    weekly_meals = AnnualMeal.objects.filter(
+        school=school, date__week=today.isocalendar()[1]
+    ).order_by("date")
+
+    # Get today's meal
+    meal_for_today = AnnualMeal.objects.filter(school=school, date=today).first()
     return weekly_meals, meal_for_today

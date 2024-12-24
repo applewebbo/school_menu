@@ -246,7 +246,7 @@ def get_meals(school, season, week, day):
 
 def get_meals_for_annual_menu(school):
     """Get current week's meals and today's meal for annual menu"""
-    today = datetime(2025, 1, 16).date()
+    today = datetime.now().date()
 
     # Get meals for the current week (Monday to Friday)
     weekly_meals = AnnualMeal.objects.filter(

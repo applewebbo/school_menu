@@ -90,8 +90,6 @@ def school_menu(request, slug, meal_type="S"):
     meal_type = meal_type
     if school.annual_menu:
         weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
-        print(weekly_meals)
-        print(meal_for_today.menu)
     else:
         weekly_meals, meal_for_today = get_meals(
             school, season, adjusted_week, adjusted_day
@@ -337,7 +335,7 @@ def upload_annual_menu(request, school_id):
                                 school=school,
                                 date=current_date,
                                 day=current_date.weekday() + 1,
-                                menu="",
+                                is_active=False,
                             )
                     current_date += timedelta(days=1)
                 messages.add_message(

@@ -36,7 +36,6 @@ from school_menu.utils import (
     calculate_week,
     get_adjusted_year,
     get_alt_menu,
-    get_alt_menu_from_school,
     get_current_date,
     get_meals,
     get_meals_for_annual_menu,
@@ -57,7 +56,7 @@ def index(request):
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)
         season = get_season(school)
-        alt_menu = get_alt_menu_from_school(school)
+        alt_menu = get_alt_menu(school.user)
         meal_type = "S"
         if school.annual_menu:
             weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
@@ -89,7 +88,7 @@ def school_menu(request, slug, meal_type="S"):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
-    alt_menu = get_alt_menu_from_school(school)
+    alt_menu = get_alt_menu(school.user)
     meal_type = meal_type
     if school.annual_menu:
         weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
@@ -118,7 +117,7 @@ def get_menu(request, school_id, week, day, meal_type):
     school = School.objects.get(pk=school_id)
     season = get_season(school)
     year = get_adjusted_year()
-    alt_menu = get_alt_menu_from_school(school)
+    alt_menu = get_alt_menu(school.user)
     if school.annual_menu:
         weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
     else:
@@ -266,10 +265,8 @@ def upload_menu(request, school_id, meal_type):
             season = form.cleaned_data["season"]
             if menu_type == School.Types.SIMPLE:
                 resource = SimpleMealResource()
-                model = SimpleMeal
             else:
                 resource = DetailedMealResource()
-                model = DetailedMeal
             dataset = Dataset()
             dataset.load(file.read().decode(), format="csv")
             validates, message = validate_dataset(dataset, menu_type)
@@ -280,9 +277,9 @@ def upload_menu(request, school_id, meal_type):
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
-                model.objects.filter(
-                    school=school, season=season, type=meal_type
-                ).delete()
+                # model.objects.filter(
+                #     school=school, season=season, type=meal_type
+                # ).delete()
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season, type=meal_type
                 )
@@ -290,6 +287,7 @@ def upload_menu(request, school_id, meal_type):
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
             else:  # pragma: no cover
+                print(result.row_errors())
                 messages.add_message(
                     request,
                     messages.ERROR,
@@ -314,7 +312,6 @@ def upload_annual_menu(request, school_id):
         if form.is_valid():
             file = request.FILES["file"]
             resource = AnnualMenuResource()
-            model = AnnualMeal
             dataset = Dataset()
             dataset.load(file.read().decode(), format="csv")
             validates, message = validate_annual_dataset(dataset)
@@ -323,7 +320,7 @@ def upload_annual_menu(request, school_id):
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
-                model.objects.filter(school=school).delete()
+                # model.objects.filter(school=school).delete()
                 result = resource.import_data(dataset, dry_run=False, school=school)
                 existing_dates = set(
                     AnnualMeal.objects.filter(school=school).values_list(
@@ -347,8 +344,8 @@ def upload_annual_menu(request, school_id):
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
-            else:
-                print(result.row_errors())  # pragma: no cover
+            else:  # pragma: no cover
+                print(result.row_errors())
                 messages.add_message(
                     request,
                     messages.ERROR,

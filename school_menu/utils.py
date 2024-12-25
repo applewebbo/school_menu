@@ -94,20 +94,6 @@ def get_alt_menu(user):
     return alt_menu
 
 
-def get_alt_menu_from_school(school):
-    alt_menu = False
-    if any(
-        [
-            school.no_gluten,
-            school.no_lactose,
-            school.vegetarian,
-            school.special,
-        ]
-    ):
-        alt_menu = True
-    return alt_menu
-
-
 def build_types_menu(weekly_meals, school):
     """Build the alternate meal menu for the given school based on presence of meal for the given day"""
     active_menu = [

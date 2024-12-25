@@ -23,7 +23,7 @@ class SimpleMealAdmin(ImportExportModelAdmin):
 
 @admin.register(AnnualMeal)
 class AnnualMealAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["__str__", "date"]
 
 
 @admin.register(School)

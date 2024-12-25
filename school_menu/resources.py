@@ -21,6 +21,32 @@ class DetailedMealResource(resources.ModelResource):
     fruit = Field(attribute="fruit", column_name="frutta")
     snack = Field(attribute="snack", column_name="spuntino")
 
+    def before_import_row(self, row, **kwargs):
+        # Convert Italian weekday names to numbers
+        weekday_map = {
+            "Lunedì": 1,
+            "Martedì": 2,
+            "Mercoledì": 3,
+            "Giovedì": 4,
+            "Venerdì": 5,
+        }
+
+        if "giorno" in row:
+            row["giorno"] = weekday_map.get(row["giorno"])
+
+        # Check for existing meal with same week, day, school, season and type
+        existing_meal = DetailedMeal.objects.filter(
+            week=row.get("settimana"),
+            day=row.get("giorno"),
+            school=kwargs.get("school"),
+            season=kwargs.get("season"),
+            type=kwargs.get("type"),
+        ).first()
+
+        if existing_meal:
+            # Set the id to force update instead of create
+            row["id"] = existing_meal.id
+
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
         instance.season = kwargs.get("season")
@@ -50,6 +76,32 @@ class SimpleMealResource(resources.ModelResource):
     menu = Field(attribute="menu", column_name="pranzo")
     morning_snack = Field(attribute="morning_snack", column_name="spuntino")
     afternoon_snack = Field(attribute="afternoon_snack", column_name="merenda")
+
+    def before_import_row(self, row, **kwargs):
+        # Convert Italian weekday names to numbers
+        weekday_map = {
+            "Lunedì": 1,
+            "Martedì": 2,
+            "Mercoledì": 3,
+            "Giovedì": 4,
+            "Venerdì": 5,
+        }
+
+        if "giorno" in row:
+            row["giorno"] = weekday_map.get(row["giorno"])
+
+        # Check for existing meal with same week, day, school, season and type
+        existing_meal = SimpleMeal.objects.filter(
+            week=row.get("settimana"),
+            day=row.get("giorno"),
+            school=kwargs.get("school"),
+            season=kwargs.get("season"),
+            type=kwargs.get("type"),
+        ).first()
+
+        if existing_meal:
+            # Set the id to force update instead of create
+            row["id"] = existing_meal.id
 
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
@@ -135,6 +187,16 @@ class AnnualMenuResource(resources.ModelResource):
         if date_str:
             date_obj = datetime.strptime(date_str, "%d/%m/%Y")
             row["date"] = date_obj.date()
+
+        # Check for existing meal with same date and school
+        existing_meal = AnnualMeal.objects.filter(
+            date=row["date"], school=kwargs.get("school")
+        ).first()
+
+        if existing_meal:
+            # Set the id to force update instead of create
+            row["id"] = existing_meal.id
+
         # Get weekday as integer (0-6) and add 1 to match Meal.Days values (1-5)
         weekday = date_obj.weekday() + 1
         # Only assign if it's a weekday (1-5)

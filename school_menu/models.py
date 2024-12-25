@@ -70,7 +70,7 @@ class AnnualMeal(Meal):
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.date} [{self.school.name}]"
+        return f"{self.school.name} [{self.date:%d/%m}]"
 
     class Meta:
         ordering = ["-date"]

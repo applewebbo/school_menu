@@ -12,7 +12,6 @@ from school_menu.utils import (
     build_types_menu,
     calculate_week,
     get_alt_menu,
-    get_alt_menu_from_school,
     get_current_date,
     get_season,
     get_user,
@@ -209,30 +208,6 @@ class TestGetAltMenu(TestCase):
         SchoolFactory(user=user, special=True)
 
         alt_menu = get_alt_menu(user)
-
-        assert alt_menu is True
-
-
-class TestGetAltMenuFromSchool(TestCase):
-    def test_get_false(self):
-        user = UserFactory()
-        school = SchoolFactory(
-            user=user,
-            no_gluten=False,
-            no_lactose=False,
-            vegetarian=False,
-            special=False,
-        )
-
-        alt_menu = get_alt_menu_from_school(school)
-
-        assert alt_menu is False
-
-    def test_get_true(self):
-        user = UserFactory()
-        school = SchoolFactory(user=user, no_gluten=True)
-
-        alt_menu = get_alt_menu_from_school(school)
 
         assert alt_menu is True
 

@@ -59,9 +59,12 @@ def index(request):
         season = get_season(school)
         alt_menu = get_alt_menu_from_school(school)
         meal_type = "S"
-        weekly_meals, meal_for_today = get_meals(
-            school, season, adjusted_week, adjusted_day
-        )
+        if school.annual_menu:
+            weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
+        else:
+            weekly_meals, meal_for_today = get_meals(
+                school, season, adjusted_week, adjusted_day
+            )
         types_menu = build_types_menu(weekly_meals, school)
         weekly_meals = weekly_meals.filter(type=meal_type)
         context = {
@@ -116,7 +119,10 @@ def get_menu(request, school_id, week, day, meal_type):
     season = get_season(school)
     year = get_adjusted_year()
     alt_menu = get_alt_menu_from_school(school)
-    weekly_meals, meal_for_today = get_meals(school, season, week, day)
+    if school.annual_menu:
+        weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
+    else:
+        weekly_meals, meal_for_today = get_meals(school, season, week, day)
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
     meal_of_the_day = weekly_meals.filter(day=day).first()

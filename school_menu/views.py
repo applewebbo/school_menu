@@ -18,7 +18,7 @@ from school_menu.forms import (
     UploadAnnualMenuForm,
     UploadMenuForm,
 )
-from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
     AnnualMenuResource,
     DetailedMealExportResource,
@@ -435,24 +435,29 @@ def search_schools(request):
 
 def export_modal_view(request, school_id, meal_type):
     school = get_object_or_404(School, pk=school_id)
-    if school.menu_type == School.Types.SIMPLE:
-        summer_meals = SimpleMeal.objects.filter(
-            school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
-        ).exists()
-        winter_meals = SimpleMeal.objects.filter(
-            school=school, season=School.Seasons.INVERNALE, type=meal_type
-        ).exists()
+    if school.annual_menu:
+        model = AnnualMeal
+        summer_meals = None
+        winter_meals = None
+        annual_meals = model.objects.filter(school=school, type=meal_type).exists()
     else:
-        summer_meals = DetailedMeal.objects.filter(
+        annual_meals = None
+        if school.menu_type == School.Types.SIMPLE:
+            model = SimpleMeal
+        else:
+            model = DetailedMeal
+        summer_meals = model.objects.filter(
             school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
         ).exists()
-        winter_meals = DetailedMeal.objects.filter(
+        winter_meals = model.objects.filter(
             school=school, season=School.Seasons.INVERNALE, type=meal_type
         ).exists()
+    print(annual_meals)
     context = {
         "school": school,
         "summer_meals": summer_meals,
         "winter_meals": winter_meals,
+        "annual_meals": annual_meals,
         "active_menu": meal_type,
     }
     return render(request, "export-menu.html", context)

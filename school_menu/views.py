@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -18,7 +18,7 @@ from school_menu.forms import (
     UploadAnnualMenuForm,
     UploadMenuForm,
 )
-from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
     AnnualMenuResource,
     DetailedMealExportResource,
@@ -34,6 +34,7 @@ from school_menu.serializers import (
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
+    fill_missing_dates,
     get_adjusted_year,
     get_alt_menu,
     get_current_date,
@@ -277,9 +278,6 @@ def upload_menu(request, school_id, meal_type):
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
-                # model.objects.filter(
-                #     school=school, season=season, type=meal_type
-                # ).delete()
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season, type=meal_type
                 )
@@ -304,9 +302,9 @@ def upload_menu(request, school_id, meal_type):
 
 
 @login_required
-def upload_annual_menu(request, school_id):
+def upload_annual_menu(request, school_id, meal_type):
     school = get_object_or_404(School, pk=school_id)
-    active_menu = "S"
+    active_menu = meal_type
     if request.method == "POST":
         form = UploadAnnualMenuForm(request.POST, request.FILES)
         if form.is_valid():
@@ -315,32 +313,17 @@ def upload_annual_menu(request, school_id):
             dataset = Dataset()
             dataset.load(file.read().decode(), format="csv")
             validates, message = validate_annual_dataset(dataset)
-            result = resource.import_data(dataset, dry_run=True, school=school)
+            result = resource.import_data(
+                dataset, dry_run=True, school=school, type=meal_type
+            )
             if not validates:
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
-                # model.objects.filter(school=school).delete()
-                result = resource.import_data(dataset, dry_run=False, school=school)
-                existing_dates = set(
-                    AnnualMeal.objects.filter(school=school).values_list(
-                        "date", flat=True
-                    )
+                result = resource.import_data(
+                    dataset, dry_run=False, school=school, type=meal_type
                 )
-                start_date = min(existing_dates)
-                end_date = max(existing_dates)
-                current_date = start_date
-
-                while current_date <= end_date:
-                    if current_date.weekday() < 5:  # Monday to Friday
-                        if current_date not in existing_dates:
-                            AnnualMeal.objects.create(
-                                school=school,
-                                date=current_date,
-                                day=current_date.weekday() + 1,
-                                is_active=False,
-                            )
-                    current_date += timedelta(days=1)
+                fill_missing_dates(school, meal_type)
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )

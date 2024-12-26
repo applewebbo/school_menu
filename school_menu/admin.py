@@ -23,7 +23,8 @@ class SimpleMealAdmin(ImportExportModelAdmin):
 
 @admin.register(AnnualMeal)
 class AnnualMealAdmin(admin.ModelAdmin):
-    list_display = ["__str__", "date"]
+    list_display = ["__str__", "date", "type"]
+    list_filter = ["type"]
 
 
 @admin.register(School)

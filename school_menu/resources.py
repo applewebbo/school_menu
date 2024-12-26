@@ -5,7 +5,7 @@ from import_export.fields import Field
 
 from school_menu.utils import ChoicesWidget
 
-from .models import AnnualMeal, DetailedMeal, SimpleMeal
+from .models import AnnualMeal, DetailedMeal, Meal, SimpleMeal
 
 
 class DetailedMealResource(resources.ModelResource):
@@ -24,11 +24,11 @@ class DetailedMealResource(resources.ModelResource):
     def before_import_row(self, row, **kwargs):
         # Convert Italian weekday names to numbers
         weekday_map = {
-            "Lunedì": 1,
-            "Martedì": 2,
-            "Mercoledì": 3,
-            "Giovedì": 4,
-            "Venerdì": 5,
+            "Lunedì": Meal.Days.LUNEDÌ,
+            "Martedì": Meal.Days.MARTEDÌ,
+            "Mercoledì": Meal.Days.MERCOLEDÌ,
+            "Giovedì": Meal.Days.GIOVEDÌ,
+            "Venerdì": Meal.Days.VENERDÌ,
         }
 
         if "giorno" in row:
@@ -80,11 +80,11 @@ class SimpleMealResource(resources.ModelResource):
     def before_import_row(self, row, **kwargs):
         # Convert Italian weekday names to numbers
         weekday_map = {
-            "Lunedì": 1,
-            "Martedì": 2,
-            "Mercoledì": 3,
-            "Giovedì": 4,
-            "Venerdì": 5,
+            "Lunedì": Meal.Days.LUNEDÌ,
+            "Martedì": Meal.Days.MARTEDÌ,
+            "Mercoledì": Meal.Days.MERCOLEDÌ,
+            "Giovedì": Meal.Days.GIOVEDÌ,
+            "Venerdì": Meal.Days.VENERDÌ,
         }
 
         if "giorno" in row:
@@ -190,7 +190,9 @@ class AnnualMenuResource(resources.ModelResource):
 
         # Check for existing meal with same date and school
         existing_meal = AnnualMeal.objects.filter(
-            date=row["date"], school=kwargs.get("school")
+            date=row["date"],
+            school=kwargs.get("school"),
+            type=kwargs.get("type"),
         ).first()
 
         if existing_meal:
@@ -214,39 +216,12 @@ class AnnualMenuResource(resources.ModelResource):
         # Filter out empty items and join with newlines
         row["menu"] = "\n".join(item for item in menu_items if item)
 
+        row["type"] = kwargs.get("type")
+
     def after_init_instance(self, instance, new, row, **kwargs):
         instance.school = kwargs.get("school")
+        instance.type = kwargs.get("type")
 
     class Meta:
         model = AnnualMeal
         fields = ("id", "date", "menu", "day")
-
-
-class AnnualMenuExportResource(resources.ModelResource):
-    date = Field(attribute="date")
-    menu = Field(attribute="menu")
-
-    def before_import_row(self, row, **kwargs):
-        # Skip 'giorno' column and get date from 'data'
-        date_str = row.get("data")
-        if date_str:
-            date_obj = datetime.strptime(date_str, "%d/%m/%Y")
-            row["date"] = date_obj.date()
-
-        # Join all menu fields with newlines
-        menu_items = [
-            row.get("primo", ""),
-            row.get("secondo", ""),
-            row.get("contorno", ""),
-            row.get("frutta", ""),
-            row.get("altro", ""),
-        ]
-        # Filter out empty items and join with newlines
-        row["menu"] = "\n".join(item for item in menu_items if item)
-
-    def after_init_instance(self, instance, new, row, **kwargs):
-        instance.school = kwargs.get("school")
-
-    class Meta:
-        model = AnnualMeal
-        fields = ("date", "menu")

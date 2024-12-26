@@ -36,7 +36,7 @@
                                 {% if not user.school.annual_menu %}
                                 hx-get="{% url 'school_menu:upload_menu' user.school.id active_menu %}"
                                 {% else %}
-                                hx-get="{% url 'school_menu:upload_annual_menu' user.school.id %}"
+                                hx-get="{% url 'school_menu:upload_annual_menu' user.school.id active_menu %}"
                                 {% endif %}
                                 hx-target="#dialog"
                                 hx-swap="innerHTML"

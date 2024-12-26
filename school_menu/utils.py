@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -243,3 +243,26 @@ def get_meals_for_annual_menu(school):
     # Get today's meal
     meal_for_today = AnnualMeal.objects.filter(school=school, date=today).first()
     return weekly_meals, meal_for_today
+
+
+def fill_missing_dates(school, meal_type):
+    existing_dates = set(
+        AnnualMeal.objects.filter(school=school, type=meal_type).values_list(
+            "date", flat=True
+        )
+    )
+    start_date = min(existing_dates)
+    end_date = max(existing_dates)
+    current_date = start_date
+
+    while current_date <= end_date:
+        if current_date.weekday() < 5:  # Monday to Friday
+            if current_date not in existing_dates:
+                AnnualMeal.objects.create(
+                    school=school,
+                    type=meal_type,
+                    date=current_date,
+                    day=current_date.weekday() + 1,
+                    is_active=False,
+                )
+        current_date += timedelta(days=1)

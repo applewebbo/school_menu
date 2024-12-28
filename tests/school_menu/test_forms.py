@@ -5,6 +5,7 @@ from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
     SimpleMealForm,
+    UploadAnnualMenuForm,
     UploadMenuForm,
 )
 from school_menu.models import Meal, School
@@ -115,3 +116,38 @@ class TestDetailedMealForm:
         )
 
         assert form.is_valid() is True
+
+
+class TestAnnualMenuForm:
+    def test_form_with_csv_file(self):
+        # Create a mock file object
+        mock_file = SimpleUploadedFile(
+            "test.csv", b"file_content", content_type="text/csv"
+        )
+
+        # Initialize the form with mock data and file
+        form = UploadAnnualMenuForm(files={"file": mock_file})
+
+        # Assert the form is valid
+        assert form.is_valid() is True
+
+    def test_form_invalid_file_type(self):
+        # Create a mock file object
+        mock_file = SimpleUploadedFile(
+            "test.txt", b"file_content", content_type="text/plain"
+        )
+
+        # Initialize the form with mock data and file
+        form = UploadAnnualMenuForm(files={"file": mock_file})
+
+        # Assert the form is invalid
+        assert form.is_valid() is False
+        assert form.errors == {"file": ["Il file deve essere in formato csv"]}
+
+    def def_form_no_file(self):
+        # Initialize the form with mock data and file
+        form = UploadMenuForm(files={})
+
+        # Assert the form is invalid
+        assert form.is_valid() is False
+        assert form.errors == {"file": ["Questo campo è obbligatorio."]}

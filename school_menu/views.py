@@ -128,7 +128,6 @@ def get_menu(request, school_id, week, day, meal_type):
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
     meal_for_today = weekly_meals.filter(day=day).first()
-    print(meal_for_today)
     context = {
         "school": school,
         "meal": meal_for_today,

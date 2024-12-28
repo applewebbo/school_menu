@@ -20,6 +20,7 @@ from school_menu.forms import (
 )
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
+    AnnualMenuExportResource,
     AnnualMenuResource,
     DetailedMealExportResource,
     DetailedMealResource,
@@ -466,15 +467,18 @@ def export_modal_view(request, school_id, meal_type):
 @login_required
 def export_menu(request, school_id, season, meal_type):
     school = get_object_or_404(School, pk=school_id)
-    menu_type = school.menu_type
-    if menu_type == School.Types.SIMPLE:
-        meals = SimpleMeal.objects.filter(school=school, season=season, type=meal_type)
-        data = SimpleMealExportResource().export(meals)
+    if school.annual_menu:
+        model = AnnualMeal
+        resource = AnnualMenuExportResource()
+    elif school.menu_type == School.Types.SIMPLE:
+        model = SimpleMeal
+        resource = SimpleMealExportResource()
     else:
-        meals = DetailedMeal.objects.filter(
-            school=school, season=season, type=meal_type
-        )
-        data = DetailedMealExportResource().export(meals)
+        model = DetailedMeal
+        resource = DetailedMealExportResource()
+
+    meals = model.objects.filter(school=school, season=season, type=meal_type)
+    data = resource.export(meals)
 
     response = HttpResponse(data.csv, content_type="text/csv")
     return response

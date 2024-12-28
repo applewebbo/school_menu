@@ -16,7 +16,7 @@
             {% if annual_meals %}
                 <a href="{% url 'school_menu:export_menu' school.id 2 active_menu %}"
                    class="inline-flex items-center btn btn-success"
-                   download="menu_{{ school.name }}_annuale_{{ active_menu|type_label }}">
+                   download="menu_{{ school.name|cut:' '|lower }}_annuale_{{ active_menu|type_label }}">
                     Menu {{ active_menu|type_label|capfirst }}
                     {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
                 </a>
@@ -36,14 +36,14 @@
             {% else %}
                 <a href="{% url 'school_menu:export_menu' school.id 2 active_menu %}"
                    class="inline-flex items-center btn btn-success"
-                   download="menu_{{ school.name }}_inv_{{ active_menu|type_label }}"
+                   download="menu_{{ school.name|cut:' '|lower }}_inv_{{ active_menu|type_label }}"
                    {% if not winter_meals %}disabled="disabled"{% endif %}>
                     Menu Invernale
                     {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
                 </a>
                 <a href="{% url 'school_menu:export_menu' school.id 1 active_menu %}"
                    class="inline-flex items-center btn btn-success"
-                   download="menu_{{ school.name }}_est_{{ active_menu|type_label }}"
+                   download="menu_{{ school.name|cut:' '|lower }}_est_{{ active_menu|type_label }}"
                    {% if not summer_meals %}disabled="disabled"{% endif %}>
                     Menu Estivo
                     {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}

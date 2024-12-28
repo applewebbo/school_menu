@@ -211,7 +211,7 @@ class AnnualMenuResource(resources.ModelResource):
             row.get("secondo", ""),
             row.get("contorno", ""),
             row.get("frutta", ""),
-            row.get("pane", ""),
+            row.get("altro", ""),
         ]
         # Filter out empty items and join with newlines
         row["menu"] = "\n".join(item for item in menu_items if item)
@@ -225,3 +225,58 @@ class AnnualMenuResource(resources.ModelResource):
     class Meta:
         model = AnnualMeal
         fields = ("id", "date", "menu", "day")
+
+
+class AnnualMenuExportResource(resources.ModelResource):
+    date = Field(attribute="date", column_name="data")
+    giorno = Field(attribute="day")
+    primo = Field()
+    secondo = Field()
+    contorno = Field()
+    frutta = Field()
+    altro = Field()
+
+    def dehydrate_giorno(self, obj):
+        weekday_map = {
+            Meal.Days.LUNEDÌ: "Lunedì",
+            Meal.Days.MARTEDÌ: "Martedì",
+            Meal.Days.MERCOLEDÌ: "Mercoledì",
+            Meal.Days.GIOVEDÌ: "Giovedì",
+            Meal.Days.VENERDÌ: "Venerdì",
+        }
+        return weekday_map.get(obj.day, "")
+
+    def dehydrate_primo(self, obj):
+        return obj.menu.split("\n")[0] if obj.menu else ""
+
+    def dehydrate_secondo(self, obj):
+        return (
+            obj.menu.split("\n")[1]
+            if obj.menu and len(obj.menu.split("\n")) > 1
+            else ""
+        )
+
+    def dehydrate_contorno(self, obj):
+        return (
+            obj.menu.split("\n")[2]
+            if obj.menu and len(obj.menu.split("\n")) > 2
+            else ""
+        )
+
+    def dehydrate_frutta(self, obj):
+        return (
+            obj.menu.split("\n")[3]
+            if obj.menu and len(obj.menu.split("\n")) > 3
+            else ""
+        )
+
+    def dehydrate_altro(self, obj):
+        return (
+            obj.menu.split("\n")[4]
+            if obj.menu and len(obj.menu.split("\n")) > 4
+            else ""
+        )
+
+    class Meta:
+        model = AnnualMeal
+        fields = ("date", "giorno", "primo", "secondo", "contorno", "frutta", "altro")

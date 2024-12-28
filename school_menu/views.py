@@ -61,13 +61,14 @@ def index(request):
         alt_menu = get_alt_menu(school.user)
         meal_type = "S"
         if school.annual_menu:
-            weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
+            weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
         else:
-            weekly_meals, meal_for_today = get_meals(
+            weekly_meals, meals_for_today = get_meals(
                 school, season, adjusted_week, adjusted_day
             )
         types_menu = build_types_menu(weekly_meals, school)
         weekly_meals = weekly_meals.filter(type=meal_type)
+        meal_for_today = meals_for_today.filter(type=meal_type).first()
         context = {
             "school": school,
             "meal": meal_for_today,
@@ -91,16 +92,16 @@ def school_menu(request, slug, meal_type="S"):
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
     alt_menu = get_alt_menu(school.user)
-    meal_type = meal_type
     if school.annual_menu:
-        weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
     else:
-        weekly_meals, meal_for_today = get_meals(
+        weekly_meals, meals_for_today = get_meals(
             school, season, adjusted_week, adjusted_day
         )
     year = get_adjusted_year()
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
+    meal_for_today = meals_for_today.filter(type=meal_type).first()
     context = {
         "school": school,
         "meal": meal_for_today,
@@ -126,10 +127,11 @@ def get_menu(request, school_id, week, day, meal_type):
         weekly_meals, meal_for_today = get_meals(school, season, week, day)
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
-    meal_of_the_day = weekly_meals.filter(day=day).first()
+    meal_for_today = weekly_meals.filter(day=day).first()
+    print(meal_for_today)
     context = {
         "school": school,
-        "meal": meal_of_the_day,
+        "meal": meal_for_today,
         "weekly_meals": weekly_meals,
         "week": week,
         "day": day,
@@ -453,7 +455,6 @@ def export_modal_view(request, school_id, meal_type):
         winter_meals = model.objects.filter(
             school=school, season=School.Seasons.INVERNALE, type=meal_type
         ).exists()
-    print(annual_meals)
     context = {
         "school": school,
         "summer_meals": summer_meals,

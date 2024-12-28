@@ -225,24 +225,33 @@ def get_meals(school, season, week, day):
     weekly_meals = meal.objects.filter(
         school=school, week=week, season=season
     ).order_by("day")
-    meal_for_today = weekly_meals.filter(day=day).first()
+    meals_for_today = weekly_meals.filter(day=day)
 
-    return weekly_meals, meal_for_today
+    return weekly_meals, meals_for_today
 
 
 def get_meals_for_annual_menu(school):
     """Get current week's meals and today's meal for annual menu"""
-    today = datetime.now().date()
-    # today = datetime(2025, 1, 15).date()
+    date = datetime.now().date()
 
-    # Get meals for the current week (Monday to Friday)
+    # Get the current week and year
+    year, current_week, _ = date.isocalendar()
+
+    # If weekend, get next week and next Monday's date
+    if date.weekday() >= 5:  # Saturday (5) or Sunday (6)
+        target_date = date + timedelta(days=(7 - date.weekday()))
+        year, current_week, _ = target_date.isocalendar()
+        date = target_date
+
+    # Get meals for the current/next week (Monday to Friday)
     weekly_meals = AnnualMeal.objects.filter(
-        school=school, date__week=today.isocalendar()[1]
+        school=school, date__week=current_week
     ).order_by("date")
 
-    # Get today's meal
-    meal_for_today = AnnualMeal.objects.filter(school=school, date=today).first()
-    return weekly_meals, meal_for_today
+    # Get target date meal (current date or next Monday if weekend)
+    meals_for_today = AnnualMeal.objects.filter(school=school, date=date)
+
+    return weekly_meals, meals_for_today
 
 
 def fill_missing_dates(school, meal_type):

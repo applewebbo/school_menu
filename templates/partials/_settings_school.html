@@ -19,7 +19,7 @@
                                 <span class="font-bold">Tipo di Menu:</span> {{ user.school.get_menu_type_display }}
                             </li>
                             <li>
-                                <span class="font-bold">Pubblico:</span>
+                                <span class="font-bold">Menu Pubblico:</span>
                                 {% if user.school.is_published %}
                                     Sì
                                 {% else %}
@@ -30,12 +30,24 @@
                     </div>
                     <div>
                         <ul class="leading-10" id="meal-settings">
+                            {% if not user.school.annual_menu %}
                             <li>
                                 <span class="font-bold">Stagione:</span> {{ user.school.get_season_choice_display }}
                             </li>
+                            {% endif %}
+                            <li>
+                                <span class="font-bold">Menu Annuale:</span>
+                                {% if user.school.annual_menu %}
+                                    Sì
+                                {% else %}
+                                    No
+                                {% endif %}
+                            </li>
+                            {% if not user.school.annual_menu %}
                             <li>
                                 <span class="font-bold">Scarto Settimana:</span> {{ user.school.week_bias }}
                             </li>
+                            {% endif %}
                         </ul>
                         {% if alt_menu %}
                             <ul class="mt-2 leading-5" id="alternate-meal-settings">

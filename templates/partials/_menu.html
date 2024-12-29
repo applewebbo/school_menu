@@ -5,12 +5,17 @@
         {% if meal %}
             {% if not school.is_published %}<span class="badge badge-error badge-outline">PRIVATO</span>{% endif %}
             <h1 class="text-3xl font-semibold tracking-tight">Menu del giorno</h1>
-            {% if school.menu_type == "D" %}
-                {% include 'partials/_detailed_menu.html' %}
+            {% if school.annual_menu %}
+                {% include 'partials/_annual_menu.html' %}
             {% else %}
-                {% include 'partials/_simple_menu.html' %}
-            {% endif %}
-            {% include 'partials/_types_menu.html' %}
+                {% if school.menu_type == "D" %}
+                    {% include 'partials/_detailed_menu.html' %}
+                {% else %}
+                    {% include 'partials/_simple_menu.html' %}
+                {% endif %}
+                {% endif %}
+                {% include 'partials/_types_menu.html' %}
+            {% if not school.annual_menu %}
             <div class="flex flex-col gap-1 justify-center items-center mt-4 md:flex-row md:gap-2 md:mt-8">
                 <div class="badge badge-secondary me-1">Settimana {{ week }}</div>
                 <div class="text-green-200 badge badge-primary me-1">
@@ -22,6 +27,13 @@
                 </div>
                 <div class="text-yellow-800 badge badge-warning">{{ year }}/{{ year|add:1 }}</div>
             </div>
+            {% else %}
+            <div class="mt-4">
+                <div class="text-yellow-800 badge badge-warning">
+                    {{ meal.date }}
+                </div>
+            </div>
+            {% endif %}
         {% else %}
             <p class="p-12 text-xl font-medium text-gray-900">
                 <em>Nessun menù caricato per il giorno selezionato</em>

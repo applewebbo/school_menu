@@ -34,7 +34,7 @@ class Meal(models.Model):
     day = models.SmallIntegerField(choices=Days.choices, default=Days.LUNEDÌ)
     week = models.SmallIntegerField(choices=Weeks.choices, default=Weeks.SETTIMANA_1)
     season = models.SmallIntegerField(
-        choices=Seasons.choices, default=Seasons.INVERNALE
+        choices=Seasons.choices, default=Seasons.INVERNALE, null=True, blank=True
     )
     type = models.CharField(max_length=1, choices=Types.choices, default=Types.STANDARD)
     school = models.ForeignKey("School", on_delete=models.CASCADE, null=True)
@@ -61,6 +61,19 @@ class SimpleMeal(Meal):
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
+
+
+class AnnualMeal(Meal):
+    menu = models.TextField(max_length=600)
+    snack = models.CharField(max_length=200, blank=True)
+    date = models.DateField()
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.school.name} [{self.date:%d/%m}]"
+
+    class Meta:
+        ordering = ["-date"]
 
 
 class School(models.Model):
@@ -91,6 +104,7 @@ class School(models.Model):
     no_lactose = models.BooleanField(default=False)
     vegetarian = models.BooleanField(default=False)
     special = models.BooleanField(default=False)
+    annual_menu = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "scuola"

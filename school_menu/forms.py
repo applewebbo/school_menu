@@ -19,6 +19,7 @@ class SchoolForm(forms.ModelForm):
             "no_lactose",
             "vegetarian",
             "special",
+            "annual_menu",
         ]
         widgets = {
             "season_choice": forms.Select(attrs={"class": "form-select"}),
@@ -39,6 +40,9 @@ class SchoolForm(forms.ModelForm):
             "special": forms.CheckboxInput(
                 attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
             ),
+            "annual_menu": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+            ),
         }
         labels = {
             "name": "Nome",
@@ -51,6 +55,7 @@ class SchoolForm(forms.ModelForm):
             "no_lactose": "No Lattosio",
             "vegetarian": "Vegetariano",
             "special": "Speciale",
+            "annual_menu": "Menu Annuale",
         }
         help_texts = {
             "season_choice": "Selezionando AUTOMATICA il sistema sceglierà la stagione in base alla data corrente, altrimenti rimarrà fissa al valore selezionato",
@@ -61,6 +66,7 @@ class SchoolForm(forms.ModelForm):
             "no_lactose": "No Lattosio",
             "vegetarian": "Vegetariano",
             "special": "Speciale",
+            "annual_menu": "Seleziona se la tua scuola fornisce un menu completo relativo a tutto l'anno. Selezionando questo campo non verranno considerati i valori dei campi Stagione e Scarto.",
         }
         error_messages = {
             "week_bias": {
@@ -81,6 +87,7 @@ class SchoolForm(forms.ModelForm):
                 Div("name", "city", "menu_type", "is_published"),
                 Div(
                     "season_choice",
+                    "annual_menu",
                     "week_bias",
                 ),
                 Fieldset(
@@ -125,6 +132,29 @@ class UploadMenuForm(forms.Form):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             "season",
+            Field(
+                "file",
+                css_class="file-input file-input-sm file-input-bordered mb-2",
+                accept=".csv",
+            ),
+        )
+
+
+class UploadAnnualMenuForm(forms.Form):
+    file = forms.FileField(label="Carica Menu")
+
+    def clean_file(self):
+        file = self.cleaned_data.get("file")
+        ext = file.name.split(".")[-1].lower()
+        if ext not in ["csv"]:
+            raise forms.ValidationError("Il file deve essere in formato csv")
+        return file
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
             Field(
                 "file",
                 css_class="file-input file-input-sm file-input-bordered mb-2",

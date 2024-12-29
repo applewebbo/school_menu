@@ -15,16 +15,20 @@ from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
     SimpleMealForm,
+    UploadAnnualMenuForm,
     UploadMenuForm,
 )
-from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
+    AnnualMenuExportResource,
+    AnnualMenuResource,
     DetailedMealExportResource,
     DetailedMealResource,
     SimpleMealExportResource,
     SimpleMealResource,
 )
 from school_menu.serializers import (
+    AnnualMealSerializer,
     DetailedMealSerializer,
     SchoolSerializer,
     SimpleMealSerializer,
@@ -32,12 +36,15 @@ from school_menu.serializers import (
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
+    fill_missing_dates,
     get_adjusted_year,
     get_alt_menu,
-    get_alt_menu_from_school,
     get_current_date,
+    get_meals,
+    get_meals_for_annual_menu,
     get_season,
     get_user,
+    validate_annual_dataset,
     validate_dataset,
 )
 
@@ -52,20 +59,17 @@ def index(request):
         bias = school.week_bias
         adjusted_week = calculate_week(current_week, bias)
         season = get_season(school)
-        alt_menu = get_alt_menu_from_school(school)
+        alt_menu = get_alt_menu(school.user)
         meal_type = "S"
-        if school.menu_type == School.Types.SIMPLE:
-            weekly_meals = SimpleMeal.objects.filter(
-                school=school, week=adjusted_week, season=season
-            ).order_by("day")
-            meal_for_today = weekly_meals.filter(day=adjusted_day).first()
+        if school.annual_menu:
+            weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
         else:
-            weekly_meals = DetailedMeal.objects.filter(
-                school=school, week=adjusted_week, season=season
-            ).order_by("day")
-            meal_for_today = weekly_meals.filter(day=adjusted_day).first()
+            weekly_meals, meals_for_today = get_meals(
+                school, season, adjusted_week, adjusted_day
+            )
         types_menu = build_types_menu(weekly_meals, school)
         weekly_meals = weekly_meals.filter(type=meal_type)
+        meal_for_today = meals_for_today.filter(type=meal_type).first()
         context = {
             "school": school,
             "meal": meal_for_today,
@@ -88,21 +92,17 @@ def school_menu(request, slug, meal_type="S"):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
-    alt_menu = get_alt_menu_from_school(school)
-    meal_type = meal_type
-    if school.menu_type == School.Types.SIMPLE:
-        weekly_meals = SimpleMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
-        ).order_by("day")
-        meal_for_today = weekly_meals.filter(day=adjusted_day).first()
+    alt_menu = get_alt_menu(school.user)
+    if school.annual_menu:
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
     else:
-        weekly_meals = DetailedMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
-        ).order_by("day")
-        meal_for_today = weekly_meals.filter(day=adjusted_day).first()
+        weekly_meals, meals_for_today = get_meals(
+            school, season, adjusted_week, adjusted_day
+        )
     year = get_adjusted_year()
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
+    meal_for_today = meals_for_today.filter(type=meal_type).first()
     context = {
         "school": school,
         "meal": meal_for_today,
@@ -121,21 +121,17 @@ def get_menu(request, school_id, week, day, meal_type):
     school = School.objects.get(pk=school_id)
     season = get_season(school)
     year = get_adjusted_year()
-    alt_menu = get_alt_menu_from_school(school)
-    if school.menu_type == School.Types.SIMPLE:
-        weekly_meals = SimpleMeal.objects.filter(
-            week=week, season=season, school=school
-        ).order_by("day")
+    alt_menu = get_alt_menu(school.user)
+    if school.annual_menu:
+        weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
     else:
-        weekly_meals = DetailedMeal.objects.filter(
-            week=week, season=season, school=school
-        ).order_by("day")
+        weekly_meals, meal_for_today = get_meals(school, season, week, day)
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
-    meal_of_the_day = weekly_meals.filter(day=day).first()
+    meal_for_today = weekly_meals.filter(day=day).first()
     context = {
         "school": school,
-        "meal": meal_of_the_day,
+        "meal": meal_for_today,
         "weekly_meals": weekly_meals,
         "week": week,
         "day": day,
@@ -161,16 +157,20 @@ def get_school_json_menu(request, slug):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
-    if school.menu_type == School.Types.SIMPLE:
-        weekly_meals = SimpleMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
-        ).order_by("day")
-        serializer = SimpleMealSerializer(weekly_meals, many=True)
+    if school.annual_menu:
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+        serializer = AnnualMealSerializer(weekly_meals, many=True)
     else:
-        weekly_meals = DetailedMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
-        ).order_by("day")
-        serializer = DetailedMealSerializer(weekly_meals, many=True)
+        if school.menu_type == School.Types.SIMPLE:
+            weekly_meals = SimpleMeal.objects.filter(
+                school=school, week=adjusted_week, season=season
+            ).order_by("day")
+            serializer = SimpleMealSerializer(weekly_meals, many=True)
+        else:
+            weekly_meals = DetailedMeal.objects.filter(
+                school=school, week=adjusted_week, season=season
+            ).order_by("day")
+            serializer = DetailedMealSerializer(weekly_meals, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
     return JsonResponse(data, safe=False)
@@ -273,24 +273,18 @@ def upload_menu(request, school_id, meal_type):
             season = form.cleaned_data["season"]
             if menu_type == School.Types.SIMPLE:
                 resource = SimpleMealResource()
-                model = SimpleMeal
             else:
                 resource = DetailedMealResource()
-                model = DetailedMeal
             dataset = Dataset()
             dataset.load(file.read().decode(), format="csv")
             validates, message = validate_dataset(dataset, menu_type)
             result = resource.import_data(
                 dataset, dry_run=True, school=school, season=season, type=meal_type
             )
-
             if not validates:
                 messages.add_message(request, messages.ERROR, message)
                 return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
-                model.objects.filter(
-                    school=school, season=season, type=meal_type
-                ).delete()
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season, type=meal_type
                 )
@@ -298,6 +292,7 @@ def upload_menu(request, school_id, meal_type):
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
             else:  # pragma: no cover
+                print(result.row_errors())
                 messages.add_message(
                     request,
                     messages.ERROR,
@@ -309,6 +304,49 @@ def upload_menu(request, school_id, meal_type):
         return TemplateResponse(request, "upload-menu.html", context)
     else:
         form = UploadMenuForm()
+    context = {"form": form, "school": school, "active_menu": active_menu}
+    return TemplateResponse(request, "upload-menu.html", context)
+
+
+@login_required
+def upload_annual_menu(request, school_id, meal_type):
+    school = get_object_or_404(School, pk=school_id)
+    active_menu = meal_type
+    if request.method == "POST":
+        form = UploadAnnualMenuForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = request.FILES["file"]
+            resource = AnnualMenuResource()
+            dataset = Dataset()
+            dataset.load(file.read().decode(), format="csv")
+            validates, message = validate_annual_dataset(dataset)
+            result = resource.import_data(
+                dataset, dry_run=True, school=school, type=meal_type
+            )
+            if not validates:
+                messages.add_message(request, messages.ERROR, message)
+                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
+            if not result.has_errors():  # pragma: no cover
+                result = resource.import_data(
+                    dataset, dry_run=False, school=school, type=meal_type
+                )
+                fill_missing_dates(school, meal_type)
+                messages.add_message(
+                    request, messages.SUCCESS, "Menu caricato con successo"
+                )
+            else:  # pragma: no cover
+                print(result.row_errors())
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Qualcosa è andato storto..",
+                )
+            request.session["active_menu"] = active_menu
+            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+        context = {"form": form, "school": school, "active_menu": active_menu}
+        return TemplateResponse(request, "upload-menu.html", context)
+    else:
+        form = UploadAnnualMenuForm()
     context = {"form": form, "school": school, "active_menu": active_menu}
     return TemplateResponse(request, "upload-menu.html", context)
 
@@ -404,24 +442,28 @@ def search_schools(request):
 
 def export_modal_view(request, school_id, meal_type):
     school = get_object_or_404(School, pk=school_id)
-    if school.menu_type == School.Types.SIMPLE:
-        summer_meals = SimpleMeal.objects.filter(
-            school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
-        ).exists()
-        winter_meals = SimpleMeal.objects.filter(
-            school=school, season=School.Seasons.INVERNALE, type=meal_type
-        ).exists()
+    if school.annual_menu:
+        model = AnnualMeal
+        summer_meals = None
+        winter_meals = None
+        annual_meals = model.objects.filter(school=school, type=meal_type).exists()
     else:
-        summer_meals = DetailedMeal.objects.filter(
+        annual_meals = None
+        if school.menu_type == School.Types.SIMPLE:
+            model = SimpleMeal
+        else:
+            model = DetailedMeal
+        summer_meals = model.objects.filter(
             school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
         ).exists()
-        winter_meals = DetailedMeal.objects.filter(
+        winter_meals = model.objects.filter(
             school=school, season=School.Seasons.INVERNALE, type=meal_type
         ).exists()
     context = {
         "school": school,
         "summer_meals": summer_meals,
         "winter_meals": winter_meals,
+        "annual_meals": annual_meals,
         "active_menu": meal_type,
     }
     return render(request, "export-menu.html", context)
@@ -430,15 +472,18 @@ def export_modal_view(request, school_id, meal_type):
 @login_required
 def export_menu(request, school_id, season, meal_type):
     school = get_object_or_404(School, pk=school_id)
-    menu_type = school.menu_type
-    if menu_type == School.Types.SIMPLE:
-        meals = SimpleMeal.objects.filter(school=school, season=season, type=meal_type)
-        data = SimpleMealExportResource().export(meals)
+    if school.annual_menu:
+        model = AnnualMeal
+        resource = AnnualMenuExportResource()
+    elif school.menu_type == School.Types.SIMPLE:
+        model = SimpleMeal
+        resource = SimpleMealExportResource()
     else:
-        meals = DetailedMeal.objects.filter(
-            school=school, season=season, type=meal_type
-        )
-        data = DetailedMealExportResource().export(meals)
+        model = DetailedMeal
+        resource = DetailedMealExportResource()
+
+    meals = model.objects.filter(school=school, season=season, type=meal_type)
+    data = resource.export(meals)
 
     response = HttpResponse(data.csv, content_type="text/csv")
     return response

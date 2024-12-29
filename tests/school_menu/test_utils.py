@@ -1,24 +1,30 @@
-from datetime import datetime
+from datetime import date, datetime
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.test import TestCase
 from tablib import Dataset
 
-from school_menu.models import School, SimpleMeal
+from school_menu.models import AnnualMeal, School, SimpleMeal
 from school_menu.utils import (
     ChoicesWidget,
     build_types_menu,
     calculate_week,
+    fill_missing_dates,
     get_alt_menu,
-    get_alt_menu_from_school,
     get_current_date,
+    get_meals_for_annual_menu,
     get_season,
     get_user,
+    validate_annual_dataset,
     validate_dataset,
 )
-from tests.school_menu.factories import SchoolFactory, SimpleMealFactory
+from tests.school_menu.factories import (
+    AnnualMealFactory,
+    SchoolFactory,
+    SimpleMealFactory,
+)
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -213,30 +219,6 @@ class TestGetAltMenu(TestCase):
         assert alt_menu is True
 
 
-class TestGetAltMenuFromSchool(TestCase):
-    def test_get_false(self):
-        user = UserFactory()
-        school = SchoolFactory(
-            user=user,
-            no_gluten=False,
-            no_lactose=False,
-            vegetarian=False,
-            special=False,
-        )
-
-        alt_menu = get_alt_menu_from_school(school)
-
-        assert alt_menu is False
-
-    def test_get_true(self):
-        user = UserFactory()
-        school = SchoolFactory(user=user, no_gluten=True)
-
-        alt_menu = get_alt_menu_from_school(school)
-
-        assert alt_menu is True
-
-
 class TestBuildTypesMenu(TestCase):
     def test_with_standard_only(self):
         user = UserFactory()
@@ -286,7 +268,7 @@ class TestBuildTypesMenu(TestCase):
         }
 
 
-class TestImportMenu:
+class TestValidateDataset(TestCase):
     def test_simple_meal_validate_success(self):
         dataset = Dataset()
         dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
@@ -500,6 +482,64 @@ class TestImportMenu:
         )
 
 
+class TestValidateAnnualDataset:
+    def test_validate_annual_dataset_success(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "data",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "altro",
+        ]
+        dataset.append(["28/12/2024", "Pasta", "Bistecca", "Fagiolini", "Mela", "Pane"])
+
+        validates, message = validate_annual_dataset(dataset)
+
+        assert validates is True
+        assert message is None
+
+    def test_detailed_meal_validate_missing_column(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "data",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+        ]
+        dataset.append(["28/12/2024", "Pasta", "Bistecca", "Fagiolini", "Mela"])
+
+        validates, message = validate_annual_dataset(dataset)
+
+        assert validates is False
+        assert (
+            message
+            == "Formato non valido. Il file non contiene tutte le colonne richieste."
+        )
+
+    def test_detailed_meal_validate_wrong_daye(self):
+        dataset = Dataset()
+        dataset.headers = [
+            "data",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "altro",
+        ]
+        dataset.append(["28/12", "Pasta", "Bistecca", "Fagiolini", "Mela", "Pane"])
+
+        validates, message = validate_annual_dataset(dataset)
+
+        assert validates is False
+        assert (
+            message
+            == 'Formato non valido. La colonna "data" contiene date in formato non valido. Usa il formato GG/MM/AAAA'
+        )
+
+
 class TestChoicesWidget:
     @pytest.fixture
     def choices_widget(self):
@@ -532,3 +572,127 @@ class TestChoicesWidget:
         assert choices_widget.render("VAN") == "Vanilla"
         assert choices_widget.render("STRAW") == "Strawberry"
         assert choices_widget.render("Nonexistent") == ""
+
+
+class GetMealsForAnnualMenuTests(TestCase):
+    @patch("school_menu.utils.datetime")
+    def test_get_meals_weekday(self, mock_datetime):
+        """Test getting meals on a regular weekday (Wednesday)"""
+        test_date = date(2024, 1, 3)  # A Wednesday
+        mock_datetime.now.return_value = datetime(2024, 1, 3)
+        school = SchoolFactory()
+        meal = AnnualMealFactory(school=school, date=test_date, type="S")
+
+        weekly_meals, today_meals = get_meals_for_annual_menu(school)
+
+        assert today_meals.first() == meal
+        assert meal in weekly_meals
+
+    @patch("school_menu.utils.datetime")
+    def test_get_meals_weekend_saturday(self, mock_datetime):
+        """Test getting meals when current day is Saturday"""
+        date(2024, 1, 6)
+        next_monday = date(2024, 1, 8)
+        mock_datetime.now.return_value = datetime(2024, 1, 6)
+        school = SchoolFactory()
+        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
+
+        weekly_meals, today_meals = get_meals_for_annual_menu(school)
+
+        assert today_meals.first() == monday_meal
+        assert monday_meal in weekly_meals
+
+    @patch("school_menu.utils.datetime")
+    def test_get_meals_weekend_sunday(self, mock_datetime):
+        """Test getting meals when current day is Sunday"""
+        date(2024, 1, 7)
+        next_monday = date(2024, 1, 8)
+        mock_datetime.now.return_value = datetime(2024, 1, 7)
+        school = SchoolFactory()
+        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
+
+        weekly_meals, today_meals = get_meals_for_annual_menu(school)
+
+        assert today_meals.first() == monday_meal
+        assert monday_meal in weekly_meals
+
+    @patch("school_menu.utils.datetime")
+    def test_get_meals_week_transition(self, mock_datetime):
+        """Test getting meals during week transition"""
+        friday = date(2024, 1, 5)
+        next_monday = date(2024, 1, 8)
+        mock_datetime.now.return_value = datetime(2024, 1, 7)  # Sunday
+        school = SchoolFactory()
+        friday_meal = AnnualMealFactory(school=school, date=friday, type="S")
+        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
+
+        weekly_meals, today_meals = get_meals_for_annual_menu(school)
+
+        assert today_meals.first() == monday_meal
+        assert monday_meal in weekly_meals
+        assert friday_meal not in weekly_meals
+
+
+class TestFillMissingDates(TestCase):
+    def setUp(self):
+        self.school = SchoolFactory()
+        self.meal_type = "S"  # Standard meal type
+
+        # Create some initial dates with gaps
+        self.start_date = date(2023, 9, 1)  # Friday
+        self.end_date = date(2023, 9, 8)  # Friday
+
+        # Create only start and end date meals
+        AnnualMeal.objects.create(
+            school=self.school,
+            type=self.meal_type,
+            date=self.start_date,
+            day=5,
+            is_active=True,
+        )
+        AnnualMeal.objects.create(
+            school=self.school,
+            type=self.meal_type,
+            date=self.end_date,
+            day=5,
+            is_active=True,
+        )
+
+    def test_fill_missing_dates(self):
+        fill_missing_dates(self.school, self.meal_type)
+
+        # Should create meals for Mon-Thu (4 days) between the dates
+        # Plus our 2 existing Friday meals
+        total_meals = AnnualMeal.objects.filter(
+            school=self.school, type=self.meal_type
+        ).count()
+        self.assertEqual(total_meals, 6)
+
+    def test_missing_dates_are_inactive(self):
+        fill_missing_dates(self.school, self.meal_type)
+
+        # Check that newly created dates are marked as inactive
+        new_meals = AnnualMeal.objects.filter(
+            school=self.school, type=self.meal_type, is_active=False
+        )
+        self.assertEqual(new_meals.count(), 4)
+
+    def test_existing_dates_unchanged(self):
+        fill_missing_dates(self.school, self.meal_type)
+
+        # Verify original meals still exist and are active
+        original_meals = AnnualMeal.objects.filter(
+            school=self.school, type=self.meal_type, is_active=True
+        )
+        self.assertEqual(original_meals.count(), 2)
+
+    def test_weekends_skipped(self):
+        fill_missing_dates(self.school, self.meal_type)
+
+        # Check no meals created for weekend dates
+        weekend_meals = AnnualMeal.objects.filter(
+            school=self.school,
+            type=self.meal_type,
+            date__week_day__in=[1, 7],  # Sunday=1, Saturday=7 in Django
+        )
+        self.assertEqual(weekend_meals.count(), 0)

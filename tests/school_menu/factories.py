@@ -1,7 +1,7 @@
 import factory
 from faker import Faker
 
-from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
 from tests.users.factories import UserFactory
 
 SCHOOL_PRE = ["Scuola", "Istituto", "Liceo", "Collegio", "Convitto", "Istituto Tecnico"]
@@ -136,3 +136,13 @@ class DetailedMealFactory(factory.django.DjangoModelFactory):
     def _after_postgeneration(cls, instance, create, results=None):
         # Don't save again after post-generation
         pass
+
+
+class AnnualMealFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AnnualMeal
+
+    school = factory.SubFactory(SchoolFactory)
+    menu = factory.Iterator(MEAL_LIST)
+    snack = factory.Iterator(SNACK_LIST)
+    date = factory.Faker("date_this_year")

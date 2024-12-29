@@ -28,6 +28,7 @@ from school_menu.resources import (
     SimpleMealResource,
 )
 from school_menu.serializers import (
+    AnnualMealSerializer,
     DetailedMealSerializer,
     SchoolSerializer,
     SimpleMealSerializer,
@@ -156,16 +157,20 @@ def get_school_json_menu(request, slug):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
-    if school.menu_type == School.Types.SIMPLE:
-        weekly_meals = SimpleMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
-        ).order_by("day")
-        serializer = SimpleMealSerializer(weekly_meals, many=True)
+    if school.annual_menu:
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+        serializer = AnnualMealSerializer(weekly_meals, many=True)
     else:
-        weekly_meals = DetailedMeal.objects.filter(
-            school=school, week=adjusted_week, season=season
-        ).order_by("day")
-        serializer = DetailedMealSerializer(weekly_meals, many=True)
+        if school.menu_type == School.Types.SIMPLE:
+            weekly_meals = SimpleMeal.objects.filter(
+                school=school, week=adjusted_week, season=season
+            ).order_by("day")
+            serializer = SimpleMealSerializer(weekly_meals, many=True)
+        else:
+            weekly_meals = DetailedMeal.objects.filter(
+                school=school, week=adjusted_week, season=season
+            ).order_by("day")
+            serializer = DetailedMealSerializer(weekly_meals, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
     return JsonResponse(data, safe=False)

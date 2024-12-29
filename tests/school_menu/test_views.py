@@ -58,20 +58,23 @@ def get_test_meal(school):
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)
     season = get_season(school)
-    if school.menu_type == School.Types.SIMPLE:
-        test_meal = SimpleMeal.objects.get(
-            school=school,
-            week=adjusted_week,
-            day=adjusted_day,
-            season=season,
-        )
+    if school.annual_menu:
+        test_meal = AnnualMeal.objects.get(school=school, date=datetime.now().date())
     else:
-        test_meal = DetailedMeal.objects.get(
-            school=school,
-            week=adjusted_week,
-            day=adjusted_day,
-            season=season,
-        )
+        if school.menu_type == School.Types.SIMPLE:
+            test_meal = SimpleMeal.objects.get(
+                school=school,
+                week=adjusted_week,
+                day=adjusted_day,
+                season=season,
+            )
+        else:
+            test_meal = DetailedMeal.objects.get(
+                school=school,
+                week=adjusted_week,
+                day=adjusted_day,
+                season=season,
+            )
 
     return test_meal
 
@@ -842,3 +845,31 @@ class JsonSchoolMenuView(TestCase):
         assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
         expected_menu = f"{test_meal.first_course}, {test_meal.second_course}, {test_meal.fruit}, {test_meal.side_dish}"
         assert expected_menu in [s["menu"] for s in data["meals"]]
+
+    def test_get_with_annual_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, annual_menu=True)
+
+        # Create AnnualMeal objects for testing, using date instead of week/day/season
+        from datetime import date, timedelta
+
+        today = date.today()
+        for i in range(7):  # Create meals for a week
+            AnnualMealFactory.create(
+                school=school,
+                date=today + timedelta(days=i),
+            )
+
+        test_meal = get_test_meal(
+            school
+        )  # Make sure get_test_meal handles the date field
+
+        response = self.get("school_menu:get_school_json_menu", school.slug)
+        data = response.json()
+
+        self.response_200(response)
+        # Assertions for annual menu data
+        assert test_meal.menu.replace("\n", ", ").replace("\r", " ").strip() in [
+            meal["menu"] for meal in data["meals"]
+        ]
+        assert test_meal.snack in [meal["snack"] for meal in data["meals"]]

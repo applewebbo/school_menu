@@ -1,12 +1,16 @@
+from datetime import datetime
+from unittest.mock import patch
+
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
-from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.test import TestCase
 from school_menu.utils import calculate_week, get_current_date, get_season
 from tests.school_menu.factories import (
+    AnnualMealFactory,
     DetailedMealFactory,
     SchoolFactory,
     SimpleMealFactory,
@@ -119,6 +123,16 @@ class IndexView(TestCase):
         self.response_200(response)
         assert response.context["school"] == school
 
+    def test_get_with_annual_meal_setting(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, annual_menu=True)
+
+        with self.login(user):
+            response = self.get("school_menu:index")
+
+        self.response_200(response)
+        assert response.context["school"] == school
+
 
 class SchoolMenuView(TestCase):
     def test_get_with_simple_menu(self):
@@ -131,6 +145,14 @@ class SchoolMenuView(TestCase):
 
     def test_get_with_detailed_menu(self):
         school = SchoolFactory(menu_type=School.Types.DETAILED)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "school-menu.html")
+        assert response.context["school"] == school
+
+    def test_get_with_annual_menu(self):
+        school = SchoolFactory(annual_menu=True)
         response = self.get("school_menu:school_menu", slug=school.slug)
 
         self.response_200(response)
@@ -162,6 +184,17 @@ class GetMenuView(TestCase):
         )
 
         response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
+
+        self.response_200(response)
+        assert response.context["meal"] == meal
+
+    def test_get_with_annual_menu(self):
+        test_date = datetime(2024, 1, 1)
+        school = SchoolFactory(annual_menu=True)
+        meal = AnnualMealFactory(school=school, date=test_date.date())
+
+        with patch("django.utils.timezone.now", return_value=test_date):
+            response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
 
         self.response_200(response)
         assert response.context["meal"] == meal
@@ -411,6 +444,85 @@ class TestUploadMenuView(TestCase):
         assert DetailedMeal.objects.filter(school=school).count() == 1
 
 
+class TestUploadAnnualMenuView(TestCase):
+    def test_upload_annual_menu_get(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get(
+                reverse(
+                    "school_menu:upload_annual_menu",
+                    kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+                )
+            )
+
+        assert response.status_code == 200
+        assert "form" in response.context
+        assert "school" in response.context
+
+    def test_upload_annual_menu_post_success(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_annual_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            csv_content = "data,primo,secondo,contorno,frutta,altro\n01/01/2024,Pasta,Pollo,Insalata,Mela,Pane"
+            data = {
+                "file": SimpleUploadedFile(
+                    "annual_menu.csv",
+                    csv_content.encode("utf-8"),
+                    content_type="text/csv",
+                ),
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 204
+        assert "HX-Refresh" in response.headers
+        assert AnnualMeal.objects.filter(school=school).count() == 1
+
+    def test_upload_annual_menu_post_invalid_data(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_annual_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            data = {}  # Missing file
+            response = self.post(url, data=data)
+
+        assert response.status_code == 200
+        assert "form" in response.context
+
+    def test_upload_annual_menu_post_invalid_csv_format(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_annual_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            csv_content = "data,wrong,headers\n01/01/2024,Pasta,Pollo"
+            data = {
+                "file": SimpleUploadedFile(
+                    "annual_menu.csv",
+                    csv_content.encode("utf-8"),
+                    content_type="text/csv",
+                ),
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        assert AnnualMeal.objects.filter(school=school).count() == 0
+
+
 class CreateWeeklyMenuView(TestCase):
     def test_get(self):
         user_factory = UserFactory  # noqa
@@ -580,6 +692,22 @@ class TestExportModalView(TestCase):
         assert response.context["school"] == school
         assert response.context["winter_meals"] is True
 
+    def test_get_annual_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, annual_menu=True)
+        AnnualMealFactory.create_batch(
+            5,
+            school=school,
+            type=Meal.Types.STANDARD,
+        )
+
+        response = self.get("school_menu:export_modal", school.pk, Meal.Types.STANDARD)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "export-menu.html")
+        assert response.context["school"] == school
+        assert response.context["annual_meals"] is True
+
 
 class TestExportMenuView(TestCase):
     def test_get_simple_menu(self):
@@ -635,6 +763,25 @@ class TestExportMenuView(TestCase):
         assert b"Fish" in response.content
         assert b"Salad" in response.content
         assert b"Fruit" in response.content
+
+    def test_get_annual_menu(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, annual_menu=True)
+        AnnualMealFactory.create_batch(5, school=school, type=Meal.Types.STANDARD)
+        meal = AnnualMeal.objects.first()
+        first_course = meal.menu.split("\n")[0]
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:export_menu",
+                school_id=school.pk,
+                season=meal.season,
+                meal_type=Meal.Types.STANDARD,
+            )
+
+        self.response_200(response)
+        assert response["Content-Type"] == "text/csv"
+        assert first_course in response.content.decode("utf-8")
 
 
 class JsonSchoolsListView(TestCase):

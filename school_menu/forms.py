@@ -132,10 +132,17 @@ class UploadMenuForm(forms.Form):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             "season",
-            Field(
-                "file",
-                css_class="file-input file-input-sm file-input-bordered mb-2",
-                accept=".csv",
+            Div(
+                Field(
+                    "file",
+                    css_class="file-input file-input-sm file-input-bordered mb-2",
+                    accept=".csv",
+                ),
+                Div(
+                    css_id="spinner",
+                    css_class="loading loading-bars loading-md ms-6 mt-2 text-primary htmx-indicator",
+                ),
+                css_class="flex flex-row gap-2",
             ),
         )
 
@@ -155,11 +162,18 @@ class UploadAnnualMenuForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Field(
-                "file",
-                css_class="file-input file-input-sm file-input-bordered mb-2",
-                accept=".csv",
-            ),
+            Div(
+                Field(
+                    "file",
+                    css_class="file-input file-input-sm file-input-bordered mb-2",
+                    accept=".csv",
+                ),
+                Div(
+                    css_id="spinner",
+                    css_class="loading loading-bars loading-md ms-6 mt-2 text-primary htmx-indicator",
+                ),
+                css_class="flex flex-row gap-2",
+            )
         )
 
 

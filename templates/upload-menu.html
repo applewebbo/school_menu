@@ -5,9 +5,12 @@
       hx-swap="innerHTML"
       hx-target="#dialog"
       hx-disabled-elt="#form-submit"
+      hx-indicator="#spinner"
       class="modal-content">
     <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Carica il tuo menu {% if school.annual_menu %}ANNUALE {% endif %}({{ active_menu|type_label|capfirst }})</h3>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Carica il tuo menu {% if school.annual_menu %}ANNUALE {% endif %}({{ active_menu|type_label|capfirst }})
+        </h3>
         <button type="button"
                 class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
                 x-on:click="openModal = false">
@@ -15,9 +18,13 @@
             <span class="sr-only">Close modal</span>
         </button>
     </div>
-    <div class="py-3 px-5 mt-3 md:py-4 md:px-6">{% crispy form %}</div>
+    <div class="py-3 px-5 mt-3 md:py-4 md:px-6">
+        {% crispy form %}
+    </div>
     <div class="px-5 pb-3 text-right md:px-6 md:pb-4">
-        <button type="submit" class="mr-2 btn btn-primary">Salva</button>
+        <button type="submit" class="mr-2 btn btn-primary">
+            Salva
+        </button>
         <button type="button"
                 class="btn btn-danger-outline"
                 x-on:click="openModal = false">Annulla</button>

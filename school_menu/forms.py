@@ -101,12 +101,16 @@ class SchoolForm(forms.ModelForm):
                 css_class="grid grid-cols-1 md:grid-cols-2 md:gap-4",
             ),
             Div(
+                Div(
+                    css_id="spinner",
+                    css_class="loading loading-bars loading-md text-primary mt-0 md:mt-2 md:me-4 self-center htmx-indicator",
+                ),
                 Submit(
                     "submit",
                     "Salva",
                     css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
                 ),
-                css_class="md:text-right",
+                css_class="flex flex-col md:flex-row md:justify-end md:mx-auto items-center",
             ),
         )
 

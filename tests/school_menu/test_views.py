@@ -221,6 +221,16 @@ class GetMenuView(TestCase):
         self.response_200(response)
         assert response.context["meal"] == meal
 
+    def test_get_with_meal_not_present(self):
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, season_choice=School.Seasons.PRIMAVERILE
+        )
+
+        response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
+
+        self.response_200(response)
+        assert response.context["meal"] is None
+
 
 class SettingView(TestCase):
     def test_get(self):
@@ -342,6 +352,16 @@ class SchoolListView(TestCase):
         self.response_200(response)
         assertTemplateUsed(response, "school-list.html")
         assert school in response.context["schools"]
+
+    def test_get_excluding_not_published(self):
+        SchoolFactory()
+        school_not_published = SchoolFactory(is_published=False)
+
+        response = self.get("school_menu:school_list")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "school-list.html")
+        assert school_not_published not in response.context["schools"]
 
 
 class TestUploadMenuView(TestCase):

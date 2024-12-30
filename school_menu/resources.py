@@ -35,13 +35,16 @@ class DetailedMealResource(resources.ModelResource):
             row["giorno"] = weekday_map.get(row["giorno"])
 
         # Check for existing meal with same week, day, school, season and type
-        existing_meal = DetailedMeal.objects.filter(
-            week=row.get("settimana"),
-            day=row.get("giorno"),
-            school=kwargs.get("school"),
-            season=kwargs.get("season"),
-            type=kwargs.get("type"),
-        ).first()
+        try:
+            existing_meal = DetailedMeal.objects.get(
+                week=row.get("settimana"),
+                day=row.get("giorno"),
+                school=kwargs.get("school"),
+                season=kwargs.get("season"),
+                type=kwargs.get("type"),
+            )
+        except DetailedMeal.DoesNotExist:
+            existing_meal = None
 
         if existing_meal:
             # Set the id to force update instead of create
@@ -91,13 +94,16 @@ class SimpleMealResource(resources.ModelResource):
             row["giorno"] = weekday_map.get(row["giorno"])
 
         # Check for existing meal with same week, day, school, season and type
-        existing_meal = SimpleMeal.objects.filter(
-            week=row.get("settimana"),
-            day=row.get("giorno"),
-            school=kwargs.get("school"),
-            season=kwargs.get("season"),
-            type=kwargs.get("type"),
-        ).first()
+        try:
+            existing_meal = SimpleMeal.objects.get(
+                week=row.get("settimana"),
+                day=row.get("giorno"),
+                school=kwargs.get("school"),
+                season=kwargs.get("season"),
+                type=kwargs.get("type"),
+            )
+        except SimpleMeal.DoesNotExist:
+            existing_meal = None
 
         if existing_meal:
             # Set the id to force update instead of create
@@ -189,11 +195,14 @@ class AnnualMenuResource(resources.ModelResource):
             row["date"] = date_obj.date()
 
         # Check for existing meal with same date and school
-        existing_meal = AnnualMeal.objects.filter(
-            date=row["date"],
-            school=kwargs.get("school"),
-            type=kwargs.get("type"),
-        ).first()
+        try:
+            existing_meal = AnnualMeal.objects.get(
+                date=row["date"],
+                school=kwargs.get("school"),
+                type=kwargs.get("type"),
+            )
+        except AnnualMeal.DoesNotExist:
+            existing_meal = None
 
         if existing_meal:
             # Set the id to force update instead of create

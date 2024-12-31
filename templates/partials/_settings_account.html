@@ -15,7 +15,11 @@
                     </a>
                 </div>
                 <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Visualizza Segnalazioni</h5>
+                    <h5 class="flex items-center mr-8 font-medium grow">
+                        Visualizza Segnalazioni
+                        <span class="py-0.5 px-2.5 text-xs font-medium rounded bg-info text-info-content ms-3">
+{{ report_count }}</span>
+                    </h5>
                     <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
                             hx-get="{% url 'contacts:report_list' %}"
                             hx-target="#dialog"

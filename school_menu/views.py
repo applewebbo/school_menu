@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 
+from contacts.models import MenuReport
 from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
@@ -209,11 +210,13 @@ def settings_view(request, pk):
     active_menu = request.session.get("active_menu", "S")
     menu_label_dict = dict(Meal.Types.choices)
     menu_label = menu_label_dict.get(active_menu)
+    report_count = MenuReport.objects.filter(receiver=user).count()
     context = {
         "user": user,
         "alt_menu": alt_menu,
         "menu_label": menu_label,
         "active_menu": active_menu,
+        "report_count": report_count,
     }
     return render(request, "settings.html", context)
 

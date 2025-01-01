@@ -1,4 +1,4 @@
-{% load heroicons %}
+{% load heroicons partials %}
 <section class="container mx-auto max-w-screen-lg" id="account">
     <div class="px-4 my-8">
         <div class="p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
@@ -14,11 +14,17 @@
                         {% heroicon_solid 'adjustments-vertical' class="group-hover:text-white size-4" %}
                     </a>
                 </div>
-                <div class="flex items-center">
+                {% partialdef menu_report inline %}
+                <div id="reports" class="flex items-center"
+                     hx-get="{% url 'school_menu:menu_report_count' %}"
+                     hx-trigger="reportDeleted from:body"
+                     hx-swap="outerHTML"
+                     hx-target="#reports">
                     <h5 class="flex items-center mr-8 font-medium grow">
-                        Visualizza Segnalazioni
-                        <span class="py-0.5 px-2.5 text-xs font-medium rounded bg-info text-info-content ms-3">
-{{ report_count }}</span>
+                        Segnalazioni ricevute
+                        <span class="py-0.5 px-2.5 text-xs font-medium rounded {% if report_count == 0 %}bg-base-300 text-base-content{% else %}bg-info text-info-content{% endif %} ms-3">
+                            {{ report_count }}
+                        </span>
                     </h5>
                     <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
                             hx-get="{% url 'contacts:report_list' %}"
@@ -29,6 +35,7 @@
                         {% heroicon_outline 'eye' class="group-hover:text-white size-4" %}
                     </button>
                 </div>
+                {% endpartialdef %}
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
                     <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"

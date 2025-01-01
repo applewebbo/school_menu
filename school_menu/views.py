@@ -222,6 +222,17 @@ def settings_view(request, pk):
 
 
 @login_required
+def menu_report_count(request):
+    user = request.user
+    report_count = MenuReport.objects.filter(receiver=user).count()
+    return render(
+        request,
+        "partials/_settings_account.html#menu_report",
+        {"report_count": report_count},
+    )
+
+
+@login_required
 def menu_settings_partial(request, pk):
     """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
     user, alt_menu = get_user(pk)

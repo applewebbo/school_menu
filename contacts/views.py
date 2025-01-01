@@ -111,4 +111,6 @@ def report_delete(request, report_id):
 
     reports = MenuReport.objects.filter(receiver=request.user)
     context = {"reports": reports}
-    return render(request, "contacts/report-list.html", context)
+    response = render(request, "contacts/report-list.html", context)
+    response["HX-Trigger"] = "reportDeleted"
+    return response

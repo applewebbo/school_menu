@@ -61,6 +61,7 @@ htmx_urlpatterns = [
         views.export_modal_view,
         name="export_modal",
     ),
+    path("report-count/", views.menu_report_count, name="menu_report_count"),
 ]
 
 urlpatterns += htmx_urlpatterns

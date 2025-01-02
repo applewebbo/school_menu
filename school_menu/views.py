@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 
+from contacts.models import MenuReport
 from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
@@ -52,8 +53,10 @@ from school_menu.utils import (
 def index(request):
     context = {}
     if request.user.is_authenticated:
-        school = School.objects.filter(user=request.user).first()
-        if not school:
+        try:
+            school = School.objects.get(user=request.user)
+        except School.DoesNotExist:
+            school = None
             return redirect(reverse("school_menu:settings", args=[request.user.pk]))
         current_week, adjusted_day = get_current_date()
         bias = school.week_bias
@@ -69,7 +72,15 @@ def index(request):
             )
         types_menu = build_types_menu(weekly_meals, school)
         weekly_meals = weekly_meals.filter(type=meal_type)
-        meal_for_today = meals_for_today.filter(type=meal_type).first()
+        try:
+            meal_for_today = meals_for_today.get(type=meal_type)
+        except (
+            SimpleMeal.DoesNotExist,
+            DetailedMeal.DoesNotExist,
+            AnnualMeal.DoesNotExist,
+        ):
+            meal_for_today = None
+
         context = {
             "school": school,
             "meal": meal_for_today,
@@ -102,7 +113,15 @@ def school_menu(request, slug, meal_type="S"):
     year = get_adjusted_year()
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
-    meal_for_today = meals_for_today.filter(type=meal_type).first()
+    try:
+        meal_for_today = meals_for_today.get(type=meal_type)
+    except (
+        SimpleMeal.DoesNotExist,
+        DetailedMeal.DoesNotExist,
+        AnnualMeal.DoesNotExist,
+    ):
+        meal_for_today = None
+
     context = {
         "school": school,
         "meal": meal_for_today,
@@ -118,7 +137,7 @@ def school_menu(request, slug, meal_type="S"):
 
 def get_menu(request, school_id, week, day, meal_type):
     """get menu for the given school, day, week and type"""
-    school = School.objects.get(pk=school_id)
+    school = get_object_or_404(School, pk=school_id)
     season = get_season(school)
     year = get_adjusted_year()
     alt_menu = get_alt_menu(school.user)
@@ -128,7 +147,15 @@ def get_menu(request, school_id, week, day, meal_type):
         weekly_meals, meal_for_today = get_meals(school, season, week, day)
     types_menu = build_types_menu(weekly_meals, school)
     weekly_meals = weekly_meals.filter(type=meal_type)
-    meal_for_today = weekly_meals.filter(day=day).first()
+    try:
+        meal_for_today = weekly_meals.get(day=day)
+    except (
+        SimpleMeal.DoesNotExist,
+        DetailedMeal.DoesNotExist,
+        AnnualMeal.DoesNotExist,
+    ):
+        meal_for_today = None
+
     context = {
         "school": school,
         "meal": meal_for_today,
@@ -183,13 +210,26 @@ def settings_view(request, pk):
     active_menu = request.session.get("active_menu", "S")
     menu_label_dict = dict(Meal.Types.choices)
     menu_label = menu_label_dict.get(active_menu)
+    report_count = MenuReport.objects.filter(receiver=user).count()
     context = {
         "user": user,
         "alt_menu": alt_menu,
         "menu_label": menu_label,
         "active_menu": active_menu,
+        "report_count": report_count,
     }
     return render(request, "settings.html", context)
+
+
+@login_required
+def menu_report_count(request):
+    user = request.user
+    report_count = MenuReport.objects.filter(receiver=user).count()
+    return render(
+        request,
+        "partials/_settings_account.html#menu_report",
+        {"report_count": report_count},
+    )
 
 
 @login_required
@@ -256,7 +296,7 @@ def school_update(request):
 
 
 def school_list(request):
-    schools = School.objects.all().exclude(is_published=False)
+    schools = School.objects.exclude(is_published=False)
     context = {"schools": schools}
     return TemplateResponse(request, "school-list.html", context)
 

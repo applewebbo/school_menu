@@ -5,84 +5,84 @@
 {% endblock page_title %}
 
 {% block content %}
-    <section class="grid py-8 px-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
-            <div class="mb-8">
-                {% element h1 %}
-                {% translate "Email Addresses" %}
+<div class="container mx-auto mb-8 max-w-screen-lg">
+    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+        <div class="block p-6 mt-6 mb-8 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
+            {% element h1 %}
+            {% translate "Email Addresses" %}
             {% endelement %}
             {% if emailaddresses %}
-                {% element p %}
-                {% translate 'The following email addresses are associated with your account:' %}
+            {% element p %}
+            {% translate 'The following email addresses are associated with your account:' %}
             {% endelement %}
             {% url 'account_email' as email_url %}
             {% element form form=form action=email_url method="post" tags="email,list" %}
             {% slot body %}
             {% csrf_token %}
             {% for radio in emailaddress_radios %}
-                {% with emailaddress=radio.emailaddress %}
-                    {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id class="radio" %}
-                    {% slot label %}
-                    <span class="font-medium text-gray-600 me-4">{{ emailaddress.email }}</span>
-                    {% if emailaddress.verified %}
-                        {% element badge tags="success,email,verified" class="badge-success" %}
-                        {% translate "Verified" %}
-                    {% endelement %}
-                {% else %}
-                    {% element badge tags="warning,email,unverified" class="badge-error" %}
-                    {% translate "Unverified" %}
-                {% endelement %}
+            {% with emailaddress=radio.emailaddress %}
+            {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id class="radio" %}
+            {% slot label %}
+            <span class="font-medium text-gray-600 me-4">{{ emailaddress.email }}</span>
+            {% if emailaddress.verified %}
+            {% element badge tags="success,email,verified" class="badge-success" %}
+            {% translate "Verified" %}
+            {% endelement %}
+            {% else %}
+            {% element badge tags="warning,email,unverified" class="badge-error" %}
+            {% translate "Unverified" %}
+            {% endelement %}
             {% endif %}
             {% if emailaddress.primary %}
-                {% element badge tags="email,primary" class="badge-secondary" %}
-                {% translate "Primary" %}
+            {% element badge tags="email,primary" class="badge-secondary" %}
+            {% translate "Primary" %}
             {% endelement %}
-        {% endif %}
-    {% endslot %}
-{% endelement %}
-{% endwith %}
-{% endfor %}
-{% endslot %}
-{% slot actions %}
-<div class="grid grid-cols-1 gap-2 mt-6 md:grid-cols-3">
-    {% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2" %}
-    {% translate 'Make Primary' %}
-{% endelement %}
-{% element button tags="secondary" type="submit" name="action_send" class="btn btn-sm btn-outline btn-secondary me-2" %}
-{% translate 'Re-send Verification' %}
-{% endelement %}
-{% element button tags="danger,delete" type="submit" name="action_remove" class="btn btn-sm btn-outline btn-error me-2" %}
-{% translate 'Remove' %}
-{% endelement %}
-</div>
-{% endslot %}
-{% endelement %}
-{% else %}
-{% include "account/snippets/warn_no_email.html" %}
-{% endif %}
-</div>
-{% if can_add_email %}
-    <div class="m-12 mb-4">
-        <div class="divider">{% translate "Add Email Address"|upper %}</div>
+            {% endif %}
+            {% endslot %}
+            {% endelement %}
+            {% endwith %}
+            {% endfor %}
+            {% endslot %}
+            {% slot actions %}
+            <div class="grid grid-cols-1 gap-2 mt-6 md:grid-cols-3">
+            {% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2" %}
+            {% translate 'Make Primary' %}
+            {% endelement %}
+            {% element button tags="secondary" type="submit" name="action_send" class="btn btn-sm btn-outline btn-secondary me-2" %}
+            {% translate 'Re-send Verification' %}
+            {% endelement %}
+            {% element button tags="danger,delete" type="submit" name="action_remove" class="btn btn-sm btn-outline btn-error me-2" %}
+            {% translate 'Remove' %}
+            {% endelement %}
+            </div>
+            {% endslot %}
+            {% endelement %}
+            {% else %}
+            {% include "account/snippets/warn_no_email.html" %}
+            {% endif %}
+            {% if can_add_email %}
+            <div class="m-12 mb-4">
+                <div class="divider">{% translate "Add Email Address"|upper %}</div>
+            </div>
+            {% url 'account_email' as action_url %}
+            {% element form form=form method="post" action=action_url tags="email,add" %}
+            {% slot body %}
+            {% csrf_token %}
+            {% element fields form=form %}
+            {% endelement %}
+            {% endslot %}
+            {% slot actions %}
+            <div class="text-center md:text-right">
+            {% element button name="action_add" type="submit" class="btn btn-sm btn-outline btn-secondary me-2" %}
+            {% translate "Add Email" %}
+            {% endelement %}
+            </div>
+            {% endslot %}
+            {% endelement %}
+            {% endif %}
+        </div>
     </div>
-    {% url 'account_email' as action_url %}
-    {% element form form=form method="post" action=action_url tags="email,add" %}
-    {% slot body %}
-    {% csrf_token %}
-    {% element fields form=form %}
-{% endelement %}
-{% endslot %}
-{% slot actions %}
-<div class="text-center md:text-right">
-    {% element button name="action_add" type="submit" class="btn btn-sm btn-outline btn-secondary me-2" %}
-    {% translate "Add Email" %}
-{% endelement %}
 </div>
-{% endslot %}
-{% endelement %}
-{% endif %}
-</div>
-</section>
 {% endblock content %}
 
 {% block extra_body %}

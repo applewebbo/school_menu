@@ -101,12 +101,16 @@ class SchoolForm(forms.ModelForm):
                 css_class="grid grid-cols-1 md:grid-cols-2 md:gap-4",
             ),
             Div(
+                Div(
+                    css_id="spinner",
+                    css_class="loading loading-bars loading-md text-primary mt-0 md:mt-2 md:me-4 self-center htmx-indicator",
+                ),
                 Submit(
                     "submit",
                     "Salva",
                     css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
                 ),
-                css_class="md:text-right",
+                css_class="flex flex-col md:flex-row md:justify-end md:mx-auto items-center",
             ),
         )
 
@@ -132,10 +136,17 @@ class UploadMenuForm(forms.Form):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             "season",
-            Field(
-                "file",
-                css_class="file-input file-input-sm file-input-bordered mb-2",
-                accept=".csv",
+            Div(
+                Field(
+                    "file",
+                    css_class="file-input file-input-sm file-input-bordered mb-2",
+                    accept=".csv",
+                ),
+                Div(
+                    css_id="spinner",
+                    css_class="loading loading-bars loading-md ms-6 mt-2 text-primary htmx-indicator",
+                ),
+                css_class="flex flex-row gap-2",
             ),
         )
 
@@ -155,11 +166,18 @@ class UploadAnnualMenuForm(forms.Form):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
-            Field(
-                "file",
-                css_class="file-input file-input-sm file-input-bordered mb-2",
-                accept=".csv",
-            ),
+            Div(
+                Field(
+                    "file",
+                    css_class="file-input file-input-sm file-input-bordered mb-2",
+                    accept=".csv",
+                ),
+                Div(
+                    css_id="spinner",
+                    css_class="loading loading-bars loading-md ms-6 mt-2 text-primary htmx-indicator",
+                ),
+                css_class="flex flex-row gap-2",
+            )
         )
 
 

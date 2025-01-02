@@ -5,7 +5,8 @@
         <h5 class="mb-4 text-2xl font-bold tracking-tight text-gray-900 dark:text-white grow">Scuola</h5>
         <form hx-post="{% if create %} {% url 'school_menu:school_create' %} {% else %} {% url 'school_menu:school_update' %} {% endif %}"
               hx-target="#school"
-              hx-swap="outerHTML">
+              hx-swap="outerHTML"
+              hx-indicator="#spinner">
             {% crispy form %}
         </form>
     </div>

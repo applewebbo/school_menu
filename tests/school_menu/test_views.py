@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
+from contacts.models import MenuReport
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.test import TestCase
 from school_menu.utils import calculate_week, get_current_date, get_season
@@ -221,6 +222,16 @@ class GetMenuView(TestCase):
         self.response_200(response)
         assert response.context["meal"] == meal
 
+    def test_get_with_meal_not_present(self):
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, season_choice=School.Seasons.PRIMAVERILE
+        )
+
+        response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
+
+        self.response_200(response)
+        assert response.context["meal"] is None
+
 
 class SettingView(TestCase):
     def test_get(self):
@@ -342,6 +353,16 @@ class SchoolListView(TestCase):
         self.response_200(response)
         assertTemplateUsed(response, "school-list.html")
         assert school in response.context["schools"]
+
+    def test_get_excluding_not_published(self):
+        SchoolFactory()
+        school_not_published = SchoolFactory(is_published=False)
+
+        response = self.get("school_menu:school_list")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "school-list.html")
+        assert school_not_published not in response.context["schools"]
 
 
 class TestUploadMenuView(TestCase):
@@ -873,3 +894,16 @@ class JsonSchoolMenuView(TestCase):
             meal["menu"] for meal in data["meals"]
         ]
         assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
+
+
+class TestMenuReportCountView(TestCase):
+    def test_get(self):
+        user = self.make_user()
+        MenuReport.objects.create(
+            receiver=user, name="Test name", message="Test message"
+        )
+
+        with self.login(user):
+            response = self.get("school_menu:menu_report_count")
+
+        self.response_200(response)

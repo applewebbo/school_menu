@@ -65,7 +65,7 @@ def get_adjusted_year():
 def get_user(pk):
     User = get_user_model()
     alt_menu = False
-    queryset = User.objects.select_related("school")
+    queryset = User.objects.select_related("school").prefetch_related("menureport_set")
     user = get_object_or_404(queryset, pk=pk)
     if hasattr(user, "school"):
         if any(

@@ -30,12 +30,33 @@
                 x-on:click="openModal = false">Annulla</button>
     </div>
 </form>
-{% if not school.annual_menu %}
+{% if school.annual_menu %}
 <div class="m-12 mb-4">
     <div class="divider">FILE DI ESEMPIO</div>
 </div>
 <div class="py-3 px-5 my-4 mx-6">
-    <p class="mb-3 italic">Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio</p>
+    <p class="mb-6 text-sm italic">Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio. Attenzione ad aggiornare correttamente i valori del campo data con il formato DD/MM/AAAA.</p>
+    <ul class="space-y-4 text-center">
+        <li>
+            <a href="{% static 'files/EsempioMenuAnnuale.csv' %}"
+               class="inline-flex items-center btn btn-secondary btn-outline btn-sm"
+               download>
+                Menu Annuale
+                {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
+            </a>
+        </li>
+    </ul>
+    <div class="flex items-center py-2 px-6 m-auto mt-5 text-center text-red-800 bg-red-50 rounded border border-red-200">
+        {% heroicon_solid 'exclamation-triangle' class="size-5 me-2 lg:me-4" %}
+        <span class="text-sm italic">Attenzione, il menu caricato sovrascriverà il menu presente in maniera definitiva</span>
+    </div>
+</div>
+{% else %}
+<div class="m-12 mb-4">
+    <div class="divider">FILE DI ESEMPIO</div>
+</div>
+<div class="py-3 px-5 my-4 mx-6">
+    <p class="mb-6 text-sm italic">Scarica il file di esempio e personalizzalo con i pasti della scuola di tuo figlio</p>
     <ul class="space-y-4 text-center">
         <li>
             <a href="{% static 'files/EsempioMenuSemplice.csv' %}"

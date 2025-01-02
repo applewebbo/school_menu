@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
+from contacts.models import MenuReport
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.test import TestCase
 from school_menu.utils import calculate_week, get_current_date, get_season
@@ -893,3 +894,16 @@ class JsonSchoolMenuView(TestCase):
             meal["menu"] for meal in data["meals"]
         ]
         assert test_meal.snack in [meal["snack"] for meal in data["meals"]]
+
+
+class TestMenuReportCountView(TestCase):
+    def test_get(self):
+        user = self.make_user()
+        MenuReport.objects.create(
+            receiver=user, name="Test name", message="Test message"
+        )
+
+        with self.login(user):
+            response = self.get("school_menu:menu_report_count")
+
+        self.response_200(response)

@@ -1,5 +1,4 @@
 from datetime import datetime
-from unittest.mock import patch
 
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -193,12 +192,11 @@ class GetMenuView(TestCase):
         assert response.context["meal"] == meal
 
     def test_get_with_annual_menu(self):
-        test_date = datetime(2024, 1, 1)
+        test_date = datetime.now().date()
         school = SchoolFactory(annual_menu=True)
-        meal = AnnualMealFactory(school=school, date=test_date.date())
+        meal = AnnualMealFactory(school=school, date=test_date)
 
-        with patch("django.utils.timezone.now", return_value=test_date):
-            response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
+        response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
 
         self.response_200(response)
         assert response.context["meal"] == meal

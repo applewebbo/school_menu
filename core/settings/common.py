@@ -214,21 +214,5 @@ COOKIEBANNER = {
                 },
             ],
         },
-        {
-            "id": "analytics",
-            "name": _("Analisi Utilizzo"),
-            "description": _(
-                "Questi cookie registrano i dati relativi al comportamento degli utenti sul sito in maniera anonima."
-            ),
-            "optional": True,
-            "cookies": [
-                {
-                    "pattern": "_pk_.*",
-                    "description": _(
-                        "Registra i dati anonimi di utilizzo tramite piattaforma Matomo."
-                    ),
-                },
-            ],
-        },
     ],
 }

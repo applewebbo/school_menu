@@ -72,3 +72,6 @@ target-version = "py312"
 [tool.ruff.lint]
 ignore = ["E501", "E741", "F405", "B007"]
 select = ["E", "F", "B", "I"]
+
+[tool.uv]
+python-preference = "only-managed"

@@ -44,9 +44,9 @@ class TestCalculateWeek:
         ],
     )
     def test_calculate_week(self, week, bias, expected):
-        assert (
-            calculate_week(week, bias) == expected
-        ), f"Failed for week: {week}, bias: {bias}"
+        assert calculate_week(week, bias) == expected, (
+            f"Failed for week: {week}, bias: {bias}"
+        )
 
 
 class TestGetCurrentDate:
@@ -66,12 +66,12 @@ class TestGetCurrentDate:
             mock_datetime.now.return_value = datetime.strptime(test_date, "%Y-%m-%d")
             mock_datetime.isocalendar = datetime.isocalendar
             current_week, current_day = get_current_date()
-            assert (
-                current_week == expected_week
-            ), f"Expected week {expected_week}, got {current_week}"
-            assert (
-                current_day == expected_day
-            ), f"Expected day {expected_day}, got {current_day}"
+            assert current_week == expected_week, (
+                f"Expected week {expected_week}, got {current_week}"
+            )
+            assert current_day == expected_day, (
+                f"Expected day {expected_day}, got {current_day}"
+            )
 
 
 class TestGetSeason:

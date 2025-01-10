@@ -292,7 +292,7 @@ class SettingView(TestCase):
 
         self.response_204(response)
         message = list(get_messages(response.wsgi_request))[0].message
-        assert message == f"<strong>{ school.name }</strong> creata con successo"
+        assert message == f"<strong>{school.name}</strong> creata con successo"
         assert School.objects.filter(user=user).count() == 1
         assert school.name == "Test School"
 
@@ -325,7 +325,7 @@ class SettingView(TestCase):
         self.response_204(response)
         school = School.objects.get(user=user)
         message = list(get_messages(response.wsgi_request))[0].message
-        assert message == f"<strong>{ school.name }</strong> aggiornata con successo"
+        assert message == f"<strong>{school.name}</strong> aggiornata con successo"
         assert school.city == "Milano"
 
     def test_school_update_with_invalid_data(self):

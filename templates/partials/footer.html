@@ -61,7 +61,7 @@
         <div class="py-6 px-4 bg-gray-100 md:flex md:justify-between md:items-center dark:bg-gray-700">
             <aside>
                 <p class="text-sm text-gray-500">
-                    Made with {% heroicon_solid 'heart' class="inline-flex align-text-top size-4" %} by WEBBOgrafico - © 2024
+                    Made with {% heroicon_solid 'heart' class="inline-flex align-text-top size-4" %} by WEBBOgrafico - © 2025
                 </p>
             </aside>
             <div class="flex mt-4 space-x-5 sm:justify-center md:mt-0 rtl:space-x-reverse">
@@ -92,42 +92,3 @@
         </div>
     </div>
 </footer>
-{% comment %} <footer class="p-10 bg-base-200 text-base-content">
-    <div class="container grid grid-cols-1 md:grid-cols-3">
-    <aside>
-        <img src="{% static 'img/bw_logo.png' %}" alt="Logo Menu Scolastico in bianco e nero" class="mb-2 size-9">
-        <p class="font-extrabold">
-            Menu Scolastico
-            <br>
-            <span class="italic font-light">cosa mangia mio figlio oggi?</span>
-        </p>
-    </aside>
-    <div class="col-span-1 md:col-span-2">
-        <nav>
-            <h6 class="footer-title">Navigazione</h6>
-            <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
-            <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'school_menu:settings' user.id %}" class="link link-hover">Impostazioni</a>
-            {% endif %}
-            <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
-            <a href="{% url 'contacts:contact' %}" class="link link-hover">Contatti</a>
-        </nav>
-        <nav x-data>
-            <h6 class="footer-title">Altro</h6>
-            <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
-            <a href="{% url 'school_menu:info' %}#disclaimer" class="link link-hover">Disclaimer</a>
-            <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
-            <a href="{% url 'school_menu:privacy' %}" class="link link-hover">Privacy</a>
-            <button onclick="document.querySelector('#cookiebannerModal').classList.remove('hidden')" class="link link-hover">Cookies</button>
-        </nav>
-    </div>
-    </div>
-</footer>
-<footer class="p-4 footer footer-center bg-base-200 text-base-content">
-    <aside>
-        <p>
-            Copyright © 2024 - Made with {% heroicon_solid 'heart' class="inline-flex text-red-500 align-text-top size-4" %} by WEBBOgrafico
-        </p>
-    </aside>
-</footer> {% endcomment %}

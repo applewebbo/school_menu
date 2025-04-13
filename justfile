@@ -12,13 +12,13 @@ bootstrap:
 
 # Run the local development server
 local:
-    python manage.py tailwind --settings=core.settings.dev runserver
+    uv run python manage.py tailwind --settings=core.settings.dev runserver
 
 
 # Run Django with DEBUG=False locally
 prod_local:
-    python manage.py collectstatic --noinput --settings=core.settings.dev
-    python manage.py runserver --settings=core.settings.dev --insecure
+    uv run python manage.py collectstatic --noinput --settings=core.settings.dev
+    uv runpython manage.py runserver --settings=core.settings.dev --insecure
 
 # Install requirements
 requirements:
@@ -34,15 +34,15 @@ update package:
 
 # Run database migrations
 migrate:
-    python manage.py migrate --settings=core.settings.development
+    uv runpython manage.py migrate --settings=core.settings.development
 
 # Run tests
-test:
-    COVERAGE_CORE=sysmon python -m pytest --reuse-db -s
+test *args:
+    uv run python -m pytest --reuse-db -s -x {{ args }}
 
 # Run fast tests
-ftest:
-    pytest -n 8 --reuse-db
+ftest *args:
+    uv run pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
 
 lint:
     uv run ruff check --fix --unsafe-fixes .

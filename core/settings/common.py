@@ -177,11 +177,10 @@ DBBACKUP_STORAGE_OPTIONS = {
 
 # COOKIEBANNER
 
-
 COOKIEBANNER = {
     "title": _("Impostazioni cookie"),
     "header_text": _(
-        "Questo sito utilizza cookie tecnici per garantire la corretta funzionalità del sito. Inoltre monitora in maniera anonima il traffico e il comportamento degli utenti in ottica di miglioramento delle funzionalità. Consulta le nostre policy cliccando sui link in fondo.",
+        "Questo sito utilizza cookie tecnici per garantire la corretta funzionalità del sito. Inoltre monitora in maniera anonima il traffico e il comportamento degli utenti in ottica di miglioramento delle funzionalità. Consulta le nostre policy cliccando sui link presenti nel footer.",
     ),
     "groups": [
         {

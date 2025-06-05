@@ -447,8 +447,32 @@ class TestUploadMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
+        assert response.status_code == 200
+        assert "error_message" in response.context
+        assert SimpleMeal.objects.filter(school=school).count() == 0
+
+    def test_upload_menu_post_(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            csv_content = "giorno;settimana;pranzo;spuntino;merenda\nLunedì;1;Pasta al Pomodoro;Mela,Yogurt"
+            data = {
+                "file": SimpleUploadedFile(
+                    "simple_menu.csv",
+                    csv_content.encode("utf-8"),
+                    content_type="text/csv",
+                ),
+                "season": School.Seasons.INVERNALE,
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 200
+        assert "error_message" in response.context
         assert SimpleMeal.objects.filter(school=school).count() == 0
 
     def test_upload_menu_post_detailed_success(self):

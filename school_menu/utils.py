@@ -118,8 +118,9 @@ def validate_dataset(dataset, menu_type):
     """validates menu import dataset for required columns and values before importing into database and return validates = False and message if not valid"""
     validates = True
     message = None
-    # check required headers presence
     columns = dataset.headers
+
+    # check required headers presence
     if menu_type == School.Types.SIMPLE:
         required_columns = [
             "giorno",

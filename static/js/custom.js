@@ -6,6 +6,7 @@ htmx.on("htmx:beforeSwap", (e) => {
     e.detail.shouldSwap = false
   }
 })
+
 // Reinitialize Alpine.js components after each HTMX request
 htmx.on('htmx:afterSettle', function(evt) {
   document.querySelectorAll('[x-data]').forEach(el => {

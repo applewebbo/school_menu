@@ -2,6 +2,7 @@ name: Tests Runner
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
   test:
@@ -32,10 +33,10 @@ jobs:
         github-token: ${{ secrets.MY_GITHUB_TOKEN }}
 
     - name: Install Python
-      run: uv python install 3.12
+      run: uv python install
 
     - name: Install Packages
       run: uv sync --all-extras
 
     - name: Test it
-      run: uv run --config-setting COVERAGE_CORE=sysmon python -m pytest --reuse-db -s
+      run: uv run pytest -n 8 --reuse-db --dist loadscope --exitfirst

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 set -eu
+export PYTHONWARNINGS="ignore::SyntaxWarning"
 
 echo "Migrating database..."
 python manage.py migrate

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "heroicons",
     "import_export",
     "neapolitan",
+    "pwa",
     "rest_framework",
     "template_partials",
     # INTERNAL APPS
@@ -213,7 +214,35 @@ COOKIEBANNER = {
     ],
 }
 
+
 # DJANGO-TAILWIND-CLI
 
 TAILWIND_CLI_SRC_CSS = "src/source.css"
 TAILWIND_CLI_USE_DAISY_UI = True
+
+
+# DJANGO-PWA
+
+PWA_APP_NAME = "Menu Scolastico"
+PWA_APP_DESCRIPTION = "Cosa mangia mio figlio oggi?"
+PWA_APP_THEME_COLOR = "#00c950"
+PWA_APP_BACKGROUND_COLOR = "#00c950"
+PWA_APP_DISPLAY = "standalone"
+PWA_APP_SCOPE = "/"
+PWA_APP_ORIENTATION = "natural"
+PWA_APP_START_URL = "/"
+PWA_APP_STATUS_BAR_COLOR = "default"
+PWA_APP_DIR = "ltr"
+PWA_APP_LANG = "it-IT"
+
+PWA_APP_ICONS = [
+    {"src": "/static/img/android-chrome-192x192.png", "sizes": "192x192"},
+    {"src": "/static/img/android-chrome-512x512.png", "sizes": "512x512"},
+]
+PWA_APP_ICONS_APPLE = [{"src": "/static/img/apple-touch-icon.png", "sizes": "180x180"}]
+PWA_APP_SPLASH_SCREEN = [
+    {
+        "src": "/static/img/splash-640x1136.png",
+        "media": "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
+    }
+]

@@ -1,4 +1,4 @@
-{% load cookiebanner static %}
+{% load cookiebanner pwa static %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -11,10 +11,8 @@
                 Mensa Scolastica
             {% endblock page_title %}
         </title>
-        <!--Favicon and other images-->
-        <link rel="apple-touch-icon"
-              sizes="180x180"
-              href="{% static 'img/apple-touch-icon.png' %}">
+        {% progressive_web_app_meta %}
+        <!--Favicons-->
         <link rel="icon"
               type="image/png"
               sizes="32x32"
@@ -23,12 +21,9 @@
               type="image/png"
               sizes="16x16"
               href="{% static 'img/favicon-16x16.png' %}">
-        <link rel="manifest" href="{% static '/site.webmanifest' %} ">
         <link rel="mask-icon"
               href="{% static 'img/safari-pinned-tab.svg' %} "
               color="#5bbad5">
-        <meta name="msapplication-TileColor" content="#00aba9">
-        <meta name="theme-color" content="#ffffff">
         <!-- TailwindCSS -->
         <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" />
         <!-- Tooltip -->

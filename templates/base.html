@@ -12,37 +12,10 @@
             {% endblock page_title %}
         </title>
         {% progressive_web_app_meta %}
-        <!--Favicons-->
-        <link rel="icon"
-              type="image/png"
-              sizes="32x32"
-              href="{% static 'img/favicon-32x32.png' %}">
-        <link rel="icon"
-              type="image/png"
-              sizes="16x16"
-              href="{% static 'img/favicon-16x16.png' %}">
-        <link rel="mask-icon"
-              href="{% static 'img/safari-pinned-tab.svg' %} "
-              color="#5bbad5">
+        {% include 'partials/favicon.html' %}
         <!-- TailwindCSS -->
         <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" />
-        <!-- Tooltip -->
-        <script src="{% static 'js/popper.min.js' %}"></script>
-        <script src="{% static 'js/tippy-bundle.umd.min.js' %}"></script>
-        <!-- HTMX -->
-        <script defer src="{% static 'js/htmx.min.js' %}"></script>
-        <!-- Alpine.js -->
-        <script defer src="{% static 'js/alpine-focus.min.js' %}"></script>
-        <script defer src="{% static 'js/alpine-collapse.min.js' %}"></script>
-        <script defer src="{% static 'js/alpine-clipboard.min.js' %}"></script>
-        <script defer src="{% static 'js/alpine.min.js' %}"></script>
-        <!-- Umami Analytics Code -->
-        <script defer
-                src="https://analytics.local.webbografico.com/script.js"
-                data-website-id="746fd00c-77c2-4b88-b5a6-208648d5e5cb"
-                data-domains="menu.webbografico.com,menu.local.webbografico.com"></script>
-        <!-- Custom JS -->
-        <script defer src="{% static 'js/custom.js' %}"></script>
+        {% include 'partials/javascript.html' %}
     </head>
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         {% cookiebanner_modal 'bottom_banner' %}

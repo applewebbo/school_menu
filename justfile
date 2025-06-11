@@ -68,27 +68,27 @@ uv-install:
 # Create database migrations
 [group('development')]
 makemigrations:
-    uv run python manage.py makemigrations --settings=core.settings.development
+    uv run python manage.py makemigrations --settings=core.settings.dev
 
 # Run database migrations
 [group('development')]
 migrate:
-    uv run python manage.py migrate --settings=core.settings.development
+    uv run python manage.py migrate --settings=core.settings.dev
 
 # Compile Translation Files
 [group('development')]
 compilemessages:
-    uv run python manage.py compilemessages --settings=core.settings.development
+    uv run python manage.py compilemessages --settings=core.settings.dev
 
 # Update Translation Files
 [group('development')]
 makemessages:
-    uv run python manage.py makemessages -a --settings=core.settings.development
+    uv run python manage.py makemessages -a --settings=core.settings.dev
 
 # Run Tasks Worker
 [group('development')]
 @tasks:
-    uv run python manage.py qcluster --settings=core.settings.development
+    uv run python manage.py qcluster --settings=core.settings.dev
 
 ##########################################################################
 # Utility

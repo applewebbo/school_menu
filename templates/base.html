@@ -1,4 +1,4 @@
-{% load cookiebanner pwa static %}
+{% load cookiebanner pwa static webpush_notifications %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -12,6 +12,7 @@
             {% endblock page_title %}
         </title>
         {% progressive_web_app_meta %}
+        {% webpush_header %}
         {% include 'partials/favicon.html' %}
         <!-- TailwindCSS -->
         <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" />

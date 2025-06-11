@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "pwa",
     "rest_framework",
     "template_partials",
+    "webpush",
     # INTERNAL APPS
     "users",
     "school_menu",
@@ -246,3 +247,10 @@ PWA_APP_SPLASH_SCREEN = [
         "media": "(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)",
     }
 ]
+
+# WEBPUSH
+WEBPUSH_SETTINGS = {
+    "VAPID_PUBLIC_KEY": env("VAPID_PUBLIC_KEY"),
+    "VAPID_PRIVATE_KEY": env("VAPID_PRIVATE_KEY"),
+    "VAPID_ADMIN_EMAIL": env("ADMIN_EMAIL"),
+}

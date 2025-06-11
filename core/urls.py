@@ -17,6 +17,7 @@ urlpatterns = (
             TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
         ),
         path("", include("pwa.urls")),
+        path("webpush/", include("webpush.urls")),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + debug_toolbar_urls()

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags static %}
+{% block page_title %}
+    Notifiche
+{% endblock page_title %}
+
+{% block add_js %}
+    <script src="{% static 'js/webpush.js' %}"></script>
+{% endblock add_js %}
+
+{% block content %}
+<div class="container mx-auto mb-8 max-w-screen-lg">
+    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+        <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Iscriviti alle notifiche del menù giornaliero</h1>
+        <div class="py-3 px-5 mt-3 md:py-4 md:px-6">
+            <form id="school-select-form" x-data @submit.prevent="() => {}">
+                {% crispy form %}
+                <div class="flex justify-end mt-4">
+                    <button type="button"
+                            class="btn btn-primary"
+                            x-data="pushNotifications"
+                            x-init="enabled = false"
+                            x-bind:disabled="subscribing"
+                            @click="subscribeAnonymous('BNGAOtaSJbQk9Y0elwiwiFOo_D3VqGH4RvjoxFFXwCLzoonE7t2_u6lsOsZXbhc_hQVWdLUuTgXDtCPfEHKCMAc', $el.form.school.value)">
+                        <span x-show="!subscribing">Abilita notifiche</span>
+                        <span x-show="subscribing">Abilitazione...</span>
+                    </button>
+                </div>
+                <div x-text="success" class="text-green-500"></div>
+                <div x-text="error" class="text-red-500"></div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

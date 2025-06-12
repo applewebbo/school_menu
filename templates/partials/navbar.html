@@ -24,7 +24,8 @@
             </div>
             <div class="hidden justify-between items-center w-full md:flex md:order-1 md:w-auto md:me-8"
                  id="navbar-cta">
-                <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-8 md:border-0 rtl:space-x-reverse">
+                 <!-- Menu Desktop -->
+                <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-5 md:border-0 rtl:space-x-reverse">
                     <li>
                         <a href="{% url 'school_menu:index' %}"
                            class="block p-0 text-green-800 md:dark:text-green-500"
@@ -33,6 +34,10 @@
                     <li>
                         <a href="{% url 'school_menu:school_list' %}"
                            class="block p-0 text-gray-800 hover:text-green-800">Scuole</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'notifications:notification_settings' %}"
+                           class="block p-0 text-gray-800 hover:text-green-800">Notifiche</a>
                     </li>
                     <li>
                         <a href="{% url 'contacts:contact' %}"
@@ -60,6 +65,7 @@
              x-cloak
              x-show="open"
              x-collapse.duration.500>
+             <!-- Menu Mobile -->
             <ul class="flex flex-col gap-x-0 gap-y-4 p-4 px-5">
                 <li>
                     <a href="{% url 'school_menu:index' %}"
@@ -69,6 +75,10 @@
                 <li>
                     <a href="{% url 'school_menu:school_list' %}"
                        class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Scuole</a>
+                </li>
+                <li>
+                    <a href="{% url 'notifications:notification_settings' %}"
+                       class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Notifiche</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li>

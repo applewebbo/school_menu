@@ -46,9 +46,10 @@ INSTALLED_APPS = [
     "template_partials",
     "webpush",
     # INTERNAL APPS
-    "users",
-    "school_menu",
     "contacts",
+    "notifications",
+    "school_menu",
+    "users",
 ]
 
 MIDDLEWARE = [
@@ -226,8 +227,8 @@ TAILWIND_CLI_USE_DAISY_UI = True
 
 PWA_APP_NAME = "Menu Scolastico"
 PWA_APP_DESCRIPTION = "Cosa mangia mio figlio oggi?"
-PWA_APP_THEME_COLOR = "#00c950"
-PWA_APP_BACKGROUND_COLOR = "#00c950"
+PWA_APP_THEME_COLOR = "#FFFFFF"
+PWA_APP_BACKGROUND_COLOR = "#FFFFFF"
 PWA_APP_DISPLAY = "standalone"
 PWA_APP_SCOPE = "/"
 PWA_APP_ORIENTATION = "natural"

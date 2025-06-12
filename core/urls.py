@@ -12,6 +12,7 @@ urlpatterns = (
         path("", include("school_menu.urls")),
         path("contacts/", include("contacts.urls")),
         path("users/", include("users.urls")),
+        path("notifications/", include("notifications.urls")),
         path(
             "robots.txt",
             TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),

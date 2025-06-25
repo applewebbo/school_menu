@@ -11,4 +11,9 @@ urlpatterns = [
         name="notification_settings",
     ),
     path("save-anon-subscription/", views.save_subscription, name="save_subscription"),
+    path(
+        "delete-anon-subscription/",
+        views.delete_subscription,
+        name="delete_subscription",
+    ),
 ]

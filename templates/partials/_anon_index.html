@@ -37,7 +37,7 @@
                     <input type="text"
                            id="simple-search"
                            name="q"
-                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 dark:placeholder-gray-400 dark:text-white dark:bg-gray-700 dark:border-gray-600 focus:border-green-500 focus:ring-green-500 ps-10 dark:focus:ring-green-500 dark:focus:border-green-500"
+                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-green-500 ps-10"
                            hx-get="{% url 'school_menu:search_schools' %}"
                            hx-swap="outerHTML"
                            hx-trigger="keyup changed delay:1s"
@@ -55,7 +55,7 @@
         <div class="py-6 px-4 text-center bg-white rounded-xl border border-gray-300 shadow-md">
             <p class="mb-6 text-xl font-medium tracking-tight">Crea il menu della tua scuola</p>
             <a href="{% url 'account_signup' %}"
-               class="inline-flex items-center btn btn-xl btn-primary">
+               class="inline-flex items-center btn btn-lg btn-primary">
                 Registrati
                 {% heroicon_outline "arrow-right" class="w-4 h-4 ms-4" %}
             </a>

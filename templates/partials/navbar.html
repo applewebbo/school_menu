@@ -1,11 +1,11 @@
 {% load heroicons static %}
 <div x-data="{ open: false }">
-    <nav class="bg-white dark:bg-gray-900">
+    <nav class="bg-base-100">
         <div class="flex flex-wrap justify-between items-center p-4 mx-auto max-w-screen-lg">
             <a href="{% url 'school_menu:index' %}"
                class="flex items-center space-x-3 rtl:space-x-reverse grow">
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo">
-                <span class="self-center text-base font-semibold tracking-tight whitespace-nowrap md:text-2xl dark:text-white">Menu Scolastico</span>
+                <span class="self-center text-base font-semibold tracking-tight whitespace-nowrap md:text-2xl">Menu Scolastico</span>
             </a>
             <div class="flex items-end space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
                 {% if user.is_authenticated %}
@@ -13,7 +13,7 @@
                     <a href="{% url 'account_login' %}" class="btn btn-sm btn-primary">Entra</a>
                 {% endif %}
                 <button type="button"
-                        class="inline-flex justify-center items-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg md:hidden dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+                        class="inline-flex justify-center items-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100"
                         aria-controls="navbar-cta"
                         aria-expanded="false"
                         x-on:click="open = ! open">
@@ -28,7 +28,7 @@
                 <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-5 md:border-0 rtl:space-x-reverse">
                     <li>
                         <a href="{% url 'school_menu:index' %}"
-                           class="block p-0 text-green-800 md:dark:text-green-500"
+                           class="block p-0 text-green-800"
                            aria-current="page">Home</a>
                     </li>
                     <li>
@@ -46,7 +46,7 @@
                     {% if user.is_authenticated %}
                         <li>
                             <a href="{% url 'school_menu:settings' user.id %}"
-                               class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 d:dark:hover:text-green-500 md:hover:bg-transparent md:hover:text-green-700 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Impostazioni</a>
+                               class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent">Impostazioni</a>
                         </li>
                         <li>
                             <form action="{% url 'account_logout' %}" method="post">
@@ -74,23 +74,23 @@
                 </li>
                 <li>
                     <a href="{% url 'school_menu:school_list' %}"
-                       class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Scuole</a>
+                       class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">Scuole</a>
                 </li>
                 <li>
                     <a href="{% url 'notifications:notification_settings' %}"
-                       class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Notifiche</a>
+                       class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">Notifiche</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li>
                         <a href="{% url 'school_menu:settings' user.id %}"
-                           class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">Impostazioni</a>
+                           class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">Impostazioni</a>
                     </li>
                     <li>
                         <form action="{% url 'account_logout' %}" method="post">
                             {% csrf_token %}
                             <button type="submit"
                                     href="{% url 'account_logout' %}"
-                                    class="block py-2 px-3 text-gray-900 rounded md:p-0 dark:text-white dark:border-gray-700 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:dark:hover:text-blue-500 md:dark:hover:bg-transparent dark:hover:bg-gray-700 dark:hover:text-white">
+                                    class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">
                                 Esci
                             </button>
                         </form>

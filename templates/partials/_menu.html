@@ -41,31 +41,30 @@
             <br>
         {% endif %}
     </div>
-    <hr class="mt-8 mb-4">
-    <p class="text-lg font-semibold tracking-tight">Condividi</p>
+    <div class="mt-14 mb-8 divider">CONDIVIDI</div>
     <div id="share"
-         class="flex flex-col gap-3 justify-center mt-4 mb-6 md:flex-row"
+         class="flex flex-col gap-3 justify-center mt-4 mb-8 md:flex-row"
          x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
         <!--   https://www.alpinejs.dev/component/tooltip -->
         <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
            x-tooltip="Condividi via email"
-           class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
+           class="inline-flex items-center btn">
             {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-1" %}
             Email
         </a>
-        {% post_to_facebook object_or_url "Facebook" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
-        {% post_to_whatsapp object_or_url "Whatsapp" "inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn" %}
+        {% post_to_facebook object_or_url "Facebook" "inline-flex items-center btn" %}
+        {% post_to_whatsapp object_or_url "Whatsapp" "inline-flex items-center btn" %}
         <button type="button"
                 x-data="{ input: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}'}"
                 x-tooltip="Copia negli appunti"
                 x-clipboard="address"
                 @click="$clipboard(input)"
-                class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn">
+                class="inline-flex items-center btn">
             {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-1" %}
             Copia
         </button>
         <a href="{% url 'contacts:menu_report' school.pk %}"
-           class="inline-flex items-center bg-white border-gray-100 shadow hover:bg-gray-100 btn"
+           class="inline-flex items-center btn"
            x-tooltip="Segnala un problema">
             {% heroicon_outline "exclamation-triangle" class="w-5 h-5 text-red-500 me-1" %}
             Segnala

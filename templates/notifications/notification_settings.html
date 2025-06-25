@@ -9,27 +9,37 @@
 {% endblock add_js %}
 
 {% block content %}
-<div class="container mx-auto mb-8 max-w-screen-lg">
-    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-        <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Iscriviti alle notifiche del menù giornaliero</h1>
-        <div class="py-3 px-5 mt-3 md:py-4 md:px-6">
-            <form id="school-select-form" x-data @submit.prevent="() => {}">
-                {% crispy form %}
-                <div class="flex justify-end mt-4">
-                    <button type="button"
-                            class="btn btn-primary"
-                            x-data="pushNotifications"
-                            x-init="enabled = false"
-                            x-bind:disabled="subscribing"
-                            @click="subscribeAnonymous('BNGAOtaSJbQk9Y0elwiwiFOo_D3VqGH4RvjoxFFXwCLzoonE7t2_u6lsOsZXbhc_hQVWdLUuTgXDtCPfEHKCMAc', $el.form.school.value)">
-                        <span x-show="!subscribing">Abilita notifiche</span>
-                        <span x-show="subscribing">Abilitazione...</span>
-                    </button>
-                </div>
-                <div x-text="success" class="text-green-500"></div>
-                <div x-text="error" class="text-red-500"></div>
-            </form>
+    <div class="container mx-auto mb-8 max-w-screen-lg">
+        <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Notifiche Menù Giornaliero</h1>
+            <div class="py-3 px-5 mt-3 md:py-4 md:px-6">
+                {% if school %}
+                    <p>
+                        Questo dispositivo riceve notifiche giornaliere relative al menu di: <span class="font-bold">{{ school.name }}</span>
+                    </p>
+                    <div class="flex justify-end mt-4">
+                        <button class="btn btn-primary"
+                                hx-post="{% url 'notifications:delete_subscription' %}">Disabilita notifiche</button>
+                    </div>
+                {% else %}
+                    <form id="school-select-form" x-data @submit.prevent="() => {}">
+                        {% crispy form %}
+                        <div class="flex justify-end mt-4">
+                            <button type="button"
+                                    class="btn btn-primary"
+                                    x-data="pushNotifications"
+                                    x-init="enabled = false"
+                                    x-bind:disabled="subscribing"
+                                    @click="subscribeAnonymous('BNGAOtaSJbQk9Y0elwiwiFOo_D3VqGH4RvjoxFFXwCLzoonE7t2_u6lsOsZXbhc_hQVWdLUuTgXDtCPfEHKCMAc', $el.form.school.value)">
+                                <span x-show="!subscribing">Abilita notifiche</span>
+                                <span x-show="subscribing">Abilitazione...</span>
+                            </button>
+                        </div>
+                        <div x-text="success" class="text-green-500"></div>
+                        <div x-text="error" class="text-red-500"></div>
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </div>
-</div>
 {% endblock content %}

@@ -1,4 +1,3 @@
-import csv
 from datetime import datetime
 
 from django.contrib import messages
@@ -11,7 +10,6 @@ from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
-from tablib.exceptions import InvalidDimensions
 
 from contacts.models import MenuReport
 from school_menu.forms import (
@@ -310,7 +308,6 @@ def upload_menu(request, school_id, meal_type):
     active_menu = meal_type
     if request.method == "POST":
         form = UploadMenuForm(request.POST, request.FILES)
-        context = {"form": form, "school": school, "active_menu": active_menu}
         if form.is_valid():
             file = request.FILES["file"]
             season = form.cleaned_data["season"]
@@ -319,21 +316,14 @@ def upload_menu(request, school_id, meal_type):
             else:
                 resource = DetailedMealResource()
             dataset = Dataset()
-            try:
-                dataset.load(file.read().decode(), format="csv")
-            except (InvalidDimensions, csv.Error):
-                context["error_message"] = (
-                    "Formato non valido. Il file CSV sembra usare un delimitatore diverso dalla virgola. Assicurati di esportare il file CSV usando la virgola come separatore di colonne."
-                )
-                return TemplateResponse(request, "upload-menu.html", context)
-            # validate the dataset
+            dataset.load(file.read().decode(), format="csv")
             validates, message = validate_dataset(dataset, menu_type)
             result = resource.import_data(
                 dataset, dry_run=True, school=school, season=season, type=meal_type
             )
             if not validates:
-                context["error_message"] = message
-                return TemplateResponse(request, "upload-menu.html", context)
+                messages.add_message(request, messages.ERROR, message)
+                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season, type=meal_type
@@ -343,10 +333,12 @@ def upload_menu(request, school_id, meal_type):
                 )
             else:  # pragma: no cover
                 print(result.row_errors())
-                context["error_message"] = "Qualcosa è andato storto.."
-                return TemplateResponse(request, "upload-menu.html", context)
-
-            # request.session["active_menu"] = active_menu
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Qualcosa è andato storto..",
+                )
+            request.session["active_menu"] = active_menu
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         context = {"form": form, "school": school, "active_menu": active_menu}
         return TemplateResponse(request, "upload-menu.html", context)

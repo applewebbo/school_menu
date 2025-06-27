@@ -3,8 +3,8 @@ from pytest_django.asserts import assertTemplateUsed
 
 from contacts.models import MenuReport
 from school_menu.test import TestCase
+from tests.contacts.factories import MenuReportFactory
 from tests.school_menu.factories import SchoolFactory
-from tests.t_contacts.factories import MenuReportFactory
 
 
 class ContactView(TestCase):

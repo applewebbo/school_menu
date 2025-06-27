@@ -1,11 +1,7 @@
-import json
-
 from django.contrib import messages
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-
-from school_menu.models import School
+from django.views.decorators.http import require_http_methods
 
 from .forms import AnonymousMenuNotificationForm
 from .models import AnonymousMenuNotification
@@ -13,6 +9,7 @@ from .models import AnonymousMenuNotification
 
 def notification_settings(request):
     pk = request.session.get("anon_notification_pk")
+    print(f"Notification PK from session: {pk}")
     context = {}
     if pk:
         notification = AnonymousMenuNotification.objects.get(pk=pk)
@@ -22,27 +19,23 @@ def notification_settings(request):
     return render(request, "notifications/notification_settings.html", context)
 
 
-@csrf_exempt
+@require_http_methods(["POST"])
 def save_subscription(request):
-    if request.method == "POST":
-        try:
-            data = json.loads(request.body)
-            school_id = data.get("school_id")
-            subscription = data.get("subscription")
-            if not school_id or not subscription:
-                return JsonResponse(
-                    {"success": False, "error": "Missing school or subscription info"},
-                    status=400,
-                )
-            school = School.objects.get(pk=school_id)
-            notification = AnonymousMenuNotification.objects.create(
-                school=school, subscription_info=subscription
-            )
-            request.session["anon_notification_pk"] = notification.pk
-            return JsonResponse({"success": True})
-        except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=400)
-    return JsonResponse({"success": False, "error": "Invalid request"}, status=405)
+    form = AnonymousMenuNotificationForm(request.POST)
+    if form.is_valid():
+        school = form.cleaned_data["school"]
+        subscription_info = form.cleaned_data["subscription_info"]
+        notification = AnonymousMenuNotification.objects.create(
+            school=school, subscription_info=subscription_info
+        )
+        request.session["anon_notification_pk"] = notification.pk
+        request.session.save()
+        messages.add_message(
+            request, messages.SUCCESS, "Notifiche abilitate con successo"
+        )
+        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    else:
+        return HttpResponse("error", status=400)
 
 
 def delete_subscription(request):
@@ -50,9 +43,8 @@ def delete_subscription(request):
         try:
             pk = request.session.get("anon_notification_pk")
             if not pk:
-                return JsonResponse(
-                    {"success": False, "error": "No subscription found"}, status=400
-                )
+                messages.error(request, "Nessuna sottoscrizione trovata.")
+                return HttpResponse(status=400, headers={"HX-Refresh": "true"})
             notification = AnonymousMenuNotification.objects.get(pk=pk)
             notification.delete()
             del request.session["anon_notification_pk"]
@@ -61,9 +53,10 @@ def delete_subscription(request):
             )
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         except AnonymousMenuNotification.DoesNotExist:
-            return JsonResponse(
-                {"success": False, "error": "Subscription does not exist"}, status=404
-            )
+            messages.error(request, "La sottoscrizione non esiste.")
+            return HttpResponse(status=404, headers={"HX-Refresh": "true"})
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=400)
-    return JsonResponse({"success": False, "error": "Invalid request"}, status=405)
+            messages.error(request, f"Errore durante la disabilitazione: {str(e)}")
+            return HttpResponse(status=400, headers={"HX-Refresh": "true"})
+    messages.error(request, "Richiesta non valida.")
+    return HttpResponse(status=405, headers={"HX-Refresh": "true"})

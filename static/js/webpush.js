@@ -124,9 +124,8 @@ document.addEventListener('alpine:init', () => {
         this.subscribing = false;
       }
     },
-    async subscribeAnonymous(vapidKey, schoolId) {
+    async subscribeAndSubmit(formElement, vapidKey) {
       this.error = '';
-      this.success = '';
       this.subscribing = true;
       if (!('serviceWorker' in navigator)) {
         this.error = 'Push notifications are not supported by your browser.';
@@ -139,24 +138,21 @@ document.addEventListener('alpine:init', () => {
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidKey)
         });
-        const response = await fetch('/notifications/save-anon-subscription/', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            subscription: subscription.toJSON(),
-            school_id: schoolId
-          })
-        });
-        const data = await response.json();
-        if (data.success) {
-          this.success = 'Notifiche push anonime abilitate!';
-          this.enabled = true;
-        } else {
-          this.error = data.error || 'Errore durante la registrazione anonima.';
-        }
+
+        console.log('Subscription object:', subscription); // DEBUG 1
+        const subscriptionString = JSON.stringify(subscription);
+        console.log('Stringified subscription:', subscriptionString); // DEBUG 2
+
+        const hiddenInput = document.createElement('input');
+        hiddenInput.type = 'hidden';
+        hiddenInput.name = 'subscription_info';
+        hiddenInput.value = subscriptionString;
+        formElement.appendChild(hiddenInput);
+        console.log('Hidden input value after setting:', hiddenInput.value); // DEBUG 3
+
+        htmx.trigger(formElement, 'submit');
       } catch (err) {
+        console.error('Error during subscription:', err); // DEBUG error
         this.error = 'Impossibile abilitare le notifiche push: ' + err;
       } finally {
         this.subscribing = false;

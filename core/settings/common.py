@@ -1,6 +1,7 @@
 # import os
 import os
 from pathlib import Path
+from warnings import filterwarnings
 
 import environ
 from django.utils.translation import gettext_lazy as _
@@ -255,3 +256,9 @@ WEBPUSH_SETTINGS = {
     "VAPID_PRIVATE_KEY": env("VAPID_PRIVATE_KEY"),
     "VAPID_ADMIN_EMAIL": env("ADMIN_EMAIL"),
 }
+
+# SET transitional setting for FORMS_URLFIELD_ASSUME_HTTPS and ignore deprecation warning
+filterwarnings(
+    "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."
+)
+FORMS_URLFIELD_ASSUME_HTTPS = True

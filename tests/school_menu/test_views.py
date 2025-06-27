@@ -447,11 +447,13 @@ class TestUploadMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 200
-        assert "error_message" in response.context
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        messages = list(get_messages(response.wsgi_request))
+        assert len(messages) > 0
         assert SimpleMeal.objects.filter(school=school).count() == 0
 
-    def test_upload_menu_post_(self):
+    def test_upload_menu_post_invalid_csv_delimiter(self):
         user = self.make_user()
         school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
 
@@ -471,8 +473,10 @@ class TestUploadMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 200
-        assert "error_message" in response.context
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        messages = list(get_messages(response.wsgi_request))
+        assert len(messages) > 0
         assert SimpleMeal.objects.filter(school=school).count() == 0
 
     def test_upload_menu_post_detailed_success(self):

@@ -1,0 +1,20 @@
+{% load crispy_forms_tags %}
+
+<form id="school-select-form"
+      hx-post="{% url 'notifications:save_subscription' %}"
+      hx-target="this"
+      hx-swap="outerHTML">
+    {% csrf_token %}
+    {% crispy form %}
+    <div class="flex justify-end mt-4">
+        <button type="button"
+                class="btn btn-primary"
+                x-data="pushNotifications"
+                x-init="enabled = false"
+                x-bind:disabled="subscribing"
+                @click="subscribeAndSubmit($el.form, 'BNGAOtaSJbQk9Y0elwiwiFOo_D3VqGH4RvjoxFFXwCLzoonE7t2_u6lsOsZXbhc_hQVWdLUuTgXDtCPfEHKCMAc')">
+            <span x-show="!subscribing">Abilita notifiche</span>
+            <span x-show="subscribing">Abilitazione...</span>
+        </button>
+    </div>
+</form>

@@ -22,22 +22,7 @@
                                 hx-post="{% url 'notifications:delete_subscription' %}">Disabilita notifiche</button>
                     </div>
                 {% else %}
-                    <form id="school-select-form" x-data @submit.prevent="() => {}">
-                        {% crispy form %}
-                        <div class="flex justify-end mt-4">
-                            <button type="button"
-                                    class="btn btn-primary"
-                                    x-data="pushNotifications"
-                                    x-init="enabled = false"
-                                    x-bind:disabled="subscribing"
-                                    @click="subscribeAnonymous('BNGAOtaSJbQk9Y0elwiwiFOo_D3VqGH4RvjoxFFXwCLzoonE7t2_u6lsOsZXbhc_hQVWdLUuTgXDtCPfEHKCMAc', $el.form.school.value)">
-                                <span x-show="!subscribing">Abilita notifiche</span>
-                                <span x-show="subscribing">Abilitazione...</span>
-                            </button>
-                        </div>
-                        <div x-text="success" class="text-green-500"></div>
-                        <div x-text="error" class="text-red-500"></div>
-                    </form>
+                    {% include "notifications/partials/subscription_form.html" %}
                 {% endif %}
             </div>
         </div>

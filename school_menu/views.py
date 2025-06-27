@@ -10,6 +10,7 @@ from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
+from tablib.exceptions import InvalidDimensions
 
 from contacts.models import MenuReport
 from school_menu.forms import (
@@ -316,7 +317,17 @@ def upload_menu(request, school_id, meal_type):
             else:
                 resource = DetailedMealResource()
             dataset = Dataset()
-            dataset.load(file.read().decode(), format="csv")
+            try:
+                dataset.load(file.read().decode(), format="csv")
+            except (InvalidDimensions, Exception):
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Il file CSV non è valido. Controlla il delimitatore e il formato.",
+                )
+                return HttpResponse(
+                    status=204, headers={"HX-Trigger": "menuUploadError"}
+                )
             validates, message = validate_dataset(dataset, menu_type)
             result = resource.import_data(
                 dataset, dry_run=True, school=school, season=season, type=meal_type

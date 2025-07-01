@@ -17,10 +17,20 @@
                     <p>
                         Questo dispositivo riceve notifiche giornaliere relative al menu di: <span class="font-bold">{{ school.name }}</span>
                     </p>
-                    <div class="flex justify-end mt-4">
-                        <button class="btn btn-primary"
-                                hx-post="{% url 'notifications:delete_subscription' %}">Disabilita notifiche</button>
+                    <div class="flex gap-2 justify-end mt-4">
+                        <button hx-post="{% url 'notifications:test_notification' %}"
+                            hx-target="#test-notification-result"
+                            hx-swap="innerHTML"
+                            class="btn btn-primary btn-soft"
+                            type="button">
+                            Test Notifica
+                        </button>
+                        <button class="btn btn-primary btn-soft"
+                                hx-post="{% url 'notifications:delete_subscription' %}">
+                            Disabilita notifiche
+                        </button>
                     </div>
+                    <div id="test-notification-result" class="mt-4"></div>
                 {% else %}
                     {% include "notifications/partials/subscription_form.html" %}
                 {% endif %}

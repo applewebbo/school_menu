@@ -257,6 +257,8 @@ WEBPUSH_SETTINGS = {
     "VAPID_ADMIN_EMAIL": env("ADMIN_EMAIL"),
 }
 
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "static/js/serviceworker.js")
+
 # SET transitional setting for FORMS_URLFIELD_ASSUME_HTTPS and ignore deprecation warning
 filterwarnings(
     "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."

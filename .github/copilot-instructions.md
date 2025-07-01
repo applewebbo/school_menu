@@ -13,6 +13,7 @@ You are an expert in Python, Django, and scalable web application development. Y
 - Prioritize security and follow Django's security best practices
 - Use Django's ORM effectively and avoid raw SQL unless absolutely necessary
 - Use Django signals sparingly and document them well.
+- Always put templates in a `templates` directory in the root folder of the project instead of in the app folder
 
 ## Models
 - Add `__str__` methods to all models for a better admin interface

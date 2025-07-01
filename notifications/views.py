@@ -1,7 +1,11 @@
+import json
+
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
+from pywebpush import WebPushException, webpush
 
 from .forms import AnonymousMenuNotificationForm
 from .models import AnonymousMenuNotification
@@ -60,3 +64,58 @@ def delete_subscription(request):
             return HttpResponse(status=400, headers={"HX-Refresh": "true"})
     messages.error(request, "Richiesta non valida.")
     return HttpResponse(status=405, headers={"HX-Refresh": "true"})
+
+
+@require_http_methods(["POST"])
+def test_notification(request):
+    """
+    Invia una notifica di prova all'utente iscritto e restituisce una risposta HTML per htmx.
+    """
+    pk = request.session.get("anon_notification_pk")
+    if not pk:
+        messages.error(request, "Nessuna sottoscrizione trovata.")
+        return render(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": False},
+        )
+
+    notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+    payload = {
+        "head": "Test Notifica",
+        "body": "Questa è una notifica di prova.",
+        "icon": "/static/img/notification-bell.png",  # Modifica il path se necessario
+        "url": "/",
+    }
+
+    try:
+        webpush(
+            subscription_info=notification.subscription_info,
+            data=json.dumps(payload),
+            vapid_private_key=settings.WEBPUSH_SETTINGS["VAPID_PRIVATE_KEY"],
+            vapid_claims={
+                "sub": f"mailto:{settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']}"
+            },
+        )
+        message = (
+            "Notifica di prova inviata. Verifica di averla ricevuta sul tuo dispositivo"
+        )
+        return render(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": True, "message": message},
+        )
+    except WebPushException as e:
+        message = f"Errore durante l'invio: {e}"
+        return render(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": False, "message": message},
+        )
+    except Exception as e:
+        message = f"Errore inatteso: {e}"
+        return render(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": False, "message": message},
+        )

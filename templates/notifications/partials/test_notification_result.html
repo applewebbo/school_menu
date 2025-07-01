@@ -1,0 +1,6 @@
+{% load heroicons %}
+<div role="alert" class="alert">
+    {% with icon_class=success|yesno:"text-success,text-error" %}
+        {% heroicon_solid 'bell' class=icon_class %}{{ message }}
+    {% endwith %}
+</div>

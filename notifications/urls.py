@@ -16,4 +16,5 @@ urlpatterns = [
         views.delete_subscription,
         name="delete_subscription",
     ),
+    path("test-notification/", views.test_notification, name="test_notification"),
 ]

@@ -1,4 +1,5 @@
 import pytest
+import pywebpush
 from django.urls import reverse
 
 from notifications.models import AnonymousMenuNotification
@@ -119,3 +120,108 @@ def test_delete_subscription_generic_exception(client, school_factory, monkeypat
     response = client.post(url)
     assert response.status_code == 400
     assert response["HX-Refresh"] == "true"
+
+
+def test_test_notification_no_session(client):
+    """Test notifica di prova senza pk in sessione."""
+    url = reverse("notifications:test_notification")
+    response = client.post(url)
+    assert response.status_code == 200
+    # Verifica che il messaggio di errore sia presente nell'HTML
+    assert (
+        b"nessuna sottoscrizione" in response.content.lower()
+        or b"alert" in response.content.lower()
+    )
+
+
+def test_test_notification_invalid_pk(client):
+    """Test notifica di prova con pk non esistente."""
+    session = client.session
+    session["anon_notification_pk"] = 99999  # pk non esistente
+    session.save()
+    url = reverse("notifications:test_notification")
+    response = client.post(url)
+    if response.status_code == 404:
+        # Risposta 404: template di errore standard
+        assert (
+            b"non esiste" in response.content.lower()
+            or b"errore" in response.content.lower()
+        )
+    else:
+        # Risposta 200: alert custom
+        assert (
+            b'role="alert"' in response.content or b'class="alert"' in response.content
+        )
+        assert (
+            b"non esiste" in response.content.lower()
+            or b"errore" in response.content.lower()
+        )
+
+
+def test_test_notification_success(client, school_factory, monkeypatch):
+    """Test invio notifica di prova riuscito."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:test_notification")
+
+    def fake_webpush(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("notifications.views.webpush", fake_webpush)
+    response = client.post(url)
+    assert response.status_code == 200
+    # Verifica che sia presente un alert (messaggio per l'utente)
+    assert b'role="alert"' in response.content or b'class="alert"' in response.content
+
+
+def test_test_notification_webpush_exception(client, school_factory, monkeypatch):
+    """Test gestione WebPushException durante invio notifica di prova."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:test_notification")
+
+    def raise_webpush(*args, **kwargs):
+        raise pywebpush.WebPushException("Errore webpush")
+
+    monkeypatch.setattr("notifications.views.webpush", raise_webpush)
+    response = client.post(url)
+    assert response.status_code == 200
+    assert b'role="alert"' in response.content or b'class="alert"' in response.content
+    assert (
+        b"errore durante l'invio" in response.content.lower()
+        or b"errore" in response.content.lower()
+    )
+
+
+def test_test_notification_generic_exception(client, school_factory, monkeypatch):
+    """Test gestione eccezione generica durante invio notifica di prova."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:test_notification")
+
+    def raise_exception(*args, **kwargs):
+        raise Exception("Errore generico")
+
+    monkeypatch.setattr("notifications.views.webpush", raise_exception)
+    response = client.post(url)
+    assert response.status_code == 200
+    assert b'role="alert"' in response.content or b'class="alert"' in response.content
+    assert b"errore" in response.content.lower()

@@ -1,39 +1,93 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags static %}
+{% load crispy_forms_tags heroicons static %}
 {% block page_title %}
     Notifiche
 {% endblock page_title %}
 
 {% block add_js %}
     <script src="{% static 'js/webpush.js' %}"></script>
+    <script>
+        function pwaInstallPrompt() {
+            return {
+                isStandalone: false,
+                canPrompt: false,
+                deferredPrompt: null,
+                isIOS: false,
+                isMacOS: false,
+                installMessage: "",
+                checkStandalone() {
+                    this.isStandalone = window.matchMedia('(display-mode: standalone)').matches
+                        || window.navigator.standalone === true;
+                    const ua = window.navigator.userAgent.toLowerCase();
+                    this.isIOS = /iphone|ipad|ipod/.test(ua);
+                    // isMacOS solo se Safari su Mac (no Chrome, Edge, Vivaldi, Brave, Opera)
+                    const isMacPlatform = (
+                        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) ||
+                        (/macintosh|macintel|macppc|mac68k|macos/.test(window.navigator.platform.toLowerCase()))
+                    );
+                    const isSafari = ua.includes('safari') && !ua.includes('chrome') && !ua.includes('crios') && !ua.includes('fxios') && !ua.includes('edgios') && !ua.includes('edg') && !ua.includes('opr') && !ua.includes('vivaldi') && !ua.includes('brave');
+                    this.isMacOS = isMacPlatform && isSafari && !this.isIOS;
+                    this.installMessage = "";
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                        this.canPrompt = true;
+                    });
+                },
+                async showPrompt() {
+                    if (this.deferredPrompt) {
+                        this.deferredPrompt.prompt();
+                        const { outcome } = await this.deferredPrompt.userChoice;
+                        if (outcome === 'accepted') {
+                            this.installMessage = "App installata!";
+                            this.checkStandalone(); // Aggiorna subito lo stato dopo installazione
+                        } else {
+                            this.installMessage = "Installazione annullata.";
+                        }
+                        this.canPrompt = false;
+                        this.deferredPrompt = null;
+                    }
+                }
+            }
+        }
+    </script>
 {% endblock add_js %}
 
 {% block content %}
     <div class="container mx-auto mb-8 max-w-screen-lg">
         <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
             <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Notifiche Menù Giornaliero</h1>
-            <div class="py-3 px-5 mt-3 md:py-4 md:px-6">
-                {% if school %}
-                    <p>
-                        Questo dispositivo riceve notifiche giornaliere relative al menu di: <span class="font-bold">{{ school.name }}</span>
-                    </p>
-                    <div class="flex gap-2 justify-end mt-4">
-                        <button hx-post="{% url 'notifications:test_notification' %}"
-                            hx-target="#test-notification-result"
-                            hx-swap="innerHTML"
-                            class="btn btn-primary btn-soft"
-                            type="button">
-                            Test Notifica
-                        </button>
-                        <button class="btn btn-primary btn-soft"
-                                hx-post="{% url 'notifications:delete_subscription' %}">
-                            Disabilita notifiche
-                        </button>
+            <div class="py-3 px-5 mt-3 md:py-4 md:px-6"
+                 x-data="pwaInstallPrompt()"
+                 x-init="checkStandalone(); console.log('PWA Alpine state', {isStandalone, canPrompt, installMessage})">
+                {% include 'notifications/partials/pwa_install.html' %}
+                <template x-if="!isStandalone && !canPrompt">
+                    <div class="mt-4 alert x-cloak">
+                        {% heroicon_solid 'information-circle' class="text-info size-7" %}
+                        Hai già installato questo sito come web app? Aprila dal menu delle app, dal dock o dalla schermata home del tuo dispositivo.
                     </div>
-                    <div id="test-notification-result" class="mt-4"></div>
-                {% else %}
-                    {% include "notifications/partials/subscription_form.html" %}
-                {% endif %}
+                </template>
+                <div x-show="isStandalone">
+                    {% if school %}
+                        <p>
+                            Questo dispositivo riceve notifiche giornaliere relative al menu di: <span class="font-bold">{{ school.name }}</span>
+                        </p>
+                        <div class="flex gap-2 justify-end mt-4">
+                            <button hx-post="{% url 'notifications:test_notification' %}"
+                                    hx-target="#test-notification-result"
+                                    hx-swap="innerHTML"
+                                    class="btn btn-primary btn-soft"
+                                    type="button">Test Notifica</button>
+                            <button class="btn btn-primary btn-soft"
+                                    hx-post="{% url 'notifications:delete_subscription' %}">
+                                Disabilita notifiche
+                            </button>
+                        </div>
+                        <div id="test-notification-result" class="mt-4"></div>
+                    {% else %}
+                        {% include "notifications/partials/subscription_form.html" %}
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

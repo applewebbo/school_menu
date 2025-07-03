@@ -6,7 +6,6 @@ NO_RELOAD = False
 INSTALLED_APPS += [
     "anymail",
     "django_browser_reload",
-    "django_extensions",
 ]
 
 MIDDLEWARE += [

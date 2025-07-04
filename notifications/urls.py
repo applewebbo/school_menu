@@ -6,7 +6,7 @@ app_name = "notifications"
 
 urlpatterns = [
     path(
-        "anonymous-notification-settings/",
+        "settings/",
         views.notification_settings,
         name="notification_settings",
     ),

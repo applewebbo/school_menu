@@ -13,7 +13,6 @@ from .models import AnonymousMenuNotification
 
 def notification_settings(request):
     pk = request.session.get("anon_notification_pk")
-    print(f"Notification PK from session: {pk}")
     context = {}
     if pk:
         notification = AnonymousMenuNotification.objects.get(pk=pk)

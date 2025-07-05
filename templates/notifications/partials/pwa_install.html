@@ -2,22 +2,47 @@
 <div class="my-4">
     <template x-if="!isStandalone">
         <div class="flex flex-col gap-4 items-center">
+            <template x-if="unsupportedMessage">
+                <div class="my-4 text-center alert alert-warning"
+                     x-text="unsupportedMessage"></div>
+            </template>
             <div x-show="isIOS">
-                <p>Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito alla tua schermata home:</p>
+                <p>
+                    Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito alla tua schermata home:
+                </p>
                 <ol class="px-4 my-2 list-decimal list-inside md:px-8 md:my-4 text-base/8">
-                    <li>apri il menu di condivisione {% heroicon_outline 'arrow-up-on-square' class="inline-block align-baseline size-5" %}</li>
+                    <li>
+                        apri il menu di condivisione {% heroicon_outline 'arrow-up-on-square' class="inline-block align-baseline size-5" %}
+                    </li>
                     <li>scegli "Aggiungi a Home"</li>
                 </ol>
             </div>
-            <div x-show="isMacOS">
-                <p>Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito al dock:</p>
+            <div x-show="isMacOS && browserName === 'Safari'">
+                <p>
+                    Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito al dock:
+                </p>
                 <ol class="px-4 my-2 list-decimal list-inside md:px-8 md:my-4 text-base/8">
-                    <li>apri il menu di condivisione {% heroicon_outline 'arrow-up-on-square' class="inline-block align-baseline size-5" %}</li>
+                    <li>
+                        apri il menu di condivisione {% heroicon_outline 'arrow-up-on-square' class="inline-block align-baseline size-5" %}
+                    </li>
                     <li>scegli "Aggiungi al Dock"</li>
                 </ol>
             </div>
-            <div x-show="!isIOS && !isMacOS" class="mt-2 md:mt-4">
-                <p>Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è installare questo sito come web app sul tuo browser cliccando sul bottone qua sotto.</p>
+            <div x-show="isAndroid && !isMacOS&& browserName === 'Opera'">
+                <p>
+                    Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito al dock:
+                </p>
+                <ol class="px-4 my-2 list-decimal list-inside md:px-8 md:my-4 text-base/8">
+                    <li>
+                        apri il menu di condivisione {% heroicon_outline 'ellipsis-vertical' class="inline-block align-baseline size-5" %}
+                    </li>
+                    <li>scegli "Aggiungi al Dock"</li>
+                </ol>
+            </div>
+            <div x-show="!isIOS && canPrompt" class="mt-2 md:mt-4">
+                <p>
+                    Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è installare questo sito come web app sul tuo browser cliccando sul bottone qua sotto.
+                </p>
             </div>
             <span x-show="installMessage && !canPrompt"
                   x-text="installMessage"

@@ -255,6 +255,19 @@ wheels = [
 ]
 
 [[package]]
+name = "croniter"
+version = "6.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "pytz" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ad/2f/44d1ae153a0e27be56be43465e5cb39b9650c781e001e7864389deb25090/croniter-6.0.0.tar.gz", hash = "sha256:37c504b313956114a983ece2c2b07790b1f1094fe9d81cc94739214748255577", size = 64481, upload-time = "2024-12-17T17:17:47.32Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/07/4b/290b4c3efd6417a8b0c284896de19b1d5855e6dbdb97d2a35e68fa42de85/croniter-6.0.0-py2.py3-none-any.whl", hash = "sha256:2f878c3856f17896979b2a4379ba1f09c83e374931ea15cc835c5dd2eee9b368", size = 25468, upload-time = "2024-12-17T17:17:45.359Z" },
+]
+
+[[package]]
 name = "cryptography"
 version = "45.0.5"
 source = { registry = "https://pypi.org/simple" }
@@ -471,6 +484,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-picklefield"
+version = "3.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a6/70/11411d4f528e4fad57a17dae81c85da039feba90c001b64e677fc0925a97/django-picklefield-3.3.tar.gz", hash = "sha256:4e76dd20f2e95ffdaf18d641226ccecc169ff0473b0d6bec746f3ab97c26b8cb", size = 9559, upload-time = "2025-03-13T03:34:12.784Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/e1/988fa6ded7275bb11e373ccd4b708af477f12027d3ee86b7cb5fc5779412/django_picklefield-3.3-py3-none-any.whl", hash = "sha256:d6f6fd94a17177fe0d16b0b452a9860b8a1da97b6e70633ab53ade4975f1ce9a", size = 9565, upload-time = "2025-03-13T03:34:11.209Z" },
+]
+
+[[package]]
 name = "django-pwa"
 version = "2.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -480,6 +505,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/39/5f/4a77504bb5edd693711ec2a396d47836f0a0b4d3f2fb9dc773f8b450c067/django_pwa-2.0.1.tar.gz", hash = "sha256:5539fabb41fe189cc2a82cb1f0f889b45671a8144d7b5bb5206a9ddd0fddb3c2", size = 448237, upload-time = "2024-09-27T13:15:52.481Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c3/64/5ffd65b8e8e9d5563e863d868c259f69a1af79c878f6be469540c573347c/django_pwa-2.0.1-py3-none-any.whl", hash = "sha256:41dc931c645c6125c556bd753205ca051aa48e5d46edbf281003594f3d76d4a3", size = 453981, upload-time = "2024-09-27T13:15:50.858Z" },
+]
+
+[[package]]
+name = "django-q2"
+version = "1.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-picklefield" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/59/c3/682d3966d9c56723bccd07d98b52a3a6e50a1ff76eec9f960bfa7d31da44/django_q2-1.8.0.tar.gz", hash = "sha256:e86b9625c0ce57a5ae31ca8fd7e798d63b9ef91a227c52f8b47536ba50b2b284", size = 77161, upload-time = "2025-04-25T14:42:37.384Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3f/85/aa9838ac8b65dff962366e0d79eed5fa0c2170218ea0122a110ca4638471/django_q2-1.8.0-py3-none-any.whl", hash = "sha256:78aaaf18dff1ad3e35bcf6556666f2c26494120f0b75961c13206e37d180dfaa", size = 89579, upload-time = "2025-04-25T14:42:36.029Z" },
 ]
 
 [[package]]
@@ -1323,6 +1361,15 @@ wheels = [
 ]
 
 [[package]]
+name = "redis"
+version = "6.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/9a/0551e01ba52b944f97480721656578c8a7c46b51b99d66814f85fe3a4f3e/redis-6.2.0.tar.gz", hash = "sha256:e821f129b75dde6cb99dd35e5c76e8c49512a5a0d8dfdc560b2fbd44b85ca977", size = 4639129, upload-time = "2025-05-28T05:01:18.91Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/67/e60968d3b0e077495a8fee89cf3f2373db98e528288a48f1ee44967f6e8c/redis-6.2.0-py3-none-any.whl", hash = "sha256:c8ddf316ee0aab65f04a11229e94a64b2618451dab7a67cb2f77eb799d872d5e", size = 278659, upload-time = "2025-05-28T05:01:16.955Z" },
+]
+
+[[package]]
 name = "regex"
 version = "2024.11.6"
 source = { registry = "https://pypi.org/simple" }
@@ -1406,6 +1453,7 @@ version = "2025.2"
 source = { virtual = "." }
 dependencies = [
     { name = "crispy-tailwind" },
+    { name = "croniter" },
     { name = "django" },
     { name = "django-allauth" },
     { name = "django-anymail" },
@@ -1418,6 +1466,7 @@ dependencies = [
     { name = "django-htmx" },
     { name = "django-import-export" },
     { name = "django-pwa" },
+    { name = "django-q2" },
     { name = "django-social-share" },
     { name = "django-storages" },
     { name = "django-tailwind-cli" },
@@ -1432,6 +1481,7 @@ dependencies = [
     { name = "openpyxl" },
     { name = "pandas" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "redis" },
     { name = "tablib", extra = ["xlsx"] },
     { name = "whitenoise" },
 ]
@@ -1453,6 +1503,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "crispy-tailwind", specifier = ">=1.0.3" },
+    { name = "croniter", specifier = ">=6.0.0" },
     { name = "django", specifier = ">=5.0.9" },
     { name = "django-allauth", specifier = ">=65.1.0" },
     { name = "django-anymail", extras = ["mailgun"], specifier = ">=12.0" },
@@ -1465,6 +1516,7 @@ requires-dist = [
     { name = "django-htmx", specifier = ">=1.21.0" },
     { name = "django-import-export", specifier = ">=4.2.0" },
     { name = "django-pwa", specifier = ">=2.0.1" },
+    { name = "django-q2", specifier = ">=1.8.0" },
     { name = "django-social-share", specifier = ">=2.3.0" },
     { name = "django-storages", specifier = ">=1.14.4" },
     { name = "django-tailwind-cli", specifier = ">=4.2.4" },
@@ -1479,6 +1531,7 @@ requires-dist = [
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.3" },
+    { name = "redis", specifier = ">=6.2.0" },
     { name = "tablib", extras = ["xlsx"], specifier = ">=3.7.0" },
     { name = "whitenoise", specifier = ">=6.8.2" },
 ]

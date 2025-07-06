@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "dbbackup",
     "debug_toolbar",
-    # "django_q",
+    "django_q",
     "django_social_share",
     "django_tailwind_cli",
     "heroicons",
@@ -264,3 +264,21 @@ filterwarnings(
     "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."
 )
 FORMS_URLFIELD_ASSUME_HTTPS = True
+
+# DJANGO-Q
+
+Q_CLUSTER = {
+    "name": "school_menu",
+    "workers": 4,
+    "timeout": 60,
+    "retry": 120,
+    "queue_limit": 50,
+    "bulk": 10,
+    "orm": "default",
+    "redis": {
+        "host": "localhost",
+        "port": 6379,
+        "db": 0,
+        "password": "",
+    },
+}

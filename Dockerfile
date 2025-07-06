@@ -13,7 +13,8 @@ ENV PYTHONUNBUFFERED=1
 #install uv and postgresql client
 RUN apt update && \
     apt install --no-install-recommends -y libpq-dev curl unzip gnupg2 lsb-release apt-transport-https ca-certificates
-# RUN apt-get update && apt-get install -y curl unzip postgresql-client-16
+# Install supervisor
+RUN pip install supervisor
 # Add the PGDG apt repo
 RUN echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 # Trust the PGDG gpg key
@@ -41,6 +42,12 @@ RUN uv sync --frozen --no-dev --no-install-project
 # copy project
 WORKDIR /app
 COPY . /app
+
+# copy supervisord config
+COPY supervisord.conf /app/supervisord.conf
+
+# create logs directory
+RUN mkdir -p /app/logs
 
 # expose port for gunicorn
 EXPOSE 80

@@ -97,12 +97,12 @@ makemessages:
 # Run tests
 [group('utility')]
 test *args:
-    uv run python -m pytest --reuse-db -s -x {{ args }}
+    uv run -m pytest --reuse-db -s -x {{ args }}
 
 # Run fast tests
 [group('utility')]
 ftest *args:
-    uv run pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
+    uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
 
 # Run tests excluding mapbox and generate coverage report
 [group('utility')]
@@ -114,7 +114,7 @@ mptest:
 lint:
     uv run ruff check --fix --unsafe-fixes .
     uv run ruff format .
-    just _pre-commit run --all-files
+    @just _pre-commit run --all-files
 
 _pre-commit *args:
     uvx --with pre-commit-uv pre-commit {{ args }}
@@ -123,3 +123,16 @@ _pre-commit *args:
 [group('utility')]
 secure:
     uv-secure
+
+# Coverage report
+[group('utility')]
+@cov:
+    just _cov erase
+    just _cov run -m pytest
+    just _cov combine
+    just _cov report
+    just _cov html
+
+
+_cov *args:
+    uv run -m coverage {{ args }}

@@ -63,32 +63,32 @@ uv-install:
 # Run the local development server
 [group('development')]
 @local:
-    uv run python manage.py tailwind --settings=core.settings.dev runserver
+    uv run python manage.py tailwind runserver
 
 # Create database migrations
 [group('development')]
 makemigrations:
-    uv run python manage.py makemigrations --settings=core.settings.dev
+    uv run python manage.py makemigrations
 
 # Run database migrations
 [group('development')]
 migrate:
-    uv run python manage.py migrate --settings=core.settings.dev
+    uv run python manage.py migrate
 
 # Compile Translation Files
 [group('development')]
 compilemessages:
-    uv run python manage.py compilemessages --settings=core.settings.dev
+    uv run python manage.py compilemessages
 
 # Update Translation Files
 [group('development')]
 makemessages:
-    uv run python manage.py makemessages -a --settings=core.settings.dev
+    uv run python manage.py makemessages -a
 
 # Run Tasks Worker
 [group('development')]
 @tasks:
-    uv run python manage.py qcluster --settings=core.settings.dev
+    uv run python manage.py qcluster
 
 ##########################################################################
 # Utility
@@ -104,10 +104,6 @@ test *args:
 ftest *args:
     uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
 
-# Run tests excluding mapbox and generate coverage report
-[group('utility')]
-mptest:
-    uv run python -m pytest -m "not mapbox" --cov-report html:htmlcov --cov-report term:skip-covered --cov-fail-under 100
 
 # Run Ruff linting and formatting
 [group('utility')]
@@ -123,16 +119,3 @@ _pre-commit *args:
 [group('utility')]
 secure:
     uv-secure
-
-# Coverage report
-[group('utility')]
-@cov:
-    just _cov erase
-    just _cov run -m pytest
-    just _cov combine
-    just _cov report
-    just _cov html
-
-
-_cov *args:
-    uv run -m coverage {{ args }}

@@ -97,12 +97,13 @@ makemessages:
 # Run tests
 [group('utility')]
 test *args:
-    uv run -m pytest --reuse-db -s -x {{ args }}
+    ENVIRONMENT=test uv run -m pytest --reuse-db -s -x {{ args }}
+
 
 # Run fast tests
 [group('utility')]
 ftest *args:
-    uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
+    ENVIRONMENT=test uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
 
 
 # Run Ruff linting and formatting

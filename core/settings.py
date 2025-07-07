@@ -7,7 +7,8 @@ import environ
 from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 # # Take environment variables from .env file
 environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
@@ -17,6 +18,8 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
 )
+
+ENVIRONMENT = env("ENVIRONMENT", default="dev")
 
 # Application definition
 
@@ -282,3 +285,78 @@ Q_CLUSTER = {
         "password": "",
     },
 }
+
+if ENVIRONMENT == "dev":
+    DEBUG = env("DEBUG", default=True)
+    NO_RELOAD = False
+
+    INSTALLED_APPS += [
+        "anymail",
+        "django_browser_reload",
+    ]
+
+    MIDDLEWARE += [
+        "django_browser_reload.middleware.BrowserReloadMiddleware",
+    ]
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
+
+    SECRET_KEY = env("SECRET_KEY")
+
+    ALLOWED_HOSTS: list[str] = [
+        "localhost",
+    ]
+
+    # DJANGO-DEBUG-TOOLBAR
+    INTERNAL_IPS = [
+        "127.0.0.1",
+    ]
+
+elif ENVIRONMENT == "prod":
+    SECRET_KEY = env("SECRET_KEY")
+
+    DEBUG = env.bool("DEBUG", default=False)
+
+    ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
+
+    CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST"),
+            "PORT": "5432",
+        }
+    }
+
+    NO_RELOAD = env("NO_RELOAD", default=False)
+
+    # DBBACKUP
+    DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
+
+elif ENVIRONMENT == "test":
+    import logging
+
+    SECRET_KEY = "my-test-secret-key"  # nosec
+    NO_RELOAD = False
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",
+        }
+    }
+
+    PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
+
+    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+
+    logging.disable()

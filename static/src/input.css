@@ -1,33 +1,65 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer components {
+@utility container {
+    margin-inline: auto;
+    padding-inline: 1rem;
 
-  p{
+    @media (width >= theme(--breakpoint-sm)) {
+      padding-inline: 2rem; /* Padding for sm and up */
+    }
+    @media (width >= theme(--breakpoint-lg)) {
+        padding-inline: 4rem; /* Padding for lg and up */
+      }
+    @media (width >= theme(--breakpoint-xl)) {
+        padding-inline: 5rem; /* Padding for xl and up */
+    }
+    @media (width >= theme(--breakpoint-2xl)) {
+        padding-inline: 6rem; /* Padding for 2xl and up */
+    }
+  }
+
+@variants {
+    htmx-settling: ['&.htmx-settling', '.htmx-settling &'];
+    htmx-request: ['&.htmx-request', '.htmx-request &'];
+    htmx-swapping: ['&.htmx-swapping', '.htmx-swapping &'];
+    htmx-added: ['&.htmx-added', '.htmx-added &'];
+}
+
+@plugin"@tailwindcss/typography";
+@plugin"@tailwindcss/aspect-ratio";
+@plugin"@tailwindcss/container-queries";
+@plugin"@tailwindcss/forms";
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: "cupcake";
+  default: true;
+  --radius-field: 0.35rem;
+}
+
+
+p{
     @apply mb-3 font-normal text-gray-700;
   }
 
-  p > a {
+p > a {
     @apply text-green-600 hover:underline
   }
 
-  #id_password_helptext {
+#id_password_helptext {
     display:none;
   }
 
-  .input-small{
+.input-small{
     @apply block w-full p-2 text-gray-900 border border-gray-300 rounded-lg bg-gray-50 text-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500
   }
 
-  .file-upload-input {
+.file-upload-input {
     @apply block w-full border border-gray-200 shadow-sm rounded-lg text-sm focus:z-10 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400
     file:bg-gray-50 file:border-0
     file:me-4
     file:py-3 file:px-4
   }
 
-  select ~ .pointer-events-none {
+select ~ .pointer-events-none {
     display: none !important;
-}
 }

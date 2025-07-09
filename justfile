@@ -1,44 +1,18 @@
 # List all available commands.
-default:
-    @just --list
+@_:
+    just --list
 
 ##########################################################################
 # Setup
 ##########################################################################
 
-# Download and install uv.
-[group('setup')]
-uv-install:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ "$(uname -s)" = "Windows_NT" ]; then
-        echo "# For Windows, please visit https://docs.astral.sh/uv/getting-started/installation/ for instructions on how to install uv."
-        exit 1
-    fi
-    if ! command -v uv &> /dev/null;
-    then
-      echo "uv is not found on path! Starting install..."
-      curl -LsSf https://astral.sh/uv/install.sh | sh
-    else
-      uv self update
-    fi
 
-# Update uv
+# Ensure project virtualenv is up to date
 [group('setup')]
-@uv-update:
-    uv self update
+@install:
+    uv sync
 
-# Uninstall uv
-[group('setup')]
-@uv-uninstall:
-    uv self uninstall
-
-# Set up the project and update dependencies
-[group('setup')]
-@bootstrap: uv-install
-    uv sync --all-groups --upgrade
-
-# Upgrade all dependencies to latest versions
+# Update dependencies and pre-commit hooks
 [group('setup')]
 @update_all: lock
     uv sync --all-extras --upgrade
@@ -56,6 +30,16 @@ uv-install:
     uv lock --upgrade
     echo "Done!"
 
+# Remove temporary files
+[group('setup')]
+clean:
+    rm -rf .venv .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov
+    find . -type d -name "__pycache__" -exec rm -r {} +
+
+# Recreate project virtualenv from nothing
+[group('setup')]
+fresh: clean install
+
 ##########################################################################
 # Development
 ##########################################################################
@@ -64,6 +48,11 @@ uv-install:
 [group('development')]
 @local:
     uv run python manage.py tailwind runserver
+
+# Run the development server + workers
+[group('development')]
+@serve:
+    uv run overmind start -r all
 
 # Create database migrations
 [group('development')]

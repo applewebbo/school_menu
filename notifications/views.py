@@ -1,11 +1,8 @@
-import json
-
-from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
-from pywebpush import WebPushException, webpush
+from django_q.tasks import async_task
 
 from .forms import AnonymousMenuNotificationForm
 from .models import AnonymousMenuNotification
@@ -87,34 +84,16 @@ def test_notification(request):
         "url": "/",
     }
 
-    try:
-        webpush(
-            subscription_info=notification.subscription_info,
-            data=json.dumps(payload),
-            vapid_private_key=settings.WEBPUSH_SETTINGS["VAPID_PRIVATE_KEY"],
-            vapid_claims={
-                "sub": f"mailto:{settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']}"
-            },
-        )
-        message = (
-            "Notifica di prova inviata. Verifica di averla ricevuta sul tuo dispositivo"
-        )
-        return render(
-            request,
-            "notifications/partials/test_notification_result.html",
-            {"success": True, "message": message},
-        )
-    except WebPushException as e:
-        message = f"Errore durante l'invio: {e}"
-        return render(
-            request,
-            "notifications/partials/test_notification_result.html",
-            {"success": False, "message": message},
-        )
-    except Exception as e:
-        message = f"Errore inatteso: {e}"
-        return render(
-            request,
-            "notifications/partials/test_notification_result.html",
-            {"success": False, "message": message},
-        )
+    # Invio asincrono
+    async_task(
+        "notifications.tasks.send_test_notification",
+        notification.subscription_info,
+        payload,
+    )
+
+    message = "Notifica di prova inviata in background. Controlla il tuo dispositivo."
+    return render(
+        request,
+        "notifications/partials/test_notification_result.html",
+        {"success": True, "message": message},
+    )

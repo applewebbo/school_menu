@@ -17,4 +17,14 @@ urlpatterns = [
         name="delete_subscription",
     ),
     path("test-notification/", views.test_notification, name="test_notification"),
+    path(
+        "test-periodic-notifications/",
+        views.test_periodic_notifications,
+        name="test-periodic-notifications",
+    ),
+    path(
+        "stop-periodic-notifications/",
+        views.stop_periodic_notifications,
+        name="stop-periodic-notifications",
+    ),
 ]

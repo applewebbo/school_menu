@@ -278,6 +278,7 @@ Q_CLUSTER = {
     "queue_limit": 50,
     "bulk": 10,
     "orm": "default",
+    "catch_up": False,
     "redis": {
         "host": "localhost",
         "port": 6379,

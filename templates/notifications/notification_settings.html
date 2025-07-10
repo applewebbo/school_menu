@@ -28,20 +28,38 @@
                         <p>
                             Questo dispositivo riceve notifiche giornaliere relative al menu della scuola <span class="font-bold">{{ school.name }}</span>
                         </p>
-                        <div class="flex flex-col gap-2 gap-y-3 mt-8 sm:flex-row sm:justify-center md:mt-4">
+                        <div class="flex flex-col gap-2 gap-y-3 my-8 sm:flex-row sm:justify-center md:my-4">
                             <button hx-post="{% url 'notifications:test_notification' %}"
                                     hx-target="#test-notification-result"
                                     hx-swap="innerHTML"
-                                    class="btn btn-primary btn-soft"
-                                    type="button">Test Notifica</button>
-                            <button hx-post="#"
+                                    class="flex gap-1 items-center btn btn-primary btn-soft"
+                                    type="button">
+                                    {% heroicon_outline 'bell' class="size-5" %}
+                                    Test Notifica
+                                </button>
+                            {% if scheduled_task %}
+                            <button id="stop-periodic"
+                                    hx-post="{% url 'notifications:stop-periodic-notifications' %}"
                                     hx-target="#test-notification-result"
-                                    hx-swap="innerHTML"
-                                    class="btn btn-secondary btn-soft"
-                                    type="button">Test Notifica Periodica</button>
-                            <button class="btn btn-error btn-soft"
+                                    hx-swap="outerHTML"
+                                    class="flex gap-1 items-center btn btn-error btn-soft"
+                                    type="button">
+                                    {% heroicon_outline 'clock' class="size-5" %}
+                                    Stop test periodico</button>
+                            {% else %}
+                            <button id="test-periodic"
+                                    hx-post="{% url 'notifications:test-periodic-notifications' %}"
+                                    hx-target="#test-notification-result"
+                                    hx-swap="outerHTML"
+                                    class="flex gap-1 items-center btn btn-secondary btn-soft"
+                                    type="button">
+                                    {% heroicon_outline 'clock' class="size-5" %}
+                                    Test Notifica Periodica</button>
+                            {% endif %}
+                            <button class="flex gap-1 items-center btn btn-error btn-soft"
                                     hx-post="{% url 'notifications:delete_subscription' %}">
-                                Disabilita notifiche
+                                {% heroicon_outline 'x-mark' class="size-5" %}
+                                    Disabilita notifiche
                             </button>
                         </div>
                         <div id="test-notification-result" class="mt-4"></div>

@@ -2,10 +2,13 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_http_methods
+from django_q.models import Schedule
 from django_q.tasks import async_task
 
 from .forms import AnonymousMenuNotificationForm
 from .models import AnonymousMenuNotification
+from .tasks import schedule_periodic_notifications
+from .tasks import stop_periodic_notifications as stop_periodic_notifications_task
 
 
 def notification_settings(request):
@@ -13,7 +16,11 @@ def notification_settings(request):
     context = {}
     if pk:
         notification = AnonymousMenuNotification.objects.get(pk=pk)
+        scheduled_task = Schedule.objects.filter(
+            name=f"periodic_notification_{pk}"
+        ).first()
         context["school"] = notification.school
+        context["scheduled_task"] = scheduled_task
 
     context["form"] = AnonymousMenuNotificationForm()
     return render(request, "notifications/notification_settings.html", context)
@@ -92,6 +99,60 @@ def test_notification(request):
     )
 
     message = "Notifica di prova inviata in background. Controlla il tuo dispositivo."
+    return render(
+        request,
+        "notifications/partials/test_notification_result.html",
+        {"success": True, "message": message},
+    )
+
+
+@require_http_methods(["POST"])
+def test_periodic_notifications(request):
+    """
+    Avvia una schedulazione che invia una notifica ogni minuto finché non viene stoppata.
+    """
+    pk = request.session.get("anon_notification_pk")
+    if not pk:
+        messages.error(request, "Nessuna sottoscrizione trovata.")
+        return render(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": False},
+        )
+
+    notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+    payload = {
+        "head": "Notifica periodica",
+        "body": "Questa è una notifica inviata ogni minuto.",
+        "icon": "/static/img/notification-bell.png",
+        "url": "/",
+    }
+    user_id = pk  # puoi usare anche l'id utente se disponibile
+    schedule_periodic_notifications(notification.subscription_info, payload, user_id)
+    message = "Notifiche periodiche avviate. Verrà inviata una notifica ogni minuto finché non le stoppi."
+    return render(
+        request,
+        "notifications/partials/test_periodic_notification_result.html",
+        {"success": True, "message": message},
+    )
+
+
+@require_http_methods(["POST"])
+def stop_periodic_notifications(request):
+    """
+    Ferma la schedulazione periodica per l'utente.
+    """
+    pk = request.session.get("anon_notification_pk")
+    if not pk:
+        messages.error(request, "Nessuna sottoscrizione trovata.")
+        return render(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": False},
+        )
+    user_id = pk
+    stop_periodic_notifications_task(user_id)
+    message = "Notifiche periodiche stoppate."
     return render(
         request,
         "notifications/partials/test_notification_result.html",

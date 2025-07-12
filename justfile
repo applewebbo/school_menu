@@ -53,7 +53,7 @@ fresh: clean install
 [group('development')]
 @serve:
     rm -f ./.overmind.sock
-    uv run overmind start -r all
+    uv run overmind start -r all -f ./Procfile.dev
 
 # Create database migrations
 [group('development')]

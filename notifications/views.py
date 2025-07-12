@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 from django_q.models import Schedule
 from django_q.tasks import async_task
@@ -19,11 +20,18 @@ def notification_settings(request):
         scheduled_task = Schedule.objects.filter(
             name=f"periodic_notification_{pk}"
         ).first()
-        context["school"] = notification.school
+        context["notification"] = notification
         context["scheduled_task"] = scheduled_task
 
     context["form"] = AnonymousMenuNotificationForm()
     return render(request, "notifications/notification_settings.html", context)
+
+
+def notifications_buttons(request, pk):
+    notification = AnonymousMenuNotification.objects.get(pk=pk)
+    scheduled_task = Schedule.objects.filter(name=f"periodic_notification_{pk}").first()
+    context = {"notification": notification, "scheduled_task": scheduled_task}
+    return render(request, "notifications/notification_settings.html#buttons", context)
 
 
 @require_http_methods(["POST"])
@@ -114,7 +122,7 @@ def test_periodic_notifications(request):
     pk = request.session.get("anon_notification_pk")
     if not pk:
         messages.error(request, "Nessuna sottoscrizione trovata.")
-        return render(
+        return TemplateResponse(
             request,
             "notifications/partials/test_notification_result.html",
             {"success": False},
@@ -129,12 +137,14 @@ def test_periodic_notifications(request):
     }
     user_id = pk  # puoi usare anche l'id utente se disponibile
     schedule_periodic_notifications(notification.subscription_info, payload, user_id)
-    message = "Notifiche periodiche avviate. Verrà inviata una notifica ogni minuto finché non le stoppi."
-    return render(
+    message = "Notifiche periodiche avviate. Verrà inviata una notifica ogni minuto finché non le stoppi. La prima notifica verrà inviata entro un minuto."
+    response = TemplateResponse(
         request,
         "notifications/partials/test_periodic_notification_result.html",
         {"success": True, "message": message},
     )
+    response["HX-Trigger"] = "notificationChanged"
+    return response
 
 
 @require_http_methods(["POST"])
@@ -152,9 +162,11 @@ def stop_periodic_notifications(request):
         )
     user_id = pk
     stop_periodic_notifications_task(user_id)
-    message = "Notifiche periodiche stoppate."
-    return render(
+    message = "Notifiche periodiche fermate."
+    response = TemplateResponse(
         request,
         "notifications/partials/test_notification_result.html",
         {"success": True, "message": message},
     )
+    response["HX-Trigger"] = "notificationChanged"
+    return response

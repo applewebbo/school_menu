@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags heroicons static %}
+{% load crispy_forms_tags heroicons partials static %}
 {% block page_title %}
     Notifiche
 {% endblock page_title %}
@@ -24,50 +24,60 @@
                     </div>
                 </template>
                 <div x-show="isStandalone">
-                    {% if school %}
+                    {% if notification.school %}
                         <p>
-                            Questo dispositivo riceve notifiche giornaliere relative al menu della scuola <span class="font-bold">{{ school.name }}</span>
+                            Questo dispositivo riceve notifiche giornaliere relative al menu della scuola <span class="font-bold">{{ notification.school.name }}</span>.
                         </p>
-                        <div class="flex flex-col gap-2 gap-y-3 my-8 sm:flex-row sm:justify-center md:my-4">
+                        <!-- NOTIFICATION BUTTONS START -->
+                        {% partialdef buttons inline %}
+                        <div id="notifications-buttons"
+                             class="flex flex-col gap-2 gap-y-3 my-8 sm:flex-row sm:justify-center md:my-4"
+                             hx-get="{% url 'notifications:notifications_buttons' notification.pk %}"
+                             hx-swap="outerHTML"
+                             hx-trigger="notificationChanged from:body">
                             <button hx-post="{% url 'notifications:test_notification' %}"
                                     hx-target="#test-notification-result"
                                     hx-swap="innerHTML"
                                     class="flex gap-1 items-center btn btn-primary btn-soft"
                                     type="button">
-                                    {% heroicon_outline 'bell' class="size-5" %}
-                                    Test Notifica
-                                </button>
-                            {% if scheduled_task %}
-                            <button id="stop-periodic"
-                                    hx-post="{% url 'notifications:stop-periodic-notifications' %}"
-                                    hx-target="#test-notification-result"
-                                    hx-swap="outerHTML"
-                                    class="flex gap-1 items-center btn btn-error btn-soft"
-                                    type="button">
-                                    {% heroicon_outline 'clock' class="size-5" %}
-                                    Stop test periodico</button>
-                            {% else %}
-                            <button id="test-periodic"
-                                    hx-post="{% url 'notifications:test-periodic-notifications' %}"
-                                    hx-target="#test-notification-result"
-                                    hx-swap="outerHTML"
-                                    class="flex gap-1 items-center btn btn-secondary btn-soft"
-                                    type="button">
-                                    {% heroicon_outline 'clock' class="size-5" %}
-                                    Test Notifica Periodica</button>
-                            {% endif %}
-                            <button class="flex gap-1 items-center btn btn-error btn-soft"
-                                    hx-post="{% url 'notifications:delete_subscription' %}">
-                                {% heroicon_outline 'x-mark' class="size-5" %}
-                                    Disabilita notifiche
+                                {% heroicon_outline 'bell' class="size-5" %}
+                                Test Notifica
                             </button>
+                            {% if scheduled_task %}
+                                <button id="stop-periodic"
+                                        hx-post="{% url 'notifications:stop-periodic-notifications' %}"
+                                        hx-target="#test-notification-result"
+                                        hx-swap="innerHTML"
+                                        class="flex gap-1 items-center btn btn-error btn-soft"
+                                        type="button">
+                                    {% heroicon_outline 'clock' class="size-5" %}
+                                    Stop Notifiche Periodiche
+                                </button>
+                            {% else %}
+                                <button id="test-periodic"
+                                        hx-post="{% url 'notifications:test-periodic-notifications' %}"
+                                        hx-target="#test-notification-result"
+                                        hx-swap="innerHTML"
+                                        class="flex gap-1 items-center btn btn-secondary btn-soft"
+                                        type="button">
+                                    {% heroicon_outline 'clock' class="size-5" %}
+                                    Test Notifica Periodica
+                                </button>
+                                <button class="flex gap-1 items-center btn btn-error btn-soft"
+                                        hx-post="{% url 'notifications:delete_subscription' %}">
+                                    {% heroicon_outline 'x-mark' class="size-5" %}
+                                    Disabilita notifiche
+                                </button>
+                            {% endif %}
                         </div>
-                        <div id="test-notification-result" class="mt-4"></div>
-                    {% else %}
-                        {% include "notifications/partials/subscription_form.html" %}
-                    {% endif %}
-                </div>
+                    {% endpartialdef %}
+                    <!-- NOTIFICATIONS BUTTONS END -->
+                    <div id="test-notification-result" class="mt-4"></div>
+                {% else %}
+                    {% include "notifications/partials/subscription_form.html" %}
+                {% endif %}
             </div>
         </div>
     </div>
+</div>
 {% endblock content %}

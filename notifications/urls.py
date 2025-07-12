@@ -27,4 +27,7 @@ urlpatterns = [
         views.stop_periodic_notifications,
         name="stop-periodic-notifications",
     ),
+    path(
+        "buttons/<int:pk>/", views.notifications_buttons, name="notifications_buttons"
+    ),
 ]

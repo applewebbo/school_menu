@@ -9,13 +9,3 @@
         {% heroicon_solid 'bell' class=icon_class %}{{ message }}
     {% endwith %}
 </div>
-
-<button id="test-periodic"
-        hx-post="{% url 'notifications:stop-periodic-notifications' %}"
-        hx-target="#test-notification-result"
-        hx-swap="outerHTML"
-        hx-swap-oob="true"
-        class="btn btn-error btn-soft"
-        type="button">
-    Stop test periodico
-</button>

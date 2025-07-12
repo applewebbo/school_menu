@@ -52,6 +52,7 @@ fresh: clean install
 # Run the development server + workers
 [group('development')]
 @serve:
+    rm -f ./.overmind.sock
     uv run overmind start -r all
 
 # Create database migrations

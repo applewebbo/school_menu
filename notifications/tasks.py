@@ -1,9 +1,7 @@
 import json
 import logging
-from datetime import timedelta
 
 from django.conf import settings
-from django.utils import timezone
 from django_q.models import Schedule
 from pywebpush import WebPushException, webpush
 
@@ -36,7 +34,6 @@ def schedule_periodic_notifications(subscription_info, payload, user_id):
     Crea o aggiorna una schedulazione periodica che invia una notifica ogni minuto.
     """
     name = f"periodic_notification_{user_id}"
-    now = timezone.now()
     Schedule.objects.update_or_create(
         name=name,
         defaults={
@@ -45,7 +42,6 @@ def schedule_periodic_notifications(subscription_info, payload, user_id):
             "schedule_type": Schedule.MINUTES,
             "minutes": 1,
             "repeats": -1,  # infinito finché non viene stoppato
-            "next_run": now + timedelta(seconds=5),
         },
     )
 

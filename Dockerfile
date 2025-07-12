@@ -41,9 +41,6 @@ RUN uv sync --frozen --no-dev --no-install-project
 WORKDIR /app
 COPY . /app
 
-# copy supervisord config
-COPY supervisord.conf /app/supervisord.conf
-
 # create logs directory
 RUN mkdir -p /app/logs
 

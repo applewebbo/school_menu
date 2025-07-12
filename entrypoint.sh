@@ -12,5 +12,5 @@ python manage.py tailwind build
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
-echo "Starting gunicorn..."
-gunicorn core.wsgi:application --bind=0.0.0.0:80
+echo "Starting overmind..."
+overmind start -r all

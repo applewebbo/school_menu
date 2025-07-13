@@ -10,12 +10,20 @@ ENV PYTHONUNBUFFERED=1
 # Install system dependencies in a single layer to reduce image size
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-    # Add tmux, postgresql client, curl and other utilities
-    tmux postgresql-client-16 libpq-dev curl unzip gnupg2 lsb-release apt-transport-https ca-certificates && \
+    # Install prerequisites for adding new repos
+    curl gnupg2 lsb-release apt-transport-https ca-certificates && \
     # Add the PGDG apt repo
     echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     # Trust the PGDG gpg key
     curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg && \
+    # Update apt list again to fetch packages from the new repo
+    apt-get update && \
+    # Install the rest of the packages
+    apt-get install --no-install-recommends -y \
+    tmux \
+    postgresql-client-16 \
+    libpq-dev \
+    unzip && \
     # Clean up to reduce image size
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

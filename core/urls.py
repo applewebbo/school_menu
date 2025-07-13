@@ -19,12 +19,8 @@ urlpatterns = (
         ),
         path("", include("pwa.urls")),
         path("webpush/", include("webpush.urls")),
+        path("__reload__/", include("django_browser_reload.urls")),
     ]
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     + debug_toolbar_urls()
 )
-
-if not settings.NO_RELOAD:
-    urlpatterns += [
-        path("__reload__/", include("django_browser_reload.urls")),
-    ]

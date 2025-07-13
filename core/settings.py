@@ -19,7 +19,8 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
 )
 
-ENVIRONMENT = env("ENVIRONMENT", default="dev")
+ENVIRONMENT = env("ENVIRONMENT", default="prod")
+SECRET_KEY = env("SECRET_KEY")
 
 # Application definition
 
@@ -34,11 +35,13 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
+    "anymail",
     "cookiebanner",
     "crispy_tailwind",
     "crispy_forms",
     "dbbackup",
     "debug_toolbar",
+    "django_browser_reload",
     "django_q",
     "django_social_share",
     "django_tailwind_cli",
@@ -67,6 +70,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -89,7 +93,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "core.wsgi.application"
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -105,10 +108,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.0/topics/i18n/
-
 LANGUAGE_CODE = "it-it"
 
 TIME_ZONE = "Europe/Rome"
@@ -116,15 +115,6 @@ TIME_ZONE = "Europe/Rome"
 USE_I18N = True
 
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.0/howto/static-files/
-
-STATIC_URL = "static/"
-
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -144,11 +134,8 @@ AUTHENTICATION_BACKENDS = (
     # `allauth` specific authentication methods, such as login by e-mail
     "allauth.account.auth_backends.AuthenticationBackend",
 )
-
 ACCOUNT_FORMS = {"signup": "users.forms.MyCustomSignupForm"}
-
 SITE_ID = 1
-
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 ACCOUNT_SESSION_REMEMBER = True
@@ -183,7 +170,6 @@ DBBACKUP_STORAGE_OPTIONS = {
 }
 
 # COOKIEBANNER
-
 COOKIEBANNER = {
     "title": _("Impostazioni cookie"),
     "header_text": _(
@@ -220,15 +206,11 @@ COOKIEBANNER = {
     ],
 }
 
-
 # DJANGO-TAILWIND-CLI
-
 TAILWIND_CLI_SRC_CSS = "src/source.css"
 TAILWIND_CLI_USE_DAISY_UI = True
 
-
 # DJANGO-PWA
-
 PWA_APP_NAME = "Menu Scolastico"
 PWA_APP_DESCRIPTION = "Cosa mangia mio figlio oggi?"
 PWA_APP_THEME_COLOR = "#FFFFFF"
@@ -240,7 +222,6 @@ PWA_APP_START_URL = "/"
 PWA_APP_STATUS_BAR_COLOR = "default"
 PWA_APP_DIR = "ltr"
 PWA_APP_LANG = "it-IT"
-
 PWA_APP_ICONS = [
     {"src": "/static/img/android-chrome-192x192.png", "sizes": "192x192"},
     {"src": "/static/img/android-chrome-512x512.png", "sizes": "512x512"},
@@ -259,7 +240,6 @@ WEBPUSH_SETTINGS = {
     "VAPID_PRIVATE_KEY": env("VAPID_PRIVATE_KEY"),
     "VAPID_ADMIN_EMAIL": env("ADMIN_EMAIL"),
 }
-
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "static/js/serviceworker.js")
 
 # SET transitional setting for FORMS_URLFIELD_ASSUME_HTTPS and ignore deprecation warning
@@ -268,38 +248,14 @@ filterwarnings(
 )
 FORMS_URLFIELD_ASSUME_HTTPS = True
 
-# DJANGO-Q
+# DJANGO-DEBUG-TOOLBAR
+INTERNAL_IPS = [
+    "127.0.0.1",
+]
 
-Q_CLUSTER = {
-    "name": "school_menu",
-    "workers": 4,
-    "timeout": 60,
-    "retry": 120,
-    "queue_limit": 50,
-    "bulk": 10,
-    "orm": "default",
-    "catch_up": False,
-    "redis": {
-        "host": "localhost",
-        "port": 6379,
-        "db": 0,
-        "password": "",
-    },
-}
-
+# DEVELOPMENT SPECIFIC SETTINGS
 if ENVIRONMENT == "dev":
     DEBUG = env("DEBUG", default=True)
-    NO_RELOAD = False
-
-    INSTALLED_APPS += [
-        "anymail",
-        "django_browser_reload",
-    ]
-
-    MIDDLEWARE += [
-        "django_browser_reload.middleware.BrowserReloadMiddleware",
-    ]
-
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
@@ -307,26 +263,32 @@ if ENVIRONMENT == "dev":
         }
     }
 
-    SECRET_KEY = env("SECRET_KEY")
-
     ALLOWED_HOSTS: list[str] = [
         "localhost",
     ]
+    # DJANGO-Q
+    Q_CLUSTER = {
+        "name": "school_menu",
+        "workers": 4,
+        "timeout": 60,
+        "retry": 120,
+        "queue_limit": 50,
+        "bulk": 10,
+        "orm": "default",
+        "catch_up": False,
+        "redis": {
+            "host": "localhost",
+            "port": 6379,
+            "db": 0,
+            "password": "",
+        },
+    }
 
-    # DJANGO-DEBUG-TOOLBAR
-    INTERNAL_IPS = [
-        "127.0.0.1",
-    ]
-
+# PRODUCTION SPECIFIC SETTINGS
 elif ENVIRONMENT == "prod":
-    SECRET_KEY = env("SECRET_KEY")
-
     DEBUG = env.bool("DEBUG", default=False)
-
     ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
-
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
-
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -337,27 +299,37 @@ elif ENVIRONMENT == "prod":
             "PORT": "5432",
         }
     }
-
-    NO_RELOAD = env("NO_RELOAD", default=False)
-
     # DBBACKUP
     DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
+    # DJANGO-Q
+    Q_CLUSTER = {
+        "name": "school_menu",
+        "workers": 4,
+        "timeout": 60,
+        "retry": 120,
+        "queue_limit": 50,
+        "bulk": 10,
+        "orm": "default",
+        "catch_up": False,
+        "redis": {
+            "host": "srv-captain--school-menu-redis",
+            "port": 6379,
+            "db": 0,
+            "password": env("REDIS_PASSWORD", default=""),
+        },
+    }
 
+# TESTING SPECIFIC SETTINGS
 elif ENVIRONMENT == "test":
     import logging
 
     SECRET_KEY = "my-test-secret-key"  # nosec
-    NO_RELOAD = False
-
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": ":memory:",
         }
     }
-
     PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
-
     EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-
     logging.disable()

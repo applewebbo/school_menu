@@ -5,6 +5,7 @@ from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 from django_q.models import Schedule
 from django_q.tasks import async_task
+from pywebpush import WebPushException
 
 from .forms import AnonymousMenuNotificationForm
 from .models import AnonymousMenuNotification
@@ -16,7 +17,7 @@ def notification_settings(request):
     pk = request.session.get("anon_notification_pk")
     context = {}
     if pk:
-        notification = AnonymousMenuNotification.objects.get(pk=pk)
+        notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
         scheduled_task = Schedule.objects.filter(
             name=f"periodic_notification_{pk}"
         ).first()
@@ -84,11 +85,12 @@ def test_notification(request):
     """
     pk = request.session.get("anon_notification_pk")
     if not pk:
-        messages.error(request, "Nessuna sottoscrizione trovata.")
+        message = "Nessuna sottoscrizione trovata."
+        messages.error(request, message)
         return render(
             request,
             "notifications/partials/test_notification_result.html",
-            {"success": False},
+            {"success": False, "message": message},
         )
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
@@ -99,18 +101,28 @@ def test_notification(request):
         "url": "/",
     }
 
-    # Invio asincrono
-    async_task(
-        "notifications.tasks.send_test_notification",
-        notification.subscription_info,
-        payload,
-    )
+    try:
+        # Invio asincrono
+        async_task(
+            "notifications.tasks.send_test_notification",
+            notification.subscription_info,
+            payload,
+        )
+        message = (
+            "Notifica di prova inviata in background. Controlla il tuo dispositivo."
+        )
+        success = True
+    except WebPushException:
+        message = "Errore durante l'invio della notifica di prova."
+        success = False
+    except Exception:
+        message = "Errore durante l'invio della notifica di prova."
+        success = False
 
-    message = "Notifica di prova inviata in background. Controlla il tuo dispositivo."
     return render(
         request,
         "notifications/partials/test_notification_result.html",
-        {"success": True, "message": message},
+        {"success": success, "message": message},
     )
 
 
@@ -121,11 +133,12 @@ def test_periodic_notifications(request):
     """
     pk = request.session.get("anon_notification_pk")
     if not pk:
-        messages.error(request, "Nessuna sottoscrizione trovata.")
+        message = "Nessuna sottoscrizione trovata."
+        messages.error(request, message)
         return TemplateResponse(
             request,
             "notifications/partials/test_notification_result.html",
-            {"success": False},
+            {"success": False, "message": message},
         )
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
@@ -154,11 +167,12 @@ def stop_periodic_notifications(request):
     """
     pk = request.session.get("anon_notification_pk")
     if not pk:
-        messages.error(request, "Nessuna sottoscrizione trovata.")
+        message = "Nessuna sottoscrizione trovata."
+        messages.error(request, message)
         return render(
             request,
             "notifications/partials/test_notification_result.html",
-            {"success": False},
+            {"success": False, "message": message},
         )
     user_id = pk
     stop_periodic_notifications_task(user_id)

@@ -24,8 +24,10 @@ def send_test_notification(subscription_info, payload):
         logger.info("Notifica di prova inviata con successo.")
     except WebPushException as e:
         logger.error(f"Errore durante l'invio della notifica: {e}")
+        raise
     except Exception as e:
         logger.error(f"Errore inatteso durante l'invio della notifica: {e}")
+        raise
     logger.info("notifica di prova inviata")
 
 
@@ -51,5 +53,4 @@ def stop_periodic_notifications(user_id):
     Ferma la schedulazione periodica per l'utente specificato.
     """
     name = f"periodic_notification_{user_id}"
-    print(name)
     Schedule.objects.filter(name=name).delete()

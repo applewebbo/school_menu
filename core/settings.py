@@ -332,4 +332,11 @@ elif ENVIRONMENT == "test":
     }
     PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
     EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    Q_CLUSTER = {
+        "name": "school_menu",
+        "workers": 1,
+        "sync": True,
+        "timeout": 60,
+        "retry": 120,
+    }
     logging.disable()

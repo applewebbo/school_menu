@@ -20,12 +20,12 @@ urlpatterns = [
     path(
         "test-periodic-notifications/",
         views.test_periodic_notifications,
-        name="test-periodic-notifications",
+        name="test_periodic_notifications",
     ),
     path(
         "stop-periodic-notifications/",
         views.stop_periodic_notifications,
-        name="stop-periodic-notifications",
+        name="stop_periodic_notifications",
     ),
     path(
         "buttons/<int:pk>/", views.notifications_buttons, name="notifications_buttons"

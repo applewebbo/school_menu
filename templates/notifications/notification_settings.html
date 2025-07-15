@@ -45,7 +45,7 @@
                             </button>
                             {% if scheduled_task %}
                                 <button id="stop-periodic"
-                                        hx-post="{% url 'notifications:stop-periodic-notifications' %}"
+                                        hx-post="{% url 'notifications:stop_periodic_notifications' %}"
                                         hx-target="#test-notification-result"
                                         hx-swap="innerHTML"
                                         class="flex gap-1 items-center btn btn-error btn-soft"
@@ -55,7 +55,7 @@
                                 </button>
                             {% else %}
                                 <button id="test-periodic"
-                                        hx-post="{% url 'notifications:test-periodic-notifications' %}"
+                                        hx-post="{% url 'notifications:test_periodic_notifications' %}"
                                         hx-target="#test-notification-result"
                                         hx-swap="innerHTML"
                                         class="flex gap-1 items-center btn btn-secondary btn-soft"

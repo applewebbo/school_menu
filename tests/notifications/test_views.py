@@ -1,6 +1,8 @@
 import pytest
 import pywebpush
+from django.contrib.messages import get_messages
 from django.urls import reverse
+from django_q.models import Schedule
 
 from notifications.models import AnonymousMenuNotification
 
@@ -100,6 +102,9 @@ def test_delete_subscription_method_not_allowed(client):
     response = client.get(url)
     assert response.status_code == 405
     assert response["HX-Refresh"] == "true"
+    messages = list(get_messages(response.wsgi_request))
+    assert len(messages) == 1
+    assert str(messages[0]) == "Richiesta non valida."
 
 
 def test_delete_subscription_generic_exception(client, school_factory, monkeypatch):
@@ -173,7 +178,7 @@ def test_test_notification_success(client, school_factory, monkeypatch):
     def fake_webpush(*args, **kwargs):
         return None
 
-    monkeypatch.setattr("notifications.views.webpush", fake_webpush)
+    monkeypatch.setattr("notifications.tasks.send_test_notification", fake_webpush)
     response = client.post(url)
     assert response.status_code == 200
     # Verifica che sia presente un alert (messaggio per l'utente)
@@ -195,7 +200,7 @@ def test_test_notification_webpush_exception(client, school_factory, monkeypatch
     def raise_webpush(*args, **kwargs):
         raise pywebpush.WebPushException("Errore webpush")
 
-    monkeypatch.setattr("notifications.views.webpush", raise_webpush)
+    monkeypatch.setattr("notifications.tasks.send_test_notification", raise_webpush)
     response = client.post(url)
     assert response.status_code == 200
     assert b'role="alert"' in response.content or b'class="alert"' in response.content
@@ -220,8 +225,113 @@ def test_test_notification_generic_exception(client, school_factory, monkeypatch
     def raise_exception(*args, **kwargs):
         raise Exception("Errore generico")
 
-    monkeypatch.setattr("notifications.views.webpush", raise_exception)
+    monkeypatch.setattr("notifications.tasks.send_test_notification", raise_exception)
     response = client.post(url)
     assert response.status_code == 200
     assert b'role="alert"' in response.content or b'class="alert"' in response.content
     assert b"errore" in response.content.lower()
+
+
+def test_notification_settings_with_invalid_session(client):
+    """Testa la vista delle impostazioni con un pk non valido in sessione."""
+    session = client.session
+    session["anon_notification_pk"] = 999  # pk non esistente
+    session.save()
+    url = reverse("notifications:notification_settings")
+    response = client.get(url)
+    assert response.status_code == 404
+
+
+def test_notifications_buttons(client, school_factory):
+    """Testa la vista che restituisce i bottoni delle notifiche."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school, subscription_info="test"
+    )
+    url = reverse("notifications:notifications_buttons", kwargs={"pk": notification.pk})
+    response = client.get(url)
+    assert response.status_code == 200
+    assert b"Test Notifica" in response.content
+
+
+def test_periodic_notification_success(client, school_factory):
+    """Test avvio notifica periodica con successo."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:test_periodic_notifications")
+    response = client.post(url)
+    assert response.status_code == 200
+    assert response["HX-Trigger"] == "notificationChanged"
+    assert Schedule.objects.filter(
+        name=f"periodic_notification_{notification.pk}"
+    ).exists()
+
+
+def test_periodic_notification_no_session(client):
+    """Test avvio notifica periodica senza sessione."""
+    url = reverse("notifications:test_periodic_notifications")
+    response = client.post(url)
+    assert response.status_code == 200
+    assert b"Nessuna sottoscrizione trovata" in response.content
+
+
+def test_periodic_notification_invalid_pk(client):
+    """Test avvio notifica periodica con pk non esistente."""
+    session = client.session
+    session["anon_notification_pk"] = 99999  # pk non esistente
+    session.save()
+    url = reverse("notifications:test_periodic_notifications")
+    response = client.post(url)
+    assert response.status_code == 404
+
+
+def test_periodic_notification_method_not_allowed(client):
+    """Test richiesta non-POST."""
+    url = reverse("notifications:test_periodic_notifications")
+    response = client.get(url)
+    assert response.status_code == 405
+
+
+def test_stop_periodic_notification_success(client, school_factory):
+    """Test stop notifica periodica con successo."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    # Create a schedule to be stopped
+    Schedule.objects.create(
+        name=f"periodic_notification_{notification.pk}",
+        func="notifications.tasks.send_notification",
+    )
+    url = reverse("notifications:stop_periodic_notifications")
+    response = client.post(url)
+    assert response.status_code == 200
+    assert response["HX-Trigger"] == "notificationChanged"
+    assert not Schedule.objects.filter(
+        name=f"periodic_notification_{notification.pk}"
+    ).exists()
+
+
+def test_stop_periodic_notification_no_session(client):
+    """Test stop notifica periodica senza sessione."""
+    url = reverse("notifications:stop_periodic_notifications")
+    response = client.post(url)
+    assert response.status_code == 200
+    assert b"Nessuna sottoscrizione trovata" in response.content
+
+
+def test_stop_periodic_notification_method_not_allowed(client):
+    """Test richiesta non-POST per stop notifica periodica."""
+    url = reverse("notifications:stop_periodic_notifications")
+    response = client.get(url)
+    assert response.status_code == 405

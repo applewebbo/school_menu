@@ -2,8 +2,19 @@ import json
 import logging
 
 from django.conf import settings
+from django.utils import timezone
 from django_q.models import Schedule
 from pywebpush import WebPushException, webpush
+
+from notifications.models import AnonymousMenuNotification
+from school_menu.models import School
+from school_menu.utils import (
+    calculate_week,
+    get_current_date,
+    get_meals,
+    get_meals_for_annual_menu,
+    get_season,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +70,53 @@ def stop_periodic_notifications(user_id):
     """
     name = f"periodic_notification_{user_id}"
     Schedule.objects.filter(name=name).delete()
+
+
+def send_daily_menu_notification():
+    """
+    Invia una notifica con il menu del giorno a tutti gli iscritti.
+    """
+    logger.info("Invio notifiche giornaliere del menu...")
+    subscriptions = AnonymousMenuNotification.objects.all()
+    for subscription in subscriptions:
+        school = subscription.school
+        if school.annual_menu:
+            _, meals_for_today = get_meals_for_annual_menu(school)
+        else:
+            current_week, day = get_current_date()
+            season = get_season(school)
+            week = calculate_week(current_week, school.week_bias)
+            _, meals_for_today = get_meals(school, season, week, day)
+
+        if meals_for_today:
+            meal = meals_for_today.first()
+            if school.annual_menu:
+                body = meal.menu
+            elif school.menu_type == School.Types.SIMPLE:
+                body = meal.menu
+            else:
+                body = f"Primo: {meal.first_course}, Secondo: {meal.second_course}, Contorno: {meal.side_dish}"
+            payload = {
+                "head": f"Menu di oggi per {school.name}",
+                "body": body,
+                "icon": "/static/img/notification-bell.png",
+                "url": school.get_absolute_url(),
+            }
+            send_test_notification(subscription.subscription_info, payload)
+    logger.info("Notifiche giornaliere del menu inviate.")
+
+
+def schedule_daily_menu_notification():
+    """
+    Crea o aggiorna una schedulazione giornaliera per inviare il menu del giorno.
+    """
+    name = "daily_menu_notification"
+    Schedule.objects.update_or_create(
+        name=name,
+        defaults={
+            "func": "notifications.tasks.send_daily_menu_notification",
+            "schedule_type": Schedule.DAILY,
+            "next_run": timezone.now().replace(hour=12, minute=0, second=0),
+            "repeats": -1,
+        },
+    )

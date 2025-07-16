@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from django_q.models import Schedule
@@ -97,22 +99,19 @@ def annual_subscription(db, annual_school):
     )
 
 
+@patch("notifications.tasks.send_test_notification")
 def test_send_daily_menu_notification_simple_menu(
-    db, monkeypatch, school, subscription
+    mock_send_test_notification, db, monkeypatch, school, subscription
 ):
     """Test invio notifica giornaliera con menu semplice."""
-
-    def fake_webpush(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-
     SimpleMeal.objects.create(
         school=school,
         day=1,
         week=1,
         season=1,
         menu="test menu",
+        morning_snack="test morning snack",
+        afternoon_snack="test afternoon snack",
     )
 
     def fake_get_current_date():
@@ -131,28 +130,35 @@ def test_send_daily_menu_notification_simple_menu(
     monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
 
     send_daily_menu_notification()
+    expected_body = (
+        "Spuntino: test morning snack\nPranzo: test menu\nMerenda: test afternoon snack"
+    )
+    expected_payload = {
+        "head": f"Menu di oggi per {school.name}",
+        "body": expected_body,
+        "icon": "/static/img/notification-bell.png",
+        "url": school.get_absolute_url(),
+    }
+    mock_send_test_notification.assert_called_once_with(
+        subscription.subscription_info, expected_payload
+    )
 
 
+@patch("notifications.tasks.send_test_notification")
 def test_send_daily_menu_notification_detailed_menu(
-    db, monkeypatch, detailed_school, detailed_subscription
+    mock_send_test_notification, db, monkeypatch, detailed_school, detailed_subscription
 ):
     """Test invio notifica giornaliera con menu dettagliato."""
-
-    def fake_webpush(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-
     DetailedMeal.objects.create(
         school=detailed_school,
         day=1,
         week=1,
         season=1,
-        first_course="test",
-        second_course="test",
-        side_dish="test",
-        fruit="test",
-        snack="test",
+        first_course="test first",
+        second_course="test second",
+        side_dish="test side",
+        fruit="test fruit",
+        snack="test snack",
     )
 
     def fake_get_current_date():
@@ -171,18 +177,23 @@ def test_send_daily_menu_notification_detailed_menu(
     monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
 
     send_daily_menu_notification()
+    expected_body = "Primo: test first\nSecondo: test second\nContorno: test side"
+    expected_payload = {
+        "head": f"Menu di oggi per {detailed_school.name}",
+        "body": expected_body,
+        "icon": "/static/img/notification-bell.png",
+        "url": detailed_school.get_absolute_url(),
+    }
+    mock_send_test_notification.assert_called_once_with(
+        detailed_subscription.subscription_info, expected_payload
+    )
 
 
+@patch("notifications.tasks.send_test_notification")
 def test_send_daily_menu_notification_annual_menu(
-    db, monkeypatch, annual_school, annual_subscription
+    mock_send_test_notification, db, monkeypatch, annual_school, annual_subscription
 ):
     """Test invio notifica giornaliera con menu annuale."""
-
-    def fake_webpush(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-
     from datetime import date
 
     from school_menu.models import AnnualMeal
@@ -191,9 +202,20 @@ def test_send_daily_menu_notification_annual_menu(
         school=annual_school,
         date=date.today(),
         menu="test menu",
+        snack="test snack",
     )
 
     send_daily_menu_notification()
+    expected_body = "Pranzo: test menu\nSpuntino: test snack"
+    expected_payload = {
+        "head": f"Menu di oggi per {annual_school.name}",
+        "body": expected_body,
+        "icon": "/static/img/notification-bell.png",
+        "url": annual_school.get_absolute_url(),
+    }
+    mock_send_test_notification.assert_called_once_with(
+        annual_subscription.subscription_info, expected_payload
+    )
 
 
 def test_send_daily_menu_notification_no_meal(db, monkeypatch, school, subscription):

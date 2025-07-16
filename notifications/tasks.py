@@ -90,12 +90,20 @@ def send_daily_menu_notification():
 
         if meals_for_today:
             meal = meals_for_today.first()
+            body_parts = []
             if school.annual_menu:
-                body = meal.menu
+                body_parts.append(f"Pranzo: {meal.menu}")
+                body_parts.append(f"Spuntino: {meal.snack}")
             elif school.menu_type == School.Types.SIMPLE:
-                body = meal.menu
+                body_parts.append(f"Spuntino: {meal.morning_snack}")
+                body_parts.append(f"Pranzo: {meal.menu}")
+                body_parts.append(f"Merenda: {meal.afternoon_snack}")
             else:
-                body = f"Primo: {meal.first_course}, Secondo: {meal.second_course}, Contorno: {meal.side_dish}"
+                body_parts.append(f"Primo: {meal.first_course}")
+                body_parts.append(f"Secondo: {meal.second_course}")
+                body_parts.append(f"Contorno: {meal.side_dish}")
+
+            body = "\n".join(body_parts)
             payload = {
                 "head": f"Menu di oggi per {school.name}",
                 "body": body,

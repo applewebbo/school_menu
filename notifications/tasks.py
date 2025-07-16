@@ -23,15 +23,10 @@ def send_test_notification(subscription_info, payload):
     """
     Task che invia una notifica di prova in maniera asincrona
     """
-    if isinstance(subscription_info, str):
-        subscription_info = json.loads(subscription_info.replace("'", '"'))
-    if isinstance(payload, str):
-        payload = json.loads(payload.replace("'", '"'))
-
     try:
         webpush(
             subscription_info=subscription_info,
-            data=payload,
+            data=json.dumps(payload),
             vapid_private_key=settings.WEBPUSH_SETTINGS["VAPID_PRIVATE_KEY"],
             vapid_claims={
                 "sub": f"mailto:{settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']}"
@@ -56,7 +51,7 @@ def schedule_periodic_notifications(subscription_info, payload, user_id):
         name=name,
         defaults={
             "func": "notifications.tasks.send_test_notification",
-            "args": f"'{json.dumps(subscription_info)}', '{json.dumps(payload)}'",
+            "args": f"{subscription_info},{payload}",
             "schedule_type": Schedule.MINUTES,
             "minutes": 1,
             "repeats": -1,  # infinito finché non viene stoppato

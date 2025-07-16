@@ -80,6 +80,11 @@ makemessages:
 @tasks:
     uv run python manage.py qcluster
 
+# Schedule daily notifications
+[group('development')]
+schedule_notifications:
+    uv run python manage.py schedule_notifications
+
 ##########################################################################
 # Utility
 ##########################################################################

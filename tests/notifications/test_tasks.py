@@ -1,12 +1,236 @@
 import pytest
+from django.contrib.auth import get_user_model
 from django_q.models import Schedule
 from pywebpush import WebPushException
 
+from notifications.models import AnonymousMenuNotification
 from notifications.tasks import (
+    schedule_daily_menu_notification,
     schedule_periodic_notifications,
+    send_daily_menu_notification,
     send_test_notification,
     stop_periodic_notifications,
 )
+from school_menu.models import DetailedMeal, School, SimpleMeal
+
+User = get_user_model()
+
+
+@pytest.fixture
+def user(db):
+    return User.objects.create_user(
+        "test@test.com", "test", first_name="test", last_name="test"
+    )
+
+
+@pytest.fixture
+def user2(db):
+    return User.objects.create_user(
+        "test2@test.com", "test", first_name="test", last_name="test"
+    )
+
+
+@pytest.fixture
+def user3(db):
+    return User.objects.create_user(
+        "test3@test.com", "test", first_name="test", last_name="test"
+    )
+
+
+@pytest.fixture
+def school(db, user):
+    return School.objects.create(
+        name="test school", city="test city", user=user, menu_type=School.Types.SIMPLE
+    )
+
+
+@pytest.fixture
+def detailed_school(db, user2):
+    return School.objects.create(
+        name="test detailed school",
+        city="test city",
+        user=user2,
+        menu_type=School.Types.DETAILED,
+    )
+
+
+@pytest.fixture
+def annual_school(db, user3):
+    return School.objects.create(
+        name="test annual school",
+        city="test city",
+        user=user3,
+        annual_menu=True,
+    )
+
+
+@pytest.fixture
+def subscription(db, school):
+    return AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={
+            "endpoint": "test",
+            "keys": {"p256dh": "test", "auth": "test"},
+        },
+    )
+
+
+@pytest.fixture
+def detailed_subscription(db, detailed_school):
+    return AnonymousMenuNotification.objects.create(
+        school=detailed_school,
+        subscription_info={
+            "endpoint": "test",
+            "keys": {"p256dh": "test", "auth": "test"},
+        },
+    )
+
+
+@pytest.fixture
+def annual_subscription(db, annual_school):
+    return AnonymousMenuNotification.objects.create(
+        school=annual_school,
+        subscription_info={
+            "endpoint": "test",
+            "keys": {"p256dh": "test", "auth": "test"},
+        },
+    )
+
+
+def test_send_daily_menu_notification_simple_menu(
+    db, monkeypatch, school, subscription
+):
+    """Test invio notifica giornaliera con menu semplice."""
+
+    def fake_webpush(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
+
+    SimpleMeal.objects.create(
+        school=school,
+        day=1,
+        week=1,
+        season=1,
+        menu="test menu",
+    )
+
+    def fake_get_current_date():
+        return 1, 1
+
+    monkeypatch.setattr("notifications.tasks.get_current_date", fake_get_current_date)
+
+    def fake_get_season(school):
+        return 1
+
+    monkeypatch.setattr("notifications.tasks.get_season", fake_get_season)
+
+    def fake_calculate_week(week, bias):
+        return 1
+
+    monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
+
+    send_daily_menu_notification()
+
+
+def test_send_daily_menu_notification_detailed_menu(
+    db, monkeypatch, detailed_school, detailed_subscription
+):
+    """Test invio notifica giornaliera con menu dettagliato."""
+
+    def fake_webpush(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
+
+    DetailedMeal.objects.create(
+        school=detailed_school,
+        day=1,
+        week=1,
+        season=1,
+        first_course="test",
+        second_course="test",
+        side_dish="test",
+        fruit="test",
+        snack="test",
+    )
+
+    def fake_get_current_date():
+        return 1, 1
+
+    monkeypatch.setattr("notifications.tasks.get_current_date", fake_get_current_date)
+
+    def fake_get_season(school):
+        return 1
+
+    monkeypatch.setattr("notifications.tasks.get_season", fake_get_season)
+
+    def fake_calculate_week(week, bias):
+        return 1
+
+    monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
+
+    send_daily_menu_notification()
+
+
+def test_send_daily_menu_notification_annual_menu(
+    db, monkeypatch, annual_school, annual_subscription
+):
+    """Test invio notifica giornaliera con menu annuale."""
+
+    def fake_webpush(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
+
+    from datetime import date
+
+    from school_menu.models import AnnualMeal
+
+    AnnualMeal.objects.create(
+        school=annual_school,
+        date=date.today(),
+        menu="test menu",
+    )
+
+    send_daily_menu_notification()
+
+
+def test_send_daily_menu_notification_no_meal(db, monkeypatch, school, subscription):
+    """Test invio notifica giornaliera senza menu."""
+
+    def fake_webpush(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
+
+    def fake_get_current_date():
+        return 1, 1
+
+    monkeypatch.setattr("notifications.tasks.get_current_date", fake_get_current_date)
+
+    def fake_get_season(school):
+        return 1
+
+    monkeypatch.setattr("notifications.tasks.get_season", fake_get_season)
+
+    def fake_calculate_week(week, bias):
+        return 1
+
+    monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
+
+    send_daily_menu_notification()
+
+
+def test_schedule_daily_menu_notification(monkeypatch):
+    """Test schedulazione notifiche giornaliere."""
+
+    def fake_update_or_create(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr(Schedule.objects, "update_or_create", fake_update_or_create)
+    schedule_daily_menu_notification()
+
 
 pytestmark = pytest.mark.django_db
 

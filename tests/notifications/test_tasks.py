@@ -11,6 +11,16 @@ from notifications.tasks import (
 pytestmark = pytest.mark.django_db
 
 
+def test_send_test_notification_success_with_string_args(monkeypatch):
+    """Test invio notifica di prova con successo."""
+
+    def fake_webpush(*args, **kwargs):
+        return None
+
+    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
+    send_test_notification('{"test": "test"}', '{"test": "test"}')
+
+
 def test_send_test_notification_success(monkeypatch):
     """Test invio notifica di prova con successo."""
 

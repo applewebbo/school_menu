@@ -6,9 +6,9 @@
       hx-swap="outerHTML">
     {% csrf_token %}
     {% crispy form %}
-    <div class="flex justify-end mt-4">
+    <div class="flex flex-col mt-4 sm:flex-row sm:justify-end">
         <button type="button"
-                class="btn btn-primary"
+                class="btn btn-primary btn-soft"
                 x-data="pushNotifications"
                 x-init="enabled = false"
                 x-bind:disabled="subscribing"

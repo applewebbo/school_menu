@@ -18,14 +18,9 @@ urlpatterns = [
     ),
     path("test-notification/", views.test_notification, name="test_notification"),
     path(
-        "test-periodic-notifications/",
-        views.test_periodic_notifications,
-        name="test_periodic_notifications",
-    ),
-    path(
-        "stop-periodic-notifications/",
-        views.stop_periodic_notifications,
-        name="stop_periodic_notifications",
+        "toggle-daily-notification/",
+        views.toggle_daily_notification,
+        name="toggle_daily_notification",
     ),
     path(
         "buttons/<int:pk>/", views.notifications_buttons, name="notifications_buttons"

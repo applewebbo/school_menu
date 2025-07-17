@@ -42,37 +42,12 @@ def send_test_notification(subscription_info, payload):
     logger.info("notifica di prova inviata")
 
 
-def schedule_periodic_notifications(subscription_info, payload, user_id):
-    """
-    Crea o aggiorna una schedulazione periodica che invia una notifica ogni minuto.
-    """
-    name = f"periodic_notification_{user_id}"
-    Schedule.objects.update_or_create(
-        name=name,
-        defaults={
-            "func": "notifications.tasks.send_test_notification",
-            "args": f"{subscription_info},{payload}",
-            "schedule_type": Schedule.MINUTES,
-            "minutes": 1,
-            "repeats": -1,  # infinito finché non viene stoppato
-        },
-    )
-
-
-def stop_periodic_notifications(user_id):
-    """
-    Ferma la schedulazione periodica per l'utente specificato.
-    """
-    name = f"periodic_notification_{user_id}"
-    Schedule.objects.filter(name=name).delete()
-
-
 def send_daily_menu_notification():
     """
     Invia una notifica con il menu del giorno a tutti gli iscritti.
     """
     logger.info("Invio notifiche giornaliere del menu...")
-    subscriptions = AnonymousMenuNotification.objects.all()
+    subscriptions = AnonymousMenuNotification.objects.filter(daily_notification=True)
     for subscription in subscriptions:
         school = subscription.school
         if school.annual_menu:

@@ -3,14 +3,11 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
-from django_q.models import Schedule
 from django_q.tasks import async_task
 from pywebpush import WebPushException
 
 from .forms import AnonymousMenuNotificationForm
 from .models import AnonymousMenuNotification
-from .tasks import schedule_periodic_notifications
-from .tasks import stop_periodic_notifications as stop_periodic_notifications_task
 
 
 def notification_settings(request):
@@ -18,20 +15,15 @@ def notification_settings(request):
     context = {}
     if pk:
         notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
-        scheduled_task = Schedule.objects.filter(
-            name=f"periodic_notification_{pk}"
-        ).first()
         context["notification"] = notification
-        context["scheduled_task"] = scheduled_task
 
     context["form"] = AnonymousMenuNotificationForm()
     return render(request, "notifications/notification_settings.html", context)
 
 
 def notifications_buttons(request, pk):
-    notification = AnonymousMenuNotification.objects.get(pk=pk)
-    scheduled_task = Schedule.objects.filter(name=f"periodic_notification_{pk}").first()
-    context = {"notification": notification, "scheduled_task": scheduled_task}
+    notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+    context = {"notification": notification}
     return render(request, "notifications/notification_settings.html#buttons", context)
 
 
@@ -61,7 +53,7 @@ def delete_subscription(request):
             if not pk:
                 messages.error(request, "Nessuna sottoscrizione trovata.")
                 return HttpResponse(status=400, headers={"HX-Refresh": "true"})
-            notification = AnonymousMenuNotification.objects.get(pk=pk)
+            notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
             notification.delete()
             del request.session["anon_notification_pk"]
             messages.add_message(
@@ -97,12 +89,11 @@ def test_notification(request):
     payload = {
         "head": "Test Notifica",
         "body": "Questa è una notifica di prova.",
-        "icon": "/static/img/notification-bell.png",  # Modifica il path se necessario
+        "icon": "/static/img/notification-bell.png",
         "url": "/",
     }
 
     try:
-        # Invio asincrono
         async_task(
             "notifications.tasks.send_test_notification",
             notification.subscription_info,
@@ -127,56 +118,25 @@ def test_notification(request):
 
 
 @require_http_methods(["POST"])
-def test_periodic_notifications(request):
+def toggle_daily_notification(request):
     """
-    Avvia una schedulazione che invia una notifica ogni minuto finché non viene stoppata.
+    Attiva o disattiva le notifiche giornaliere per l'utente.
     """
     pk = request.session.get("anon_notification_pk")
     if not pk:
-        message = "Nessuna sottoscrizione trovata."
-        messages.error(request, message)
-        return TemplateResponse(
-            request,
-            "notifications/partials/test_notification_result.html",
-            {"success": False, "message": message},
-        )
+        messages.error(request, "Nessuna sottoscrizione trovata.")
+        return HttpResponse(status=400, headers={"HX-Refresh": "true"})
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
-    payload = {
-        "head": "Notifica periodica",
-        "body": "Questa è una notifica inviata ogni minuto.",
-        "icon": "/static/img/notification-bell.png",
-        "url": "/",
-    }
-    user_id = pk  # puoi usare anche l'id utente se disponibile
-    schedule_periodic_notifications(notification.subscription_info, payload, user_id)
-    message = "Notifiche periodiche avviate. Verrà inviata una notifica ogni minuto finché non le stoppi. La prima notifica verrà inviata entro un minuto."
-    response = TemplateResponse(
-        request,
-        "notifications/partials/test_periodic_notification_result.html",
-        {"success": True, "message": message},
-    )
-    response["HX-Trigger"] = "notificationChanged"
-    return response
+    notification.daily_notification = not notification.daily_notification
+    notification.save()
 
+    if notification.daily_notification:
+        message = "Notifiche giornaliere attivate."
+    else:
+        message = "Notifiche giornaliere disattivate."
 
-@require_http_methods(["POST"])
-def stop_periodic_notifications(request):
-    """
-    Ferma la schedulazione periodica per l'utente.
-    """
-    pk = request.session.get("anon_notification_pk")
-    if not pk:
-        message = "Nessuna sottoscrizione trovata."
-        messages.error(request, message)
-        return render(
-            request,
-            "notifications/partials/test_notification_result.html",
-            {"success": False, "message": message},
-        )
-    user_id = pk
-    stop_periodic_notifications_task(user_id)
-    message = "Notifiche periodiche fermate."
+    messages.success(request, message)
     response = TemplateResponse(
         request,
         "notifications/partials/test_notification_result.html",

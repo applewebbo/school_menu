@@ -8,6 +8,7 @@ class AnonymousMenuNotification(models.Model):
         School, on_delete=models.CASCADE, related_name="anonymous_notifications"
     )
     subscription_info = models.JSONField()
+    daily_notification = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

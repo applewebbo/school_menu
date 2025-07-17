@@ -25,57 +25,77 @@
                 </template>
                 <div x-show="isStandalone">
                     {% if notification.school %}
-                        <p>
-                            Questo dispositivo riceve notifiche giornaliere relative al menu della scuola <span class="font-bold">{{ notification.school.name }}</span>.
-                        </p>
-                        <!-- NOTIFICATION BUTTONS START -->
-                        {% partialdef buttons inline %}
-                        <div id="notifications-buttons"
-                             class="flex flex-col gap-2 gap-y-3 my-8 sm:flex-row sm:justify-center md:my-4"
-                             hx-get="{% url 'notifications:notifications_buttons' notification.pk %}"
-                             hx-swap="outerHTML"
-                             hx-trigger="notificationChanged from:body">
-                            <button hx-post="{% url 'notifications:test_notification' %}"
-                                    hx-target="#test-notification-result"
-                                    hx-swap="innerHTML"
-                                    class="flex gap-1 items-center btn btn-primary btn-soft"
-                                    type="button">
-                                {% heroicon_outline 'bell' class="size-5" %}
-                                Test Notifica
-                            </button>
-                            {% if scheduled_task %}
-                                <button id="stop-periodic"
-                                        hx-post="{% url 'notifications:stop_periodic_notifications' %}"
-                                        hx-target="#test-notification-result"
-                                        hx-swap="innerHTML"
-                                        class="flex gap-1 items-center btn btn-error btn-soft"
-                                        type="button">
-                                    {% heroicon_outline 'clock' class="size-5" %}
-                                    Stop Notifiche Periodiche
-                                </button>
+                        <div class="border border-gray-200 shadow card">
+                            <div class="card-body">
+                                <h2 class="mb-4 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left">Impostazioni</h2>
+                                 <!-- NOTIFICATION SETTINGS START -->
+                                {% partialdef buttons inline %}
+                                <div id="notifications-buttons"
+                                     hx-get="{% url 'notifications:notifications_buttons' notification.pk %}"
+                                     hx-swap="outerHTML"
+                                     hx-trigger="notificationChanged from:body">
+                                    <ul class="leading-10" id="notifications-settings">
+                                        <li class="flex justify-between">
+                                            <span>Notifiche abilitate</span>
+                                            <button class="btn btn-sm btn-error btn-soft"
+                                                    hx-post="{% url 'notifications:delete_subscription' %}">
+                                                {% heroicon_mini 'x-circle' class="size-4" %}
+                                                Disabilita
+                                            </button>
+                                        </li>
+                                        <li class="flex justify-between">
+                                            <span>{{ notification.school.name }}</span>
+                                            <button class="btn btn-sm btn-primary btn-soft">
+                                                {% heroicon_mini 'cog-8-tooth' class="size-4" %}
+                                                Modifica
+                                            </button>
+                                        </li>
+                                        {% if notification.daily_notification %}
+                                            <li class="flex justify-between">
+                                                <span>Notifiche giornaliere attive</span>
+                                                <button class="btn btn-sm btn-error btn-soft"
+                                                        hx-post="{% url 'notifications:toggle_daily_notification' %}"
+                                                        hx-target="#test-notification-result"
+                                                        hx-swap="innerHTML"
+                                                        type="button">
+                                                    {% heroicon_mini 'bell-slash' class="size-4" %}
+                                                    Disattiva
+                                                </button>
+                                            </li>
+                                        {% else %}
+                                            <li class="flex justify-between">
+                                                <span>Notifiche giornaliere non attive</span>
+                                                <button class="btn btn-sm btn-secondary btn-soft"
+                                                        hx-post="{% url 'notifications:toggle_daily_notification' %}"
+                                                        hx-target="#test-notification-result"
+                                                        hx-swap="innerHTML"
+                                                        type="button">
+                                                    {% heroicon_mini 'bell-alert' class="size-4" %}
+                                                    Attiva
+                                                </button>
+                                            </li>
+                                        {% endif %}
+                                        <li class="flex justify-end">
+                                            <button hx-post="{% url 'notifications:test_notification' %}"
+                                                    hx-target="#test-notification-result"
+                                                    hx-swap="innerHTML"
+                                                    class="flex gap-1 items-center btn btn-sm btn-primary btn-soft"
+                                                    type="button">
+                                                    {% heroicon_outline 'bell' class="size-4" %}
+                                                    Test Notifica
+                                            </button>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                                {% endpartialdef %}
+                            <!-- NOTIFICATIONS BUTTONS END -->
+                            <div id="test-notification-result" class="mt-4"></div>
                             {% else %}
-                                <button id="test-periodic"
-                                        hx-post="{% url 'notifications:test_periodic_notifications' %}"
-                                        hx-target="#test-notification-result"
-                                        hx-swap="innerHTML"
-                                        class="flex gap-1 items-center btn btn-secondary btn-soft"
-                                        type="button">
-                                    {% heroicon_outline 'clock' class="size-5" %}
-                                    Test Notifica Periodica
-                                </button>
-                                <button class="flex gap-1 items-center btn btn-error btn-soft"
-                                        hx-post="{% url 'notifications:delete_subscription' %}">
-                                    {% heroicon_outline 'x-mark' class="size-5" %}
-                                    Disabilita notifiche
-                                </button>
+                                {% include "notifications/partials/subscription_form.html" %}
                             {% endif %}
                         </div>
-                    {% endpartialdef %}
-                    <!-- NOTIFICATIONS BUTTONS END -->
-                    <div id="test-notification-result" class="mt-4"></div>
-                {% else %}
-                    {% include "notifications/partials/subscription_form.html" %}
-                {% endif %}
+                    </div>
             </div>
         </div>
     </div>

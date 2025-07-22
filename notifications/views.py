@@ -136,7 +136,7 @@ def toggle_daily_notification(request):
     else:
         message = "Notifiche giornaliere disattivate."
 
-    messages.success(request, message)
+    # messages.success(request, message)
     response = TemplateResponse(
         request,
         "notifications/partials/test_notification_result.html",

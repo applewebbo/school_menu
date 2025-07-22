@@ -12,7 +12,7 @@
 {% block content %}
     <div class="container mx-auto mb-8 max-w-screen-lg">
         <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Notifiche Menù Giornaliero</h1>
+            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Impostazioni Notifiche Menù Giornaliero</h1>
             <div class="py-3 px-5 mt-3 md:py-4 md:px-6"
                  x-data="pwaInstallPrompt()"
                  x-init="checkStandalone(); console.log('PWA Alpine state', {isStandalone, canPrompt, installMessage})">
@@ -25,66 +25,94 @@
                 </template>
                 <div x-show="isStandalone">
                     {% if notification.school %}
-                        <div class="border border-gray-200 shadow card">
+                        <div class="mx-auto max-w-lg border border-gray-200 shadow card">
                             <div class="card-body">
-                                <h2 class="mb-4 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left">Impostazioni</h2>
+                                <h2 class="mb-6 text-xl font-bold tracking-tight text-center text-gray-900 sm:mb-8 md:text-left">Gestisci le tue impostazioni</h2>
+                                {% comment %} <p class="text-gray-600">In questa pagina puoi:</p>
+                                <ul class="mb-3 leading-8 list-disc list-outside text-gray-600 sm:mb-5 ps-4">
+                                    <li>selezionare la scuola da cui ricevere la notifica del menu giornaliero</li>
+                                    <li>attivare le notifiche giornaliere</li>
+                                    <li>verificare corretta configurazione del tuo dispositivo ricevendo una notifica di prova</li>
+                                    <li>disabilitare la ricezione delle notifiche sul tuo dispositivo</li>
+                                </ul>
+                                <div class="divider"></div> {% endcomment %}
                                  <!-- NOTIFICATION SETTINGS START -->
                                 {% partialdef buttons inline %}
                                 <div id="notifications-buttons"
                                      hx-get="{% url 'notifications:notifications_buttons' notification.pk %}"
                                      hx-swap="outerHTML"
                                      hx-trigger="notificationChanged from:body">
-                                    <ul class="leading-10" id="notifications-settings">
-                                        <li class="flex justify-between">
-                                            <span>Notifiche abilitate</span>
-                                            <button class="btn btn-sm btn-error btn-soft"
-                                                    hx-post="{% url 'notifications:delete_subscription' %}">
-                                                {% heroicon_mini 'x-circle' class="size-4" %}
-                                                Disabilita
-                                            </button>
-                                        </li>
-                                        <li class="flex justify-between">
-                                            <span>{{ notification.school.name }}</span>
-                                            <button class="btn btn-sm btn-primary btn-soft">
-                                                {% heroicon_mini 'cog-8-tooth' class="size-4" %}
+                                    <ul class="text-base/10" id="notifications-settings">
+                                        <li>
+                                            <div class="mb-2">
+                                                <span>Hai selezionato <strong>{{ notification.school.name }}</strong></span>
+                                                <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu</p>
+                                            </div>
+                                            <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline">
                                                 Modifica
+                                                {% heroicon_outline 'cog-8-tooth' class="size-4" %}
                                             </button>
+
                                         </li>
+                                        <div class="divider"></div>
                                         {% if notification.daily_notification %}
-                                            <li class="flex justify-between">
-                                                <span>Notifiche giornaliere attive</span>
-                                                <button class="btn btn-sm btn-error btn-soft"
+                                            <li>
+                                                <div class="mb-2">
+                                                    <span>Stai ricevendo notifiche giornaliere</span>
+                                                    <p class="italic text-gray-500 text-sm/4">Clicca su disattiva per interrompere la ricezione delle notifiche giornaliere</p>
+                                                </div>
+                                                <button class="flex gap-2 items-center mt-3 btn btn-sm btn-error btn-outline"
                                                         hx-post="{% url 'notifications:toggle_daily_notification' %}"
                                                         hx-target="#test-notification-result"
                                                         hx-swap="innerHTML"
                                                         type="button">
-                                                    {% heroicon_mini 'bell-slash' class="size-4" %}
-                                                    Disattiva
+                                                        Disattiva
+                                                        {% heroicon_outline 'bell-slash' class="size-4" %}
                                                 </button>
                                             </li>
                                         {% else %}
-                                            <li class="flex justify-between">
-                                                <span>Notifiche giornaliere non attive</span>
-                                                <button class="btn btn-sm btn-secondary btn-soft"
+                                            <li>
+                                                <div class="mb-2">
+                                                    <span>Non stai ricevendo notifiche giornaliere</span>
+                                                    <p class="italic text-gray-500 text-sm/4">Clicca su attiva per ricevere una notifica ogni giorno alle ore 12 con il menu di tuo figlio</p>
+                                                </div>
+                                                <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
                                                         hx-post="{% url 'notifications:toggle_daily_notification' %}"
                                                         hx-target="#test-notification-result"
                                                         hx-swap="innerHTML"
                                                         type="button">
-                                                    {% heroicon_mini 'bell-alert' class="size-4" %}
-                                                    Attiva
+                                                        Attiva
+                                                        {% heroicon_outline 'bell-alert' class="size-4" %}
                                                 </button>
                                             </li>
                                         {% endif %}
-                                        <li class="flex justify-end">
+                                        <div class="divider"></div>
+                                        <li>
+                                            <div class="mb-2">
+                                                <span>Ricevi una notifica di prova</span>
+                                                <p class="italic text-gray-500 text-sm/4">Clicca su test per ricevere una notifica di prova verificando la corretta configurazione del tuo dispositivo</p>
+                                            </div>
                                             <button hx-post="{% url 'notifications:test_notification' %}"
-                                                    hx-target="#test-notification-result"
-                                                    hx-swap="innerHTML"
-                                                    class="flex gap-1 items-center btn btn-sm btn-primary btn-soft"
-                                                    type="button">
-                                                    {% heroicon_outline 'bell' class="size-4" %}
-                                                    Test Notifica
-                                            </button>
+                                                        hx-target="#test-notification-result"
+                                                        hx-swap="innerHTML"
+                                                        class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
+                                                        type="button">
+                                                        Test
+                                                        {% heroicon_outline 'paper-airplane' class="size-4" %}
+                                                </button>
                                         </li>
+                                        <div class="divider"></div>
+                                        <li>
+                                            <div class="mb-2">
+                                                <span>Notifiche abilitate</span>
+                                                <p class="italic text-gray-500 text-sm/4">Clicca su disabilita per disabilitare la ricezione delle notifiche sul tuo dispositivo</p>
+                                            </div>
+                                        </li>
+                                        <button class="flex gap-2 items-center mt-3 btn btn-sm btn-error btn-outline"
+                                                hx-post="{% url 'notifications:delete_subscription' %}">
+                                                Disabilita
+                                                {% heroicon_outline 'x-circle' class="size-4" %}
+                                        </button>
                                     </ul>
 
                                 </div>

@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from import_export.widgets import Widget
 
+from notifications.models import AnonymousMenuNotification
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 
 
@@ -276,3 +277,12 @@ def fill_missing_dates(school, meal_type):
                     is_active=False,
                 )
         current_date += timedelta(days=1)
+
+
+def get_notifications_status(pk, school):
+    if pk:
+        notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+        if notification.school == school and notification.daily_notification:
+            return True
+    else:
+        return False

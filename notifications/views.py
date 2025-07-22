@@ -6,8 +6,8 @@ from django.views.decorators.http import require_http_methods
 from django_q.tasks import async_task
 from pywebpush import WebPushException
 
-from .forms import AnonymousMenuNotificationForm
-from .models import AnonymousMenuNotification
+from notifications.forms import AnonymousMenuNotificationForm
+from notifications.models import AnonymousMenuNotification
 
 
 def notification_settings(request):

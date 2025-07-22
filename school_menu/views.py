@@ -44,6 +44,7 @@ from school_menu.utils import (
     get_current_date,
     get_meals,
     get_meals_for_annual_menu,
+    get_notifications_status,
     get_season,
     get_user,
     validate_annual_dataset,
@@ -98,6 +99,8 @@ def index(request):
 def school_menu(request, slug, meal_type="S"):
     """Return school menu for the given school"""
     school = get_object_or_404(School, slug=slug)
+    pk = request.session.get("anon_notification_pk")
+    notifications_status = get_notifications_status(pk, school)
     if not school.is_published:
         return render(request, "school-menu.html", {"not_published": True})
     current_week, adjusted_day = get_current_date()
@@ -132,6 +135,7 @@ def school_menu(request, slug, meal_type="S"):
         "year": year,
         "alt_menu": alt_menu,
         "types_menu": types_menu,
+        "notifications_status": notifications_status,
     }
     return render(request, "school-menu.html", context)
 
@@ -139,6 +143,8 @@ def school_menu(request, slug, meal_type="S"):
 def get_menu(request, school_id, week, day, meal_type):
     """get menu for the given school, day, week and type"""
     school = get_object_or_404(School, pk=school_id)
+    pk = request.session.get("anon_notification_pk")
+    notifications_status = get_notifications_status(pk, school)
     season = get_season(school)
     year = get_adjusted_year()
     alt_menu = get_alt_menu(school.user)
@@ -167,6 +173,7 @@ def get_menu(request, school_id, week, day, meal_type):
         "year": year,
         "alt_menu": alt_menu,
         "types_menu": types_menu,
+        "notifications_status": notifications_status,
     }
     return render(request, "partials/_menu.html", context)
 

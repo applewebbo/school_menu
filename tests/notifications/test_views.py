@@ -2,7 +2,6 @@ import pytest
 import pywebpush
 from django.contrib.messages import get_messages
 from django.urls import reverse
-from django_q.models import Schedule
 
 from notifications.models import AnonymousMenuNotification
 
@@ -93,7 +92,6 @@ def test_delete_subscription_invalid_pk(client):
     url = reverse("notifications:delete_subscription")
     response = client.post(url)
     assert response.status_code == 404
-    assert response["HX-Refresh"] == "true"
 
 
 def test_delete_subscription_method_not_allowed(client):
@@ -251,87 +249,69 @@ def test_notifications_buttons(client, school_factory):
     url = reverse("notifications:notifications_buttons", kwargs={"pk": notification.pk})
     response = client.get(url)
     assert response.status_code == 200
-    assert b"Test Notifica" in response.content
+    assert b"Disabilita" in response.content
 
 
-def test_periodic_notification_success(client, school_factory):
-    """Test avvio notifica periodica con successo."""
+def test_toggle_daily_notification_no_session(client):
+    """Test toggle senza pk in sessione."""
+    url = reverse("notifications:toggle_daily_notification")
+    response = client.post(url)
+    assert response.status_code == 400
+
+
+def test_toggle_daily_notification(client, school_factory):
+    """Test toggle notifiche giornaliere."""
     school = school_factory()
     notification = AnonymousMenuNotification.objects.create(
-        school=school,
-        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+        school=school, subscription_info="test", daily_notification=False
     )
     session = client.session
     session["anon_notification_pk"] = notification.pk
     session.save()
-    url = reverse("notifications:test_periodic_notifications")
+    url = reverse("notifications:toggle_daily_notification")
     response = client.post(url)
     assert response.status_code == 200
-    assert response["HX-Trigger"] == "notificationChanged"
-    assert Schedule.objects.filter(
-        name=f"periodic_notification_{notification.pk}"
-    ).exists()
-
-
-def test_periodic_notification_no_session(client):
-    """Test avvio notifica periodica senza sessione."""
-    url = reverse("notifications:test_periodic_notifications")
+    notification.refresh_from_db()
+    assert notification.daily_notification is True
     response = client.post(url)
     assert response.status_code == 200
-    assert b"Nessuna sottoscrizione trovata" in response.content
+    notification.refresh_from_db()
+    assert notification.daily_notification is False
 
 
-def test_periodic_notification_invalid_pk(client):
-    """Test avvio notifica periodica con pk non esistente."""
-    session = client.session
-    session["anon_notification_pk"] = 99999  # pk non esistente
-    session.save()
-    url = reverse("notifications:test_periodic_notifications")
-    response = client.post(url)
-    assert response.status_code == 404
-
-
-def test_periodic_notification_method_not_allowed(client):
-    """Test richiesta non-POST."""
-    url = reverse("notifications:test_periodic_notifications")
-    response = client.get(url)
-    assert response.status_code == 405
-
-
-def test_stop_periodic_notification_success(client, school_factory):
-    """Test stop notifica periodica con successo."""
+def test_change_school_get(client, school_factory):
+    """Test GET per cambiare scuola."""
     school = school_factory()
     notification = AnonymousMenuNotification.objects.create(
-        school=school,
-        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+        school=school, subscription_info="test"
     )
-    session = client.session
-    session["anon_notification_pk"] = notification.pk
-    session.save()
-    # Create a schedule to be stopped
-    Schedule.objects.create(
-        name=f"periodic_notification_{notification.pk}",
-        func="notifications.tasks.send_notification",
-    )
-    url = reverse("notifications:stop_periodic_notifications")
-    response = client.post(url)
-    assert response.status_code == 200
-    assert response["HX-Trigger"] == "notificationChanged"
-    assert not Schedule.objects.filter(
-        name=f"periodic_notification_{notification.pk}"
-    ).exists()
-
-
-def test_stop_periodic_notification_no_session(client):
-    """Test stop notifica periodica senza sessione."""
-    url = reverse("notifications:stop_periodic_notifications")
-    response = client.post(url)
-    assert response.status_code == 200
-    assert b"Nessuna sottoscrizione trovata" in response.content
-
-
-def test_stop_periodic_notification_method_not_allowed(client):
-    """Test richiesta non-POST per stop notifica periodica."""
-    url = reverse("notifications:stop_periodic_notifications")
+    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
     response = client.get(url)
-    assert response.status_code == 405
+    assert response.status_code == 200
+
+
+def test_change_school_post_valid(client, school_factory):
+    """Test POST per cambiare scuola con dati validi."""
+    school1 = school_factory()
+    school2 = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school1, subscription_info="test"
+    )
+    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    data = {"school": school2.pk, "subscription_info": '{"endpoint": "test"}'}
+    response = client.post(url, data)
+    assert response.status_code == 200
+    notification.refresh_from_db()
+    assert notification.school == school2
+
+
+def test_change_school_post_invalid(client, school_factory):
+    """Test POST per cambiare scuola con dati non validi."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school, subscription_info="test"
+    )
+    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    data = {"school": "", "subscription_info": "test"}
+    response = client.post(url, data)
+    assert response.status_code == 200

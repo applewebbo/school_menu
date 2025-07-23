@@ -284,5 +284,4 @@ def get_notifications_status(pk, school):
         notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
         if notification.school == school and notification.daily_notification:
             return True
-    else:
-        return False
+    return False

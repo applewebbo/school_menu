@@ -35,12 +35,14 @@
                                      hx-swap="outerHTML"
                                      hx-trigger="notificationChanged from:body">
                                     <ul class="text-base/10" id="notifications-settings">
-                                        <li>
+                                        <li id="school">
                                             <div class="mb-2">
                                                 <span>Hai selezionato <strong>{{ notification.school.name }}</strong></span>
                                                 <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu</p>
                                             </div>
-                                            <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline">
+                                            <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
+                                                    hx-get="{% url 'notifications:change_school' notification.pk %}"
+                                                    hx-target="#school">
                                                 Modifica
                                                 {% heroicon_outline 'cog-8-tooth' class="size-4" %}
                                             </button>
@@ -101,7 +103,9 @@
                                             </div>
                                         </li>
                                         <button class="flex gap-2 items-center mt-3 btn btn-sm btn-error btn-outline"
-                                                hx-post="{% url 'notifications:delete_subscription' %}">
+                                                hx-post="{% url 'notifications:delete_subscription' %}"
+                                                hx-target="#test-notification-result"
+                                                hx-swap="innerHTML">
                                                 Disabilita
                                                 {% heroicon_outline 'x-circle' class="size-4" %}
                                         </button>

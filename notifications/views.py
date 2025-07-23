@@ -136,7 +136,6 @@ def toggle_daily_notification(request):
     else:
         message = "Notifiche giornaliere disattivate."
 
-    # messages.success(request, message)
     response = TemplateResponse(
         request,
         "notifications/partials/test_notification_result.html",
@@ -144,3 +143,24 @@ def toggle_daily_notification(request):
     )
     response["HX-Trigger"] = "notificationChanged"
     return response
+
+
+def change_school(request, pk):
+    notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+    if request.method == "POST":
+        form = AnonymousMenuNotificationForm(request.POST, instance=notification)
+        if form.is_valid():
+            form.save()
+            message = "Scuola modificata con successo."
+            response = TemplateResponse(
+                request,
+                "notifications/partials/test_notification_result.html",
+                {"success": True, "message": message},
+            )
+            response["HX-Trigger"] = "notificationChanged"
+            return response
+    else:
+        form = AnonymousMenuNotificationForm(instance=notification)
+
+    context = {"form": form, "notification": notification}
+    return render(request, "notifications/partials/change_school.html", context)

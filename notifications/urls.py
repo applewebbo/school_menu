@@ -25,4 +25,5 @@ urlpatterns = [
     path(
         "buttons/<int:pk>/", views.notifications_buttons, name="notifications_buttons"
     ),
+    path("change-school/<int:pk>/", views.change_school, name="change_school"),
 ]

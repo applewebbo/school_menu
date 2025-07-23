@@ -48,12 +48,12 @@ def save_subscription(request):
 
 def delete_subscription(request):
     if request.method == "POST":
+        pk = request.session.get("anon_notification_pk")
+        if not pk:
+            messages.error(request, "Nessuna sottoscrizione trovata.")
+            return HttpResponse(status=400, headers={"HX-Refresh": "true"})
         try:
-            pk = request.session.get("anon_notification_pk")
-            if not pk:
-                messages.error(request, "Nessuna sottoscrizione trovata.")
-                return HttpResponse(status=400, headers={"HX-Refresh": "true"})
-            notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+            notification = AnonymousMenuNotification.objects.get(pk=pk)
             notification.delete()
             del request.session["anon_notification_pk"]
             messages.add_message(
@@ -61,8 +61,7 @@ def delete_subscription(request):
             )
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         except AnonymousMenuNotification.DoesNotExist:
-            messages.error(request, "La sottoscrizione non esiste.")
-            return HttpResponse(status=404, headers={"HX-Refresh": "true"})
+            return HttpResponse(status=404)
         except Exception as e:
             messages.error(request, f"Errore durante la disabilitazione: {str(e)}")
             return HttpResponse(status=400, headers={"HX-Refresh": "true"})

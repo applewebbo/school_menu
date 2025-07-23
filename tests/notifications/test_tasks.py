@@ -8,10 +8,8 @@ from pywebpush import WebPushException
 from notifications.models import AnonymousMenuNotification
 from notifications.tasks import (
     schedule_daily_menu_notification,
-    schedule_periodic_notifications,
     send_daily_menu_notification,
     send_test_notification,
-    stop_periodic_notifications,
 )
 from school_menu.models import DetailedMeal, School, SimpleMeal
 
@@ -70,6 +68,7 @@ def annual_school(db, user3):
 def subscription(db, school):
     return AnonymousMenuNotification.objects.create(
         school=school,
+        daily_notification=True,
         subscription_info={
             "endpoint": "test",
             "keys": {"p256dh": "test", "auth": "test"},
@@ -81,6 +80,7 @@ def subscription(db, school):
 def detailed_subscription(db, detailed_school):
     return AnonymousMenuNotification.objects.create(
         school=detailed_school,
+        daily_notification=True,
         subscription_info={
             "endpoint": "test",
             "keys": {"p256dh": "test", "auth": "test"},
@@ -92,6 +92,7 @@ def detailed_subscription(db, detailed_school):
 def annual_subscription(db, annual_school):
     return AnonymousMenuNotification.objects.create(
         school=annual_school,
+        daily_notification=True,
         subscription_info={
             "endpoint": "test",
             "keys": {"p256dh": "test", "auth": "test"},
@@ -297,27 +298,3 @@ def test_send_test_notification_generic_exception(monkeypatch):
     monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
     with pytest.raises(ValueError):
         send_test_notification({}, {})
-
-
-def test_schedule_periodic_notifications(monkeypatch):
-    """Test schedulazione notifiche periodiche."""
-
-    def fake_update_or_create(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr(Schedule.objects, "update_or_create", fake_update_or_create)
-    schedule_periodic_notifications({}, {}, 1)
-
-
-def test_stop_periodic_notifications(monkeypatch):
-    """Test stop notifiche periodiche."""
-
-    class MockQuerySet:
-        def delete(self):
-            pass
-
-    def fake_filter(*args, **kwargs):
-        return MockQuerySet()
-
-    monkeypatch.setattr(Schedule.objects, "filter", fake_filter)
-    stop_periodic_notifications(1)

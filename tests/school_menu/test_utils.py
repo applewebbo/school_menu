@@ -3,6 +3,7 @@ from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.http import Http404
 from django.test import TestCase
 from tablib import Dataset
 
@@ -15,11 +16,13 @@ from school_menu.utils import (
     get_alt_menu,
     get_current_date,
     get_meals_for_annual_menu,
+    get_notifications_status,
     get_season,
     get_user,
     validate_annual_dataset,
     validate_dataset,
 )
+from tests.notifications.factories import AnonymousMenuNotificationFactory
 from tests.school_menu.factories import (
     AnnualMealFactory,
     SchoolFactory,
@@ -41,6 +44,7 @@ class TestCalculateWeek:
             (1, 3, 4),  # Test case 5: Positive bias, shifts to end of month
             (52, 0, 4),  # Test case 6: No bias, last week of the year
             (49, 3, 4),  # Test case 7: Positive bias, shifts to last week of the year
+            (4, 3, 3),  # Test case 8: Positive bias, not end of the month
         ],
     )
     def test_calculate_week(self, week, bias, expected):
@@ -56,6 +60,7 @@ class TestGetCurrentDate:
         [
             ("2023-04-03", 14, 1),  # Monday
             ("2023-04-05", 14, 3),  # Wednesday
+            ("2023-04-07", 14, 5),  # Friday
             ("2023-04-08", 15, 1),  # Saturday (should return next Monday)
             ("2023-04-09", 15, 1),  # Sunday (should return next Monday)
         ],
@@ -98,6 +103,21 @@ class TestGetSeason:
                 School.Seasons.AUTOMATICA,
                 School.Seasons.INVERNALE,
             ),  # Winter Edge Case
+            (
+                datetime(2023, 3, 20),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.INVERNALE,
+            ),  # Winter Edge Case
+            (
+                datetime(2023, 9, 21),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.PRIMAVERILE,
+            ),  # Spring Edge Case
+            (
+                datetime(2023, 3, 21),
+                School.Seasons.AUTOMATICA,
+                School.Seasons.PRIMAVERILE,
+            ),  # Spring Edge Case
             (
                 datetime(2023, 6, 20),
                 School.Seasons.AUTOMATICA,
@@ -696,3 +716,36 @@ class TestFillMissingDates(TestCase):
             date__week_day__in=[1, 7],  # Sunday=1, Saturday=7 in Django
         )
         self.assertEqual(weekend_meals.count(), 0)
+
+
+class TestGetNotificationsStatus(TestCase):
+    def test_get_notifications_status_no_pk(self):
+        school = SchoolFactory()
+        assert get_notifications_status(None, school) is False
+
+    def test_get_notifications_status_not_found(self):
+        school = SchoolFactory()
+        with pytest.raises(Http404):
+            get_notifications_status(999, school)
+
+    def test_get_notifications_status_school_mismatch(self):
+        school1 = SchoolFactory()
+        school2 = SchoolFactory()
+        notification = AnonymousMenuNotificationFactory(
+            school=school1, daily_notification=True
+        )
+        assert get_notifications_status(notification.pk, school2) is False
+
+    def test_get_notifications_status_daily_notification_false(self):
+        school = SchoolFactory()
+        notification = AnonymousMenuNotificationFactory(
+            school=school, daily_notification=False
+        )
+        assert get_notifications_status(notification.pk, school) is False
+
+    def test_get_notifications_status_success(self):
+        school = SchoolFactory()
+        notification = AnonymousMenuNotificationFactory(
+            school=school, daily_notification=True
+        )
+        assert get_notifications_status(notification.pk, school) is True

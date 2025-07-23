@@ -1,0 +1,8 @@
+{% load crispy_forms_tags %}
+<form hx-post="{% url 'notifications:change_school' notification.pk %}"
+      hx-target="#test-notification-result"
+      hx-swap="innerHTML">
+    {% csrf_token %}
+    {% crispy form %}
+    <button class="btn btn-sm btn-primary btn-outline" type="submit">Salva</button>
+</form>

@@ -143,14 +143,15 @@ document.addEventListener('alpine:init', () => {
         const subscriptionString = JSON.stringify(subscription);
         console.log('Stringified subscription:', subscriptionString); // DEBUG 2
 
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'subscription_info';
-        hiddenInput.value = subscriptionString;
-        formElement.appendChild(hiddenInput);
-        console.log('Hidden input value after setting:', hiddenInput.value); // DEBUG 3
-
-        htmx.trigger(formElement, 'submit');
+        htmx.ajax('POST', formElement.action, {
+          target: formElement,
+          swap: 'outerHTML',
+          values: {
+            'subscription_info': subscriptionString,
+            'school': formElement.querySelector('[name="school"]').value,
+            'csrfmiddlewaretoken': getCookie('csrftoken')
+          }
+        });
       } catch (err) {
         console.error('Error during subscription:', err); // DEBUG error
         this.error = 'Impossibile abilitare le notifiche push: ' + err;

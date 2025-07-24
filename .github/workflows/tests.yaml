@@ -9,21 +9,21 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-22.04
     env:
+      ADMIN_EMAIL: admin@example.com
       ALLOWED_HOSTS: '*'
-      DEBUG: on
-      SECRET_KEY: a secret to everybody
-      NO_RELOAD: on
-      MAILGUN_API_KEY: key-123
-      MAILGUN_API_URL: http://localhost:8000
-      MAILGUN_SENDER_DOMAIN: sandbox123.mailgun.org
+      CSRF_TRUSTED_ORIGINS: http://localhost:8000
       DROPBOX_OAUTH2_ACCESS_TOKEN: '123'
       DROPBOX_OAUTH2_REFRESH_TOKEN: '123'
       DROPBOX_APP_SECRET: '123'
       DROPBOX_APP_KEY: '123'
-      ADMIN_EMAIL: admin@example.com
+      ENVIRONMENT: test
+      MAILGUN_API_KEY: key-123
+      MAILGUN_API_URL: http://localhost:8000
+      MAILGUN_SENDER_DOMAIN: sandbox123.mailgun.org
+      SECRET_KEY: a secret to everybody
       VAPID_PRIVATE_KEY: '123'
       VAPID_PUBLIC_KEY: '123'
-      CSRF_TRUSTED_ORIGINS: http://localhost:8000
+
 
 
     steps:

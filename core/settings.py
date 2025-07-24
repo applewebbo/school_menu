@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # 3RD PARTY DEPENDENCIES
+    "active_link",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",

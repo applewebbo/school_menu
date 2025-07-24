@@ -12,7 +12,7 @@
 {% block content %}
     <div class="container mx-auto mb-8 max-w-screen-lg">
         <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Impostazioni Notifiche Menù Giornaliero</h1>
+            <h1 class="mb-4 text-xl font-semibold tracking-tight text-center md:text-2xl text-pretty">Impostazioni Notifiche Menù Giornaliero</h1>
             <div class="py-3 px-5 mt-3 md:py-4 md:px-6"
                  x-data="pwaInstallPrompt()"
                  x-init="checkStandalone(); console.log('PWA Alpine state', {isStandalone, canPrompt, installMessage})">
@@ -25,9 +25,9 @@
                 </template>
                 <div x-show="isStandalone">
                     {% if notification.school %}
-                        <div class="mx-auto max-w-lg border border-gray-200 shadow card">
-                            <div class="card-body">
-                                <h2 class="mb-6 text-xl font-bold tracking-tight text-center text-gray-900 sm:mb-8 md:text-left">Gestisci le tue impostazioni</h2>
+                        <div class="mx-auto max-w-lg sm:border sm:border-gray-200 sm:shadow sm:card">
+                            <div class="sm:card-body">
+                                <h2 class="mb-6 text-lg font-bold tracking-tight text-center text-gray-900 sm:mb-8 md:text-xl md:text-left">Gestisci le tue impostazioni</h2>
                                  <!-- NOTIFICATION SETTINGS START -->
                                 {% partialdef buttons inline %}
                                 <div id="notifications-buttons"
@@ -37,7 +37,7 @@
                                     <ul class="text-base/10" id="notifications-settings">
                                         <li id="school">
                                             <div class="mb-2">
-                                                <span>Hai selezionato <strong>{{ notification.school.name }}</strong></span>
+                                                <p class="mb-3 text-base/5">Hai selezionato <strong>{{ notification.school.name }}</strong></p>
                                                 <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu</p>
                                             </div>
                                             <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
@@ -52,7 +52,7 @@
                                         {% if notification.daily_notification %}
                                             <li>
                                                 <div class="mb-2">
-                                                    <span>Stai ricevendo notifiche giornaliere</span>
+                                                    <p class="mb-3 text-base/5">Stai ricevendo notifiche giornaliere</p>
                                                     <p class="italic text-gray-500 text-sm/4">Clicca su disattiva per interrompere la ricezione delle notifiche giornaliere</p>
                                                 </div>
                                                 <button class="flex gap-2 items-center mt-3 btn btn-sm btn-error btn-outline"
@@ -67,7 +67,7 @@
                                         {% else %}
                                             <li>
                                                 <div class="mb-2">
-                                                    <span>Non stai ricevendo notifiche giornaliere</span>
+                                                    <p class="mb-3 text-base/5">Non stai ricevendo notifiche giornaliere</p>
                                                     <p class="italic text-gray-500 text-sm/4">Clicca su attiva per ricevere una notifica ogni giorno alle ore 12 con il menu di tuo figlio</p>
                                                 </div>
                                                 <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
@@ -83,7 +83,7 @@
                                         <div class="divider"></div>
                                         <li>
                                             <div class="mb-2">
-                                                <span>Ricevi una notifica di prova</span>
+                                                <p class="mb-3 text-base/5">Ricevi una notifica di prova</p>
                                                 <p class="italic text-gray-500 text-sm/4">Clicca su test per ricevere una notifica di prova verificando la corretta configurazione del tuo dispositivo</p>
                                             </div>
                                             <button hx-post="{% url 'notifications:test_notification' %}"
@@ -98,7 +98,7 @@
                                         <div class="divider"></div>
                                         <li>
                                             <div class="mb-2">
-                                                <span>Notifiche abilitate</span>
+                                                <p class="mb-3 text-base/5">Notifiche abilitate</p>
                                                 <p class="italic text-gray-500 text-sm/4">Clicca su disabilita per disabilitare la ricezione delle notifiche sul tuo dispositivo</p>
                                             </div>
                                         </li>

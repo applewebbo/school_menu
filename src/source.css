@@ -64,3 +64,19 @@
 #alt_menu_select {
   line-height: 1rem;
 }
+
+.mob_menu_item {
+  @apply block py-2 px-3 text-gray-900 rounded hover:bg-gray-100;
+}
+
+.mob_menu_active {
+  @apply text-white bg-green-700 hover:bg-green-700;
+}
+
+.lg_menu_item {
+  @apply block p-0 text-gray-800 hover:text-green-500
+}
+
+.lg_menu_active {
+  @apply text-green-600
+}

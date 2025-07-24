@@ -1,4 +1,4 @@
-{% load heroicons static %}
+{% load active_link_tags heroicons static %}
 <div x-data="{ open: false }">
     <nav class="bg-base-100">
         <div class="flex flex-wrap justify-between items-center p-4 mx-auto max-w-screen-lg">
@@ -28,31 +28,30 @@
                 <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-5 md:border-0 rtl:space-x-reverse">
                     <li>
                         <a href="{% url 'school_menu:index' %}"
-                           class="block p-0 text-green-800"
-                           aria-current="page">Home</a>
+                           class="lg_menu_item {% active_link 'school_menu:index' css_class='lg_menu_active' strict=True %}">Home</a>
                     </li>
                     <li>
                         <a href="{% url 'school_menu:school_list' %}"
-                           class="block p-0 text-gray-800 hover:text-green-800">Scuole</a>
+                           class="lg_menu_item {% active_link 'school_menu:school_list' css_class='lg_menu_active' strict=True %}">Scuole</a>
                     </li>
                     <li>
                         <a href="{% url 'notifications:notification_settings' %}"
-                           class="block p-0 text-gray-800 hover:text-green-800">Notifiche</a>
+                           class="lg_menu_item {% active_link 'notifications:notification_settings' css_class='lg_menu_active' strict=True %}">Notifiche</a>
                     </li>
                     <li>
                         <a href="{% url 'contacts:contact' %}"
-                           class="block p-0 text-gray-800 hover:text-green-800">Contatti</a>
+                           class="lg_menu_item {% active_link 'contacts:contact' css_class='lg_menu_active' strict=True %}">Contatti</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li>
                             <a href="{% url 'school_menu:settings' user.id %}"
-                               class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent">Impostazioni</a>
+                               class="lg_menu_item {% active_link 'school_menu:settings' css_class='lg_menu_active' strict=True %}">Impostazioni</a>
                         </li>
                         <li>
                             <form action="{% url 'account_logout' %}" method="post">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-green-700">
+                                        class="lg_menu_item">
                                     Esci
                                 </button>
                             </form>
@@ -66,31 +65,34 @@
              x-show="open"
              x-collapse.duration.500>
              <!-- Menu Mobile -->
-            <ul class="flex flex-col gap-x-0 gap-y-4 p-4 px-5">
+            <ul class="flex flex-col gap-x-0 gap-y-2 p-4 px-5">
                 <li>
                     <a href="{% url 'school_menu:index' %}"
-                       class="block py-2 px-3 text-white bg-green-700 rounded md:p-0"
-                       aria-current="page">Home</a>
+                       class="mob_menu_item {% active_link 'school_menu:index' css_class='mob_menu_active' strict=True %}">Home</a>
                 </li>
                 <li>
                     <a href="{% url 'school_menu:school_list' %}"
-                       class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">Scuole</a>
+                       class="mob_menu_item {% active_link 'school_menu:school_list' css_class='mob_menu_active' strict=True %}">Scuole</a>
                 </li>
                 <li>
                     <a href="{% url 'notifications:notification_settings' %}"
-                       class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">Notifiche</a>
+                       class="mob_menu_item {% active_link 'notifications:notification_settings' css_class='mob_menu_active' strict=True %}">Notifiche</a>
+                </li>
+                <li>
+                    <a href="{% url 'contacts:contact' %}"
+                       class="mob_menu_item {% active_link 'contacts:contact' css_class='mob_menu_active' strict=True %}">Contatti</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li>
                         <a href="{% url 'school_menu:settings' user.id %}"
-                           class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">Impostazioni</a>
+                           class="mob_menu_item {% active_link 'school_menu:settings' css_class='mob_menu_active' strict=True %}">Impostazioni</a>
                     </li>
                     <li>
                         <form action="{% url 'account_logout' %}" method="post">
                             {% csrf_token %}
                             <button type="submit"
                                     href="{% url 'account_logout' %}"
-                                    class="block py-2 px-3 text-gray-900 rounded md:p-0 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700">
+                                    class="w-full text-left mob_menu_item">
                                 Esci
                             </button>
                         </form>

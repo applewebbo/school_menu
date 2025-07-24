@@ -45,7 +45,8 @@ dependencies = [
   "django-tailwind-cli>=4.2.4",
   "django-q2>=1.8.0",
   "redis>=6.2.0",
-  "croniter>=6.0.0"
+  "croniter>=6.0.0",
+  "django-active-link>=0.2.2"
 ]
 name = "school_menu"
 requires-python = ">= 3.12"

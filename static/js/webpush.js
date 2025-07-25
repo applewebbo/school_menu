@@ -134,26 +134,27 @@ document.addEventListener('alpine:init', () => {
       }
       try {
         const registration = await navigator.serviceWorker.ready;
+
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidKey)
         });
 
-        console.log('Subscription object:', subscription); // DEBUG 1
         const subscriptionString = JSON.stringify(subscription);
-        console.log('Stringified subscription:', subscriptionString); // DEBUG 2
 
-        htmx.ajax('POST', formElement.action, {
-          target: formElement,
-          swap: 'outerHTML',
-          values: {
-            'subscription_info': subscriptionString,
-            'school': formElement.querySelector('[name="school"]').value,
-            'csrfmiddlewaretoken': getCookie('csrftoken')
-          }
-        });
+        let hiddenInput = formElement.querySelector('input[name="subscription_info"]');
+        if (hiddenInput) {
+            hiddenInput.value = subscriptionString;
+        } else {
+            const newInput = document.createElement('input');
+            newInput.type = 'hidden';
+            newInput.name = 'subscription_info';
+            newInput.value = subscriptionString;
+            formElement.appendChild(newInput);
+        }
+
+        htmx.trigger(formElement, 'submit');
       } catch (err) {
-        console.error('Error during subscription:', err); // DEBUG error
         this.error = 'Impossibile abilitare le notifiche push: ' + err;
       } finally {
         this.subscribing = false;

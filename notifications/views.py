@@ -36,6 +36,7 @@ def save_subscription(request):
         notification = AnonymousMenuNotification.objects.create(
             school=school, subscription_info=subscription_info
         )
+        print(notification)
         request.session["anon_notification_pk"] = notification.pk
         request.session.save()
         messages.add_message(

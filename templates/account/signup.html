@@ -1,12 +1,12 @@
 {% extends "base-simplified.html" %}
-{% load crispy_forms_tags i18n static %}
+{% load custom_form_tags i18n static %}
 {% block page_title %}
     {% translate "Signup" %}
 {% endblock page_title %}
 
 {% block content %}
-    <div class="my-6 mx-auto max-w-sm">
-        <h1 class="text-xl font-bold tracking-tight leading-tight text-gray-900 md:text-2xl dark:text-white">
+    <div class="my-8 mx-auto max-w-sm">
+        <h1 class="text-xl font-bold tracking-tight leading-tight text-center md:text-2xl text-base-content">
             {% translate "Sign Up" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
@@ -14,15 +14,34 @@
               method="post"
               action="{% url 'account_signup' %}">
             {% csrf_token %}
-            {% crispy form %}
+            <div>
+                <label for="{{ form.email.id_for_label }}"
+                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.email.label }}</label>
+                {{ form.email|add_class:"input w-full" }}
+                {{ form.email.errors }}
+            </div>
+            <div>
+                <label for="{{ form.password1.id_for_label }}"
+                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.password1.label }}</label>
+                {{ form.password1|add_class:"input w-full" }}
+                {{ form.password1.errors }}
+            </div>
+            <div>
+                <label for="{{ form.tc_agree.id_for_label }}" class="label">
+                    {{ form.tc_agree|add_class:"checkbox" }}
+                    {{ form.tc_agree.label }}
+                </label>
+                <div class="mt-1 text-xs text-base-content/70">{{ form.tc_agree.help_text|safe }}</div>
+                {{ form.tc_agree.errors }}
+            </div>
             {% if redirect_field_value %}
                 <input type="hidden"
                        name="{{ redirect_field_name }}"
                        value="{{ redirect_field_value }}" />
             {% endif %}
-            <button class="w-full btn btn-primary" type="submit">{% translate "Sign Up" %}</button>
+            <button class="mt-2 w-full btn btn-primary" type="submit">{% translate "Sign Up" %}</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-                {% blocktranslate %}Hai già un account? Allora puoi <a href="{{ login_url }}">entrare qui</a>{% endblocktranslate %}
+                {% blocktranslate %}Hai già un account? Allora puoi <a href="{{ login_url }}" class="link link-primary">entrare qui</a>{% endblocktranslate %}
             </p>
         </form>
     </div>

@@ -1,6 +1,4 @@
-from allauth.account.forms import LoginForm, SignupForm
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Field, Layout
+from allauth.account.forms import AddEmailForm, LoginForm, SignupForm
 from django import forms
 
 
@@ -18,17 +16,11 @@ class MyCustomSignupForm(SignupForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields.move_to_end("tc_agree")
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            Div(
-                "email",
-                "password1",
-            ),
-            Div(
-                "tc_agree",
-                css_class="form-control",
-            ),
+        self.fields["email"].widget.attrs.update(
+            {"placeholder": "Inserisci la tua email"}
+        )
+        self.fields["password1"].widget.attrs.update(
+            {"placeholder": "Inserisci la tua password"}
         )
 
     def save(self, request):
@@ -59,26 +51,21 @@ class MyCustomLoginForm(LoginForm):
         self.fields["login"].label = "Email"
         self.fields["password"].label = "Password"
         self.fields["password"].help_text = None
+        self.fields["login"].widget.attrs.update(
+            {"placeholder": "Inserisci la tua email"}
+        )
+        self.fields["password"].widget.attrs.update(
+            {"placeholder": "Inserisci la tua password"}
+        )
 
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.label_class = "block text-base-content/90 text-sm font-bold mb-2"
 
-        self.helper.layout = Layout(
-            Div(
-                Field(
-                    "login",
-                    css_class="input",
-                    placeholder="Inserisci la tua email",
-                ),
-                css_class="mb-4",
-            ),
-            Div(
-                Field(
-                    "password",
-                    css_class="input",
-                    placeholder="Inserisci la tua password",
-                ),
-                css_class="mb-4",
-            ),
+class MyCustomAddEmailForm(AddEmailForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].label = "Indirizzo Email"
+        self.fields["email"].widget.attrs.update(
+            {
+                "class": "input input-bordered w-full",
+                "placeholder": "Inserisci il nuovo indirizzo email",
+            }
         )

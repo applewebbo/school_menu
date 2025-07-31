@@ -5,7 +5,7 @@
             <a href="{% url 'school_menu:index' %}"
                class="flex items-center space-x-3 rtl:space-x-reverse grow">
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo">
-                <span class="self-center text-base font-semibold tracking-tight whitespace-nowrap md:text-2xl">Menu Scolastico</span>
+                <span class="self-center font-semibold tracking-tight whitespace-nowrap md:text-2xl text-base-content">Menu Scolastico</span>
             </a>
             <div class="flex items-end space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
                 {% if user.is_authenticated %}
@@ -13,7 +13,7 @@
                     <a href="{% url 'account_login' %}" class="btn btn-sm btn-primary">Entra</a>
                 {% endif %}
                 <button type="button"
-                        class="inline-flex justify-center items-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100"
+                        class="inline-flex justify-center items-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg md:hidden dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
                         aria-controls="navbar-cta"
                         aria-expanded="false"
                         x-on:click="open = ! open">
@@ -65,7 +65,7 @@
              x-show="open"
              x-collapse.duration.500>
              <!-- Menu Mobile -->
-            <ul class="flex flex-col gap-x-0 gap-y-2 p-4 px-5">
+            <ul class="flex flex-col gap-x-0 gap-y-2 p-4 px-5 text-base-content">
                 <li>
                     <a href="{% url 'school_menu:index' %}"
                        class="mob_menu_item {% active_link 'school_menu:index' css_class='mob_menu_active' strict=True %}">Home</a>

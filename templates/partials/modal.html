@@ -12,7 +12,7 @@
           <!-- Overlay -->
           <div x-show="openModal"
                x-transition.opacity
-               class="fixed inset-0 bg-black bg-opacity-50"></div>
+               class="fixed inset-0 bg-black/70"></div>
           <!-- Panel -->
           <div x-show="openModal"
                x-transition
@@ -21,7 +21,7 @@
                <div x-on:click.stop
                     x-trap.noscroll.inert="openModal"
                     id="dialog"
-                    class="overflow-y-auto relative w-full max-w-2xl bg-white rounded-lg shadow"></div>
+                    class="overflow-y-auto relative w-full max-w-2xl rounded-lg shadow bg-base-100"></div>
           </div>
      </div>
 </div>

@@ -8,7 +8,7 @@
             <div x-data class="grid grid-cols-1 gap-y-2 max-w-lg">
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Gestisci il tuo indirizzo mail</h5>
-                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                    <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group dark:btn-soft"
                     href="{% url 'account_email' %}">
                         Gestisci
                         {% heroicon_solid 'adjustments-vertical' class="group-hover:text-white size-4" %}
@@ -26,7 +26,7 @@
                             {{ report_count }}
                         </span>
                     </h5>
-                    <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
+                    <button class="inline-flex items-center btn btn-sm btn-primary btn-outline group dark:btn-soft"
                             hx-get="{% url 'contacts:report_list' %}"
                             hx-target="#dialog"
                             hx-swap="innerHTML"
@@ -47,7 +47,7 @@
                 </div>
                 <div class="flex items-center">
                     <h5 class="mr-8 font-medium grow">Cancella dati e account</h5>
-                    <button class="inline-flex items-center btn btn-sm btn-error btn-outline group"
+                    <button class="inline-flex items-center btn btn-sm btn-error btn-outline group dark:btn-soft"
                             hx-get="{% url 'users:user_delete' %}"
                             hx-target="#dialog"
                             hx-swap="innerHTML"

@@ -1,32 +1,32 @@
 {% load heroicons static %}
-<div class="max-w-screen-lg">
-    <p class="mb-1.5 italic leading-6 text-gray-600">
+<div class="max-w-screen-lg text-base-content/90">
+    <p class="mb-1.5 italic leading-6">
         Ti do il benvenuto su <span class="font-bold text-green-600">Menu Scolastico</span>!
     </p>
-    <p class="mb-1.5 italic leading-6 text-gray-600">
+    <p class="mb-1.5 italic leading-6">
         Ho creato questo progetto per sapere cosa mangia mio figlio a scuola, senza dover cercare tra fogli Excel e impazzire nella ricerca della giusta settimana.
     </p>
-    <p class="mb-1.5 italic leading-6 text-gray-600">
+    <p class="mb-1.5 italic leading-6">
         Penso che sia utile condividere questa soluzione con tutte le persone che hanno lo stesso problema.
     </p>
-    <p class="mb-1.5 italic leading-6 text-gray-600">
+    <p class="mb-1.5 italic leading-6">
         È davvero semplice:
     </p>
-    <ul class="mb-2.5 italic list-disc list-inside text-gray-600 ms-4">
+    <ul class="mb-2.5 italic list-disc list-inside ms-4">
         <li>registrati.</li>
         <li>crea la tua scuola.</li>
         <li>carica i menu settimanali usando i template in formato CSV.</li>
     </ul>
-    <p class="mb-1.5 italic leading-6 text-gray-600">
+    <p class="mb-1.5 italic leading-6">
         Se hai un bambino o una bambina che mangia in mensa, iscriviti subito e carica il menu della tua scuola:
     </p>
-    <p class="mb-1.5 italic leading-6 text-gray-600">
+    <p class="mb-1.5 italic leading-6">
         insieme possiamo semplificare l’organizzazione dei pasti!
     </p>
 
     <div class="grid grid-cols-1 gap-2 p-2 mt-10 bg-center bg-cover rounded-xl md:grid-cols-2 md:gap-4 md:p-6 lg:gap-6 lg:p-8"
          id="anon-cta">
-        <div class="py-6 px-4 bg-white rounded-xl border border-gray-300 shadow-md">
+        <div class="py-6 px-4 rounded-xl border shadow-md bg-base-100 border-base-300">
             <p class="mb-6 text-xl font-medium tracking-tight text-center">Cerca la tua scuola</p>
             <div class="flex items-center mx-auto max-w-sm">
                 <label for="simple-search" class="sr-only">Cerca</label>
@@ -37,7 +37,7 @@
                     <input type="text"
                            id="simple-search"
                            name="q"
-                           class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-green-500 ps-10"
+                           class="block p-2.5 w-full text-sm rounded-lg border focus:border-green-500 focus:ring-green-500 text-base-content/90 bg-base-200 border-base-300 ps-10"
                            hx-get="{% url 'school_menu:search_schools' %}"
                            hx-swap="outerHTML"
                            hx-trigger="keyup changed delay:1s"
@@ -52,10 +52,10 @@
             </div>
             <div id="school-list"></div>
         </div>
-        <div class="py-6 px-4 text-center bg-white rounded-xl border border-gray-300 shadow-md">
+        <div class="py-6 px-4 text-center rounded-xl border shadow-md bg-base-100 border-base-300">
             <p class="mb-6 text-xl font-medium tracking-tight">Crea il menu della tua scuola</p>
             <a href="{% url 'account_signup' %}"
-               class="inline-flex items-center btn btn-lg btn-primary">
+               class="inline-flex items-center btn btn-lg btn-primary dark:btn-soft">
                 Registrati
                 {% heroicon_outline "arrow-right" class="w-4 h-4 ms-4" %}
             </a>

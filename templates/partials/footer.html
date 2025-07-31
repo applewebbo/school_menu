@@ -5,16 +5,16 @@
             <div class="order-last col-span-2 md:order-first">
                 <img src="{% static 'img/bw_logo.png' %}"
                      alt="Logo Menu Scolastico in bianco e nero"
-                     class="mb-2 size-9">
-                <p class="font-extrabold">
+                     class="mb-2 size-9 dark:invert">
+                <p class="font-extrabold text-base-content">
                     Menu Scolastico
                     <br>
-                    <span class="italic font-light">cosa mangia mio figlio oggi?</span>
+                    <span class="italic font-light text-base-content/90">cosa mangia mio figlio oggi?</span>
                 </p>
             </div>
             <div>
-                <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase">Navigazione</h2>
-                <ul class="font-medium text-gray-500">
+                <h2 class="mb-6 text-sm font-semibold uppercase text-base-content">Navigazione</h2>
+                <ul class="font-medium text-base-content/90">
                     <li class="mb-4">
                         <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
                     </li>
@@ -36,8 +36,8 @@
                 </ul>
             </div>
             <div>
-                <h2 class="mb-6 text-sm font-semibold text-gray-900 uppercase">Altro</h2>
-                <ul class="font-medium text-gray-500">
+                <h2 class="mb-6 text-sm font-semibold uppercase text-base-content">Altro</h2>
+                <ul class="font-medium text-base-content/90">
                     <li class="mb-4">
                         <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
                     </li>
@@ -60,7 +60,7 @@
         </div>
         <div class="py-6 px-4 md:flex md:justify-between md:items-center">
             <aside>
-                <p class="text-sm text-gray-500">
+                <p class="text-sm text-base-content/60">
                     Made with {% heroicon_solid 'heart' class="inline-flex align-text-top size-4" %} by WEBBOgrafico - v2025.2
                 </p>
             </aside>

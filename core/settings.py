@@ -135,7 +135,10 @@ AUTHENTICATION_BACKENDS = (
     # `allauth` specific authentication methods, such as login by e-mail
     "allauth.account.auth_backends.AuthenticationBackend",
 )
-ACCOUNT_FORMS = {"signup": "users.forms.MyCustomSignupForm"}
+ACCOUNT_FORMS = {
+    "signup": "users.forms.MyCustomSignupForm",
+    "login": "users.forms.MyCustomLoginForm",
+}
 SITE_ID = 1
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]
 ACCOUNT_USER_MODEL_USERNAME_FIELD = None

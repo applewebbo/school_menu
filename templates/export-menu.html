@@ -1,7 +1,7 @@
 {% load filters heroicons static %}
 <div class="modal-content">
-    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 border-base-300">
+        <h3 class="text-xl font-semibold text-base-content">
             Scarica il tuo menu ({{ active_menu|type_label|capfirst }})
         </h3>
         <button type="button"
@@ -11,11 +11,11 @@
             <span class="sr-only">Close modal</span>
         </button>
     </div>
-    <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 {% if summer_meals or winter_meals %}sm:grid-cols-2{% endif %} md:py-4 md:px-6">
+    <div class="grid gap-y-4 gap-x-8 py-4 px-5 mt-3 {% if summer_meals or winter_meals %}sm:grid-cols-2{% endif %} md:py-8 md:px-6">
         {% if school.annual_menu %}
             {% if annual_meals %}
                 <a href="{% url 'school_menu:export_menu' school.id 2 active_menu %}"
-                   class="inline-flex items-center btn btn-success"
+                   class="inline-flex items-center btn btn-success dark:btn-soft"
                    download="menu_{{ school.name|cut:' '|lower }}_annuale_{{ active_menu|type_label }}">
                     Menu {{ active_menu|type_label|capfirst }}
                     {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
@@ -35,14 +35,14 @@
                 </div>
             {% else %}
                 <a href="{% url 'school_menu:export_menu' school.id 2 active_menu %}"
-                   class="inline-flex items-center btn btn-success"
+                   class="inline-flex items-center btn btn-success dark:btn-soft"
                    download="menu_{{ school.name|cut:' '|lower }}_inv_{{ active_menu|type_label }}"
                    {% if not winter_meals %}disabled="disabled"{% endif %}>
                     Menu Invernale
                     {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
                 </a>
                 <a href="{% url 'school_menu:export_menu' school.id 1 active_menu %}"
-                   class="inline-flex items-center btn btn-success"
+                   class="inline-flex items-center btn btn-success dark:btn-soft"
                    download="menu_{{ school.name|cut:' '|lower }}_est_{{ active_menu|type_label }}"
                    {% if not summer_meals %}disabled="disabled"{% endif %}>
                     Menu Estivo

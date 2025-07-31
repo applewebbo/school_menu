@@ -1,12 +1,12 @@
 {% load heroicons static %}
 <section class="container mx-auto max-w-screen-lg" id="school">
     <div class="px-4 mt-8">
-        <div class="block p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
+        <div class="block p-6 mt-6 rounded-lg border border-gray-200 shadow dark:border-gray-700 bg-base-200">
             <h3 class="mb-2 text-2xl font-bold tracking-tight text-center text-gray-900 md:text-left dark:text-white grow">
                 Scuola
             </h3>
             {% if user.school %}
-                <div class="grid grid-cols-1 mb-4 font-normal text-gray-700 md:grid-cols-2">
+                <div class="grid grid-cols-1 mb-4 font-normal md:grid-cols-2 text-base-content">
                     <div>
                         <ul class="leading-10" id="school-settings">
                             <li>
@@ -57,7 +57,7 @@
                                         <div class="inline-flex flex-col gap-1 items-center me-2">
                                             <img src="{% static 'img/no-gluten.png' %}"
                                                  alt="Icona menu senza glutine"
-                                                 class="inline w-5 h-auto">
+                                                 class="inline w-5 h-auto dark:invert">
                                             <span class="hidden text-xs tracking-tight md:block">No Glutine</span>
                                         </div>
                                     {% endif %}
@@ -65,7 +65,7 @@
                                         <div class="inline-flex flex-col gap-1 items-center me-2">
                                             <img src="{% static 'img/no-lactose.png' %}"
                                                  alt="Icona menu senza lattosio"
-                                                 class="inline w-5 h-auto">
+                                                 class="inline w-5 h-auto dark:invert">
                                             <span class="hidden text-xs tracking-tight md:block">No Lattosio</span>
                                         </div>
                                     {% endif %}
@@ -73,7 +73,7 @@
                                         <div class="inline-flex flex-col gap-1 items-center me-2">
                                             <img src="{% static 'img/vegetarian.png' %}"
                                                  alt="Icona menu vegetariano"
-                                                 class="inline w-5 h-auto">
+                                                 class="inline w-5 h-auto dark:invert">
                                             <span class="hidden text-xs tracking-tight md:block">Vegetariano</span>
                                         </div>
                                     {% endif %}
@@ -81,7 +81,7 @@
                                         <div class="inline-flex flex-col gap-1 items-center me-2">
                                             <img src="{% static 'img/special.png' %}"
                                                  alt="Icona menu speciale"
-                                                 class="inline w-5 h-auto">
+                                                 class="inline w-5 h-auto dark:invert">
                                             <span class="hidden text-xs tracking-tight md:block">Speciale</span>
                                         </div>
                                     {% endif %}
@@ -91,7 +91,7 @@
                     </div>
                 </div>
                 <div class="md:text-right">
-                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline"
+                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline dark:btn-soft"
                             hx-target="#school"
                             hx-swap="outerHTML"
                             hx-get="{% url 'school_menu:school_update' %}">
@@ -100,8 +100,8 @@
                     </button>
                 </div>
             {% else %}
-                <p class="italic font-normal text-gray-700 dark:text-gray-400">Nessuna scuola associata al tuo account</p>
-                <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary"
+                <p class="italic font-normal text-base-content">Nessuna scuola associata al tuo account</p>
+                <button class="mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline dark:btn-soft"
                         hx-target="#school"
                         hx-swap="innerHTML"
                         hx-get="{% url 'school_menu:school_create' %}">Crea</button>

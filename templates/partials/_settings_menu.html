@@ -7,12 +7,12 @@
          hx-swap="outerHTML">
     <div class="px-4 mt-8">
         {% if user.school %}
-            <div class="p-6 mt-6 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
+            <div class="p-6 mt-6 rounded-lg border border-gray-200 shadow dark:border-gray-700 bg-base-200">
                 <div class="grid grid-cols-1 mb-6 text-center md:grid-cols-4 md:text-left">
-                    <h3 class="flex col-span-1 items-start mx-auto mb-2 text-2xl font-bold tracking-tight text-gray-900 md:mx-0">
+                    <h3 class="flex col-span-1 items-start mx-auto mb-2 text-2xl font-bold tracking-tight md:mx-0 text-base-content">
                         Menu
                         {% if alt_menu %}
-                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline">
+                            <span class="font-normal badge ms-2 badge-sm text-nowrap badge-neutral badge-outline dark:badge-accent dark:badge-soft">
                                 {% if menu_label %}
                                     {{ menu_label }}
                                 {% else %}
@@ -23,7 +23,7 @@
                     </h3>
                     <div x-data id="menu_upload" class="col-span-3 text-center md:text-right">
                         {% if user.school %}
-                            <button class="inline-flex items-center mr-2 group btn btn-sm"
+                            <button class="inline-flex items-center mr-2 group btn btn-sm dark:btn-soft"
                                     hx-get="{% url 'school_menu:export_modal' user.school.id active_menu %}"
                                     hx-target="#dialog"
                                     hx-swap="innerHTML"
@@ -32,7 +32,7 @@
                                 {% heroicon_solid 'arrow-down-tray' class="size-4 ms-2" %}
                             </button>
                         {% endif %}
-                        <button class="inline-flex items-center btn btn-sm"
+                        <button class="inline-flex items-center btn btn-sm dark:btn-soft"
                                 {% if not user.school.annual_menu %}
                                 hx-get="{% url 'school_menu:upload_menu' user.school.id active_menu %}"
                                 {% else %}

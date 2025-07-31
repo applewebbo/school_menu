@@ -1,6 +1,6 @@
-from allauth.account.forms import SignupForm
+from allauth.account.forms import LoginForm, SignupForm
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Layout
+from crispy_forms.layout import Div, Field, Layout
 from django import forms
 
 
@@ -50,3 +50,35 @@ class MyCustomSignupForm(SignupForm):
                 "Devi accettare i termini e condizioni per proseguire."
             )
         return tc_agree
+
+
+class MyCustomLoginForm(LoginForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["login"].label = "Email"
+        self.fields["password"].label = "Password"
+        self.fields["password"].help_text = None
+
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.label_class = "block text-base-content/90 text-sm font-bold mb-2"
+
+        self.helper.layout = Layout(
+            Div(
+                Field(
+                    "login",
+                    css_class="input",
+                    placeholder="Inserisci la tua email",
+                ),
+                css_class="mb-4",
+            ),
+            Div(
+                Field(
+                    "password",
+                    css_class="input",
+                    placeholder="Inserisci la tua password",
+                ),
+                css_class="mb-4",
+            ),
+        )

@@ -2,7 +2,7 @@
 {{ attrs.errors }}
 <p>
     {% if attrs.type == "textarea" %}
-        <label for="{{ attrs.id }}">
+        <label for="{{ attrs.id }}" class="text-base-content/90">
             {% slot label %}
         {% endslot %}
     </label>
@@ -16,7 +16,7 @@
               {% if attrs.placeholder %}placeholder="{{ attrs.placeholder }}"{% endif %}>{% slot value %}{% endslot %}</textarea>
 {% else %}
     {% if attrs.type != "checkbox" and attrs.type != "radio" %}
-        <label for="{{ attrs.id }}">
+        <label for="{{ attrs.id }}" class="text-base-content/90">
             {% slot label %}
         {% endslot %}
     </label>
@@ -33,16 +33,16 @@
        {% if attrs.value is not None %}value="{{ attrs.value }}"{% endif %}
        type="{{ attrs.type }}">
 {% if attrs.type == "checkbox" or attrs.type == "radio" %}
-    <label for="{{ attrs.id }}">
+    <label for="{{ attrs.id }}" class="text-base-content/90">
         {% slot label %}
     {% endslot %}
 </label>
 {% endif %}
 {% endif %}
 {% if slots.help_text %}
-    <span>
+    <span class="text-base-content/90">
         {% slot help_text %}
-    {% endslot %}
-</span>
+        {% endslot %}
+    </span>
 {% endif %}
 </p>

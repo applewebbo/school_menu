@@ -34,9 +34,18 @@
 @plugin "daisyui/theme" {
   name: "light";
   default: true;
+  prefersdark: false;
   --radius-field: 0.35rem;
-  --color-primary: green;
-  --color-secondary: teal;
+  --radius-selector: 0.35rem;
+  --color-primary: oklch(0.627 0.194 149.214);
+  --color-secondary: oklch(0.585 0.233 277.117);
+  --color-secondary-content: oklch(0.962 0.018 272.314);
+}
+@plugin "daisyui/theme" {
+  name: "dim";
+  prefersdark: true;
+  --radius-field: 0.35rem;
+  --radius-selector: 0.35rem;
 }
 
 
@@ -66,17 +75,17 @@
 }
 
 .mob_menu_item {
-  @apply block py-2 px-3 text-gray-900 rounded hover:bg-gray-100;
+  @apply block py-2 px-3 text-base-content rounded hover:bg-base-300;
 }
 
 .mob_menu_active {
-  @apply text-white bg-green-700 hover:bg-green-700;
+  @apply text-white bg-primary hover:bg-primary;
 }
 
 .lg_menu_item {
-  @apply block p-0 text-gray-800 hover:text-green-500
+  @apply block p-0 text-base-content hover:text-primary
 }
 
 .lg_menu_active {
-  @apply text-green-600
+  @apply text-primary underline underline-offset-4
 }

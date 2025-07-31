@@ -138,6 +138,7 @@ AUTHENTICATION_BACKENDS = (
 ACCOUNT_FORMS = {
     "signup": "users.forms.MyCustomSignupForm",
     "login": "users.forms.MyCustomLoginForm",
+    "add_email": "users.forms.MyCustomAddEmailForm",
 }
 SITE_ID = 1
 ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*"]

@@ -21,9 +21,9 @@
             {% csrf_token %}
             {% for radio in emailaddress_radios %}
             {% with emailaddress=radio.emailaddress %}
-            {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id class="radio" %}
+            {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id class="radio radio-sm" %}
             {% slot label %}
-            <span class="font-medium text-gray-600 me-4">{{ emailaddress.email }}</span>
+            <span class="font-medium text-base-content/90 me-4">{{ emailaddress.email }}</span>
             {% if emailaddress.verified %}
             {% element badge tags="success,email,verified" class="badge-success" %}
             {% translate "Verified" %}
@@ -45,13 +45,13 @@
             {% endslot %}
             {% slot actions %}
             <div class="grid grid-cols-1 gap-2 mt-6 md:grid-cols-3">
-            {% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2" %}
+            {% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2 dark:btn-soft" %}
             {% translate 'Make Primary' %}
             {% endelement %}
-            {% element button tags="secondary" type="submit" name="action_send" class="btn btn-sm btn-outline btn-secondary me-2" %}
+            {% element button tags="secondary" type="submit" name="action_send" class="btn btn-sm btn-outline btn-secondary me-2 dark:btn-soft" %}
             {% translate 'Re-send Verification' %}
             {% endelement %}
-            {% element button tags="danger,delete" type="submit" name="action_remove" class="btn btn-sm btn-outline btn-error me-2" %}
+            {% element button tags="danger,delete" type="submit" name="action_remove" class="btn btn-sm btn-outline btn-error me-2 dark:btn-soft" %}
             {% translate 'Remove' %}
             {% endelement %}
             </div>
@@ -73,7 +73,7 @@
             {% endslot %}
             {% slot actions %}
             <div class="text-center md:text-right">
-            {% element button name="action_add" type="submit" class="btn btn-sm btn-outline btn-secondary me-2" %}
+            {% element button name="action_add" type="submit" class="w-full md:w-auto btn btn-sm btn-outline btn-secondary me-2 dark:btn-soft" %}
             {% translate "Add Email" %}
             {% endelement %}
             </div>

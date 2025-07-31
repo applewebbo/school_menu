@@ -1,5 +1,5 @@
 {% extends "base-simplified.html" %}
-{% load account crispy_forms_tags i18n socialaccount static %}
+{% load account custom_form_tags i18n socialaccount static %}
 {% block content %}
     <div class="my-8 mx-auto max-w-sm">
         <h1 class="text-xl font-bold tracking-tight leading-tight text-center md:text-2xl text-base-content">
@@ -9,7 +9,18 @@
               method="post"
               action="{% url 'account_login' %}">
             {% csrf_token %}
-            {% crispy form %}
+            <div>
+                <label for="{{ form.login.id_for_label }}"
+                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.login.label }}</label>
+                {{ form.login|add_class:"input w-full" }}
+                {{ form.login.errors }}
+            </div>
+            <div>
+                <label for="{{ form.password.id_for_label }}"
+                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.password.label }}</label>
+                {{ form.password|add_class:"input w-full" }}
+                {{ form.password.errors }}
+            </div>
             {% if redirect_field_value %}
                 <input type="hidden"
                        name="{{ redirect_field_name }}"
@@ -17,12 +28,12 @@
             {% endif %}
             <div class="mb-3 text-sm text-right">
                 <a href="{% url 'account_reset_password' %}"
-                   class="hover:underline text-primary">{% translate "Forgot Password?" %}</a>
+                   class="link link-primary">{% translate "Forgot Password?" %}</a>
             </div>
             <button type="submit" class="w-full btn btn-primary">{% translate "Sign In" %}</button>
             <p class="text-sm font-light text-base-content/90">
                 {% blocktranslate %}Non hai ancora un account?
-    <a href="{{ signup_url }}">Registrati qui</a>{% endblocktranslate %}
+    <a href="{{ signup_url }}" class="link link-primary">Registrati qui</a>{% endblocktranslate %}
             </p>
         </form>
     </div>

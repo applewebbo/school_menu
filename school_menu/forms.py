@@ -22,26 +22,28 @@ class SchoolForm(forms.ModelForm):
             "annual_menu",
         ]
         widgets = {
+            "name": forms.TextInput(attrs={"class": "input"}),
+            "city": forms.TextInput(attrs={"class": "input"}),
             "season_choice": forms.Select(attrs={"class": "form-select"}),
-            "week_bias": forms.NumberInput(),
-            "menu_type": forms.Select(attrs={"class": "form-select"}),
+            "week_bias": forms.NumberInput(attrs={"class": "input"}),
+            "menu_type": forms.Select(attrs={"class": "select"}),
             "is_published": forms.CheckboxInput(
-                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
             "no_gluten": forms.CheckboxInput(
-                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
             "no_lactose": forms.CheckboxInput(
-                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
             "vegetarian": forms.CheckboxInput(
-                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
             "special": forms.CheckboxInput(
-                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
             "annual_menu": forms.CheckboxInput(
-                attrs={"class": "checkbox checkbox-sm checkbox-secondary"}
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
         }
         labels = {

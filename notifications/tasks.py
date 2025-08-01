@@ -7,14 +7,7 @@ from django_q.models import Schedule
 from pywebpush import WebPushException, webpush
 
 from notifications.models import AnonymousMenuNotification
-from school_menu.models import School
-from school_menu.utils import (
-    calculate_week,
-    get_current_date,
-    get_meals,
-    get_meals_for_annual_menu,
-    get_season,
-)
+from notifications.utils import build_menu_notification_payload
 
 logger = logging.getLogger(__name__)
 
@@ -50,37 +43,10 @@ def send_daily_menu_notification():
     subscriptions = AnonymousMenuNotification.objects.filter(daily_notification=True)
     for subscription in subscriptions:
         school = subscription.school
-        if school.annual_menu:
-            _, meals_for_today = get_meals_for_annual_menu(school)
-        else:
-            current_week, day = get_current_date()
-            season = get_season(school)
-            week = calculate_week(current_week, school.week_bias)
-            _, meals_for_today = get_meals(school, season, week, day)
-
-        if meals_for_today:
-            meal = meals_for_today.first()
-            body_parts = []
-            if school.annual_menu:
-                body_parts.append(f"Pranzo: {meal.menu}")
-                body_parts.append(f"Spuntino: {meal.snack}")
-            elif school.menu_type == School.Types.SIMPLE:
-                body_parts.append(f"Spuntino: {meal.morning_snack}")
-                body_parts.append(f"Pranzo: {meal.menu}")
-                body_parts.append(f"Merenda: {meal.afternoon_snack}")
-            else:
-                body_parts.append(f"Primo: {meal.first_course}")
-                body_parts.append(f"Secondo: {meal.second_course}")
-                body_parts.append(f"Contorno: {meal.side_dish}")
-
-            body = "\n".join(body_parts)
-            payload = {
-                "head": f"Menu di oggi per {school.name}",
-                "body": body,
-                "icon": "/static/img/notification-bell.png",
-                "url": school.get_absolute_url(),
-            }
-            send_test_notification(subscription.subscription_info, payload)
+        payload = build_menu_notification_payload(school)
+        payload["icon"] = "/static/img/notification-bell.png"
+        payload["url"] = school.get_absolute_url()
+        send_test_notification(subscription.subscription_info, payload)
     logger.info("Notifiche giornaliere del menu inviate.")
 
 

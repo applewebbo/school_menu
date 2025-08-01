@@ -8,6 +8,7 @@ from pywebpush import WebPushException
 
 from notifications.forms import AnonymousMenuNotificationForm
 from notifications.models import AnonymousMenuNotification
+from notifications.utils import build_menu_notification_payload
 
 
 def notification_settings(request):
@@ -85,12 +86,9 @@ def test_notification(request):
         )
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
-    payload = {
-        "head": "Test Notifica",
-        "body": "Questa è una notifica di prova.",
-        "icon": "/static/img/notification-bell.png",
-        "url": "/",
-    }
+    payload = build_menu_notification_payload(notification.school)
+    payload["icon"] = "/static/img/notification-bell.png"
+    payload["url"] = notification.school.get_absolute_url()
 
     try:
         async_task(

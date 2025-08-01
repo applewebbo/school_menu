@@ -118,24 +118,22 @@ def test_send_daily_menu_notification_simple_menu(
     def fake_get_current_date():
         return 1, 1
 
-    monkeypatch.setattr("notifications.tasks.get_current_date", fake_get_current_date)
+    monkeypatch.setattr("notifications.utils.get_current_date", fake_get_current_date)
 
     def fake_get_season(school):
         return 1
 
-    monkeypatch.setattr("notifications.tasks.get_season", fake_get_season)
+    monkeypatch.setattr("notifications.utils.get_season", fake_get_season)
 
     def fake_calculate_week(week, bias):
         return 1
 
-    monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
+    monkeypatch.setattr("notifications.utils.calculate_week", fake_calculate_week)
 
     send_daily_menu_notification()
-    expected_body = (
-        "Spuntino: test morning snack\nPranzo: test menu\nMerenda: test afternoon snack"
-    )
+    expected_body = "test morning snack\ntest menu\ntest afternoon snack"
     expected_payload = {
-        "head": f"Menu di oggi per {school.name}",
+        "head": f"Menu {school.name}",
         "body": expected_body,
         "icon": "/static/img/notification-bell.png",
         "url": school.get_absolute_url(),
@@ -165,22 +163,22 @@ def test_send_daily_menu_notification_detailed_menu(
     def fake_get_current_date():
         return 1, 1
 
-    monkeypatch.setattr("notifications.tasks.get_current_date", fake_get_current_date)
+    monkeypatch.setattr("notifications.utils.get_current_date", fake_get_current_date)
 
     def fake_get_season(school):
         return 1
 
-    monkeypatch.setattr("notifications.tasks.get_season", fake_get_season)
+    monkeypatch.setattr("notifications.utils.get_season", fake_get_season)
 
     def fake_calculate_week(week, bias):
         return 1
 
-    monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
+    monkeypatch.setattr("notifications.utils.calculate_week", fake_calculate_week)
 
     send_daily_menu_notification()
-    expected_body = "Primo: test first\nSecondo: test second\nContorno: test side"
+    expected_body = "test first\ntest second\ntest side"
     expected_payload = {
-        "head": f"Menu di oggi per {detailed_school.name}",
+        "head": f"Menu {detailed_school.name}",
         "body": expected_body,
         "icon": "/static/img/notification-bell.png",
         "url": detailed_school.get_absolute_url(),
@@ -207,9 +205,9 @@ def test_send_daily_menu_notification_annual_menu(
     )
 
     send_daily_menu_notification()
-    expected_body = "Pranzo: test menu\nSpuntino: test snack"
+    expected_body = "test menu\ntest snack"
     expected_payload = {
-        "head": f"Menu di oggi per {annual_school.name}",
+        "head": f"Menu {annual_school.name}",
         "body": expected_body,
         "icon": "/static/img/notification-bell.png",
         "url": annual_school.get_absolute_url(),
@@ -230,17 +228,17 @@ def test_send_daily_menu_notification_no_meal(db, monkeypatch, school, subscript
     def fake_get_current_date():
         return 1, 1
 
-    monkeypatch.setattr("notifications.tasks.get_current_date", fake_get_current_date)
+    monkeypatch.setattr("notifications.utils.get_current_date", fake_get_current_date)
 
     def fake_get_season(school):
         return 1
 
-    monkeypatch.setattr("notifications.tasks.get_season", fake_get_season)
+    monkeypatch.setattr("notifications.utils.get_season", fake_get_season)
 
     def fake_calculate_week(week, bias):
         return 1
 
-    monkeypatch.setattr("notifications.tasks.calculate_week", fake_calculate_week)
+    monkeypatch.setattr("notifications.utils.calculate_week", fake_calculate_week)
 
     send_daily_menu_notification()
 

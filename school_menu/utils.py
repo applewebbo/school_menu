@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from import_export.widgets import Widget
 
 from notifications.models import AnonymousMenuNotification
@@ -21,19 +22,23 @@ def calculate_week(week, bias):
         return int((week_number - floor_week_number) * 4)
 
 
-def get_current_date():
+def get_current_date(next_day=False):
     """
-    Get current week and day
+    Get current week and day.
+    If next_day is True, returns the data for the next day.
     """
-    today = datetime.now()
-    current_year, current_week, current_day = today.isocalendar()
-    # get next week monday's menu on weekends
-    if current_day > 5:
-        current_week = current_week + 1
-        adjusted_day = 1
-    else:
-        adjusted_day = current_day
-    return current_week, adjusted_day
+    target_date = timezone.now()
+    if next_day:
+        target_date += timezone.timedelta(days=1)
+
+    # if it's weekend, get next monday
+    if target_date.weekday() >= 5:  # Saturday or Sunday
+        target_date += timezone.timedelta(days=(7 - target_date.weekday()))
+
+    current_week = target_date.isocalendar()[1]
+    day = target_date.isocalendar()[2]
+
+    return current_week, day
 
 
 def get_season(school):
@@ -232,26 +237,26 @@ def get_meals(school, season, week, day):
     return weekly_meals, meals_for_today
 
 
-def get_meals_for_annual_menu(school):
+def get_meals_for_annual_menu(school, next_day=False):
     """Get current week's meals and today's meal for annual menu"""
-    date = datetime.now().date()
+    target_date = timezone.now().date()
+    if next_day:
+        target_date += timezone.timedelta(days=1)
 
-    # Get the current week and year
-    year, current_week, _ = date.isocalendar()
+    # If weekend, get next Monday's date
+    if target_date.weekday() >= 5:  # Saturday (5) or Sunday (6)
+        target_date += timezone.timedelta(days=(7 - target_date.weekday()))
 
-    # If weekend, get next week and next Monday's date
-    if date.weekday() >= 5:  # Saturday (5) or Sunday (6)
-        target_date = date + timedelta(days=(7 - date.weekday()))
-        year, current_week, _ = target_date.isocalendar()
-        date = target_date
+    # Get meals for the target date
+    meals_for_today = AnnualMeal.objects.filter(
+        school=school, date=target_date, is_active=True
+    )
 
-    # Get meals for the current/next week (Monday to Friday)
+    # Get meals for the week of the target date
+    year, week, _ = target_date.isocalendar()
     weekly_meals = AnnualMeal.objects.filter(
-        school=school, date__week=current_week
+        school=school, date__week=week, date__year=year
     ).order_by("date")
-
-    # Get target date meal (current date or next Monday if weekend)
-    meals_for_today = AnnualMeal.objects.filter(school=school, date=date)
 
     return weekly_meals, meals_for_today
 

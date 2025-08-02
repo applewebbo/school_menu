@@ -8,42 +8,48 @@ from school_menu.utils import (
 )
 
 
-def build_menu_notification_payload(school):
+def build_menu_notification_payload(school, is_previous_day=False):
     """
     Builds the payload (head and body) for the daily menu notification for a given school.
     """
     if school.annual_menu:
-        _, meals_for_today = get_meals_for_annual_menu(school)
+        _, meals_for_today = get_meals_for_annual_menu(school, next_day=is_previous_day)
     else:
-        current_week, day = get_current_date()
+        current_week, day = get_current_date(next_day=is_previous_day)
         season = get_season(school)
         week = calculate_week(current_week, school.week_bias)
         _, meals_for_today = get_meals(school, season, week, day)
 
-    body = "Nessun menu previsto per oggi."
+    if not meals_for_today.exists():
+        return None
+
+    body = "Nessun menu previsto."
     head = f"Menu {school.name}"
+    if is_previous_day:
+        head = f"Menu di domani {school.name}"
 
-    if meals_for_today:
-        meal = meals_for_today.first()
-        body_parts = []
-        if school.annual_menu:
-            if meal.menu:
-                body_parts.append(meal.menu)
-            if meal.snack:
-                body_parts.append(meal.snack)
-        elif school.menu_type == School.Types.SIMPLE:
-            if meal.morning_snack:
-                body_parts.append(meal.morning_snack)
-            if meal.menu:
-                body_parts.append(meal.menu)
-            if meal.afternoon_snack:
-                body_parts.append(meal.afternoon_snack)
-        else:  # DetailedMeal
-            body_parts.append(meal.first_course)
-            body_parts.append(meal.second_course)
-            body_parts.append(meal.side_dish)
+    meal = meals_for_today.first()
+    body_parts = []
+    if school.annual_menu:
+        if meal.menu:
+            body_parts.append(meal.menu)
+        if meal.snack:
+            body_parts.append(meal.snack)
+    elif school.menu_type == School.Types.SIMPLE:
+        if meal.morning_snack:
+            body_parts.append(meal.morning_snack)
+        if meal.menu:
+            body_parts.append(meal.menu)
+        if meal.afternoon_snack:
+            body_parts.append(meal.afternoon_snack)
+    else:  # DetailedMeal
+        body_parts.append(meal.first_course)
+        body_parts.append(meal.second_course)
+        body_parts.append(meal.side_dish)
 
-        if body_parts:
-            body = "\n".join(body_parts)
+    if body_parts:
+        body = "\n".join(filter(None, body_parts))
+        if not any(body_parts):
+            body = "Nessun menu previsto."
 
     return {"head": head, "body": body}

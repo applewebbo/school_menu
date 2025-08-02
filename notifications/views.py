@@ -44,7 +44,12 @@ def save_subscription(request):
         )
         return HttpResponse(status=204, headers={"HX-Refresh": "true"})
     else:
-        return HttpResponse("error", status=400)
+        return TemplateResponse(
+            request,
+            "notifications/partials/subscription_form.html",
+            {"form": form},
+            status=400,
+        )
 
 
 def delete_subscription(request):
@@ -87,6 +92,11 @@ def test_notification(request):
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
     payload = build_menu_notification_payload(notification.school)
+    if not payload:
+        payload = {
+            "head": "Notifica di prova",
+            "body": "Nessun menu previsto per oggi, ma la notifica funziona!",
+        }
     payload["icon"] = "/static/img/notification-bell.png"
     payload["url"] = notification.school.get_absolute_url()
 

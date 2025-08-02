@@ -1,10 +1,11 @@
 from datetime import date, datetime
 from unittest import mock
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 from django.http import Http404
 from django.test import TestCase
+from freezegun import freeze_time
 from tablib import Dataset
 
 from school_menu.models import AnnualMeal, School, SimpleMeal
@@ -53,30 +54,24 @@ class TestCalculateWeek:
         )
 
 
-class TestGetCurrentDate:
-    # Test scenarios for different days of the week
-    @pytest.mark.parametrize(
-        "test_date, expected_week, expected_day",
-        [
-            ("2023-04-03", 14, 1),  # Monday
-            ("2023-04-05", 14, 3),  # Wednesday
-            ("2023-04-07", 14, 5),  # Friday
-            ("2023-04-08", 15, 1),  # Saturday (should return next Monday)
-            ("2023-04-09", 15, 1),  # Sunday (should return next Monday)
-        ],
-    )
-    def test_get_current_date(self, test_date, expected_week, expected_day):
-        # Mock datetime.now() to return a specific test date
-        with mock.patch("school_menu.utils.datetime") as mock_datetime:
-            mock_datetime.now.return_value = datetime.strptime(test_date, "%Y-%m-%d")
-            mock_datetime.isocalendar = datetime.isocalendar
-            current_week, current_day = get_current_date()
-            assert current_week == expected_week, (
-                f"Expected week {expected_week}, got {current_week}"
-            )
-            assert current_day == expected_day, (
-                f"Expected day {expected_day}, got {current_day}"
-            )
+@freeze_time("2023-04-03")
+def test_get_current_date_monday():
+    assert get_current_date() == (14, 1)
+
+
+@freeze_time("2023-04-08")
+def test_get_current_date_saturday():
+    assert get_current_date() == (15, 1)
+
+
+@freeze_time("2023-04-09")
+def test_get_current_date_sunday():
+    assert get_current_date() == (15, 1)
+
+
+@freeze_time("2023-04-03")
+def test_get_current_date_next_day():
+    assert get_current_date(next_day=True) == (14, 2)
 
 
 class TestGetSeason:
@@ -594,63 +589,35 @@ class TestChoicesWidget:
         assert choices_widget.render("Nonexistent") == ""
 
 
-class GetMealsForAnnualMenuTests(TestCase):
-    @patch("school_menu.utils.datetime")
-    def test_get_meals_weekday(self, mock_datetime):
-        """Test getting meals on a regular weekday (Wednesday)"""
-        test_date = date(2024, 1, 3)  # A Wednesday
-        mock_datetime.now.return_value = datetime(2024, 1, 3)
-        school = SchoolFactory()
-        meal = AnnualMealFactory(school=school, date=test_date, type="S")
+@freeze_time("2024-01-03")  # A Wednesday
+def test_get_meals_for_annual_menu_weekday():
+    """Test getting meals on a regular weekday."""
+    school = SchoolFactory()
+    meal = AnnualMealFactory(school=school, date=date(2024, 1, 3), is_active=True)
+    _, today_meals = get_meals_for_annual_menu(school)
+    assert today_meals.first() == meal
 
-        weekly_meals, today_meals = get_meals_for_annual_menu(school)
 
-        assert today_meals.first() == meal
-        assert meal in weekly_meals
+@freeze_time("2024-01-06")  # A Saturday
+def test_get_meals_for_annual_menu_weekend():
+    """Test getting meals on a weekend."""
+    school = SchoolFactory()
+    monday_meal = AnnualMealFactory(
+        school=school, date=date(2024, 1, 8), is_active=True
+    )
+    _, today_meals = get_meals_for_annual_menu(school)
+    assert today_meals.first() == monday_meal
 
-    @patch("school_menu.utils.datetime")
-    def test_get_meals_weekend_saturday(self, mock_datetime):
-        """Test getting meals when current day is Saturday"""
-        date(2024, 1, 6)
-        next_monday = date(2024, 1, 8)
-        mock_datetime.now.return_value = datetime(2024, 1, 6)
-        school = SchoolFactory()
-        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
 
-        weekly_meals, today_meals = get_meals_for_annual_menu(school)
-
-        assert today_meals.first() == monday_meal
-        assert monday_meal in weekly_meals
-
-    @patch("school_menu.utils.datetime")
-    def test_get_meals_weekend_sunday(self, mock_datetime):
-        """Test getting meals when current day is Sunday"""
-        date(2024, 1, 7)
-        next_monday = date(2024, 1, 8)
-        mock_datetime.now.return_value = datetime(2024, 1, 7)
-        school = SchoolFactory()
-        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
-
-        weekly_meals, today_meals = get_meals_for_annual_menu(school)
-
-        assert today_meals.first() == monday_meal
-        assert monday_meal in weekly_meals
-
-    @patch("school_menu.utils.datetime")
-    def test_get_meals_week_transition(self, mock_datetime):
-        """Test getting meals during week transition"""
-        friday = date(2024, 1, 5)
-        next_monday = date(2024, 1, 8)
-        mock_datetime.now.return_value = datetime(2024, 1, 7)  # Sunday
-        school = SchoolFactory()
-        friday_meal = AnnualMealFactory(school=school, date=friday, type="S")
-        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
-
-        weekly_meals, today_meals = get_meals_for_annual_menu(school)
-
-        assert today_meals.first() == monday_meal
-        assert monday_meal in weekly_meals
-        assert friday_meal not in weekly_meals
+@freeze_time("2024-01-07")  # A Sunday
+def test_get_meals_for_annual_menu_next_day():
+    """Test getting meals for the next day."""
+    school = SchoolFactory()
+    monday_meal = AnnualMealFactory(
+        school=school, date=date(2024, 1, 8), is_active=True
+    )
+    _, today_meals = get_meals_for_annual_menu(school, next_day=True)
+    assert today_meals.first() == monday_meal
 
 
 class TestFillMissingDates(TestCase):

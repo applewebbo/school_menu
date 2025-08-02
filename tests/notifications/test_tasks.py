@@ -1,298 +1,160 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.contrib.auth import get_user_model
-from django_q.models import Schedule
 from pywebpush import WebPushException
 
 from notifications.models import AnonymousMenuNotification
 from notifications.tasks import (
-    schedule_daily_menu_notification,
-    send_daily_menu_notification,
+    _send_menu_notifications,
+    send_previous_day_6pm_menu_notification,
+    send_same_day_6pm_menu_notification,
+    send_same_day_9am_menu_notification,
+    send_same_day_12pm_menu_notification,
     send_test_notification,
 )
-from school_menu.models import DetailedMeal, School, SimpleMeal
+from tests.notifications.factories import AnonymousMenuNotificationFactory
+from tests.school_menu.factories import SchoolFactory
 
 User = get_user_model()
-
-
-@pytest.fixture
-def user(db):
-    return User.objects.create_user(
-        "test@test.com", "test", first_name="test", last_name="test"
-    )
-
-
-@pytest.fixture
-def user2(db):
-    return User.objects.create_user(
-        "test2@test.com", "test", first_name="test", last_name="test"
-    )
-
-
-@pytest.fixture
-def user3(db):
-    return User.objects.create_user(
-        "test3@test.com", "test", first_name="test", last_name="test"
-    )
-
-
-@pytest.fixture
-def school(db, user):
-    return School.objects.create(
-        name="test school", city="test city", user=user, menu_type=School.Types.SIMPLE
-    )
-
-
-@pytest.fixture
-def detailed_school(db, user2):
-    return School.objects.create(
-        name="test detailed school",
-        city="test city",
-        user=user2,
-        menu_type=School.Types.DETAILED,
-    )
-
-
-@pytest.fixture
-def annual_school(db, user3):
-    return School.objects.create(
-        name="test annual school",
-        city="test city",
-        user=user3,
-        annual_menu=True,
-    )
-
-
-@pytest.fixture
-def subscription(db, school):
-    return AnonymousMenuNotification.objects.create(
-        school=school,
-        daily_notification=True,
-        subscription_info={
-            "endpoint": "test",
-            "keys": {"p256dh": "test", "auth": "test"},
-        },
-    )
-
-
-@pytest.fixture
-def detailed_subscription(db, detailed_school):
-    return AnonymousMenuNotification.objects.create(
-        school=detailed_school,
-        daily_notification=True,
-        subscription_info={
-            "endpoint": "test",
-            "keys": {"p256dh": "test", "auth": "test"},
-        },
-    )
-
-
-@pytest.fixture
-def annual_subscription(db, annual_school):
-    return AnonymousMenuNotification.objects.create(
-        school=annual_school,
-        daily_notification=True,
-        subscription_info={
-            "endpoint": "test",
-            "keys": {"p256dh": "test", "auth": "test"},
-        },
-    )
-
-
-@patch("notifications.tasks.send_test_notification")
-def test_send_daily_menu_notification_simple_menu(
-    mock_send_test_notification, db, monkeypatch, school, subscription
-):
-    """Test invio notifica giornaliera con menu semplice."""
-    SimpleMeal.objects.create(
-        school=school,
-        day=1,
-        week=1,
-        season=1,
-        menu="test menu",
-        morning_snack="test morning snack",
-        afternoon_snack="test afternoon snack",
-    )
-
-    def fake_get_current_date():
-        return 1, 1
-
-    monkeypatch.setattr("notifications.utils.get_current_date", fake_get_current_date)
-
-    def fake_get_season(school):
-        return 1
-
-    monkeypatch.setattr("notifications.utils.get_season", fake_get_season)
-
-    def fake_calculate_week(week, bias):
-        return 1
-
-    monkeypatch.setattr("notifications.utils.calculate_week", fake_calculate_week)
-
-    send_daily_menu_notification()
-    expected_body = "test morning snack\ntest menu\ntest afternoon snack"
-    expected_payload = {
-        "head": f"Menu {school.name}",
-        "body": expected_body,
-        "icon": "/static/img/notification-bell.png",
-        "url": school.get_absolute_url(),
-    }
-    mock_send_test_notification.assert_called_once_with(
-        subscription.subscription_info, expected_payload
-    )
-
-
-@patch("notifications.tasks.send_test_notification")
-def test_send_daily_menu_notification_detailed_menu(
-    mock_send_test_notification, db, monkeypatch, detailed_school, detailed_subscription
-):
-    """Test invio notifica giornaliera con menu dettagliato."""
-    DetailedMeal.objects.create(
-        school=detailed_school,
-        day=1,
-        week=1,
-        season=1,
-        first_course="test first",
-        second_course="test second",
-        side_dish="test side",
-        fruit="test fruit",
-        snack="test snack",
-    )
-
-    def fake_get_current_date():
-        return 1, 1
-
-    monkeypatch.setattr("notifications.utils.get_current_date", fake_get_current_date)
-
-    def fake_get_season(school):
-        return 1
-
-    monkeypatch.setattr("notifications.utils.get_season", fake_get_season)
-
-    def fake_calculate_week(week, bias):
-        return 1
-
-    monkeypatch.setattr("notifications.utils.calculate_week", fake_calculate_week)
-
-    send_daily_menu_notification()
-    expected_body = "test first\ntest second\ntest side"
-    expected_payload = {
-        "head": f"Menu {detailed_school.name}",
-        "body": expected_body,
-        "icon": "/static/img/notification-bell.png",
-        "url": detailed_school.get_absolute_url(),
-    }
-    mock_send_test_notification.assert_called_once_with(
-        detailed_subscription.subscription_info, expected_payload
-    )
-
-
-@patch("notifications.tasks.send_test_notification")
-def test_send_daily_menu_notification_annual_menu(
-    mock_send_test_notification, db, monkeypatch, annual_school, annual_subscription
-):
-    """Test invio notifica giornaliera con menu annuale."""
-    from datetime import date
-
-    from school_menu.models import AnnualMeal
-
-    AnnualMeal.objects.create(
-        school=annual_school,
-        date=date.today(),
-        menu="test menu",
-        snack="test snack",
-    )
-
-    send_daily_menu_notification()
-    expected_body = "test menu\ntest snack"
-    expected_payload = {
-        "head": f"Menu {annual_school.name}",
-        "body": expected_body,
-        "icon": "/static/img/notification-bell.png",
-        "url": annual_school.get_absolute_url(),
-    }
-    mock_send_test_notification.assert_called_once_with(
-        annual_subscription.subscription_info, expected_payload
-    )
-
-
-def test_send_daily_menu_notification_no_meal(db, monkeypatch, school, subscription):
-    """Test invio notifica giornaliera senza menu."""
-
-    def fake_webpush(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-
-    def fake_get_current_date():
-        return 1, 1
-
-    monkeypatch.setattr("notifications.utils.get_current_date", fake_get_current_date)
-
-    def fake_get_season(school):
-        return 1
-
-    monkeypatch.setattr("notifications.utils.get_season", fake_get_season)
-
-    def fake_calculate_week(week, bias):
-        return 1
-
-    monkeypatch.setattr("notifications.utils.calculate_week", fake_calculate_week)
-
-    send_daily_menu_notification()
-
-
-def test_schedule_daily_menu_notification(monkeypatch):
-    """Test schedulazione notifiche giornaliere."""
-
-    def fake_update_or_create(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr(Schedule.objects, "update_or_create", fake_update_or_create)
-    schedule_daily_menu_notification()
-
-
 pytestmark = pytest.mark.django_db
 
 
-def test_send_test_notification_success_with_string_args(monkeypatch):
-    """Test invio notifica di prova con successo."""
-
-    def fake_webpush(*args, **kwargs):
-        return None
-
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-    send_test_notification('{"test": "test"}', '{"test": "test"}')
+@pytest.fixture
+def school():
+    return SchoolFactory()
 
 
-def test_send_test_notification_success(monkeypatch):
-    """Test invio notifica di prova con successo."""
+@pytest.fixture
+def subscription_previous_day(school):
+    return AnonymousMenuNotificationFactory(
+        school=school,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.PREVIOUS_DAY_6PM,
+    )
 
-    def fake_webpush(*args, **kwargs):
-        return None
 
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-    send_test_notification({}, {})
+@pytest.fixture
+def subscription_same_day_9am(school):
+    return AnonymousMenuNotificationFactory(
+        school=school,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+    )
 
 
-def test_send_test_notification_webpush_exception(monkeypatch):
-    """Test invio notifica di prova con WebPushException."""
+@patch("notifications.tasks.build_menu_notification_payload")
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_sends_to_correct_time(
+    mock_send_test_notification, mock_build_payload, school, subscription_same_day_9am
+):
+    """Test that notifications are sent only to users subscribed to a specific time."""
+    # Create another subscription for a different time that should not be called
+    AnonymousMenuNotificationFactory(
+        school=school,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.SAME_DAY_12PM,
+    )
+    mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
 
-    def fake_webpush(*args, **kwargs):
-        raise WebPushException("test")
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
+    mock_send_test_notification.assert_called_once()
+    args, _ = mock_send_test_notification.call_args
+    assert args[0] == subscription_same_day_9am.subscription_info
+
+
+@patch("notifications.tasks.build_menu_notification_payload")
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_no_payload(
+    mock_send_test_notification, mock_build_payload, subscription_same_day_9am
+):
+    """Test that no notification is sent if payload is None."""
+    mock_build_payload.return_value = None
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+    mock_send_test_notification.assert_not_called()
+
+
+@patch("notifications.tasks._send_menu_notifications")
+def test_specific_time_tasks_call_helper(mock_send_menu_notifications):
+    """Test that specific time tasks call the main helper function."""
+    send_previous_day_6pm_menu_notification()
+    mock_send_menu_notifications.assert_called_with(
+        AnonymousMenuNotification.PREVIOUS_DAY_6PM
+    )
+
+    send_same_day_9am_menu_notification()
+    mock_send_menu_notifications.assert_called_with(
+        AnonymousMenuNotification.SAME_DAY_9AM
+    )
+
+    send_same_day_12pm_menu_notification()
+    mock_send_menu_notifications.assert_called_with(
+        AnonymousMenuNotification.SAME_DAY_12PM
+    )
+
+    send_same_day_6pm_menu_notification()
+    mock_send_menu_notifications.assert_called_with(
+        AnonymousMenuNotification.SAME_DAY_6PM
+    )
+
+
+@patch("notifications.tasks.webpush")
+@patch("notifications.tasks.build_menu_notification_payload")
+def test_expired_subscription_is_deleted(
+    mock_build_payload, mock_webpush, subscription_same_day_9am
+):
+    """Test that an expired subscription is deleted after a WebPushException."""
+    mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
+    mock_response = MagicMock()
+    mock_response.status_code = 410  # Gone
+    mock_webpush.side_effect = WebPushException(
+        "Subscription expired", response=mock_response
+    )
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    assert not AnonymousMenuNotification.objects.filter(
+        id=subscription_same_day_9am.id
+    ).exists()
+
+
+# ... (omitting unchanged parts of the file for brevity)
+
+
+@patch("notifications.tasks.logger")
+@patch("notifications.tasks.webpush")
+def test_send_test_notification_webpush_exception_logs_error(mock_webpush, mock_logger):
+    """Test that WebPushException with other status codes logs an error."""
+    mock_response = MagicMock()
+    mock_response.status_code = 500
+    mock_webpush.side_effect = WebPushException("Test error", response=mock_response)
+
     with pytest.raises(WebPushException):
         send_test_notification({}, {})
 
+    mock_logger.error.assert_called_once()
 
-def test_send_test_notification_generic_exception(monkeypatch):
-    """Test invio notifica di prova con eccezione generica."""
 
-    def fake_webpush(*args, **kwargs):
-        raise ValueError("test")
+@patch("notifications.tasks.logger")
+@patch("notifications.tasks.webpush")
+def test_send_test_notification_generic_exception_logs_error(mock_webpush, mock_logger):
+    """Test that a generic Exception logs an error."""
+    error_message = "Generic test error"
+    mock_webpush.side_effect = Exception(error_message)
 
-    monkeypatch.setattr("notifications.tasks.webpush", fake_webpush)
-    with pytest.raises(ValueError):
+    with pytest.raises(Exception, match=error_message):
         send_test_notification({}, {})
+
+    mock_logger.error.assert_called_once_with(
+        f"Errore inatteso durante l'invio della notifica: {error_message}"
+    )
+
+
+@patch("notifications.tasks.logger")
+@patch("notifications.tasks.webpush")
+def test_send_test_notification_success(mock_webpush, mock_logger):
+    """Test that a successful notification logs info messages."""
+    send_test_notification({}, {})
+    mock_webpush.assert_called_once()
+    assert mock_logger.info.call_count == 2

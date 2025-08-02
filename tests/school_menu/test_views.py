@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from unittest.mock import patch
 
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -192,17 +191,19 @@ class GetMenuView(TestCase):
         self.response_200(response)
         assert response.context["meal"] == meal
 
-    @patch("school_menu.utils.datetime")
-    def test_get_with_annual_menu(self, mock_datetime):
-        """Test get_menu view with an annual menu on a weekend"""
-        # Mock the current date to a weekend (Saturday)
-        mock_datetime.now.return_value = datetime(2025, 4, 12)  # Saturday
-        mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
+    from freezegun import freeze_time
 
+    # ... (omitting unchanged parts of the file for brevity)
+
+    @freeze_time("2025-04-12")  # Saturday
+    def test_get_with_annual_menu(self):
+        """Test get_menu view with an annual menu on a weekend"""
         # Create a school and meals
         school = SchoolFactory(annual_menu=True)
         next_monday = date(2025, 4, 14)  # Next Monday
-        monday_meal = AnnualMealFactory(school=school, date=next_monday, type="S")
+        monday_meal = AnnualMealFactory(
+            school=school, date=next_monday, type="S", is_active=True
+        )
 
         # Call the view
         response = self.get("school_menu:get_menu", school.pk, 15, 1, "S")

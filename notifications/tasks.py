@@ -1,11 +1,13 @@
 import json
 import logging
+from datetime import date, timedelta
 
 from django.conf import settings
 from pywebpush import WebPushException, webpush
 
 from notifications.models import AnonymousMenuNotification
 from notifications.utils import build_menu_notification_payload
+from school_menu.models import AnnualMeal, DetailedMeal, SimpleMeal
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +44,25 @@ def send_test_notification(subscription_info, payload):
     logger.info("notifica di prova inviata")
 
 
+def _has_menu_for_date(school, target_date):
+    """
+    Checks if a menu exists for a specific school on a given date.
+    """
+    day_of_week = target_date.weekday() + 1  # Monday is 1, Sunday is 7
+
+    # Check for AnnualMeal first
+    if AnnualMeal.objects.filter(
+        school=school, date=target_date, is_active=True
+    ).exists():
+        return True
+
+    # Check for SimpleMeal or DetailedMeal
+    if school.menu_type == "S":
+        return SimpleMeal.objects.filter(school=school, day=day_of_week).exists()
+    else:
+        return DetailedMeal.objects.filter(school=school, day=day_of_week).exists()
+
+
 def _send_menu_notifications(notification_time):
     """
     Sends menu notifications for a specific time.
@@ -50,12 +71,28 @@ def _send_menu_notifications(notification_time):
     subscriptions = AnonymousMenuNotification.objects.filter(
         daily_notification=True, notification_time=notification_time
     )
+    today = date.today()
+    is_previous_day = notification_time == AnonymousMenuNotification.PREVIOUS_DAY_6PM
+
     for subscription in subscriptions:
         school = subscription.school
-        # The payload needs to be built considering if it's the day before or the same day
-        is_previous_day = (
-            notification_time == AnonymousMenuNotification.PREVIOUS_DAY_6PM
+        target_date = today + timedelta(days=1) if is_previous_day else today
+        day_of_week = target_date.weekday()
+
+        # Skip notifications on weekends if there's no specific menu
+        # For PREVIOUS_DAY_6PM, check is on Friday (4) for Saturday's menu, and Saturday (5) for Sunday's menu
+        # For SAME_DAY, check is on Saturday (5) and Sunday (6)
+        is_weekend_check = (is_previous_day and day_of_week in [4, 5]) or (
+            not is_previous_day and day_of_week in [5, 6]
         )
+
+        if is_weekend_check and not _has_menu_for_date(school, target_date):
+            logger.info(
+                f"Skipping notification for {school.name} on {target_date.strftime('%A')} "
+                "as there is no menu."
+            )
+            continue
+
         payload = build_menu_notification_payload(school, is_previous_day)
 
         if not payload:

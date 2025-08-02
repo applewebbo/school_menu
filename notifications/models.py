@@ -20,7 +20,7 @@ class AnonymousMenuNotification(models.Model):
         School, on_delete=models.CASCADE, related_name="anonymous_notifications"
     )
     subscription_info = models.JSONField()
-    daily_notification = models.BooleanField(default=False)
+    daily_notification = models.BooleanField(default=True)
     notification_time = models.CharField(
         max_length=20,
         choices=NOTIFICATION_TIME_CHOICES,

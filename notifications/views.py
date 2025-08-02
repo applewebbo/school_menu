@@ -34,8 +34,11 @@ def save_subscription(request):
     if form.is_valid():
         school = form.cleaned_data["school"]
         subscription_info = form.cleaned_data["subscription_info"]
+        notification_time = form.cleaned_data["notification_time"]
         notification = AnonymousMenuNotification.objects.create(
-            school=school, subscription_info=subscription_info
+            school=school,
+            subscription_info=subscription_info,
+            notification_time=notification_time,
         )
         request.session["anon_notification_pk"] = notification.pk
         request.session.save()

@@ -38,7 +38,8 @@
                                     <ul class="text-base/10" id="notifications-settings">
                                         <li id="school">
                                             <div class="mb-2">
-                                                <p class="mb-3 text-base/5">Hai selezionato  <strong>{{ notification.school.name }}</strong> (<strong>{{ notification.get_notification_time_display }}</strong>)</p>
+                                                <p class="mb-3 text-base/5">Stai ricevendo notifiche giornaliere (<strong>{{ notification.get_notification_time_display }}</strong>) del menu della scuola <strong>{{ notification.school.name }}</strong>.</p>
+
                                                 <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu e l'orario in cui vuoi riceverla.</p>
                                             </div>
                                             <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
@@ -49,38 +50,6 @@
                                             </button>
 
                                         </li>
-                                        <div class="divider"></div>
-                                        {% if notification.daily_notification %}
-                                            <li>
-                                                <div class="mb-2">
-                                                    <p class="mb-3 text-base/5">Stai ricevendo notifiche giornaliere</p>
-                                                    <p class="italic text-gray-500 text-sm/4">Clicca su disattiva per interrompere la ricezione delle notifiche giornaliere</p>
-                                                </div>
-                                                <button class="flex gap-2 items-center mt-3 btn btn-sm btn-error btn-outline"
-                                                        hx-post="{% url 'notifications:toggle_daily_notification' %}"
-                                                        hx-target="#test-notification-result"
-                                                        hx-swap="innerHTML"
-                                                        type="button">
-                                                        Disattiva
-                                                        {% heroicon_outline 'bell-slash' class="size-4" %}
-                                                </button>
-                                            </li>
-                                        {% else %}
-                                            <li>
-                                                <div class="mb-2">
-                                                    <p class="mb-3 text-base/5">Non stai ricevendo notifiche giornaliere</p>
-                                                    <p class="italic text-gray-500 text-sm/4">Clicca su attiva per ricevere una notifica giornaliera ({{ notification.get_notification_time_display }}) con il menu di tuo figlio</p>
-                                                </div>
-                                                <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
-                                                        hx-post="{% url 'notifications:toggle_daily_notification' %}"
-                                                        hx-target="#test-notification-result"
-                                                        hx-swap="innerHTML"
-                                                        type="button">
-                                                        Attiva
-                                                        {% heroicon_outline 'bell-alert' class="size-4" %}
-                                                </button>
-                                            </li>
-                                        {% endif %}
                                         <div class="divider"></div>
                                         <li>
                                             <div class="mb-2">

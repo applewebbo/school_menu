@@ -38,8 +38,8 @@
                                     <ul class="text-base/10" id="notifications-settings">
                                         <li id="school">
                                             <div class="mb-2">
-                                                <p class="mb-3 text-base/5">Hai selezionato <strong>{{ notification.school.name }}</strong></p>
-                                                <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu</p>
+                                                <p class="mb-3 text-base/5">Hai selezionato  <strong>{{ notification.school.name }}</strong> (<strong>{{ notification.get_notification_time_display }}</strong>)</p>
+                                                <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu e l'orario in cui vuoi riceverla.</p>
                                             </div>
                                             <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
                                                     hx-get="{% url 'notifications:change_school' notification.pk %}"
@@ -69,7 +69,7 @@
                                             <li>
                                                 <div class="mb-2">
                                                     <p class="mb-3 text-base/5">Non stai ricevendo notifiche giornaliere</p>
-                                                    <p class="italic text-gray-500 text-sm/4">Clicca su attiva per ricevere una notifica ogni giorno alle ore 12 con il menu di tuo figlio</p>
+                                                    <p class="italic text-gray-500 text-sm/4">Clicca su attiva per ricevere una notifica giornaliera ({{ notification.get_notification_time_display }}) con il menu di tuo figlio</p>
                                                 </div>
                                                 <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
                                                         hx-post="{% url 'notifications:toggle_daily_notification' %}"

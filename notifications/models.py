@@ -10,10 +10,10 @@ class AnonymousMenuNotification(models.Model):
     SAME_DAY_6PM = "same_day_6pm"
 
     NOTIFICATION_TIME_CHOICES = [
-        (PREVIOUS_DAY_6PM, "Alle 18:00 del giorno prima"),
-        (SAME_DAY_9AM, "Alle 9:00"),
-        (SAME_DAY_12PM, "Alle 12:00"),
-        (SAME_DAY_6PM, "Alle 18:00"),
+        (PREVIOUS_DAY_6PM, "alle 18:00 del giorno prima"),
+        (SAME_DAY_9AM, "alle 9:00"),
+        (SAME_DAY_12PM, "alle 12:00"),
+        (SAME_DAY_6PM, "alle 18:00"),
     ]
 
     school = models.ForeignKey(

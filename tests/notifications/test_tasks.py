@@ -250,6 +250,33 @@ def test_send_menu_notifications_skipped_on_weekend_without_menu(
     mock_send_test_notification.assert_not_called()
 
 
+@patch("notifications.tasks.logger")
+@patch("notifications.tasks._is_school_in_session")
+@patch("notifications.tasks.send_test_notification")
+@patch("notifications.tasks.date")
+def test_send_menu_notifications_logs_skip_on_weekend_without_menu(
+    mock_date,
+    mock_send_test_notification,
+    mock_is_school_in_session,
+    mock_logger,
+    subscription_same_day_9am,
+):
+    """Test that a log message is created when skipping a weekend notification."""
+    # Set the current date to a Saturday
+    saturday = date(2025, 8, 2)
+    mock_date.today.return_value = saturday
+    mock_is_school_in_session.return_value = True  # Mock school in session
+    school = subscription_same_day_9am.school
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    mock_send_test_notification.assert_not_called()
+    mock_logger.info.assert_any_call(
+        f"Skipping notification for {school.name} on {saturday.strftime('%A')} "
+        "as there is no menu."
+    )
+
+
 @patch("notifications.tasks._is_school_in_session")
 @patch("notifications.tasks.build_menu_notification_payload")
 @patch("notifications.tasks.send_test_notification")
@@ -292,22 +319,26 @@ def test_send_menu_notifications_school_not_in_session(
 
 @patch("notifications.tasks.settings")
 @patch("notifications.tasks._is_school_in_session")
+@patch("notifications.tasks._has_menu_for_date")
+@patch("notifications.tasks.build_menu_notification_payload")
 @patch("notifications.tasks.send_test_notification")
 def test_send_menu_notifications_school_in_session(
-    mock_send_notification, mock_is_in_session, mock_settings, subscription_same_day_9am
+    mock_send_notification,
+    mock_build_payload,
+    mock_has_menu,
+    mock_is_in_session,
+    mock_settings,
+    subscription_same_day_9am,
 ):
     """Test that notifications are sent if the school is in session."""
     mock_settings.ENABLE_SCHOOL_DATE_CHECK = True
     mock_is_in_session.return_value = True
+    mock_has_menu.return_value = True
+    mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
 
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 
-    # The test will fail here because the mock for build_menu_notification_payload is missing
-    # but it confirms that the check for school session passed.
-    # We expect it to be called, but it will fail inside the function.
-    # This is sufficient to test that the session check is working.
-    with pytest.raises(AttributeError):
-        mock_send_notification.assert_called_once()
+    mock_send_notification.assert_called_once()
 
 
 class TestIsSchoolInSession:
@@ -342,3 +373,30 @@ class TestIsSchoolInSession:
 
         # Date outside school session (e.g., August)
         assert _is_school_in_session(school, date(2025, 8, 15)) is False
+
+
+@patch("notifications.tasks.settings")
+@patch("notifications.tasks._is_school_in_session")
+@patch("notifications.tasks._has_menu_for_date")
+@patch("notifications.tasks.build_menu_notification_payload")
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_check_disabled(
+    mock_send_notification,
+    mock_build_payload,
+    mock_has_menu,
+    mock_is_in_session,
+    mock_settings,
+    subscription_same_day_9am,
+):
+    """Test that the school session check is skipped if disabled."""
+    mock_settings.ENABLE_SCHOOL_DATE_CHECK = False
+    mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
+    mock_has_menu.return_value = True
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    # The check should not be performed
+    mock_is_in_session.assert_not_called()
+
+    # Notification should be sent because the check is disabled
+    mock_send_notification.assert_called_once()

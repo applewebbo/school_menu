@@ -29,4 +29,42 @@ class AnnualMealAdmin(admin.ModelAdmin):
 
 @admin.register(School)
 class SchoolAdmin(admin.ModelAdmin):
-    pass
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "name",
+                    "city",
+                    "user",
+                    "is_published",
+                )
+            },
+        ),
+        (
+            "Configurazione Menu",
+            {
+                "fields": (
+                    "menu_type",
+                    "season_choice",
+                    "week_bias",
+                    "annual_menu",
+                    "no_gluten",
+                    "no_lactose",
+                    "vegetarian",
+                    "special",
+                )
+            },
+        ),
+        (
+            "Periodo Scolastico (per le notifiche)",
+            {
+                "fields": (
+                    "start_month",
+                    "start_day",
+                    "end_month",
+                    "end_day",
+                )
+            },
+        ),
+    )

@@ -259,6 +259,9 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+# APP-SPECIFIC SETTINGS
+ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
+
 SCHEDULES = [
     {
         "func": "notifications.tasks.send_previous_day_6pm_menu_notification",

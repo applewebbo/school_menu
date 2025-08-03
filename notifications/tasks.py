@@ -63,6 +63,28 @@ def _has_menu_for_date(school, target_date):
         return DetailedMeal.objects.filter(school=school, day=day_of_week).exists()
 
 
+def _is_school_in_session(school, target_date):
+    """
+    Checks if the school is in session on a given date based on start/end month/day.
+    """
+    start_month = school.start_month
+    start_day = school.start_day
+    end_month = school.end_month
+    end_day = school.end_day
+
+    # Create comparable tuples for dates (month, day)
+    today_tuple = (target_date.month, target_date.day)
+    start_tuple = (start_month, start_day)
+    end_tuple = (end_month, end_day)
+
+    # Case 1: School year is within the same calendar year (e.g., Feb to June)
+    if start_tuple <= end_tuple:
+        return start_tuple <= today_tuple <= end_tuple
+    # Case 2: School year spans across calendar years (e.g., Sept to June)
+    else:
+        return today_tuple >= start_tuple or today_tuple <= end_tuple
+
+
 def _send_menu_notifications(notification_time):
     """
     Sends menu notifications for a specific time.
@@ -77,6 +99,17 @@ def _send_menu_notifications(notification_time):
     for subscription in subscriptions:
         school = subscription.school
         target_date = today + timedelta(days=1) if is_previous_day else today
+
+        # Check if school is in session
+        if settings.ENABLE_SCHOOL_DATE_CHECK and not _is_school_in_session(
+            school, target_date
+        ):
+            logger.info(
+                f"Skipping notification for {school.name} on {target_date.strftime('%A')} "
+                "as the school is not in session."
+            )
+            continue
+
         day_of_week = target_date.weekday()
 
         # Skip notifications on weekends if there's no specific menu

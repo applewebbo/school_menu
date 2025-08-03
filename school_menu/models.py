@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.urls import reverse
@@ -90,6 +90,26 @@ class School(models.Model):
     slug = models.SlugField(max_length=200, unique=True, editable=False)
     city = models.CharField(max_length=200)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    start_day = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        verbose_name=_("Giorno inizio anno scolastico"),
+    )
+    start_month = models.PositiveSmallIntegerField(
+        default=9,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        verbose_name=_("Mese inizio anno scolastico"),
+    )
+    end_day = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(31)],
+        verbose_name=_("Giorno fine anno scolastico"),
+    )
+    end_month = models.PositiveSmallIntegerField(
+        default=6,
+        validators=[MinValueValidator(1), MaxValueValidator(12)],
+        verbose_name=_("Mese fine anno scolastico"),
+    )
     season_choice = models.SmallIntegerField(
         choices=Seasons.choices, default=Seasons.AUTOMATICA, verbose_name="stagione"
     )

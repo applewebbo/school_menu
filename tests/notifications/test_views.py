@@ -2,9 +2,9 @@ from datetime import date
 from unittest.mock import patch
 
 import pytest
+import time_machine
 from django.contrib.messages import get_messages
 from django.urls import reverse
-from freezegun import freeze_time
 from pywebpush import WebPushException
 
 from notifications.models import AnonymousMenuNotification
@@ -369,7 +369,7 @@ def test_test_notification_webpush_exception(mock_async_task, client, school_fac
     )
 
 
-@freeze_time("2025-08-04")
+@time_machine.travel("2025-08-04")
 def test_test_notification_with_payload(client, school_factory, annual_meal_factory):
     """
     Testa l'invio di una notifica di prova quando c'è un menu per il giorno.

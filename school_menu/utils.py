@@ -27,9 +27,9 @@ def get_current_date(next_day=False):
     Get current week and day.
     If next_day is True, returns the data for the next day.
     """
-    target_date = timezone.now()
+    target_date = datetime.now()
     if next_day:
-        target_date += timezone.timedelta(days=1)
+        target_date += timedelta(days=1)
 
     # if it's weekend, get next monday
     if target_date.weekday() >= 5:  # Saturday or Sunday
@@ -239,9 +239,9 @@ def get_meals(school, season, week, day):
 
 def get_meals_for_annual_menu(school, next_day=False):
     """Get current week's meals and today's meal for annual menu"""
-    target_date = timezone.now().date()
+    target_date = datetime.now().date()
     if next_day:
-        target_date += timezone.timedelta(days=1)
+        target_date += timedelta(days=1)
 
     # If weekend, get next Monday's date
     if target_date.weekday() >= 5:  # Saturday (5) or Sunday (6)

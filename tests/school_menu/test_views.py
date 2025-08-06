@@ -191,11 +191,11 @@ class GetMenuView(TestCase):
         self.response_200(response)
         assert response.context["meal"] == meal
 
-    from freezegun import freeze_time
+    import time_machine
 
     # ... (omitting unchanged parts of the file for brevity)
 
-    @freeze_time("2025-04-12")  # Saturday
+    @time_machine.travel("2025-04-12")  # Saturday
     def test_get_with_annual_menu(self):
         """Test get_menu view with an annual menu on a weekend"""
         # Create a school and meals

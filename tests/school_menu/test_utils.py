@@ -3,9 +3,9 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
+import time_machine
 from django.http import Http404
 from django.test import TestCase
-from freezegun import freeze_time
 from tablib import Dataset
 
 from school_menu.models import AnnualMeal, School, SimpleMeal
@@ -54,22 +54,22 @@ class TestCalculateWeek:
         )
 
 
-@freeze_time("2023-04-03")
+@time_machine.travel("2023-04-03")
 def test_get_current_date_monday():
     assert get_current_date() == (14, 1)
 
 
-@freeze_time("2023-04-08")
+@time_machine.travel("2023-04-08")
 def test_get_current_date_saturday():
     assert get_current_date() == (15, 1)
 
 
-@freeze_time("2023-04-09")
+@time_machine.travel("2023-04-09")
 def test_get_current_date_sunday():
     assert get_current_date() == (15, 1)
 
 
-@freeze_time("2023-04-03")
+@time_machine.travel("2023-04-03")
 def test_get_current_date_next_day():
     assert get_current_date(next_day=True) == (14, 2)
 
@@ -589,7 +589,7 @@ class TestChoicesWidget:
         assert choices_widget.render("Nonexistent") == ""
 
 
-@freeze_time("2024-01-03")  # A Wednesday
+@time_machine.travel("2024-01-03")  # A Wednesday
 def test_get_meals_for_annual_menu_weekday():
     """Test getting meals on a regular weekday."""
     school = SchoolFactory()
@@ -598,7 +598,7 @@ def test_get_meals_for_annual_menu_weekday():
     assert today_meals.first() == meal
 
 
-@freeze_time("2024-01-06")  # A Saturday
+@time_machine.travel("2024-01-06")  # A Saturday
 def test_get_meals_for_annual_menu_weekend():
     """Test getting meals on a weekend."""
     school = SchoolFactory()
@@ -609,7 +609,7 @@ def test_get_meals_for_annual_menu_weekend():
     assert today_meals.first() == monday_meal
 
 
-@freeze_time("2024-01-07")  # A Sunday
+@time_machine.travel("2024-01-07")  # A Sunday
 def test_get_meals_for_annual_menu_next_day():
     """Test getting meals for the next day."""
     school = SchoolFactory()

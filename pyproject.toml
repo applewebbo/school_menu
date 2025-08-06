@@ -10,7 +10,8 @@ dev = [
   "pytest<=8.3.5",
   "ruff>=0.7.2",
   "djlint>=1.36.2",
-  "freezegun>=1.5.4"
+  "time-machine>=2.17.0",
+  "pytz>=2025.2"
 ]
 
 [project]

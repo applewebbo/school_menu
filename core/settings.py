@@ -262,28 +262,6 @@ INTERNAL_IPS = [
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
 
-SCHEDULES = [
-    {
-        "func": "notifications.tasks.send_previous_day_6pm_menu_notification",
-        "schedule_type": "C",
-        "cron": "0 18 * * *",
-    },
-    {
-        "func": "notifications.tasks.send_same_day_9am_menu_notification",
-        "schedule_type": "C",
-        "cron": "0 9 * * *",
-    },
-    {
-        "func": "notifications.tasks.send_same_day_12pm_menu_notification",
-        "schedule_type": "C",
-        "cron": "0 12 * * *",
-    },
-    {
-        "func": "notifications.tasks.send_same_day_6pm_menu_notification",
-        "schedule_type": "C",
-        "cron": "0 18 * * *",
-    },
-]
 
 # DEVELOPMENT SPECIFIC SETTINGS
 if ENVIRONMENT == "dev":
@@ -314,7 +292,6 @@ if ENVIRONMENT == "dev":
             "db": 0,
             "password": "",
         },
-        "schedules": SCHEDULES,
     }
 
 # PRODUCTION SPECIFIC SETTINGS
@@ -350,7 +327,6 @@ elif ENVIRONMENT == "prod":
             "db": 0,
             "password": env("REDIS_PASSWORD", default=""),
         },
-        "schedules": SCHEDULES,
     }
 
 # TESTING SPECIFIC SETTINGS

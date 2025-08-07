@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Layout
+from crispy_forms.layout import Div, Field, Layout
 from django import forms
 
 from contacts.models import MenuReport
@@ -9,6 +9,11 @@ class ContactForm(forms.Form):
     name = forms.CharField(max_length=100, label="Nome")
     email = forms.EmailField(label="Indirizzo email")
     message = forms.CharField(widget=forms.Textarea, label="Messaggio")
+    widgets = {
+        "name": forms.TextInput(attrs={"class": "input w-full"}),
+        "email": forms.EmailInput(attrs={"class": "input w-full"}),
+        "message": forms.Textarea(attrs={"class": "textarea w-full"}),
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,9 +22,9 @@ class ContactForm(forms.Form):
         self.helper.layout = Layout(
             Div(
                 Div(
-                    "name",
-                    "email",
-                    "message",
+                    Field("name", css_class="input w-full"),
+                    Field("email", css_class="input w-full"),
+                    Field("message", css_class="h-36 textarea w-full"),
                 ),
             ),
         )

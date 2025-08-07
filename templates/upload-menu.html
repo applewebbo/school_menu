@@ -8,7 +8,9 @@
       hx-indicator="#spinner"
       class="modal-content">
     <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+        <h3 id="upload-menu-title"
+            data-modal-title
+            class="text-xl font-semibold text-gray-900 dark:text-white">
             Carica il tuo menu{% if school.annual_menu %}ANNUALE{% endif %}({{ active_menu|type_label|capfirst }})
         </h3>
         <button type="button"

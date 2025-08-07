@@ -192,6 +192,11 @@ class SimpleMealForm(forms.ModelForm):
             "morning_snack": "Spuntino mattino",
             "afternoon_snack": "Merenda pomeriggio",
         }
+        widgets = {
+            "menu": forms.Textarea(attrs={"class": "textarea w-full"}),
+            "morning_snack": forms.TextInput(attrs={"class": "input w-full"}),
+            "afternoon_snack": forms.TextInput(attrs={"class": "input w-full"}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -214,6 +219,13 @@ class DetailedMealForm(forms.ModelForm):
             "side_dish": "Contorno",
             "fruit": "Frutta",
             "snack": "Spuntino",
+        }
+        widgets = {
+            "first_course": forms.TextInput(attrs={"class": "input w-full"}),
+            "second_course": forms.TextInput(attrs={"class": "input w-full"}),
+            "side_dish": forms.TextInput(attrs={"class": "input w-full"}),
+            "fruit": forms.TextInput(attrs={"class": "input w-full"}),
+            "snack": forms.TextInput(attrs={"class": "input w-full"}),
         }
 
     def __init__(self, *args, **kwargs):

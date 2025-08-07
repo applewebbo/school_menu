@@ -1,13 +1,24 @@
-<div x-data="{ openModal: false }"
+<div x-data="{
+        openModal: false,
+        modalTitleId: null,
+        init() {
+            this.$watch('openModal', value => {
+                if (value) {
+                    this.$nextTick(() => {
+                        document.getElementById('dialog')?.focus();
+                    });
+                }
+            });
+        }
+     }"
      x-cloak
      @open-modal.window="openModal = true"
-     @hide-modal.window="openModal = false">
+     @hide-modal.window="openModal = false; modalTitleId = null">
      <div x-show="openModal"
-          x-on:keydown.escape.prevent.stop="openModal = false"
+          x-on:keydown.escape.prevent.stop="openModal = false; modalTitleId = null"
           role="dialog"
           aria-modal="true"
-          x-id="['modal-title']"
-          :aria-labelledby="$id('modal-title')"
+          :aria-labelledby="modalTitleId"
           class="overflow-y-auto fixed inset-0 z-50">
           <!-- Overlay -->
           <div x-show="openModal"
@@ -16,12 +27,14 @@
           <!-- Panel -->
           <div x-show="openModal"
                x-transition
-               x-on:click="openModal = false"
+               x-on:click="openModal = false; modalTitleId = null"
                class="flex relative justify-center items-center min-h-screen p4">
                <div x-on:click.stop
                     x-trap.noscroll.inert="openModal"
                     id="dialog"
-                    class="overflow-y-auto relative w-full max-w-2xl rounded-lg shadow bg-base-100"></div>
+                    tabindex="-1"
+                    @htmx:after-swap.camel="modalTitleId = $el.querySelector('[data-modal-title]').id"
+                    class="overflow-y-auto relative w-full max-w-2xl rounded-lg shadow outline-none bg-base-100"></div>
           </div>
      </div>
 </div>

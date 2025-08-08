@@ -295,6 +295,10 @@ class SettingView(TestCase):
             "season_choice": School.Seasons.INVERNALE,
             "week_bias": 1,
             "menu_type": School.Types.DETAILED,
+            "start_day": 1,
+            "start_month": 9,
+            "end_day": 30,
+            "end_month": 6,
         }
 
         with self.login(user):
@@ -328,6 +332,10 @@ class SettingView(TestCase):
             "season_choice": School.Seasons.INVERNALE,
             "week_bias": 1,
             "menu_type": School.Types.DETAILED,
+            "start_day": 1,
+            "start_month": 9,
+            "end_day": 30,
+            "end_month": 6,
         }
 
         with self.login(user):

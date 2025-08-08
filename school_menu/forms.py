@@ -1,11 +1,24 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Div, Field, Fieldset, Layout, Submit
 from django import forms
 
 from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 
 
 class SchoolForm(forms.ModelForm):
+    start_date = forms.DateField(
+        label="Inizio",
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "input"}, format="%Y-%m-%d"
+        ),
+    )
+    end_date = forms.DateField(
+        label="Fine",
+        widget=forms.DateInput(
+            attrs={"type": "date", "class": "input"}, format="%Y-%m-%d"
+        ),
+    )
+
     class Meta:
         model = School
         fields = [
@@ -24,7 +37,7 @@ class SchoolForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(attrs={"class": "input"}),
             "city": forms.TextInput(attrs={"class": "input"}),
-            "season_choice": forms.Select(attrs={"class": "form-select"}),
+            "season_choice": forms.Select(attrs={"class": "select"}),
             "week_bias": forms.NumberInput(attrs={"class": "input"}),
             "menu_type": forms.Select(attrs={"class": "select"}),
             "is_published": forms.CheckboxInput(
@@ -52,7 +65,7 @@ class SchoolForm(forms.ModelForm):
             "season_choice": "Stagione",
             "week_bias": "Scarto",
             "menu_type": "Tipo di Menù",
-            "is_published": "Pubblico",
+            "is_published": "Menu Pubblico",
             "no_gluten": "No Glutine",
             "no_lactose": "No Lattosio",
             "vegetarian": "Vegetariano",
@@ -60,15 +73,11 @@ class SchoolForm(forms.ModelForm):
             "annual_menu": "Menu Annuale",
         }
         help_texts = {
-            "season_choice": "Selezionando AUTOMATICA il sistema sceglierà la stagione in base alla data corrente, altrimenti rimarrà fissa al valore selezionato",
+            "season_choice": "Selezionando <strong>Automatica</strong> il sistema sceglierà la stagione in base alla data corrente",
             "week_bias": "Modificare il valore per allineare la settimana in corso (max=3)",
-            "menu_type": "Seleziona Semplice per menu unificato + spuntino, Dettagliato per avere menu diviso in primo, secondo, contorno e frutta + spuntino",
-            "is_published": "Seleziona per rendere il menù visibile agli utenti",
-            "no_gluten": "No Glutine",
-            "no_lactose": "No Lattosio",
-            "vegetarian": "Vegetariano",
-            "special": "Speciale",
-            "annual_menu": "Seleziona se la tua scuola fornisce un menu completo relativo a tutto l'anno. Selezionando questo campo non verranno considerati i valori dei campi Stagione e Scarto.",
+            "menu_type": "Seleziona <strong>Semplice</strong> per menu + spuntino, <strong>Dettagliato</strong> per avere primo, secondo, contorno e frutta + spuntino",
+            "is_published": "Seleziona per rendere il menù visibile agli altri utenti",
+            "annual_menu": "Seleziona se la tua scuola fornisce un menu specifico per ogni giorno dell'anno. Selezionando questo campo non verranno considerati i valori dei campi Stagione, Scarto e Anno Scolastico.",
         }
         error_messages = {
             "week_bias": {
@@ -80,17 +89,36 @@ class SchoolForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_tag = False
-        self.fields["no_gluten"].label = False
-        self.fields["no_lactose"].label = False
-        self.fields["vegetarian"].label = False
-        self.fields["special"].label = False
         self.helper.layout = Layout(
             Div(
-                Div("name", "city", "menu_type", "is_published"),
+                Div(
+                    "name",
+                    "city",
+                    "menu_type",
+                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
+                    "is_published",
+                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
+                    Fieldset(
+                        "Anno Scolastico",
+                        "start_date",
+                        "end_date",
+                        HTML("""
+                            <p class="text-base-content/70 text-sm leading-5">
+                            Seleziona data di inizio e fine anno scolastico. Solo all'interno di questo periodo sono attive le notifiche del menu.</p>
+                            <hr class="border border-base-300 my-4 mx-4 md:hidden" />
+                        """),
+                        css_class="fieldset",
+                    ),
+                ),
                 Div(
                     "season_choice",
+                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
                     "annual_menu",
+                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
                     "week_bias",
+                    HTML(
+                        """<hr class="border border-base-300 my-4 mx-4 md:hidden" />"""
+                    ),
                 ),
                 Fieldset(
                     "Menu Alternativi",
@@ -98,9 +126,9 @@ class SchoolForm(forms.ModelForm):
                     Div("no_lactose", css_class="flex items-center me-4"),
                     Div("vegetarian", css_class="flex items-center me-4"),
                     Div("special", css_class="flex items-center me-4"),
-                    css_class="flex col-span-1 md:col-span-2",
+                    css_class="flex col-span-1 md:col-span-2 fieldset",
                 ),
-                css_class="grid grid-cols-1 md:grid-cols-2 md:gap-4",
+                css_class="grid grid-cols-1 md:grid-cols-2 md:gap-6",
             ),
             Div(
                 Div(

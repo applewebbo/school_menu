@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -267,17 +267,29 @@ def school_view(request):
 
 @login_required
 def school_create(request):
-    form = SchoolForm(request.POST or None)
-    if form.is_valid():
-        school = form.save(commit=False)
-        school.user = request.user
-        school.save()
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            f"<strong>{school.name}</strong> creata con successo",
-        )
-        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    if request.method == "POST":
+        form = SchoolForm(request.POST)
+        if form.is_valid():
+            school = form.save(commit=False)
+            school.user = request.user
+            school.start_day = form.cleaned_data["start_date"].day
+            school.start_month = form.cleaned_data["start_date"].month
+            school.end_day = form.cleaned_data["end_date"].day
+            school.end_month = form.cleaned_data["end_date"].month
+            school.save()
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"<strong>{school.name}</strong> creata con successo",
+            )
+            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    else:
+        current_year = date.today().year
+        initial_data = {
+            "start_date": date(current_year, 9, 10),
+            "end_date": date(current_year + 1, 6, 10),
+        }
+        form = SchoolForm(initial=initial_data)
 
     context = {"form": form, "create": True}
     return render(request, "partials/school.html", context)
@@ -287,17 +299,38 @@ def school_create(request):
 def school_update(request):
     user = request.user
     school = get_object_or_404(School, user=user)
-    form = SchoolForm(request.POST or None, instance=school)
-    get_alt_menu(user)
-    if form.is_valid():
-        school = form.save()
-        messages.add_message(
-            request,
-            messages.SUCCESS,
-            f"<strong>{school.name}</strong> aggiornata con successo",
-        )
-        request.session["active_menu"] = "S"
-        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    if request.method == "POST":
+        form = SchoolForm(request.POST, instance=school)
+        if form.is_valid():
+            school = form.save(commit=False)
+            school.start_day = form.cleaned_data["start_date"].day
+            school.start_month = form.cleaned_data["start_date"].month
+            school.end_day = form.cleaned_data["end_date"].day
+            school.end_month = form.cleaned_data["end_date"].month
+            school.save()
+            messages.add_message(
+                request,
+                messages.SUCCESS,
+                f"<strong>{school.name}</strong> aggiornata con successo",
+            )
+            request.session["active_menu"] = "S"
+            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    else:
+        today = date.today()
+        if today.month < school.end_month or (
+            today.month == school.end_month and today.day <= school.end_day
+        ):
+            start_year = today.year - 1
+            end_year = today.year
+        else:
+            start_year = today.year
+            end_year = today.year + 1
+
+        initial_data = {
+            "start_date": date(start_year, school.start_month, school.start_day),
+            "end_date": date(end_year, school.end_month, school.end_day),
+        }
+        form = SchoolForm(instance=school, initial=initial_data)
 
     context = {"form": form}
     return render(request, "partials/school.html", context)

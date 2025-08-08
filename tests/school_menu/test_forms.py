@@ -22,6 +22,10 @@ class TestSchoolForm:
                 "season_choice": School.Seasons.INVERNALE,
                 "week_bias": 1,
                 "menu_type": School.Types.SIMPLE,
+                "start_day": 1,
+                "start_month": 9,
+                "end_day": 30,
+                "end_month": 6,
             }
         )
 
@@ -37,6 +41,10 @@ class TestSchoolForm:
             "season_choice": ["Campo obbligatorio."],
             "week_bias": ["Campo obbligatorio."],
             "menu_type": ["Campo obbligatorio."],
+            "start_day": ["Campo obbligatorio."],
+            "start_month": ["Campo obbligatorio."],
+            "end_day": ["Campo obbligatorio."],
+            "end_month": ["Campo obbligatorio."],
         }
 
 

@@ -8,15 +8,11 @@ from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 class SchoolForm(forms.ModelForm):
     start_date = forms.DateField(
         label="Inizio",
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "input"}, format="%Y-%m-%d"
-        ),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
     end_date = forms.DateField(
         label="Fine",
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "input"}, format="%Y-%m-%d"
-        ),
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
     )
 
     class Meta:
@@ -35,10 +31,10 @@ class SchoolForm(forms.ModelForm):
             "annual_menu",
         ]
         widgets = {
-            "name": forms.TextInput(attrs={"class": "input"}),
-            "city": forms.TextInput(attrs={"class": "input"}),
+            "name": forms.TextInput(),
+            "city": forms.TextInput(),
             "season_choice": forms.Select(attrs={"class": "select"}),
-            "week_bias": forms.NumberInput(attrs={"class": "input"}),
+            "week_bias": forms.NumberInput(attrs={"min": "0", "max": "3"}),
             "menu_type": forms.Select(attrs={"class": "select"}),
             "is_published": forms.CheckboxInput(
                 attrs={"class": "checkbox checkbox-sm checkbox-primary"}
@@ -74,7 +70,7 @@ class SchoolForm(forms.ModelForm):
         }
         help_texts = {
             "season_choice": "Selezionando <strong>Automatica</strong> il sistema sceglierà la stagione in base alla data corrente",
-            "week_bias": "Modificare il valore per allineare la settimana in corso (max=3)",
+            "week_bias": "Modificare il valore per allineare la settimana in corso (min=0, max=3)",
             "menu_type": "Seleziona <strong>Semplice</strong> per menu + spuntino, <strong>Dettagliato</strong> per avere primo, secondo, contorno e frutta + spuntino",
             "is_published": "Seleziona per rendere il menù visibile agli altri utenti",
             "annual_menu": "Seleziona se la tua scuola fornisce un menu specifico per ogni giorno dell'anno. Selezionando questo campo non verranno considerati i valori dei campi Stagione, Scarto e Anno Scolastico.",
@@ -94,7 +90,11 @@ class SchoolForm(forms.ModelForm):
                 Div(
                     "name",
                     "city",
-                    "menu_type",
+                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
+                    Fieldset(
+                        "Tipo di Menù",
+                        "menu_type",
+                    ),
                     HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
                     "is_published",
                     HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
@@ -111,7 +111,10 @@ class SchoolForm(forms.ModelForm):
                     ),
                 ),
                 Div(
-                    "season_choice",
+                    Fieldset(
+                        "Stagione",
+                        "season_choice",
+                    ),
                     HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
                     "annual_menu",
                     HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
@@ -221,9 +224,9 @@ class SimpleMealForm(forms.ModelForm):
             "afternoon_snack": "Merenda pomeriggio",
         }
         widgets = {
-            "menu": forms.Textarea(attrs={"class": "textarea w-full"}),
-            "morning_snack": forms.TextInput(attrs={"class": "input w-full"}),
-            "afternoon_snack": forms.TextInput(attrs={"class": "input w-full"}),
+            "menu": forms.Textarea(),
+            "morning_snack": forms.TextInput(),
+            "afternoon_snack": forms.TextInput(),
         }
 
     def __init__(self, *args, **kwargs):
@@ -249,11 +252,11 @@ class DetailedMealForm(forms.ModelForm):
             "snack": "Spuntino",
         }
         widgets = {
-            "first_course": forms.TextInput(attrs={"class": "input w-full"}),
-            "second_course": forms.TextInput(attrs={"class": "input w-full"}),
-            "side_dish": forms.TextInput(attrs={"class": "input w-full"}),
-            "fruit": forms.TextInput(attrs={"class": "input w-full"}),
-            "snack": forms.TextInput(attrs={"class": "input w-full"}),
+            "first_course": forms.TextInput(),
+            "second_course": forms.TextInput(),
+            "side_dish": forms.TextInput(),
+            "fruit": forms.TextInput(),
+            "snack": forms.TextInput(),
         }
 
     def __init__(self, *args, **kwargs):

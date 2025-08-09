@@ -17,10 +17,7 @@
         </div>
     {% elif field|is_select %}
         <div class="{% if field_class %}{{ field_class }}{% else %}mb-4{% endif %}"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
-            <label for="{{ field.id_for_label }}" class="select">
-                <span class="label">{{ field.label|safe }}</span>
-                {% include 'tailwind/layout/select.html' %}
-            </label>
+            {% include 'tailwind/layout/select.html' %}
         </div>
     {# if field has a special template then use this #}
     {% elif field|is_checkboxselectmultiple %}
@@ -31,10 +28,20 @@
         <div class="{% if field_class %}{{ field_class }}{% else %}mb-3{% endif %}"{% if flat_attrs %} {{ flat_attrs|safe }}{% endif %}>
             {% include 'tailwind/layout/radioselect.html' %}
         </div>
+    {% elif field|is_textarea %}
+        <div id="div_{{ field.auto_id }}" class="{% if wrapper_class %}{{ wrapper_class }} {% endif %}{% if field_class %}{{ field_class }}{% else %}mb-3{% endif %}">
+            {% if field.label and form_show_labels %}
+                <label for="{{ field.id_for_label }}" class="label">
+                    <span class="label-text">{{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}</span>
+                </label>
+            {% endif %}
+            <textarea name="{{ field.name }}" id="{{ field.auto_id }}" class="w-full h-32 textarea textarea-bordered text-base-content" {% for name, value in field.field.widget.attrs.items %}{{ name }}="{{ value }}"{% endfor %}>{{ field.value|default_if_none:"" }}</textarea>
+            {% include 'tailwind/layout/help_text_and_errors.html' %}
+        </div>
     {% else %}
         <{% if tag %}{{ tag }}{% else %}div{% endif %} id="div_{{ field.auto_id }}" class="{% if wrapper_class %}{{ wrapper_class }} {% endif %}{% if field_class %}{{ field_class }}{% else %}mb-3{% endif %}">
         {% if field.label and form_show_labels %}
-            <label for="{{ field.id_for_label }}" class="{% if label_class %}{{ label_class }}{% else %}input{% endif %}">
+            <label for="{{ field.id_for_label }}" class="{% if label_class %}{{ label_class }}{% else %}input w-full{% endif %}">
                 <span class="label">{{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}</span>
                 {% tailwind_field field %}
             </label>

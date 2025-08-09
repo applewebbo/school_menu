@@ -19,6 +19,11 @@ def is_checkbox(field):
 
 
 @register.filter
+def is_textarea(field):
+    return isinstance(field.field.widget, forms.Textarea)
+
+
+@register.filter
 def is_password(field):
     return isinstance(field.field.widget, forms.PasswordInput)
 

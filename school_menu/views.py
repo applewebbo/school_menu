@@ -258,6 +258,12 @@ def menu_settings_partial(request, pk):
 
 
 @login_required
+def school_settings_partial(request):
+    user = request.user
+    return render(request, "settings.html#school", {"user": user})
+
+
+@login_required
 def school_view(request):
     user = request.user
     school = get_object_or_404(School, user=user)

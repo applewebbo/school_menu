@@ -55,6 +55,7 @@ htmx_urlpatterns = [
         name="upload_annual_menu",
     ),
     path("settings/<int:pk>/menu/", views.menu_settings_partial, name="menu_settings"),
+    path("settings/school/", views.school_settings_partial, name="school_settings"),
     path("search-schools/", views.search_schools, name="search_schools"),
     path(
         "export-modal/<int:school_id>/<str:meal_type>/",

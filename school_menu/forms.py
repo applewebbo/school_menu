@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import HTML, Div, Field, Fieldset, Layout, Submit
+from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Submit
 from django import forms
+from django.urls import reverse
 
 from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 
@@ -138,12 +139,22 @@ class SchoolForm(forms.ModelForm):
                     css_id="spinner",
                     css_class="loading loading-bars loading-md text-primary mt-0 md:mt-2 md:me-4 self-center htmx-indicator",
                 ),
+                Button(
+                    "cancel",
+                    "Annulla",
+                    css_class="w-full md:w-auto btn btn-sm btn-error mt-2",
+                    **{
+                        "hx-get": reverse("school_menu:school_settings"),
+                        "hx-target": "#school",
+                        "hx-swap": "outerHTML",
+                    },
+                ),
                 Submit(
                     "submit",
                     "Salva",
                     css_class="w-full md:w-auto btn btn-sm btn-primary mt-2",
                 ),
-                css_class="flex flex-col md:flex-row md:justify-end md:mx-auto items-center",
+                css_class="flex flex-col md:flex-row md:justify-end md:mx-auto items-center gap-2",
             ),
         )
 

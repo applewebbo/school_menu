@@ -63,7 +63,7 @@ def classes(field):
     """
     Returns CSS classes of a field
     """
-    return field.widget.attrs.get("class", None)
+    return field.field.widget.attrs.get("class", None)
 
 
 @register.filter

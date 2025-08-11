@@ -54,7 +54,7 @@
                             {% for week in 4|weeks %}
                                 <div class="flex items-center">
                                     <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                    <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
+                                    <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group dark:btn-soft"
                                        href="{% url 'school_menu:create_weekly_menu' user.school.id week 2 active_menu %}">
                                         Modifica
                                         {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}
@@ -69,7 +69,7 @@
                             {% for week in 4|weeks %}
                                 <div class="flex items-center">
                                     <h5 class="mr-8 font-medium grow md:grow-0">Settimana {{ week }}</h5>
-                                    <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group"
+                                    <a class="inline-flex items-center btn btn-xs btn-outline btn-secondary group dark:btn-soft"
                                        href="{% url 'school_menu:create_weekly_menu' user.school.id week 1 active_menu %}">
                                         Modifica
                                         {% heroicon_mini 'pencil' class="group-hover:text-white text-secondary size-3" %}

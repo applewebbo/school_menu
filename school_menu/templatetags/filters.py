@@ -55,3 +55,25 @@ def type_label(meal_type):
     }
 
     return values.get(meal_type, meal_type)
+
+
+@register.filter
+def month_name(month_number):
+    """
+    Returns the name of the month for a given number (1-12).
+    """
+    months = {
+        1: "Gennaio",
+        2: "Febbraio",
+        3: "Marzo",
+        4: "Aprile",
+        5: "Maggio",
+        6: "Giugno",
+        7: "Luglio",
+        8: "Agosto",
+        9: "Settembre",
+        10: "Ottobre",
+        11: "Novembre",
+        12: "Dicembre",
+    }
+    return months.get(month_number, "")

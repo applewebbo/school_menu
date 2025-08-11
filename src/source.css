@@ -89,3 +89,11 @@
 .lg_menu_active {
   @apply text-primary underline underline-offset-4
 }
+
+.primary_label {
+  @apply text-sm text-base-content/60 align-text-top me-2 font-light
+}
+
+.special-meal-label {
+  @apply text-sm tracking-tight md:block text-base-content/60 font-light
+}

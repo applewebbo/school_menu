@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -22,18 +24,14 @@ class TestSchoolForm:
                 "season_choice": School.Seasons.INVERNALE,
                 "week_bias": 1,
                 "menu_type": School.Types.SIMPLE,
-                "start_day": 1,
-                "start_month": 9,
-                "end_day": 30,
-                "end_month": 6,
+                "start_date": date(2024, 9, 1),
+                "end_date": date(2025, 6, 30),
             }
         )
-
-        assert form.is_valid() is True
+        assert form.is_valid(), form.errors
 
     def test_form_no_data(self):
         form = SchoolForm(data={})
-
         assert form.is_valid() is False
         assert form.errors == {
             "name": ["Campo obbligatorio."],
@@ -41,10 +39,8 @@ class TestSchoolForm:
             "season_choice": ["Campo obbligatorio."],
             "week_bias": ["Campo obbligatorio."],
             "menu_type": ["Campo obbligatorio."],
-            "start_day": ["Campo obbligatorio."],
-            "start_month": ["Campo obbligatorio."],
-            "end_day": ["Campo obbligatorio."],
-            "end_month": ["Campo obbligatorio."],
+            "start_date": ["Campo obbligatorio."],
+            "end_date": ["Campo obbligatorio."],
         }
 
 

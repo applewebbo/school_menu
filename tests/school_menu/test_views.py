@@ -1,5 +1,6 @@
 from datetime import date, datetime
 
+import time_machine
 from django.contrib.messages import get_messages
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -295,10 +296,8 @@ class SettingView(TestCase):
             "season_choice": School.Seasons.INVERNALE,
             "week_bias": 1,
             "menu_type": School.Types.DETAILED,
-            "start_day": 1,
-            "start_month": 9,
-            "end_day": 30,
-            "end_month": 6,
+            "start_date": date(2024, 9, 1),
+            "end_date": date(2025, 6, 30),
         }
 
         with self.login(user):
@@ -323,6 +322,17 @@ class SettingView(TestCase):
         self.response_200(response)
         assert School.objects.filter(user=user).count() == 0
 
+    def test_school_create_get(self):
+        user = self.make_user()
+
+        with self.login(user):
+            response = self.get("school_menu:school_create")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/school.html")
+        assert "form" in response.context
+        assert response.context["create"] is True
+
     def test_school_update_with_success(self):
         user = self.make_user()
         school = SchoolFactory(user=user)
@@ -332,10 +342,8 @@ class SettingView(TestCase):
             "season_choice": School.Seasons.INVERNALE,
             "week_bias": 1,
             "menu_type": School.Types.DETAILED,
-            "start_day": 1,
-            "start_month": 9,
-            "end_day": 30,
-            "end_month": 6,
+            "start_date": date(2024, 9, 1),
+            "end_date": date(2025, 6, 30),
         }
 
         with self.login(user):
@@ -346,6 +354,22 @@ class SettingView(TestCase):
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == f"<strong>{school.name}</strong> aggiornata con successo"
         assert school.city == "Milano"
+
+    def test_school_update_get_after_school_year_ends(self):
+        user = self.make_user()
+        # School year ends on June 10th
+        SchoolFactory(user=user, end_month=6, end_day=10)
+
+        with self.login(user):
+            # Travel to a date after the school year has ended
+            with time_machine.travel("2025-08-20"):
+                response = self.get("school_menu:school_update")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/school.html")
+        assert "form" in response.context
+        # Check that the end_date in the form is for the next year
+        assert response.context["form"].initial["end_date"].year == 2026
 
     def test_school_update_with_invalid_data(self):
         user = self.make_user()
@@ -358,6 +382,33 @@ class SettingView(TestCase):
             response = self.post("school_menu:school_update", data=data)
 
         self.response_200(response)
+        assert "form" in response.context
+
+    def test_school_update_get_during_school_year(self):
+        user = self.make_user()
+        # School year ends on June 10th
+        SchoolFactory(user=user, end_month=6, end_day=10)
+
+        with self.login(user):
+            # Travel to a date during the school year
+            with time_machine.travel("2025-04-20"):
+                response = self.get("school_menu:school_update")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/school.html")
+        assert "form" in response.context
+        # Check that the end_date in the form is for the current year
+        assert response.context["form"].initial["end_date"].year == 2025
+
+    def test_school_settings_partial(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:school_settings")
+
+        self.response_200(response)
+        assert "user" in response.context
 
 
 class SchoolListView(TestCase):
@@ -462,7 +513,7 @@ class TestUploadMenuView(TestCase):
         assert len(messages) > 0
         assert SimpleMeal.objects.filter(school=school).count() == 0
 
-    def test_upload_menu_post_invalid_csv_delimiter(self):
+    def test_upload_menu_post_invalid_csv_content(self):
         user = self.make_user()
         school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
 
@@ -471,7 +522,7 @@ class TestUploadMenuView(TestCase):
                 "school_menu:upload_menu",
                 kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
             )
-            csv_content = "giorno;settimana;pranzo;spuntino;merenda\nLunedì;1;Pasta al Pomodoro;Mela,Yogurt"
+            csv_content = "giorno,settimana,pranzo,spuntino\nLunedì,1,Pasta,Mela"  # Missing 'merenda' column
             data = {
                 "file": SimpleUploadedFile(
                     "simple_menu.csv",
@@ -486,7 +537,41 @@ class TestUploadMenuView(TestCase):
         assert "HX-Trigger" in response.headers
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
+        assert (
+            "Formato non valido. Il file non contiene tutte le colonne richieste."
+            in messages[0].message
+        )
         assert SimpleMeal.objects.filter(school=school).count() == 0
+
+    def test_upload_menu_post_generic_exception(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            # This content will raise an exception when decoding
+            csv_content = b"\x80"
+            data = {
+                "file": SimpleUploadedFile(
+                    "simple_menu.csv",
+                    csv_content,
+                    content_type="text/csv",
+                ),
+                "season": School.Seasons.INVERNALE,
+            }
+            response = self.post(url, data=data)
+
+        assert response.status_code == 204
+        assert "HX-Trigger" in response.headers
+        messages = list(get_messages(response.wsgi_request))
+        assert len(messages) > 0
+        assert (
+            "Il file CSV non è valido. Controlla il delimitatore e il formato."
+            in messages[0].message
+        )
 
     def test_upload_menu_post_detailed_success(self):
         user = self.make_user()

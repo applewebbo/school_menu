@@ -6,10 +6,45 @@
 
 {% block content %}
     <section>
-        <div class="grid px-4 pt-8 pb-4 mx-auto mb-4 max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 lg:mb-12 xl:gap-0">
+        <div x-data="{ activeTab: 'notifiche' }"
+             class="grid px-4 pt-8 pb-4 mx-auto mb-4 max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 lg:mb-12 xl:gap-0">
             <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Guida all'utilizzo</h1>
-            <article class="max-w-none prose prose-img:w-full prose-img:mx-auto sm:prose-img:w-2/3">
-                <h4>Sezione Scuola</h4>
+            <div role="tablist" class="mx-auto tabs tabs-box">
+                <a role="tab"
+                   class="tab"
+                   :class="{ 'tab-active': activeTab === 'notifiche' }"
+                   @click.prevent="activeTab = 'notifiche'">
+                    Notifiche
+                </a>
+                <a role="tab"
+                   class="tab"
+                   :class="{ 'tab-active': activeTab === 'scuola' }"
+                   @click.prevent="activeTab = 'scuola'">
+                    Scuola
+                </a>
+                <a role="tab"
+                   class="tab"
+                   :class="{ 'tab-active': activeTab === 'menu' }"
+                   @click.prevent="activeTab = 'menu'">
+                    Menu
+                </a>
+                <a role="tab"
+                   class="tab"
+                   :class="{ 'tab-active': activeTab === 'account' }"
+                   @click.prevent="activeTab = 'account'">
+                    Account
+                </a>
+            </div>
+
+            <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+                     x-show="activeTab === 'notifiche'" role="tabpanel">
+                <h4>Gestione Notifiche</h4>
+                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Libero iusto illo fugit assumenda molestiae quia nemo, pariatur maiores beatae adipisci recusandae magnam reiciendis, non asperiores voluptatum rem veritatis natus suscipit.</p>
+            </article>
+
+            <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+                     x-show="activeTab === 'scuola'" role="tabpanel">
+                <h4>Gestione Scuola</h4>
                 <p>
                     Al primo accesso verrai reindirizzato alla pagina del tuo profilo dove potrai creare la scuola. In questa maschera devi inserire il nome della scuola e la città (la combinazione di questi due campi viene utilizzata per creare il link del menu giornaliero da poter condividere. È quindi è consigliabile scegliere in maniera accurata il valore di questi campi e non modificarli successivamente).
                 </p>
@@ -33,7 +68,10 @@
                 <p>
                     Infine nella sezione <strong>Menu Alternativi</strong> puoi attivare altri tipi di menu se la tua scuola li propone che verranno visualizzati nella pagina del menu in aggiunta a quello standard. Puoi modificare questi menu selezionandoli dal menu a tendina presente in fondo alla sezione <strong>Menu</strong>.
                 </p>
-                <h4 class="mt-8">Sezione Menu</h4>
+            </article>
+            <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+                     x-show="activeTab === 'menu'" role="tabpanel">
+                <h4 class="mt-8">Gestione Menu</h4>
                 <p>
                     In questa sezione puoi inserire o modificare i singoli menù giornalieri selezionando il tasto modifica di fianco ad ogni settimana (contrassegnato da <strong>A</strong> nell'immagine 2). Nella pagina seguente potrai inserire inserire i menù giornalieri oppure modificare quelli già inseriti. Se preferisci puoi utilizzare la funzione per caricare i menu in formato excel utilizzando il bottone <strong>Carica Menu</strong> (contrassegnato da <strong>B</strong> nell'immagine 2). Se hai attivato i menu alternativi puoi selezionare il menu alternativo nel menu a tendina (contrassegnato da <strong>C</strong> nell'immagine 2). Verifica su quale menu stai lavorando verificando il badge di fianco al titolo della sezione (contrassegnato da <strong>D</strong> nell'immagine seguente).
                 </p>
@@ -57,7 +95,10 @@
                          alt="Finestra Carica Menu">
                         <figcaption class="mt-2 text-sm text-center text-gray-500">4. Finestra carica menu</figcaption>
                     </figure>
-                <h4 class="mt-8">Sezione Account</h4>
+                </article>
+                <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+                     x-show="activeTab === 'account'" role="tabpanel">
+                <h4 class="mt-8">Gestione Account</h4>
                 <p>In questa sezione è possibile modificare il proprio indirizzo mail, ottenere una copia dei propri dati conservati sul nostro server (coming soon) e cancellare definitivamente il proprio account. E inoltre possibile leggere le segnalazioni ricevute dagli utenti relative al menu pubblicato (che vengono notificate via mail appena ricevute).</p>
                     <figure class="mx-auto max-w-2xl">
                         <img src="{% static 'img/help/sezione_account.jpg' %}"

@@ -13,26 +13,38 @@
                 <p>
                     Al primo accesso verrai reindirizzato alla pagina del tuo profilo dove potrai creare la scuola. In questa maschera devi inserire il nome della scuola e la città (la combinazione di questi due campi viene utilizzata per creare il link del menu giornaliero da poter condividere. È quindi è consigliabile scegliere in maniera accurata il valore di questi campi e non modificarli successivamente).
                 </p>
-                <figure>
+                <figure class="mx-auto w-full">
                     <img src="{% static 'img/help/maschera_crea_scuola.jpg' %}"
                      alt="Maschera Crea Scuola">
                      <figcaption class="mt-2 text-sm text-center text-gray-500">1. Sezione scuola</figcaption>
                 </figure>
                 <p>
-                    Nel campo <strong>Tipo di Menù</strong> puoi selezionare <strong>Semplice</strong> (adatto a scuole dell'infanzia e asili con un campo menu unificato più spuntino e merenda) oppure <strong>Dettagliato</strong> (adatto alle scuole primarie e secondarie con i campi separati per primo, secondo, contorno, frutta e spuntino). Di solito i menu scolastici sono divisi in stagione Invernale e Primaverile. Nella sezione <strong>Stagione</strong> puoi scegliere se passare automaticamente da un menu stagionale all'altro oppure selezionare manualmente il menu stagionale (se la tua scuola ad esempio non segue strettamente il calendario). Infine nel campo <strong>Scarto</strong> puoi selezionare un numero fra 0 e 3 per allineare la settimana 1 del menu inserito con quella effettivamente in scorso. Se la tua scuola fornisce un menu annuale dove sono specificati i menu per ogni singolo giorno del calendario puoi spuntare la casella <strong>Menu Annuale</strong>. In questo caso non verranno considerati i campi <strong>Scarto</strong> e <strong>Stagione</strong>.
+                    Nel campo <strong>Tipo di Menù</strong> puoi selezionare <strong>Semplice</strong> (adatto a scuole dell'infanzia e asili con un campo menu unificato più spuntino e merenda) oppure <strong>Dettagliato</strong> (adatto alle scuole primarie e secondarie con i campi separati per primo, secondo, contorno, frutta e spuntino). Toglli la spunta sul campo <strong>Menu Pubblico</strong> per rendere il tuo menu privato (solo tu potrai vederlo se loggato, utile in fase di creazione del menu).
+                </p>
+                <p>
+                    Nella sezione <strong>Anno Scolastico</strong> inserisci le date di inizio e fine delle lezioni (valori di default 10 settembre e 10 giugno). Il sistema di notifiche utilizza questi valori per interrompere l'invio durante il periodo estivo.
+                </p>
+                <p>
+                    Di solito i menu scolastici sono divisi in stagione Invernale e Primaverile. Nel campo <strong>Stagione</strong> puoi scegliere se passare automaticamente da un menu stagionale all'altro oppure selezionare manualmente il menu stagionale (se la tua scuola ad esempio non segue strettamente il calendario).
+                </p>
+                <p>
+                    Nel campo <strong>Scarto</strong> puoi selezionare un numero fra 0 e 3 per allineare la settimana 1 del menu inserito con quella effettivamente in scorso. Se la tua scuola fornisce un menu annuale dove sono specificati i menu per ogni singolo giorno del calendario puoi spuntare la casella <strong>Menu Annuale</strong>. In questo caso non verranno considerati i campi <strong>Scarto</strong> e <strong>Stagione</strong>.
+                </p>
+                <p>
+                    Infine nella sezione <strong>Menu Alternativi</strong> puoi attivare altri tipi di menu se la tua scuola li propone che verranno visualizzati nella pagina del menu in aggiunta a quello standard. Puoi modificare questi menu selezionandoli dal menu a tendina presente in fondo alla sezione <strong>Menu</strong>.
                 </p>
                 <h4 class="mt-8">Sezione Menu</h4>
                 <p>
                     In questa sezione puoi inserire o modificare i singoli menù giornalieri selezionando il tasto modifica di fianco ad ogni settimana (contrassegnato da <strong>A</strong> nell'immagine 2). Nella pagina seguente potrai inserire inserire i menù giornalieri oppure modificare quelli già inseriti. Se preferisci puoi utilizzare la funzione per caricare i menu in formato excel utilizzando il bottone <strong>Carica Menu</strong> (contrassegnato da <strong>B</strong> nell'immagine 2). Se hai attivato i menu alternativi puoi selezionare il menu alternativo nel menu a tendina (contrassegnato da <strong>C</strong> nell'immagine 2). Verifica su quale menu stai lavorando verificando il badge di fianco al titolo della sezione (contrassegnato da <strong>D</strong> nell'immagine seguente).
                 </p>
-                <figure>
+                <figure class="mx-auto max-w-2xl">
                     <img src="{% static 'img/help/sezione_menu.jpg' %}" alt="Sezione Menu">
                     <figcaption class="mt-2 text-sm text-center text-gray-500">2. Sezione menu</figcaption>
                 </figure>
                 <p>
                     Se hai selezionato l'opzione <strong>Menu Annuale</strong> non sarà possibile modificare i singoli menu giornalieri (coming soon) ma dovrai modificarli nel file CSV e poi caricarlo tramite la funzione <strong>Carica Menu</strong>.
                 </p>
-                <figure>
+                <figure class="mx-auto max-w-2xl">
                     <img src="{% static 'img/help/sezione_menu_annuale.jpg' %}"
                         alt="Sezione Menu Annuale">
                     <figcaption class="mt-2 text-sm text-center text-gray-500">3. Sezione menu annuale</figcaption>
@@ -40,37 +52,37 @@
                 <p>
                     Nella finestra che compare dopo aver cliccato sul bottone <strong>Carica Menu</strong> è possibile caricare in un unica operazione tutti i menu delle 4 settimane della stagione (che va selezionata nel menu a tendina sotto la voce <strong>Stagionalità</strong>, questa scelta non compare quando viene selezionato <strong>Menu Annuale</strong>). È possibile scaricare un file di esempio (diverso a seconda del tipo di menù scelto) da compilare con i menu che poi potrà essere caricato sul sito. Il caricamento del file sovrascriverà in maniera definitiva i menu già salvati.
                 </p>
-                    <figure>
+                    <figure class="mx-auto max-w-3xl">
                         <img src="{% static 'img/help/carica_menu.jpg' %}"
                          alt="Finestra Carica Menu">
                         <figcaption class="mt-2 text-sm text-center text-gray-500">4. Finestra carica menu</figcaption>
                     </figure>
                 <h4 class="mt-8">Sezione Account</h4>
                 <p>In questa sezione è possibile modificare il proprio indirizzo mail, ottenere una copia dei propri dati conservati sul nostro server (coming soon) e cancellare definitivamente il proprio account. E inoltre possibile leggere le segnalazioni ricevute dagli utenti relative al menu pubblicato (che vengono notificate via mail appena ricevute).</p>
-                    <figure>
+                    <figure class="mx-auto max-w-2xl">
                         <img src="{% static 'img/help/sezione_account.jpg' %}"
                             alt="Sezione Account">
                         <figcaption class="mt-2 text-sm text-center text-gray-500">5. Sezione account</figcaption>
                     </figure>
                 <p> È possibile rispondere a queste segnalazioni (<strong>A</strong> nell'immagine 6b) se chi le create ha fornito il suo consenso e il suo indirizzo mail. Una volta risposto alla segnalazione ed effettuato le eventuali correzioni richieste è possibile segnare le segnalazioni come completate (<strong>B</strong> nell'immagine 6b).</p>
-                <figure>
+                <figure class="mx-auto max-w-2xl">
                     <img src="{% static 'img/help/lista_menu_feedback.jpg' %}"
                         alt="Lista Segnalazioni Ricevute">
                     <figcaption class="mt-2 text-sm text-center text-gray-500">6a. Lista segnalazioni ricevute</figcaption>
                 </figure>
-                <figure>
+                <figure class="mx-auto max-w-4xl">
                     <img src="{% static 'img/help/dettaglio_menu_feedback.jpg' %}"
                         alt="Finestra Dettaglio Segnalazione">
                     <figcaption class="mt-2 text-sm text-center text-gray-500">6b. Dettaglio segnalazione</figcaption>
                 </figure>
                 <p>Per modificare il proprio indirizzo mail selezionare gestisci indirizzo mail, aggiungere il nuovo indirizzo mail, procedere alla verifica cliccando sul link inviato a quell'indirizzo, renderlo principale e successivamente eliminare quello vecchio. Da questo momento il login dovrà essere effettuato utilizzando il nuovo indirizzo mail fornito.</p>
-                <figure>
+                <figure class="mx-auto max-w-3xl">
                     <img src="{% static 'img/help/indirizzi_email.jpg' %}"
                         alt="Gestione Email">
                     <figcaption class="mt-2 text-sm text-center text-gray-500">7. Pagina gestione email</figcaption>
                 </figure>
                 <p>È infine possibile cancellare completamente il proprio account eliminando qualsiasi informazione inserita nel nostro database utilizzando la sezione <strong>Cancella dati e account</strong>. Attenzione, questa procedura è irreversibile quindi in caso prima di procedere scaricate i menu della vostra scuola.</p>
-                <figure>
+                <figure class="mx-auto max-w-3xl">
                     <img src="{% static 'img/help/cancella_account.jpg' %}"
                         alt="Cancella Dati e Account">
                     <figcaption class="mt-2 text-sm text-center text-gray-500">8. Cancella dati e account</figcaption>

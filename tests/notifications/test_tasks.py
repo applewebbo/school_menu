@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -52,13 +52,11 @@ def subscription_same_day_9am(school):
 
 
 @patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks._has_menu_for_date")
 @patch("notifications.tasks.build_menu_notification_payload")
 @patch("notifications.tasks.send_test_notification")
 def test_send_menu_notifications_sends_to_correct_time(
     mock_send_test_notification,
     mock_build_payload,
-    mock_has_menu,
     mock_is_school_in_session,
     school,
     subscription_same_day_9am,
@@ -71,7 +69,6 @@ def test_send_menu_notifications_sends_to_correct_time(
         notification_time=AnonymousMenuNotification.SAME_DAY_12PM,
     )
     mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
-    mock_has_menu.return_value = True
     mock_is_school_in_session.return_value = True
 
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
@@ -79,30 +76,6 @@ def test_send_menu_notifications_sends_to_correct_time(
     mock_send_test_notification.assert_called_once()
     args, _ = mock_send_test_notification.call_args
     assert args[0] == subscription_same_day_9am.subscription_info
-
-
-@patch("notifications.tasks.logger")
-@patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks._has_menu_for_date")
-@patch("notifications.tasks.build_menu_notification_payload")
-@patch("notifications.tasks.send_test_notification")
-def test_send_menu_notifications_no_payload(
-    mock_send_test_notification,
-    mock_build_payload,
-    mock_has_menu,
-    mock_is_school_in_session,
-    mock_logger,
-    subscription_same_day_9am,
-):
-    """Test that no notification is sent if payload is None."""
-    mock_has_menu.return_value = True  # Ensure we pass the date check
-    mock_is_school_in_session.return_value = True
-    mock_build_payload.return_value = None
-    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
-    mock_send_test_notification.assert_not_called()
-    mock_logger.info.assert_any_call(
-        f"Nessun menu trovato per la scuola {subscription_same_day_9am.school.name}, notifiche non inviate."
-    )
 
 
 @patch("notifications.tasks._send_menu_notifications")
@@ -130,19 +103,16 @@ def test_specific_time_tasks_call_helper(mock_send_menu_notifications):
 
 
 @patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks._has_menu_for_date")
 @patch("notifications.tasks.webpush")
 @patch("notifications.tasks.build_menu_notification_payload")
 def test_expired_subscription_is_deleted(
     mock_build_payload,
     mock_webpush,
-    mock_has_menu,
     mock_is_school_in_session,
     subscription_same_day_9am,
 ):
     """Test that an expired subscription is deleted after a WebPushException."""
     mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
-    mock_has_menu.return_value = True
     mock_is_school_in_session.return_value = True
     mock_response = MagicMock()
     mock_response.status_code = 410  # Gone
@@ -236,72 +206,6 @@ class TestHasMenuForDate:
         assert _has_menu_for_date(school, target_date) is False
 
 
-@patch("notifications.tasks.send_test_notification")
-@patch("notifications.tasks.date")
-def test_send_menu_notifications_skipped_on_weekend_without_menu(
-    mock_date, mock_send_test_notification, subscription_same_day_9am
-):
-    """Test that notifications are skipped on a weekend if no menu exists."""
-    # Set the current date to a Saturday
-    mock_date.today.return_value = date(2025, 8, 2)
-
-    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
-
-    mock_send_test_notification.assert_not_called()
-
-
-@patch("notifications.tasks.logger")
-@patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks.send_test_notification")
-@patch("notifications.tasks.date")
-def test_send_menu_notifications_logs_skip_on_weekend_without_menu(
-    mock_date,
-    mock_send_test_notification,
-    mock_is_school_in_session,
-    mock_logger,
-    subscription_same_day_9am,
-):
-    """Test that a log message is created when skipping a weekend notification."""
-    # Set the current date to a Saturday
-    saturday = date(2025, 8, 2)
-    mock_date.today.return_value = saturday
-    mock_is_school_in_session.return_value = True  # Mock school in session
-    school = subscription_same_day_9am.school
-
-    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
-
-    mock_send_test_notification.assert_not_called()
-    mock_logger.info.assert_any_call(
-        f"Skipping notification for {school.name} on {saturday.strftime('%A')} "
-        "as there is no menu."
-    )
-
-
-@patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks.build_menu_notification_payload")
-@patch("notifications.tasks.send_test_notification")
-@patch("notifications.tasks.date")
-def test_send_menu_notifications_sent_on_weekend_with_menu(
-    mock_date,
-    mock_send_test_notification,
-    mock_build_payload,
-    mock_is_school_in_session,
-    school,
-    subscription_previous_day,
-):
-    """Test that notifications are sent on a weekend if a menu exists."""
-    # Set the current date to a Friday, so the target is Saturday
-    saturday = date(2025, 8, 2)
-    mock_date.today.return_value = saturday - timedelta(days=1)
-    mock_is_school_in_session.return_value = True
-    AnnualMealFactory(school=school, date=saturday, is_active=True)
-    mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
-
-    _send_menu_notifications(AnonymousMenuNotification.PREVIOUS_DAY_6PM)
-
-    mock_send_test_notification.assert_called_once()
-
-
 @patch("notifications.tasks.settings")
 @patch("notifications.tasks._is_school_in_session")
 @patch("notifications.tasks.send_test_notification")
@@ -319,13 +223,11 @@ def test_send_menu_notifications_school_not_in_session(
 
 @patch("notifications.tasks.settings")
 @patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks._has_menu_for_date")
 @patch("notifications.tasks.build_menu_notification_payload")
 @patch("notifications.tasks.send_test_notification")
 def test_send_menu_notifications_school_in_session(
     mock_send_notification,
     mock_build_payload,
-    mock_has_menu,
     mock_is_in_session,
     mock_settings,
     subscription_same_day_9am,
@@ -333,7 +235,6 @@ def test_send_menu_notifications_school_in_session(
     """Test that notifications are sent if the school is in session."""
     mock_settings.ENABLE_SCHOOL_DATE_CHECK = True
     mock_is_in_session.return_value = True
-    mock_has_menu.return_value = True
     mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
 
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
@@ -377,13 +278,11 @@ class TestIsSchoolInSession:
 
 @patch("notifications.tasks.settings")
 @patch("notifications.tasks._is_school_in_session")
-@patch("notifications.tasks._has_menu_for_date")
 @patch("notifications.tasks.build_menu_notification_payload")
 @patch("notifications.tasks.send_test_notification")
 def test_send_menu_notifications_check_disabled(
     mock_send_notification,
     mock_build_payload,
-    mock_has_menu,
     mock_is_in_session,
     mock_settings,
     subscription_same_day_9am,
@@ -391,7 +290,6 @@ def test_send_menu_notifications_check_disabled(
     """Test that the school session check is skipped if disabled."""
     mock_settings.ENABLE_SCHOOL_DATE_CHECK = False
     mock_build_payload.return_value = {"head": "Test", "body": "Test body"}
-    mock_has_menu.return_value = True
 
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 

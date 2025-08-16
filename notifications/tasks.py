@@ -110,29 +110,7 @@ def _send_menu_notifications(notification_time):
             )
             continue
 
-        day_of_week = target_date.weekday()
-
-        # Skip notifications on weekends if there's no specific menu
-        # For PREVIOUS_DAY_6PM, check is on Friday (4) for Saturday's menu, and Saturday (5) for Sunday's menu
-        # For SAME_DAY, check is on Saturday (5) and Sunday (6)
-        is_weekend_check = (is_previous_day and day_of_week in [4, 5]) or (
-            not is_previous_day and day_of_week in [5, 6]
-        )
-
-        if is_weekend_check and not _has_menu_for_date(school, target_date):
-            logger.info(
-                f"Skipping notification for {school.name} on {target_date.strftime('%A')} "
-                "as there is no menu."
-            )
-            continue
-
         payload = build_menu_notification_payload(school, is_previous_day)
-
-        if not payload:
-            logger.info(
-                f"Nessun menu trovato per la scuola {school.name}, notifiche non inviate."
-            )
-            continue
 
         payload["icon"] = "/static/img/notification-bell.png"
         payload["url"] = school.get_absolute_url()

@@ -13,6 +13,7 @@ from tablib import Dataset
 from tablib.exceptions import InvalidDimensions
 
 from contacts.models import MenuReport
+from notifications.tasks import _is_school_in_session
 from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
@@ -103,6 +104,13 @@ def school_menu(request, slug, meal_type="S"):
     notifications_status = get_notifications_status(pk, school)
     if not school.is_published:
         return render(request, "school-menu.html", {"not_published": True})
+    if not _is_school_in_session(school, datetime.now()):
+        context = {
+            "not_in_session": True,
+            "start_day": school.start_day,
+            "start_month": school.start_month,
+        }
+        return render(request, "school-menu.html", context)
     current_week, adjusted_day = get_current_date()
     bias = school.week_bias
     adjusted_week = calculate_week(current_week, bias)

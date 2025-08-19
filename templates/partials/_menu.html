@@ -1,4 +1,4 @@
-{% load heroicons social_share %}
+{% load heroicons social_share static %}
 <div class="text-center" id="day_menu">
     {% include 'partials/_days_menu.html' %}
     <div id="current_menu" class="my-7 text-center">
@@ -35,10 +35,14 @@
             </div>
             {% endif %}
         {% else %}
-            <p class="p-12 text-xl font-medium text-base-content">
-                <em>Nessun menù caricato per il giorno selezionato</em>
+            {% if not_in_session %}
+            {% include 'partials/_not_in_session.html' %}
+            {% else %}
+            <img src="{% static 'img/calendar.png' %}" alt="" class="mx-auto mt-8 xl:mt-12 max-w-24">
+            <p class="pt-6 text-xl font-medium tracking-tight text-base-content">
+                Nessun menù per il giorno selezionato
             </p>
-            <br>
+            {% endif %}
         {% endif %}
     </div>
     <div class="mt-14 mb-8 divider">NOTIFICHE</div>
@@ -47,7 +51,7 @@
     </div>
     <div class="mt-14 mb-8 divider">CONDIVIDI</div>
     <div id="share"
-         class="flex flex-col gap-3 justify-center mt-4 mb-8 md:flex-row"
+         class="flex flex-col gap-3 justify-center mx-12 mt-4 mb-8 md:flex-row md:mx-0"
          x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
         <!--   https://www.alpinejs.dev/component/tooltip -->
         <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."

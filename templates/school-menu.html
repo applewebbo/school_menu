@@ -8,8 +8,6 @@
     <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
         {% if not_published %}
             <div class="place-self-center mx-auto">{% include 'partials/_notpublished.html' %}</div>
-        {% elif not_in_session %}
-            <div class="place-self-center mx-auto">{% include 'partials/_not_in_session.html' %}</div>
         {% else %}
             <div class="place-self-center mx-auto">{% include 'partials/_menu.html' %}</div>
         {% endif %}

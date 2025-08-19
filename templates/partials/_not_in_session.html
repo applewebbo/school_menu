@@ -1,11 +1,12 @@
-{% load filters heroicons %}
+{% load filters heroicons static %}
 <div class="mb-12">
-    <div class="p-4 text-center">
-        <h2 class="my-6 mx-auto text-2xl font-semibold tracking-tight md:my-8 xl:my-12">
+    <div class="text-center">
+        <img src="{% static 'img/holidays.png' %}" alt="" class="mx-auto mt-8 xl:mt-12 max-w-36">
+        <h2 class="my-4 mx-auto text-xl font-medium tracking-tight md:my-6 xl:my-8 text-base-content">
             Nessun menu per il giorno selezionato
         </h2>
-        <div role=alert class="max-w-md alert alert-info alert-dash">
-            {% heroicon_outline 'information-circle' %}
+        <div role=alert class="alert alert-vertical sm:alert-horizontal">
+            {% heroicon_outline 'information-circle' class="text-info" %}
             <span>La scuola risulta chiusa per la stagione estiva. Potrai visualizzare di nuovo il menu del giorno quando riaprirà il <strong>{{ start_day }}&nbsp;{{ start_month|month_name }}</strong>.</span>
         </div>
     </div>

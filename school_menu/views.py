@@ -109,6 +109,7 @@ def school_menu(request, slug, meal_type="S"):
             "not_in_session": True,
             "start_day": school.start_day,
             "start_month": school.start_month,
+            "school": school,
         }
         return render(request, "school-menu.html", context)
     current_week, adjusted_day = get_current_date()

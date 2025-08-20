@@ -127,15 +127,42 @@ class IndexView(TestCase):
         self.response_200(response)
         assert response.context["school"] == school
 
+    @time_machine.travel("2025-04-14")  # Monday
     def test_get_with_annual_meal_setting(self):
         user = self.make_user()
         school = SchoolFactory(user=user, annual_menu=True)
+        meal = AnnualMealFactory(school=school, date=date.today())
 
         with self.login(user):
             response = self.get("school_menu:index")
 
         self.response_200(response)
         assert response.context["school"] == school
+        assert response.context["meal"] == meal
+
+    @time_machine.travel("2025-08-20")
+    def test_get_when_school_not_in_session(self):
+        user = self.make_user()
+        SchoolFactory(user=user, start_month=9, start_day=15, end_month=6, end_day=10)
+
+        with self.login(user):
+            response = self.get("school_menu:index")
+
+        self.response_200(response)
+        assert response.context["not_in_session"] is True
+
+    @time_machine.travel("2025-04-14")  # Monday
+    def test_get_with_no_meal_for_today(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        # Don't create a meal for today
+
+        with self.login(user):
+            response = self.get("school_menu:index")
+
+        self.response_200(response)
+        assert response.context["school"] == school
+        assert response.context["meal"] is None
 
 
 class SchoolMenuView(TestCase):
@@ -155,8 +182,10 @@ class SchoolMenuView(TestCase):
         assertTemplateUsed(response, "school-menu.html")
         assert response.context["school"] == school
 
+    @time_machine.travel("2025-04-14")  # Monday
     def test_get_with_annual_menu(self):
         school = SchoolFactory(annual_menu=True)
+        AnnualMealFactory(school=school, date=date.today())
         response = self.get("school_menu:school_menu", slug=school.slug)
 
         self.response_200(response)
@@ -169,6 +198,24 @@ class SchoolMenuView(TestCase):
 
         self.response_200(response)
         assert response.context["not_published"]
+
+    @time_machine.travel("2025-08-20")
+    def test_get_when_school_not_in_session(self):
+        school = SchoolFactory(start_month=9, start_day=15, end_month=6, end_day=10)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["not_in_session"] is True
+
+    @time_machine.travel("2025-04-14")  # Monday
+    def test_get_with_no_meal_for_today(self):
+        school = SchoolFactory()
+        # Don't create a meal for today
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["school"] == school
+        assert response.context["meal"] is None
 
 
 class GetMenuView(TestCase):
@@ -804,14 +851,14 @@ class SchoolSearchView(TestCase):
             in response.content.decode()
         )
 
-    # def test_with_index_page_referer(self):
-    #     self.get(
-    #         "school_menu:search_schools",
-    #         data={"q": "test"},
-    #         extra={"HTTP_REFERER": "localhost:8000/"},
-    #     )
-
-    #     self.assertResponseHeaders({'HTTP_REFERER': 'localhost:8000/'})
+    def test_with_index_page_referer(self):
+        response = self.get(
+            "school_menu:search_schools",
+            data={"q": "test"},
+            extra={"HTTP_REFERER": "http://testserver/"},
+        )
+        self.response_200(response)
+        self.assertContains(response, '<div id="school-list"')
 
 
 class TestExportModalView(TestCase):

@@ -67,6 +67,14 @@ def index(request):
         season = get_season(school)
         alt_menu = get_alt_menu(school.user)
         meal_type = "S"
+        if not _is_school_in_session(school, datetime.now()):
+            context = {
+                "not_in_session": True,
+                "start_day": school.start_day,
+                "start_month": school.start_month,
+                "school": school,
+            }
+            return render(request, "index.html", context)
         if school.annual_menu:
             weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
         else:

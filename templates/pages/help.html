@@ -36,22 +36,46 @@
                 </a>
             </div>
 
-            <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+            <article class="max-w-none prose"
                      x-show="activeTab === 'notifiche'" role="tabpanel">
-                <h4 class="text-center md:text-left">Gestione Notifiche</h4>
-                <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Libero iusto illo fugit assumenda molestiae quia nemo, pariatur maiores beatae adipisci recusandae magnam reiciendis, non asperiores voluptatum rem veritatis natus suscipit.</p>
+                <h4>Gestione Notifiche</h4>
+                <p>È possibile ricevere notifiche giornaliere relative al menu della scuola scelta senza bisogno di creare un account. Per poterlo fare bisogna installare questo sito come Web App seguendo le istruzioni fornite a questa <a href="{% url 'notifications:notification_settings' %}">pagina</a></p>
+                <figure>
+                    <img src="{% static 'img/help/installa_app_chrome_based.jpg' %}" alt="Schermata di installazione app su browser Chrome">
+                    <figcaption>1a. Installa app su Chrome</figcaption>
+                </figure>
+                <figure>
+                    <img src="{% static 'img/help/installa_app_ios_based.jpg' %}" alt="Schermata di installazione app su browser iOS">
+                    <figcaption>1b. Installa app su iOS</figcaption>
+                </figure>
+                <p>Una volta installata apri l'app e naviga di nuovo alla pagina delle notifiche dove potrai attivarle scegliendo la scuola (fra tutte quelle presenti nel nostro database) e l'orario in cui ricevere tale notifica (alle 18 del giorno prima,alle 9, alle 12 e alle 18).</p>
+                <figure>
+                    <img src="{% static 'img/help/notification_splash.jpg' %}" alt="Schermata di selezione scuola e orario per notifiche">
+                    <figcaption>2. Abilita Notifiche</figcaption>
+                </figure>
+                <p>Il tuo dispositivo ti chiederà di accettare le notifiche dall'app. Una volta accordato il permesso.</p>
+                <figure>
+                    <img src="{% static 'img/help/notification_permission.jpg' %}" alt="Richiesta permesso per ricevere notifiche su Mac OS">
+                    <figcaption>3. Esempio di richiesta su Mac OS</figcaption>
+                </figure>
+                <p>Una volta consentito all'app di inviare notifiche al vostro dispositivo apparirà il menu in figura 4 dove potete modificare scuola e orario, ricevere una notifica di prova e annullare completamente la ricezione delle notifiche.</p>
+                <figure>
+                    <img src="{% static 'img/help/notification_setting.jpg' %}" alt="Impostazioni notifiche giornaliere">
+                    <figcaption>4. Impostazioni notifiche</figcaption>
+                </figure>
+                <p>La funzione relativa alla ricezione delle notifiche potrebbe non funzionare su alcuni dispositivi per limitazioni di sistema. In caso di problemi non esitate a contattarci tramite la pagina <a href="{% url 'contacts:contact' %}">contatti</a> specificando il dispositivo che utilizzate.</p>
             </article>
 
-            <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+            <article class="max-w-none prose"
                      x-show="activeTab === 'scuola'" role="tabpanel">
-                <h4 class="text-center md:text-left">Gestione Scuola</h4>
+                <h4>Gestione Scuola</h4>
                 <p>
                     Al primo accesso verrai reindirizzato alla pagina del tuo profilo dove potrai creare la scuola. In questa maschera devi inserire il nome della scuola e la città (la combinazione di questi due campi viene utilizzata per creare il link del menu giornaliero da poter condividere. È quindi è consigliabile scegliere in maniera accurata il valore di questi campi e non modificarli successivamente).
                 </p>
-                <figure class="mx-auto w-full">
+                <figure>
                     <img src="{% static 'img/help/maschera_crea_scuola.jpg' %}"
                      alt="Maschera Crea Scuola">
-                     <figcaption class="mt-2 text-sm text-center text-gray-500">1. Sezione scuola</figcaption>
+                     <figcaption>5. Sezione scuola</figcaption>
                 </figure>
                 <p>
                     Nel campo <strong>Tipo di Menù</strong> puoi selezionare <strong>Semplice</strong> (adatto a scuole dell'infanzia e asili con un campo menu unificato più spuntino e merenda) oppure <strong>Dettagliato</strong> (adatto alle scuole primarie e secondarie con i campi separati per primo, secondo, contorno, frutta e spuntino). Toglli la spunta sul campo <strong>Menu Pubblico</strong> per rendere il tuo menu privato (solo tu potrai vederlo se loggato, utile in fase di creazione del menu).
@@ -69,67 +93,67 @@
                     Infine nella sezione <strong>Menu Alternativi</strong> puoi attivare altri tipi di menu se la tua scuola li propone che verranno visualizzati nella pagina del menu in aggiunta a quello standard. Puoi modificare questi menu selezionandoli dal menu a tendina presente in fondo alla sezione <strong>Menu</strong>.
                 </p>
             </article>
-            <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+            <article class="max-w-none prose"
                      x-show="activeTab === 'menu'" role="tabpanel">
-                <h4 class="text-center md:text-left">Gestione Menu</h4>
+                <h4>Gestione Menu</h4>
                 <p>
-                    In questa sezione puoi inserire o modificare i singoli menù giornalieri selezionando il tasto modifica di fianco ad ogni settimana (contrassegnato da <strong>A</strong> nell'immagine 2). Nella pagina seguente potrai inserire inserire i menù giornalieri oppure modificare quelli già inseriti. Se preferisci puoi utilizzare la funzione per caricare i menu in formato excel utilizzando il bottone <strong>Carica Menu</strong> (contrassegnato da <strong>B</strong> nell'immagine 2). Se hai attivato i menu alternativi puoi selezionare il menu alternativo nel menu a tendina (contrassegnato da <strong>C</strong> nell'immagine 2). Verifica su quale menu stai lavorando verificando il badge di fianco al titolo della sezione (contrassegnato da <strong>D</strong> nell'immagine seguente).
+                    In questa sezione puoi inserire o modificare i singoli menù giornalieri selezionando il tasto modifica di fianco ad ogni settimana (contrassegnato da <strong>A</strong> nell'immagine 6). Nella pagina seguente potrai inserire inserire i menù giornalieri oppure modificare quelli già inseriti. Se preferisci puoi utilizzare la funzione per caricare i menu in formato excel utilizzando il bottone <strong>Carica Menu</strong> (contrassegnato da <strong>B</strong> nell'immagine 6). Se hai attivato i menu alternativi puoi selezionare il menu alternativo nel menu a tendina (contrassegnato da <strong>C</strong> nell'immagine 6). Verifica su quale menu stai lavorando verificando il badge di fianco al titolo della sezione (contrassegnato da <strong>D</strong> nell'immagine 6).
                 </p>
-                <figure class="mx-auto max-w-2xl">
+                <figure>
                     <img src="{% static 'img/help/sezione_menu.jpg' %}" alt="Sezione Menu">
-                    <figcaption class="mt-2 text-sm text-center text-gray-500">2. Sezione menu</figcaption>
+                    <figcaption>6. Sezione menu</figcaption>
                 </figure>
                 <p>
                     Se hai selezionato l'opzione <strong>Menu Annuale</strong> non sarà possibile modificare i singoli menu giornalieri (coming soon) ma dovrai modificarli nel file CSV e poi caricarlo tramite la funzione <strong>Carica Menu</strong>.
                 </p>
-                <figure class="mx-auto max-w-2xl">
+                <figure>
                     <img src="{% static 'img/help/sezione_menu_annuale.jpg' %}"
                         alt="Sezione Menu Annuale">
-                    <figcaption class="mt-2 text-sm text-center text-gray-500">3. Sezione menu annuale</figcaption>
+                    <figcaption>7. Sezione menu annuale</figcaption>
                 </figure>
                 <p>
                     Nella finestra che compare dopo aver cliccato sul bottone <strong>Carica Menu</strong> è possibile caricare in un unica operazione tutti i menu delle 4 settimane della stagione (che va selezionata nel menu a tendina sotto la voce <strong>Stagionalità</strong>, questa scelta non compare quando viene selezionato <strong>Menu Annuale</strong>). È possibile scaricare un file di esempio (diverso a seconda del tipo di menù scelto) da compilare con i menu che poi potrà essere caricato sul sito. Il caricamento del file sovrascriverà in maniera definitiva i menu già salvati.
                 </p>
-                    <figure class="mx-auto max-w-3xl">
+                    <figure>
                         <img src="{% static 'img/help/carica_menu.jpg' %}"
                          alt="Finestra Carica Menu">
-                        <figcaption class="mt-2 text-sm text-center text-gray-500">4. Finestra carica menu</figcaption>
+                        <figcaption>8. Finestra carica menu</figcaption>
                     </figure>
                 </article>
-                <article class="max-w-none prose prose-img:mx-auto sm:prose-img:w-2/3"
+                <article class="max-w-none prose"
                      x-show="activeTab === 'account'" role="tabpanel">
-                <h4 class="text-center md:text-left">Gestione Account</h4>
+                <h4>Gestione Account</h4>
                 <p>In questa sezione è possibile modificare il proprio indirizzo mail, ottenere una copia dei propri dati conservati sul nostro server (coming soon) e cancellare definitivamente il proprio account. E inoltre possibile leggere le segnalazioni ricevute dagli utenti relative al menu pubblicato (che vengono notificate via mail appena ricevute).</p>
-                    <figure class="mx-auto max-w-2xl">
+                    <figure>
                         <img src="{% static 'img/help/sezione_account.jpg' %}"
                             alt="Sezione Account">
-                        <figcaption class="mt-2 text-sm text-center text-gray-500">5. Sezione account</figcaption>
+                        <figcaption>9. Sezione account</figcaption>
                     </figure>
-                <p> È possibile rispondere a queste segnalazioni (<strong>A</strong> nell'immagine 6b) se chi le create ha fornito il suo consenso e il suo indirizzo mail. Una volta risposto alla segnalazione ed effettuato le eventuali correzioni richieste è possibile segnare le segnalazioni come completate (<strong>B</strong> nell'immagine 6b).</p>
-                <figure class="mx-auto max-w-2xl">
+                <p> È possibile rispondere a queste segnalazioni (<strong>A</strong> nell'immagine 10b) se chi le create ha fornito il suo consenso e il suo indirizzo mail. Una volta risposto alla segnalazione ed effettuato le eventuali correzioni richieste è possibile segnare le segnalazioni come completate (<strong>B</strong> nell'immagine 10b).</p>
+                <figure>
                     <img src="{% static 'img/help/lista_menu_feedback.jpg' %}"
                         alt="Lista Segnalazioni Ricevute">
-                    <figcaption class="mt-2 text-sm text-center text-gray-500">6a. Lista segnalazioni ricevute</figcaption>
+                    <figcaption>10a. Lista segnalazioni ricevute</figcaption>
                 </figure>
-                <figure class="mx-auto max-w-4xl">
+                <figure>
                     <img src="{% static 'img/help/dettaglio_menu_feedback.jpg' %}"
                         alt="Finestra Dettaglio Segnalazione">
-                    <figcaption class="mt-2 text-sm text-center text-gray-500">6b. Dettaglio segnalazione</figcaption>
+                    <figcaption>10b. Dettaglio segnalazione</figcaption>
                 </figure>
                 <p>Per modificare il proprio indirizzo mail selezionare gestisci indirizzo mail, aggiungere il nuovo indirizzo mail, procedere alla verifica cliccando sul link inviato a quell'indirizzo, renderlo principale e successivamente eliminare quello vecchio. Da questo momento il login dovrà essere effettuato utilizzando il nuovo indirizzo mail fornito.</p>
-                <figure class="mx-auto max-w-3xl">
+                <figure>
                     <img src="{% static 'img/help/indirizzi_email.jpg' %}"
                         alt="Gestione Email">
-                    <figcaption class="mt-2 text-sm text-center text-gray-500">7. Pagina gestione email</figcaption>
+                    <figcaption>11. Pagina gestione email</figcaption>
                 </figure>
                 <p>È infine possibile cancellare completamente il proprio account eliminando qualsiasi informazione inserita nel nostro database utilizzando la sezione <strong>Cancella dati e account</strong>. Attenzione, questa procedura è irreversibile quindi in caso prima di procedere scaricate i menu della vostra scuola.</p>
-                <figure class="mx-auto max-w-3xl">
+                <figure>
                     <img src="{% static 'img/help/cancella_account.jpg' %}"
                         alt="Cancella Dati e Account">
-                    <figcaption class="mt-2 text-sm text-center text-gray-500">8. Cancella dati e account</figcaption>
+                    <figcaption>12. Cancella dati e account</figcaption>
                 </figure>
-                <h4 class="mt-8">Aiuto</h4>
-                <p>Per qualsiasi altro dubbio oppure per chiedere aiuto nella convalida del file CSV per i menu non esitare a contattarci attraverso la pagina <a href="{% url 'contacts:contact' %}" class="link link-primary">Contatti</a> del sito.</p>
+                <h4>Aiuto</h4>
+                <p>Per qualsiasi altro dubbio oppure per chiedere aiuto nella convalida del file CSV per i menu non esitare a contattarci attraverso la pagina <a href="{% url 'contacts:contact' %}">contatti</a> del sito.</p>
             </article>
         </div>
     </section>

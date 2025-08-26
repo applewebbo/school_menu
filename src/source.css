@@ -107,7 +107,7 @@
 }
 
 .prose h2 {
-  @apply text-base-content font-medium text-2xl/10 tracking-tight mt-8 mb-2 text-center md:text-left;
+  @apply text-base-content font-medium text-xl/10 tracking-tight mt-8 mb-2 text-center md:text-left;
 }
 
 .prose h3 {
@@ -135,7 +135,7 @@
 
 /* Immagini */
 .prose img {
-  @apply mx-auto rounded-lg mt-8 mb-4 h-auto max-w-full border border-base-300 shadow-sm dark:border-none dark:shadow-none;
+  @apply md:float-end rounded-lg mt-8 mb-4 h-auto border border-base-300 shadow-sm dark:border-none dark:shadow-none;
 }
 
 
@@ -145,5 +145,5 @@
 }
 
 .prose figcaption {
-  @apply text-base-content/70 text-sm/4 mt-2 text-center;
+  @apply text-base-content/90 text-sm/4 mt-2 text-center;
 }

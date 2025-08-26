@@ -8,19 +8,16 @@
 <div class="container mx-auto mb-8 max-w-screen-lg">
     <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
         <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Scuole</h1>
-        <p class="text-gray-700">
+        <p class="text-base-content">
             Qui puoi vedere tutte le scuole e i relativi menu creati dai nostri utenti. Non siamo responsabili della correttezza dei menu pubblicati.
         </p>
         <div class="grid grid-cols-1 gap-3 mx-auto max-w-screen-xl md:grid-cols-2 grid-cols">
             <!-- School Search -->
             <div id="search" class="my-4 md:order-last">
-                <div class="flex items-center mx-auto mb-4 max-w-sm">
-                    <label for="simple-search" class="sr-only">Search</label>
-                    <div class="relative w-full">
-                        <div class="flex absolute inset-y-0 items-center pointer-events-none start-0 ps-3">
-                            {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-green-600" %}
-                        </div>
-                        <input type="text"
+                <div class="flex items-center my-4 mx-auto max-w-sm">
+                    <label for="simple-search" class="relative input">
+                        {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-primary" %}
+                        <input type="search"
                                 id="simple-search"
                                 name="q"
                                 hx-get="{% url 'school_menu:search_schools' %}"
@@ -28,29 +25,29 @@
                                 hx-trigger="keyup changed delay:1s"
                                 hx-target="#school-list"
                                 hx-indicator="#spinner"
-                                class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:border-green-500 focus:ring-green-500 ps-10"
+                                class="grow"
                                 placeholder="Cerca scuola o città..."
                                 autocomplete="off"
                                 required />
                         <span id="spinner"
-                                class="absolute top-2 htmx-indicator loading loading-bars text-primary loading-md end-4"></span>
-                    </div>
+                                class="absolute top-2 htmx-indicator loading loading-bars text-primary loading-md end-8">
+                        </span>
+                    </label>
                 </div>
-                <hr class="my-3 mx-auto w-48 h-1 bg-gray-100 rounded border-0 md:hidden">
             </div>
             <!-- School List -->
             {% partialdef search-result inline %}
             <div id="school-list">
                 <ul class="md:mt-6">
                     {% if no_schools %}
-                        <p class="italic font-light text-red-600">Nessuna scuola soddisfa i criteri di ricerca...</p>
+                        <p class="italic font-light text-error">Nessuna scuola soddisfa i criteri di ricerca...</p>
                     {% else %}
                         {% for school in schools %}
                             <li class="mb-3">
-                                <a class="font-medium text-gray-600 hover:text-green-600 hover:underline underline-offset-2"
+                                <a class="font-medium hover:underline text-base-content/90 underline-offset-2 hover:text-primary"
                                     href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})
                                     {% if index %}
-                                        {% heroicon_solid 'arrow-right-circle' class="text-green-600 size-5 ms-2" %}
+                                        {% heroicon_solid 'arrow-right-circle' class="text-primary size-5 ms-2" %}
                                     {% endif %}
                                 </a>
                             </li>

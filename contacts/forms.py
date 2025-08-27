@@ -17,7 +17,7 @@ class ContactForm(forms.Form):
     )
     message = forms.CharField(
         widget=forms.Textarea(attrs={"placeholder": "Scrivi un messaggio"}),
-        label="",
+        label="Messaggio",
     )
 
     def __init__(self, *args, **kwargs):

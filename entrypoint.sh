@@ -3,6 +3,9 @@
 set -eu
 export PYTHONWARNINGS="ignore::SyntaxWarning"
 
+echo "Checking migrations..."
+python manage.py makemigrations
+
 echo "Migrating database..."
 python manage.py migrate
 

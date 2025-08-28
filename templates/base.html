@@ -16,7 +16,8 @@
         <!-- TailwindCSS -->
         <link rel="stylesheet" href="{% static 'css/tailwind.css' %}" />
         {% include 'partials/javascript.html' %}
-        {% block add_js %} {% endblock %}
+        {% block add_js %}
+        {% endblock add_js %}
     </head>
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         {% cookiebanner_modal 'bottom_banner' %}

@@ -34,14 +34,16 @@
               {% heroicon_mini 'information-circle' class="size-4 text-info" %}{{ cookiegroup.description }}
             </p>
             <div class="px-4 text-pretty">
-              <table class="table table-xs table-zebra">
+              <div class="space-y-1">
                 {% for cookie in cookiegroup.cookies %}
-                  <tr>
-                    <td>{{ cookie.pattern }}</td>
-                    <td>{{ cookie.description }}</td>
-                  </tr>
+                <div class="card bg-base-100 shadow-sm p-3 text-xs {% cycle '' 'bg-base-200' %}">
+                  <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+                    <div class="font-semibold md:font-medium">{{ cookie.pattern }}</div>
+                    <div class="text-base-content/70 md:text-base-content">{{ cookie.description }}</div>
+                  </div>
+                </div>
                 {% endfor %}
-              </table>
+              </div>
             </div>
           </div>
         {% endfor %}

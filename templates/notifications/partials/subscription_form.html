@@ -5,7 +5,25 @@
       hx-target="this"
       hx-swap="outerHTML">
     {% csrf_token %}
-    {% crispy form %}
+    {{ form.subscription_info }}
+    <div>
+        <label for="{{ form.school.id_for_label }}" class="w-full select">
+            <span class="label">{{ form.school.label }}</span>
+            {{ form.school }}
+        </label>
+        {% for error in form.school.errors %}
+            <p class="text-xs italic text-error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mt-4">
+        <label for="{{ form.notification_time.id_for_label }}" class="w-full select">
+            <span class="label">{{ form.notification_time.label }}</span>
+            {{ form.notification_time }}
+        </label>
+        {% for error in form.notification_time.errors %}
+            <p class="text-xs italic text-error">{{ error }}</p>
+        {% endfor %}
+    </div>
     <div class="flex flex-col mt-4 sm:flex-row sm:justify-end">
         <button type="button"
                 class="btn btn-primary btn-soft"

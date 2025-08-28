@@ -147,3 +147,7 @@
 .prose figcaption {
   @apply text-base-content/90 text-sm/4 mt-2 text-center;
 }
+
+.hr_divider {
+  @apply border border-base-300 m-5
+}

@@ -1,5 +1,9 @@
 {% load crispy_forms_filters l10n tailwind_filters %}
 <div class="relative">
+    {% if field.label and form_show_labels %}
+        <label for="{{ field.id_for_label }}" class="w-full select">
+            <span class="label">{{ field.label|safe }}{% if field.field.required %}<span class="asteriskField">*</span>{% endif %}</span>
+    {% endif %}
     <select class="select w-full {% if field.errors %}select-error{% endif %}" name="{{ field.html_name }}" {{ field|build_attrs }}>
         {% for group, options, index in field|optgroups %}
             {% if group %}<optgroup label="{{ group }}">{% endif %}
@@ -9,4 +13,7 @@
                 {% if group %}</optgroup>{% endif %}
         {% endfor %}
     </select>
+    {% if field.label and form_show_labels %}
+        </label>
+    {% endif %}
 </div>

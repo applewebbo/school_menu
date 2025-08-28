@@ -91,14 +91,10 @@ class SchoolForm(forms.ModelForm):
                 Div(
                     "name",
                     "city",
-                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
-                    Fieldset(
-                        "Tipo di Menù",
-                        "menu_type",
-                    ),
-                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
-                    "is_published",
-                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
+                    HTML("""<hr class="hr_divider" />"""),
+                    "menu_type",
+                    Div("is_published", css_class="ms-1"),
+                    HTML("""<hr class="hr_divider" />"""),
                     Fieldset(
                         "Anno Scolastico",
                         "start_date",
@@ -106,23 +102,17 @@ class SchoolForm(forms.ModelForm):
                         HTML("""
                             <p class="text-base-content/70 text-sm leading-5">
                             Seleziona data di inizio e fine anno scolastico. Solo all'interno di questo periodo sono attive le notifiche del menu.</p>
-                            <hr class="border border-base-300 my-4 mx-4 md:hidden" />
+                            <hr class="hr_divider md:hidden" />
                         """),
                         css_class="fieldset",
                     ),
                 ),
                 Div(
-                    Fieldset(
-                        "Stagione",
-                        "season_choice",
-                    ),
-                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
+                    "season_choice",
                     "annual_menu",
-                    HTML("""<hr class="border border-base-300 my-4 mx-4" />"""),
+                    HTML("""<hr class="hr_divider" />"""),
                     "week_bias",
-                    HTML(
-                        """<hr class="border border-base-300 my-4 mx-4 md:hidden" />"""
-                    ),
+                    HTML("""<hr class="hr_divider md:hidden" />"""),
                 ),
                 Fieldset(
                     "Menu Alternativi",

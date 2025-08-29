@@ -2,6 +2,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Submit
 from django import forms
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 
@@ -61,7 +62,9 @@ class SchoolForm(forms.ModelForm):
             "city": "Città",
             "season_choice": "Stagione",
             "week_bias": "Scarto",
-            "menu_type": "Tipo di Menù",
+            "menu_type": mark_safe(  # nosec B308
+                'Tipo&nbsp;<span class="hidden sm:block">di Menù</span>'
+            ),
             "is_published": "Menu Pubblico",
             "no_gluten": "No Glutine",
             "no_lactose": "No Lattosio",
@@ -120,7 +123,7 @@ class SchoolForm(forms.ModelForm):
                     Div("no_lactose", css_class="flex items-center me-4"),
                     Div("vegetarian", css_class="flex items-center me-4"),
                     Div("special", css_class="flex items-center me-4"),
-                    css_class="flex col-span-1 md:col-span-2 fieldset",
+                    css_class="flex flex-wrap col-span-1 md:col-span-2 fieldset",
                 ),
                 css_class="grid grid-cols-1 md:grid-cols-2 md:gap-6",
             ),

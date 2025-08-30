@@ -27,10 +27,10 @@
                                 {% endif %}
                             </li>
                             <li>
-                                <span class="primary_label">Inizio Anno Scolastico</span>&nbsp;{{ user.school.start_day }}&nbsp;{{ user.school.start_month|month_name }}
+                                <span class="primary_label">Inizio Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.start_day }}&nbsp;{{ user.school.start_month|month_name }}
                             </li>
                             <li>
-                                <span class="primary_label">Fine Anno Scolastico</span>&nbsp;{{ user.school.end_day }}&nbsp;{{ user.school.end_month|month_name }}
+                                <span class="primary_label">Fine Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.end_day }}&nbsp;{{ user.school.end_month|month_name }}
                             </li>
                         </ul>
                     </div>
@@ -56,7 +56,7 @@
                             {% endif %}
                         </ul>
                         {% if alt_menu %}
-                            <ul class="mt-2 leading-5" id="alternate-meal-settings">
+                            <ul class="leading-10" id="alternate-meal-settings">
                                 <li>
                                     <p class="hidden primary_label">Menu Alternativi</p>
                                     {% if user.school.no_gluten %}

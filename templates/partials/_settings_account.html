@@ -7,7 +7,7 @@
             </h3>
             <div x-data class="grid grid-cols-1 gap-y-2 max-w-lg">
                 <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Gestisci il tuo indirizzo mail</h5>
+                    <h5 class="mr-8 font-medium grow"><span class="hidden sm:inline-block">Gestisci il tuo indirizzo&nbsp;</span><span class="capitalize sm:normal-case">mail</span></h5>
                     <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group dark:btn-soft"
                     href="{% url 'account_email' %}">
                         Gestisci
@@ -21,8 +21,8 @@
                      hx-swap="outerHTML"
                      hx-target="#reports">
                     <h5 class="flex items-center mr-8 font-medium grow">
-                        Segnalazioni ricevute
-                        <span class="py-0.5 px-2.5 text-xs font-medium rounded {% if report_count == 0 %}bg-base-300 text-base-content{% else %}bg-info text-info-content{% endif %} ms-3">
+                        Segnalazioni&nbsp;<span class="hidden sm:inline-block">ricevute</span>
+                        <span class="py-0.5 px-2.5 text-xs font-medium rounded {% if report_count == 0 %}bg-base-300 text-base-content{% else %}bg-info text-info-content{% endif %} ms-3 hidden sm:inline-block">
                             {{ report_count }}
                         </span>
                     </h5>
@@ -37,7 +37,7 @@
                 </div>
                 {% endpartialdef %}
                 <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Ottieni una copia dei tuoi dati</h5>
+                    <h5 class="mr-8 font-medium grow"><span class="hidden sm:inline-block">Ottieni una copia dei tuoi&nbsp;</span><span class="capitalize sm:normal-case">dati</span></h5>
                     <a class="inline-flex items-center btn btn-sm btn-primary btn-outline group"
                     disabled="disabled"
                     {% if user.school %} hx-get="#" hx-target="#dialog" hx-swap="innerHTML" @click="$dispatch('open-modal')" {% else %} disabled=disabled {% endif %}>
@@ -46,7 +46,7 @@
                     </a>
                 </div>
                 <div class="flex items-center">
-                    <h5 class="mr-8 font-medium grow">Cancella dati e account</h5>
+                    <h5 class="mr-8 font-medium grow">Elimina <span class="hidden sm:inline-block">il tuo</span>  account</h5>
                     <button class="inline-flex items-center btn btn-sm btn-error btn-outline group dark:btn-soft"
                             hx-get="{% url 'users:user_delete' %}"
                             hx-target="#dialog"

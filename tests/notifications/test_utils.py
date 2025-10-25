@@ -108,6 +108,9 @@ def test_build_menu_notification_payload_simple_menu_empty_parts(
     with (
         patch("notifications.utils.get_current_date", return_value=(1, 1)),
         patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
     ):
         payload = build_menu_notification_payload(school)
         assert payload["body"] == expected_body
@@ -142,6 +145,9 @@ def test_build_menu_notification_payload_detailed_menu_empty_parts(
     with (
         patch("notifications.utils.get_current_date", return_value=(1, 1)),
         patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
     ):
         payload = build_menu_notification_payload(detailed_school)
         assert payload["body"] == expected_body
@@ -196,10 +202,10 @@ def test_build_menu_notification_payload_weekly_menus(
     # ... (omitting unchanged parts of the file for brevity)
 
     monkeypatch.setattr(
-        "school_menu.utils.get_current_date", lambda next_day=False: (week, day)
+        "notifications.utils.get_current_date", lambda next_day=False: (week, day)
     )
     monkeypatch.setattr(
-        "school_menu.utils.get_season", lambda school: School.Seasons.PRIMAVERILE
+        "notifications.utils.get_season", lambda school: School.Seasons.PRIMAVERILE
     )
 
     # Use the real calculate_week function to ensure consistency
@@ -229,6 +235,9 @@ def test_build_menu_notification_payload_no_meal_found(school):
     with (
         patch("notifications.utils.get_current_date", return_value=(1, 1)),
         patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
     ):
         payload = build_menu_notification_payload(school)
         assert payload is None

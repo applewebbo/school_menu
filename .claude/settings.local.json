@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ENVIRONMENT=test uv run:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

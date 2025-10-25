@@ -554,10 +554,11 @@ class TestUploadMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
+        assert response.status_code == 200
+        assert (
+            "Formato non valido. Il file non contiene tutte le colonne richieste."
+            in response.content.decode()
+        )
         assert SimpleMeal.objects.filter(school=school).count() == 0
 
     def test_upload_menu_post_invalid_csv_content(self):
@@ -580,13 +581,10 @@ class TestUploadMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
+        assert response.status_code == 200
         assert (
             "Formato non valido. Il file non contiene tutte le colonne richieste."
-            in messages[0].message
+            in response.content.decode()
         )
         assert SimpleMeal.objects.filter(school=school).count() == 0
 
@@ -719,8 +717,39 @@ class TestUploadAnnualMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
+        assert response.status_code == 200
+        assert (
+            "Formato non valido. Il file non contiene tutte le colonne richieste."
+            in response.content.decode()
+        )
+        assert AnnualMeal.objects.filter(school=school).count() == 0
+
+    def test_upload_annual_menu_post_invalid_csv(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_annual_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            # This content will raise an exception when decoding
+            csv_content = b"\x80"
+            data = {
+                "file": SimpleUploadedFile(
+                    "annual_menu.csv", csv_content, content_type="text/csv"
+                ),
+            }
+            response = self.post(url, data=data)
+
         assert response.status_code == 204
         assert "HX-Trigger" in response.headers
+        messages = list(get_messages(response.wsgi_request))
+        assert len(messages) > 0
+        assert (
+            "Il file CSV non è valido. Controlla il delimitatore e il formato."
+            in messages[0].message
+        )
         assert AnnualMeal.objects.filter(school=school).count() == 0
 
 

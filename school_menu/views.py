@@ -392,12 +392,17 @@ def upload_menu(request, school_id, meal_type):
                     status=204, headers={"HX-Trigger": "menuUploadError"}
                 )
             validates, message = validate_dataset(dataset, menu_type)
+            if not validates:
+                context = {
+                    "form": form,
+                    "school": school,
+                    "active_menu": active_menu,
+                    "error_message": message,
+                }
+                return TemplateResponse(request, "upload-menu.html", context)
             result = resource.import_data(
                 dataset, dry_run=True, school=school, season=season, type=meal_type
             )
-            if not validates:
-                messages.add_message(request, messages.ERROR, message)
-                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season, type=meal_type
@@ -432,14 +437,29 @@ def upload_annual_menu(request, school_id, meal_type):
             file = request.FILES["file"]
             resource = AnnualMenuResource()
             dataset = Dataset()
-            dataset.load(file.read().decode(), format="csv")
+            try:
+                dataset.load(file.read().decode(), format="csv")
+            except (InvalidDimensions, Exception):
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    "Il file CSV non è valido. Controlla il delimitatore e il formato.",
+                )
+                return HttpResponse(
+                    status=204, headers={"HX-Trigger": "menuUploadError"}
+                )
             validates, message = validate_annual_dataset(dataset)
+            if not validates:
+                context = {
+                    "form": form,
+                    "school": school,
+                    "active_menu": active_menu,
+                    "error_message": message,
+                }
+                return TemplateResponse(request, "upload-menu.html", context)
             result = resource.import_data(
                 dataset, dry_run=True, school=school, type=meal_type
             )
-            if not validates:
-                messages.add_message(request, messages.ERROR, message)
-                return HttpResponse(status=204, headers={"HX-Trigger": "menuModified"})
             if not result.has_errors():  # pragma: no cover
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, type=meal_type

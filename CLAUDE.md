@@ -2,6 +2,56 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Git Workflow (CRITICAL - READ FIRST)
+
+**ALWAYS follow these rules before making any code changes:**
+
+1. **NEVER work directly on main branch** - Always create a feature branch first
+2. **Create feature branches** with descriptive names: `feature/description` or `fix/issue-description`
+3. **Ask for GitHub issue number** - Always ask the user which issue number this work relates to
+4. **Make frequent commits** - Commit logical chunks of work to better track changes
+5. **Reference issues in commits** - Include `Fix #123` or `Related to #123` in commit messages
+6. **Test before committing** - Run `just ftest` to ensure 100% coverage before committing
+7. **Use rebase, not merge** - When ready to save changes to main: `git checkout main && git rebase feature-branch`
+8. **Verify coverage** - Always check that coverage remains at 100% before final commit to main
+
+### Standard Workflow
+```bash
+# 1. Ask user for issue number first
+# 2. Create feature branch
+git checkout -b feature/descriptive-name
+
+# 3. Make changes and commit frequently
+git add <files>
+git commit -m "descriptive message (for #123)"
+
+# 4. Before final commit, verify tests
+just ftest
+
+# 5. Only use (fix #123) instead of (for #123)  on final commit
+
+# 6. When ready, rebase onto main
+git checkout main
+git rebase feature/descriptive-name
+
+# 7. Verify everything still works
+just ftest
+
+# 8. Push to remote
+git push origin main
+```
+
+### Commit Message Guidelines
+
+- Write clear, descriptive commit messages
+- Reference issue numbers with `fix #123` or `for #123`
+- **DO NOT include attribution lines** like:
+  - `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+  - `Co-Authored-By: Claude <noreply@anthropic.com>`
+- Keep commit messages concise and focused on the changes made
+
+
+
 ## Project Overview
 
 "Mensa Scuola" is a Django web application that helps parents track school menus for their children. Users can create accounts, manage schools, upload menus in CSV format, and receive daily notifications about meals. The application is built with Django, Tailwind CSS (using DaisyUI), and htmx for SPA-like features.

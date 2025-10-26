@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(ENVIRONMENT=test uv run:*)"
+      "Bash(ENVIRONMENT=test uv run:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

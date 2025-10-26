@@ -177,3 +177,6 @@ src/intellisense.css
 
 # OVERMIND
 .overmind.sock
+
+# CLAUDE
+.claude/plans/

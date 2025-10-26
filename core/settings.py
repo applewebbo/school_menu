@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "webpush",
     # INTERNAL APPS
     "contacts",
+    "django_scheduled_backups",
     "notifications",
     "school_menu",
     "users",
@@ -294,6 +295,11 @@ if ENVIRONMENT == "dev":
         },
     }
 
+    # DJANGO SCHEDULED BACKUPS - Disabled in development
+    SCHEDULED_BACKUPS = {
+        "ENABLED": False,
+    }
+
 # PRODUCTION SPECIFIC SETTINGS
 elif ENVIRONMENT == "prod":
     DEBUG = env.bool("DEBUG", default=False)
@@ -329,6 +335,33 @@ elif ENVIRONMENT == "prod":
         },
     }
 
+    # DJANGO SCHEDULED BACKUPS - Enabled in production only
+    SCHEDULED_BACKUPS = {
+        # Enable/disable the backup system
+        "ENABLED": True,
+        # Email addresses to notify (falls back to ADMINS if not set)
+        "NOTIFICATION_EMAILS": None,  # Uses ADMINS by default
+        # Database backup configuration
+        "DATABASE_BACKUP": {
+            "enabled": True,
+            "schedule": "0 0 * * 0",  # Weekly on Sunday at midnight
+        },
+        # Media backup configuration (not needed for this project)
+        "MEDIA_BACKUP": {
+            "enabled": False,
+        },
+        # How many days to keep backup history records
+        "HISTORY_RETENTION_DAYS": 90,
+        # Send email on successful backup
+        "EMAIL_ON_SUCCESS": True,
+        # Send email on failed backup
+        "EMAIL_ON_FAILURE": True,
+        # Task queue backend: 'django_q' or 'celery'
+        "TASK_QUEUE": "django_q",
+        # Email subject prefix
+        "EMAIL_SUBJECT_PREFIX": "[Menu App Backup]",
+    }
+
 # TESTING SPECIFIC SETTINGS
 elif ENVIRONMENT == "test":
     import logging
@@ -349,4 +382,10 @@ elif ENVIRONMENT == "test":
         "timeout": 60,
         "retry": 120,
     }
+
+    # DJANGO SCHEDULED BACKUPS - Disabled in testing
+    SCHEDULED_BACKUPS = {
+        "ENABLED": False,
+    }
+
     logging.disable()

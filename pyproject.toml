@@ -63,7 +63,7 @@ exclude_also = [
 
 [tool.coverage.run]
 branch = true
-omit = ['*/.venv/*', '*/migrations/*', '*/tests/*', '*/test_*.py', '*/settings/*', '*/wsgi.py', '*/asgi.py', '*/manage.py', '*/core/*', '*/users/*', "school_menu/resources.py", "school_menu/serializers.py", "school_menu/templatetags/custom_tailwind.py"]
+omit = ['*/.venv/*', '*/migrations/*', '*/tests/*', '*/test_*.py', '*/settings/*', '*/wsgi.py', '*/asgi.py', '*/manage.py', '*/core/*', '*/users/*', "school_menu/resources.py", "school_menu/serializers.py", "school_menu/templatetags/custom_tailwind.py", "django_scheduled_backups/admin.py", "django_scheduled_backups/management/*"]
 
 [tool.djlint]
 ignore = "T002,H006"

@@ -3,9 +3,14 @@
     "allow": [
       "Bash(ENVIRONMENT=test uv run:*)",
       "Bash(gh issue view:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "playwright"
+  ]
 }

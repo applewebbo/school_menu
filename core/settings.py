@@ -277,6 +277,18 @@ if ENVIRONMENT == "dev":
     ALLOWED_HOSTS: list[str] = [
         "localhost",
     ]
+
+    # DJANGO SILK - Performance profiler (dev only)
+    INSTALLED_APPS += ["silk"]
+    MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
+
+    # Silk configuration
+    SILKY_PYTHON_PROFILER = True
+    SILKY_PYTHON_PROFILER_BINARY = True
+    SILKY_AUTHENTICATION = True
+    SILKY_AUTHORISATION = True
+    SILKY_META = True
+
     # DJANGO-Q
     Q_CLUSTER = {
         "name": "school_menu",

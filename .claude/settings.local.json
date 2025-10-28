@@ -4,7 +4,11 @@
       "Bash(ENVIRONMENT=test uv run:*)",
       "Bash(gh issue view:*)",
       "Bash(git add:*)",
-      "mcp__playwright__browser_navigate"
+      "mcp__playwright__browser_navigate",
+      "WebSearch",
+      "Bash(find:*)",
+      "Bash(uv sync:*)",
+      "Bash(just ftest:*)"
     ],
     "deny": [],
     "ask": []

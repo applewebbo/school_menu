@@ -90,10 +90,16 @@ test *args:
     ENVIRONMENT=test uv run -m pytest --reuse-db -s -x {{ args }}
 
 
-# Run fast tests
+# Run fast tests (unit tests only, excludes performance)
 [group('utility')]
 ftest *args:
-    ENVIRONMENT=test uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst {{ args }}
+    ENVIRONMENT=test uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst -m "not performance" {{ args }}
+
+
+# Run performance tests only
+[group('utility')]
+perftest *args:
+    ENVIRONMENT=test uv run -m pytest --reuse-db --no-cov -m performance {{ args }}
 
 
 # Run Ruff linting and formatting

@@ -258,3 +258,34 @@ Compressed (gzip): 16210 bytes (15.83 KB)
 Compression ratio: 36.2%
 Size reduction: 63.8% (28548 bytes saved)
 ================================================================================
+
+================================================================================
+Database Connection Test: connection_reuse
+================================================================================
+Database engine: sqlite
+CONN_MAX_AGE: 0
+Connection PID 1: 4511806832
+Connection PID 2: 4511806832
+Connection PID 3: 4511806832
+Connection reused: Yes
+================================================================================
+
+
+================================================================================
+Database Connection Test: connection_info
+================================================================================
+Database engine: sqlite
+Database name: file:memorydb_default?mode=memory&cache=shared
+Connection pooling: Built-in
+Note: Active connection count monitoring only available for PostgreSQL
+================================================================================
+
+
+================================================================================
+Database Connection Test: conn_max_age_config
+================================================================================
+Database engine: django.db.backends.sqlite3
+CONN_MAX_AGE: 0
+Connection pooling: Disabled
+Recommendation: Consider enabling CONN_MAX_AGE for better performance
+================================================================================

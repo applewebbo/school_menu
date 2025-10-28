@@ -289,3 +289,52 @@ CONN_MAX_AGE: 0
 Connection pooling: Disabled
 Recommendation: Consider enabling CONN_MAX_AGE for better performance
 ================================================================================
+
+================================================================================
+Cache Performance Test: cache_hit_rate_school_list
+================================================================================
+Total requests: 100
+Warmup requests: 5
+Estimated cache hits: 0
+Estimated cache hit rate: 0.0%
+Average response time: 18.19ms
+Min response time: 14.86ms
+Max response time: 28.15ms
+Note: Hit rate estimation based on response time <10ms
+================================================================================
+
+
+================================================================================
+Cache Performance Test: response_time_with_cache
+================================================================================
+Average response time (no cache): 16.69ms
+Average response time (with cache): 14.85ms
+Speedup ratio: 1.12x
+Time saved per request: 1.84ms
+Expected with caching: <50ms cached, 10-50x speedup
+Actual performance: Good
+================================================================================
+
+
+================================================================================
+Cache Performance Test: cache_invalidation_on_update
+================================================================================
+Initial school count: 100
+Test modification: Updated school name
+Cache cleared: Yes
+Content changed after clear: Yes
+Updated data visible: Yes
+Cache invalidation: Working
+================================================================================
+
+
+================================================================================
+Cache Performance Test: cache_key_generation
+================================================================================
+School 1: Scuola conto particolare
+School 2: Scuola storia amore
+URL 1: /menu/scuola-conto-particolare-laurenton/
+URL 2: /menu/scuola-storia-amore-port-kyle/
+Responses are different: Yes
+Cache key generation: Working
+================================================================================

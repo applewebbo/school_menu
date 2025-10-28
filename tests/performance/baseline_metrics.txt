@@ -95,3 +95,67 @@ Total Queries: 1
 
 Query 1:
 SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE (NOT (NOT "school_menu_school"."is_published") AND ("school_menu_school"."name" LIKE '%school%' ESCAPE '\' OR "school_menu_school"."city" LIKE '%school%' ESCAPE '\'))
+
+================================================================================
+Response Time Benchmark: school_list_percentiles
+================================================================================
+Mean: 17.16ms
+Min: 14.80ms
+Max: 179.72ms
+Stddev: 16.43ms
+p50 (median): 15.43ms
+p95: 16.51ms
+p99: 178.11ms
+================================================================================
+
+
+================================================================================
+Response Time Benchmark: school_list_percentiles
+================================================================================
+Mean: 15.63ms
+Min: 14.65ms
+Max: 34.97ms
+Stddev: 2.05ms
+p50 (median): 15.33ms
+p95: 16.44ms
+p99: 34.81ms
+================================================================================
+
+
+================================================================================
+Response Time Benchmark: school_detail_percentiles
+================================================================================
+Mean: 9.11ms
+Min: 8.31ms
+Max: 27.69ms
+Stddev: 1.92ms
+p50 (median): 8.82ms
+p95: 9.71ms
+p99: 27.52ms
+================================================================================
+
+
+================================================================================
+Response Time Benchmark: api_schools_percentiles
+================================================================================
+Mean: 8.70ms
+Min: 8.08ms
+Max: 26.34ms
+Stddev: 1.82ms
+p50 (median): 8.46ms
+p95: 9.07ms
+p99: 26.18ms
+================================================================================
+
+
+================================================================================
+Response Time Benchmark: search_percentiles
+================================================================================
+Mean: 1.56ms
+Min: 1.28ms
+Max: 19.21ms
+Stddev: 1.79ms
+p50 (median): 1.34ms
+p95: 1.67ms
+p99: 19.04ms
+================================================================================

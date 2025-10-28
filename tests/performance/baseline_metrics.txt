@@ -403,3 +403,60 @@ Memory growth: 0.28 MB
 Leak detection threshold: 100 MB growth
 Potential leak detected: NO
 ================================================================================
+
+================================================================================
+Task Performance Test: notification_task_baseline
+================================================================================
+Total subscribers: 100
+Number of schools: 10
+Subscribers per school: 10
+Total database queries: 101
+Total duration: 159.23ms
+Time per subscriber: 1.59ms
+Queries per subscriber: 1.01
+Expected after optimization: <10 queries total
+Performance: Needs optimization (N+1 detected)
+================================================================================
+
+
+================================================================================
+Task Performance Test: notification_task_baseline
+================================================================================
+Total subscribers: 100
+Number of schools: 10
+Subscribers per school: 10
+Total database queries: 101
+Total duration: 144.26ms
+Time per subscriber: 1.44ms
+Queries per subscriber: 1.01
+Expected after optimization: <10 queries total
+Performance: Needs optimization (N+1 detected)
+================================================================================
+
+
+================================================================================
+Task Performance Test: notification_task_different_times
+================================================================================
+Test description: Performance across different notification times
+Notification times tested: 4
+previous_day_6pm - queries: 11
+previous_day_6pm - duration: 8.11ms
+same_day_9am - queries: 11
+same_day_9am - duration: 8.10ms
+same_day_12pm - queries: 11
+same_day_12pm - duration: 7.37ms
+same_day_6pm - queries: 11
+same_day_6pm - duration: 7.21ms
+================================================================================
+
+
+================================================================================
+Task Performance Test: notification_task_query_pattern
+================================================================================
+Total queries: 4
+School queries: 3
+Notification queries: 1
+Meal queries: 0
+Other queries: 0
+Optimization needed: Yes - multiple school queries detected
+================================================================================

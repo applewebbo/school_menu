@@ -1,0 +1,97 @@
+Performance Test Baseline Metrics
+================================================================================
+
+================================================================================
+Test: school_list_baseline
+Total Queries: 1
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE NOT (NOT "school_menu_school"."is_published")
+
+
+================================================================================
+Test: school_list_optimized
+Total Queries: 1
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE NOT (NOT "school_menu_school"."is_published")
+
+
+================================================================================
+Test: school_detail_baseline
+Total Queries: 5
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE "school_menu_school"."slug" = 'collegio-distanza-donna-johnsonport' LIMIT 21
+
+Query 2:
+SELECT "users_user"."id", "users_user"."password", "users_user"."last_login", "users_user"."is_superuser", "users_user"."first_name", "users_user"."last_name", "users_user"."is_staff", "users_user"."is_active", "users_user"."date_joined", "users_user"."email", "users_user"."tc_agreement" FROM "users_user" WHERE "users_user"."id" = 1 LIMIT 21
+
+Query 3:
+SELECT DISTINCT "school_menu_simplemeal"."type" AS "type", "school_menu_simplemeal"."day" FROM "school_menu_simplemeal" WHERE ("school_menu_simplemeal"."school_id" = 1 AND "school_menu_simplemeal"."season" = 2 AND "school_menu_simplemeal"."week" = 4) ORDER BY "school_menu_simplemeal"."day" ASC
+
+Query 4:
+SELECT "school_menu_simplemeal"."id", "school_menu_simplemeal"."day", "school_menu_simplemeal"."week", "school_menu_simplemeal"."season", "school_menu_simplemeal"."type", "school_menu_simplemeal"."school_id", "school_menu_simplemeal"."menu", "school_menu_simplemeal"."morning_snack", "school_menu_simplemeal"."afternoon_snack" FROM "school_menu_simplemeal" WHERE ("school_menu_simplemeal"."school_id" = 1 AND "school_menu_simplemeal"."season" = 2 AND "school_menu_simplemeal"."week" = 4 AND "school_menu_simplemeal"."day" = 2 AND "school_menu_simplemeal"."type" = 'S') LIMIT 21
+
+Query 5:
+SELECT "school_menu_simplemeal"."id", "school_menu_simplemeal"."day", "school_menu_simplemeal"."week", "school_menu_simplemeal"."season", "school_menu_simplemeal"."type", "school_menu_simplemeal"."school_id", "school_menu_simplemeal"."menu", "school_menu_simplemeal"."morning_snack", "school_menu_simplemeal"."afternoon_snack" FROM "school_menu_simplemeal" WHERE ("school_menu_simplemeal"."school_id" = 1 AND "school_menu_simplemeal"."season" = 2 AND "school_menu_simplemeal"."week" = 4 AND "school_menu_simplemeal"."type" = 'S') ORDER BY "school_menu_simplemeal"."day" ASC
+
+
+================================================================================
+Test: school_detail_optimized
+Total Queries: 5
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE "school_menu_school"."slug" = 'liceo-mentre-filo-lake-lisashire' LIMIT 21
+
+Query 2:
+SELECT "users_user"."id", "users_user"."password", "users_user"."last_login", "users_user"."is_superuser", "users_user"."first_name", "users_user"."last_name", "users_user"."is_staff", "users_user"."is_active", "users_user"."date_joined", "users_user"."email", "users_user"."tc_agreement" FROM "users_user" WHERE "users_user"."id" = 1 LIMIT 21
+
+Query 3:
+SELECT DISTINCT "school_menu_simplemeal"."type" AS "type", "school_menu_simplemeal"."day" FROM "school_menu_simplemeal" WHERE ("school_menu_simplemeal"."school_id" = 1 AND "school_menu_simplemeal"."season" = 1 AND "school_menu_simplemeal"."week" = 3) ORDER BY "school_menu_simplemeal"."day" ASC
+
+Query 4:
+SELECT "school_menu_simplemeal"."id", "school_menu_simplemeal"."day", "school_menu_simplemeal"."week", "school_menu_simplemeal"."season", "school_menu_simplemeal"."type", "school_menu_simplemeal"."school_id", "school_menu_simplemeal"."menu", "school_menu_simplemeal"."morning_snack", "school_menu_simplemeal"."afternoon_snack" FROM "school_menu_simplemeal" WHERE ("school_menu_simplemeal"."school_id" = 1 AND "school_menu_simplemeal"."season" = 1 AND "school_menu_simplemeal"."week" = 3 AND "school_menu_simplemeal"."day" = 2 AND "school_menu_simplemeal"."type" = 'S') LIMIT 21
+
+Query 5:
+SELECT "school_menu_simplemeal"."id", "school_menu_simplemeal"."day", "school_menu_simplemeal"."week", "school_menu_simplemeal"."season", "school_menu_simplemeal"."type", "school_menu_simplemeal"."school_id", "school_menu_simplemeal"."menu", "school_menu_simplemeal"."morning_snack", "school_menu_simplemeal"."afternoon_snack" FROM "school_menu_simplemeal" WHERE ("school_menu_simplemeal"."school_id" = 1 AND "school_menu_simplemeal"."season" = 1 AND "school_menu_simplemeal"."week" = 3 AND "school_menu_simplemeal"."type" = 'S') ORDER BY "school_menu_simplemeal"."day" ASC
+
+
+================================================================================
+Test: api_schools_baseline
+Total Queries: 1
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE "school_menu_school"."is_published"
+
+
+================================================================================
+Test: api_schools_optimized
+Total Queries: 1
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE "school_menu_school"."is_published"
+
+
+================================================================================
+Test: search_baseline
+Total Queries: 1
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE (NOT (NOT "school_menu_school"."is_published") AND ("school_menu_school"."name" LIKE '%school%' ESCAPE '\' OR "school_menu_school"."city" LIKE '%school%' ESCAPE '\'))
+
+
+================================================================================
+Test: search_optimized
+Total Queries: 1
+================================================================================
+
+Query 1:
+SELECT "school_menu_school"."id", "school_menu_school"."name", "school_menu_school"."slug", "school_menu_school"."city", "school_menu_school"."user_id", "school_menu_school"."start_day", "school_menu_school"."start_month", "school_menu_school"."end_day", "school_menu_school"."end_month", "school_menu_school"."season_choice", "school_menu_school"."week_bias", "school_menu_school"."menu_type", "school_menu_school"."is_published", "school_menu_school"."no_gluten", "school_menu_school"."no_lactose", "school_menu_school"."vegetarian", "school_menu_school"."special", "school_menu_school"."annual_menu" FROM "school_menu_school" WHERE (NOT (NOT "school_menu_school"."is_published") AND ("school_menu_school"."name" LIKE '%school%' ESCAPE '\' OR "school_menu_school"."city" LIKE '%school%' ESCAPE '\'))

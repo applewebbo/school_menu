@@ -53,6 +53,8 @@ cover/
 .pymon
 
 # Performance test reports (generated)
+tests/performance/baseline_metrics.txt
+tests/performance/optimized_metrics.txt
 tests/performance/BASELINE_REPORT.md
 tests/performance/COMPARISON_REPORT.txt
 

@@ -50,6 +50,11 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+.pymon
+
+# Performance test reports (generated)
+tests/performance/BASELINE_REPORT.md
+tests/performance/COMPARISON_REPORT.txt
 
 # Translations
 *.mo

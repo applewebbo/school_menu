@@ -11,6 +11,8 @@ from school_menu.utils import (
 def build_menu_notification_payload(school, is_previous_day=False):
     """
     Builds the payload (head and body) for the daily menu notification for a given school.
+
+    Note: meals_for_today is a list (not QuerySet) after caching implementation.
     """
     if school.annual_menu:
         _, meals_for_today = get_meals_for_annual_menu(school, next_day=is_previous_day)
@@ -20,7 +22,8 @@ def build_menu_notification_payload(school, is_previous_day=False):
         week = calculate_week(current_week, school.week_bias)
         _, meals_for_today = get_meals(school, season, week, day)
 
-    if not meals_for_today.exists():
+    # meals_for_today is a list, check if it's not empty
+    if not meals_for_today:
         return None
 
     body = "Nessun menu previsto."
@@ -28,7 +31,8 @@ def build_menu_notification_payload(school, is_previous_day=False):
     if is_previous_day:
         head = f"Menu di domani {school.name}"
 
-    meal = meals_for_today.first()
+    # Get first meal from the list
+    meal = meals_for_today[0]
     body_parts = []
     if school.annual_menu:
         if meal.menu:

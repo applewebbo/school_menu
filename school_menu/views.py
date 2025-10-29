@@ -77,19 +77,20 @@ def index(request):
             return render(request, "index.html", context)
         if school.annual_menu:
             weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+            types_menu = build_types_menu(weekly_meals, school)
         else:
             weekly_meals, meals_for_today = get_meals(
                 school, season, adjusted_week, adjusted_day
             )
-        types_menu = build_types_menu(weekly_meals, school)
-        weekly_meals = weekly_meals.filter(type=meal_type)
+            types_menu = build_types_menu(weekly_meals, school, adjusted_week, season)
+
+        # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
+        weekly_meals = [m for m in weekly_meals if m.type == meal_type]
+
+        # Get today's meal for the selected type
         try:
-            meal_for_today = meals_for_today.get(type=meal_type)
-        except (
-            SimpleMeal.DoesNotExist,
-            DetailedMeal.DoesNotExist,
-            AnnualMeal.DoesNotExist,
-        ):
+            meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
+        except StopIteration:
             meal_for_today = None
 
         context = {
@@ -127,20 +128,22 @@ def school_menu(request, slug, meal_type="S"):
     alt_menu = get_alt_menu(school.user)
     if school.annual_menu:
         weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+        types_menu = build_types_menu(weekly_meals, school)
     else:
         weekly_meals, meals_for_today = get_meals(
             school, season, adjusted_week, adjusted_day
         )
+        types_menu = build_types_menu(weekly_meals, school, adjusted_week, season)
+
     year = get_adjusted_year()
-    types_menu = build_types_menu(weekly_meals, school)
-    weekly_meals = weekly_meals.filter(type=meal_type)
+
+    # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
+    weekly_meals = [m for m in weekly_meals if m.type == meal_type]
+
+    # Get today's meal for the selected type
     try:
-        meal_for_today = meals_for_today.get(type=meal_type)
-    except (
-        SimpleMeal.DoesNotExist,
-        DetailedMeal.DoesNotExist,
-        AnnualMeal.DoesNotExist,
-    ):
+        meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
+    except StopIteration:
         meal_for_today = None
 
     context = {
@@ -166,18 +169,19 @@ def get_menu(request, school_id, week, day, meal_type):
     year = get_adjusted_year()
     alt_menu = get_alt_menu(school.user)
     if school.annual_menu:
-        weekly_meals, meal_for_today = get_meals_for_annual_menu(school)
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+        types_menu = build_types_menu(weekly_meals, school)
     else:
-        weekly_meals, meal_for_today = get_meals(school, season, week, day)
-    types_menu = build_types_menu(weekly_meals, school)
-    weekly_meals = weekly_meals.filter(type=meal_type)
+        weekly_meals, meals_for_today = get_meals(school, season, week, day)
+        types_menu = build_types_menu(weekly_meals, school, week, season)
+
+    # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
+    weekly_meals = [m for m in weekly_meals if m.type == meal_type]
+
+    # Get meal for the specified day and type
     try:
-        meal_for_today = weekly_meals.get(day=day)
-    except (
-        SimpleMeal.DoesNotExist,
-        DetailedMeal.DoesNotExist,
-        AnnualMeal.DoesNotExist,
-    ):
+        meal_for_today = next(m for m in weekly_meals if m.day == day)
+    except StopIteration:
         meal_for_today = None
 
     context = {

@@ -591,33 +591,33 @@ class TestChoicesWidget:
 
 @time_machine.travel("2024-01-03")  # A Wednesday
 def test_get_meals_for_annual_menu_weekday():
-    """Test getting meals on a regular weekday."""
+    """Test getting meals on a regular weekday (returns list, not QuerySet)."""
     school = SchoolFactory()
     meal = AnnualMealFactory(school=school, date=date(2024, 1, 3), is_active=True)
     _, today_meals = get_meals_for_annual_menu(school)
-    assert today_meals.first() == meal
+    assert today_meals[0] == meal
 
 
 @time_machine.travel("2024-01-06")  # A Saturday
 def test_get_meals_for_annual_menu_weekend():
-    """Test getting meals on a weekend."""
+    """Test getting meals on a weekend (returns list, not QuerySet)."""
     school = SchoolFactory()
     monday_meal = AnnualMealFactory(
         school=school, date=date(2024, 1, 8), is_active=True
     )
     _, today_meals = get_meals_for_annual_menu(school)
-    assert today_meals.first() == monday_meal
+    assert today_meals[0] == monday_meal
 
 
 @time_machine.travel("2024-01-07")  # A Sunday
 def test_get_meals_for_annual_menu_next_day():
-    """Test getting meals for the next day."""
+    """Test getting meals for the next day (returns list, not QuerySet)."""
     school = SchoolFactory()
     monday_meal = AnnualMealFactory(
         school=school, date=date(2024, 1, 8), is_active=True
     )
     _, today_meals = get_meals_for_annual_menu(school, next_day=True)
-    assert today_meals.first() == monday_meal
+    assert today_meals[0] == monday_meal
 
 
 class TestFillMissingDates(TestCase):

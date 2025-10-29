@@ -6,6 +6,7 @@ from django.utils import timezone
 from import_export.widgets import Widget
 
 from notifications.models import AnonymousMenuNotification
+from school_menu.cache import get_cached_or_query
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 
 
@@ -100,24 +101,52 @@ def get_alt_menu(user):
     return alt_menu
 
 
-def build_types_menu(weekly_meals, school):
-    """Build the alternate meal menu for the given school based on presence of meal for the given day"""
-    active_menu = [
-        "S",  # Standard menu is always included
-        "G" if school.no_gluten else None,
-        "L" if school.no_lactose else None,
-        "V" if school.vegetarian else None,
-        "P" if school.special else None,
-    ]
-    active_menu = [menu for menu in active_menu if menu is not None]
-    available_types = weekly_meals.values_list("type", flat=True).distinct()
+def build_types_menu(weekly_meals, school, week=None, season=None):
+    """
+    Build the alternate meal menu for the given school, caching for 24 hours.
 
-    meals = {}
-    for menu_type in active_menu:
-        if menu_type in available_types:
-            meals[Meal.Types(menu_type).label] = menu_type
+    Args:
+        weekly_meals: List of meal objects (not QuerySet)
+        school: School object
+        week: Week number (optional, for cache key specificity)
+        season: Season (optional, for cache key specificity)
 
-    return meals
+    Returns:
+        dict: Available meal types {label: type_code}
+
+    Cache key: types_menu:{school_id}:w{week}:s{season} (if week/season provided)
+               types_menu:{school_id} (otherwise)
+    TTL: 24 hours (86400 seconds)
+    """
+    # Build cache key
+    if week is not None and season is not None:
+        cache_key = f"types_menu:{school.id}:w{week}:s{season}"
+    else:
+        cache_key = f"types_menu:{school.id}"
+
+    # Query function to execute on cache miss
+    def query_types():
+        active_menu = [
+            "S",  # Standard menu is always included
+            "G" if school.no_gluten else None,
+            "L" if school.no_lactose else None,
+            "V" if school.vegetarian else None,
+            "P" if school.special else None,
+        ]
+        active_menu = [menu for menu in active_menu if menu is not None]
+
+        # Extract available types from the list of meals
+        available_types = {m.type for m in weekly_meals}
+
+        meals = {}
+        for menu_type in active_menu:
+            if menu_type in available_types:
+                meals[Meal.Types(menu_type).label] = menu_type
+
+        return meals
+
+    # Get cached or query types menu
+    return get_cached_or_query(cache_key, query_types, timeout=86400)
 
 
 def validate_dataset(dataset, menu_type):
@@ -225,20 +254,52 @@ class ChoicesWidget(Widget):
 
 
 def get_meals(school, season, week, day):
+    """
+    Get meals for a school, caching weekly meals for 24 hours.
+
+    Returns:
+        tuple: (weekly_meals, meals_for_today) where both are lists (not QuerySets)
+               Use list comprehensions for filtering: [m for m in meals if condition]
+
+    Cache key: meals:{school_id}:w{week}:s{season}
+    TTL: 24 hours (86400 seconds)
+    """
     if school.menu_type == School.Types.SIMPLE:
         meal = SimpleMeal
     else:
         meal = DetailedMeal
-    weekly_meals = meal.objects.filter(
-        school=school, week=week, season=season
-    ).order_by("day")
-    meals_for_today = weekly_meals.filter(day=day)
+
+    # Build cache key for weekly meals
+    cache_key = f"meals:{school.id}:w{week}:s{season}"
+
+    # Query function to execute on cache miss
+    def query_weekly_meals():
+        queryset = meal.objects.filter(
+            school=school, week=week, season=season
+        ).order_by("day")
+        # Convert QuerySet to list for cacheability
+        return list(queryset)
+
+    # Get cached or query weekly meals
+    weekly_meals = get_cached_or_query(cache_key, query_weekly_meals, timeout=86400)
+
+    # Filter for today's meals from the cached list
+    meals_for_today = [m for m in weekly_meals if m.day == day]
 
     return weekly_meals, meals_for_today
 
 
 def get_meals_for_annual_menu(school, next_day=False):
-    """Get current week's meals and today's meal for annual menu"""
+    """
+    Get current week's meals and today's meal for annual menu, caching for 7 days.
+
+    Returns:
+        tuple: (weekly_meals, meals_for_today) where both are lists (not QuerySets)
+               Use list comprehensions for filtering: [m for m in meals if condition]
+
+    Cache key: annual_meals:{school_id}:{year}:w{week}
+    TTL: 7 days (604800 seconds)
+    """
     target_date = datetime.now().date()
     if next_day:
         target_date += timedelta(days=1)
@@ -247,16 +308,25 @@ def get_meals_for_annual_menu(school, next_day=False):
     if target_date.weekday() >= 5:  # Saturday (5) or Sunday (6)
         target_date += timezone.timedelta(days=(7 - target_date.weekday()))
 
-    # Get meals for the target date
-    meals_for_today = AnnualMeal.objects.filter(
-        school=school, date=target_date, is_active=True
-    )
-
     # Get meals for the week of the target date
     year, week, _ = target_date.isocalendar()
-    weekly_meals = AnnualMeal.objects.filter(
-        school=school, date__week=week, date__year=year
-    ).order_by("date")
+
+    # Build cache key for weekly meals
+    cache_key = f"annual_meals:{school.id}:{year}:w{week}"
+
+    # Query function to execute on cache miss
+    def query_weekly_meals():
+        queryset = AnnualMeal.objects.filter(
+            school=school, date__week=week, date__year=year
+        ).order_by("date")
+        # Convert QuerySet to list for cacheability
+        return list(queryset)
+
+    # Get cached or query weekly meals
+    weekly_meals = get_cached_or_query(cache_key, query_weekly_meals, timeout=604800)
+
+    # Filter for today's meals from the cached list
+    meals_for_today = [m for m in weekly_meals if m.date == target_date and m.is_active]
 
     return weekly_meals, meals_for_today
 

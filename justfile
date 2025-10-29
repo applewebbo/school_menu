@@ -102,6 +102,12 @@ perftest *args:
     ENVIRONMENT=test uv run -m pytest --reuse-db --no-cov -m performance {{ args }}
 
 
+# Run complete performance baseline suite with report generation
+[group('utility')]
+perfbaseline:
+    bash tests/performance/run_all_baselines.sh
+
+
 # Run Ruff linting and formatting
 [group('utility')]
 lint:

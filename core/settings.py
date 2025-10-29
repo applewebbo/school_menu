@@ -307,6 +307,16 @@ if ENVIRONMENT == "dev":
         },
     }
 
+    # CACHES - Use database cache in development (no Redis needed)
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "django_cache",
+            "KEY_PREFIX": "school_menu",
+            "TIMEOUT": 300,  # 5 minutes default
+        }
+    }
+
     # DJANGO SCHEDULED BACKUPS - Disabled in development
     SCHEDULED_BACKUPS = {
         "ENABLED": False,
@@ -344,6 +354,30 @@ elif ENVIRONMENT == "prod":
             "port": 6379,
             "db": 0,
             "password": env("REDIS_PASSWORD", default=""),
+        },
+    }
+
+    # CACHES - Use Redis with database fallback in production
+    redis_password = env("REDIS_PASSWORD", default="")
+    redis_url = (
+        f"redis://:{redis_password}@srv-captain--school-menu-redis:6379/1"
+        if redis_password
+        else "redis://srv-captain--school-menu-redis:6379/1"
+    )
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": redis_url,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "KEY_PREFIX": "school_menu",
+            "TIMEOUT": 300,  # 5 minutes default
+        },
+        "db_cache": {
+            "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+            "LOCATION": "django_cache",
+            "KEY_PREFIX": "school_menu_db",
         },
     }
 
@@ -393,6 +427,13 @@ elif ENVIRONMENT == "test":
         "sync": True,
         "timeout": 60,
         "retry": 120,
+    }
+
+    # CACHES - Use dummy cache in testing (no actual caching)
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        }
     }
 
     # DJANGO SCHEDULED BACKUPS - Disabled in testing

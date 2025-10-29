@@ -10,3 +10,43 @@ Made with **Django**, **Tailwind** and **Htmx**
 
 Demo Site:
 http://menu.webbografico.com
+
+## Technical Setup
+
+### Cache Configuration
+
+The application uses a multi-tier caching strategy to improve performance:
+
+**Local Development:**
+- Uses database cache (SQLite-based)
+- No external dependencies required
+- Automatically configured via Django's cache table
+
+**Production:**
+- Uses Redis as primary cache backend
+- Database cache as fallback for resilience
+- Configured via environment variables
+
+**Testing:**
+- Uses dummy cache (no actual caching)
+- Prevents test pollution and improves test performance
+
+#### Setup Instructions
+
+1. **Create cache table** (required for local dev and production fallback):
+   ```bash
+   python manage.py createcachetable django_cache
+   ```
+
+2. **Production Redis** (optional, only for production):
+   - Redis is automatically configured if available
+   - Set `REDIS_PASSWORD` environment variable if needed
+   - Uses the same Redis instance as Django Q2 task queue (db 1 for cache, db 0 for tasks)
+
+3. **Cache utilities** are available in `school_menu/cache.py`:
+   - `get_meal_cache_key()` - Generate cache keys for meals
+   - `get_cached_or_query()` - Generic cache-or-query helper (24h TTL default)
+   - `invalidate_school_meals()` - Clear meal caches for a school
+   - Pattern-based invalidation works only with Redis backend
+
+**Note:** The cache configuration follows the same pattern as Django Q_CLUSTER, using database backend for local development and Redis for production.

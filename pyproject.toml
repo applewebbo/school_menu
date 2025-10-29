@@ -53,7 +53,8 @@ dependencies = [
   "django-q2>=1.8.0",
   "redis>=6.2.0",
   "croniter>=6.0.0",
-  "django-active-link>=0.2.2"
+  "django-active-link>=0.2.2",
+  "django-redis>=5.4.0"
 ]
 name = "school_menu"
 requires-python = ">= 3.12"

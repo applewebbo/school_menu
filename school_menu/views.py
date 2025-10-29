@@ -14,6 +14,7 @@ from tablib.exceptions import InvalidDimensions
 
 from contacts.models import MenuReport
 from notifications.tasks import _is_school_in_session
+from school_menu.cache import invalidate_meal_cache
 from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
@@ -411,6 +412,9 @@ def upload_menu(request, school_id, meal_type):
                 result = resource.import_data(
                     dataset, dry_run=False, school=school, season=season, type=meal_type
                 )
+                # Explicitly invalidate cache after bulk import
+                # (django-import-export may use bulk_create which bypasses save())
+                invalidate_meal_cache(school.id)
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
@@ -469,6 +473,9 @@ def upload_annual_menu(request, school_id, meal_type):
                     dataset, dry_run=False, school=school, type=meal_type
                 )
                 fill_missing_dates(school, meal_type)
+                # Explicitly invalidate cache after bulk import and fill_missing_dates
+                # (django-import-export may use bulk_create which bypasses save())
+                invalidate_meal_cache(school.id)
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )

@@ -10,6 +10,9 @@ from school_menu.cache import (
     get_meal_cache_key,
     get_school_menu_cache_key,
     get_types_menu_cache_key,
+    invalidate_meal_cache,
+    invalidate_school_cache,
+    invalidate_school_list_cache,
     invalidate_school_meals,
     invalidate_school_page,
     invalidate_types_menu,
@@ -137,6 +140,87 @@ class TestCacheInvalidation:
 
             # Verify it returns the number of deleted keys
             assert result == 5
+
+    def test_invalidate_meal_cache_fallback(self):
+        """
+        Test invalidate_meal_cache with fallback (DummyCache).
+
+        In test environment with DummyCache, delete_pattern is not supported
+        and the function returns 0.
+        """
+        school_id = 1
+
+        # Invalidate meal cache for school 1
+        result = invalidate_meal_cache(school_id)
+
+        # In test environment (dummy cache), delete_pattern is not supported
+        # So we expect 0 to be returned
+        assert result == 0
+
+    def test_invalidate_meal_cache_with_redis(self):
+        """
+        Test invalidate_meal_cache when Redis backend is available.
+
+        This mocks the cache to have delete_pattern method to test the Redis path.
+        """
+        school_id = 1
+
+        # Create a mock cache with delete_pattern method
+        mock_cache = MagicMock()
+        mock_cache.delete_pattern = MagicMock(return_value=5)
+
+        # Patch the cache module
+        with patch("school_menu.cache.cache", mock_cache):
+            result = invalidate_meal_cache(school_id)
+
+            # Verify delete_pattern was called with correct patterns
+            assert mock_cache.delete_pattern.call_count == 4
+            expected_patterns = [
+                f"*meal:{school_id}:*",
+                f"*meals:{school_id}:*",
+                f"*annual_meals:{school_id}:*",
+                f"*types_menu:{school_id}*",
+            ]
+            for pattern in expected_patterns:
+                mock_cache.delete_pattern.assert_any_call(pattern)
+
+            # Verify it returns the total number of deleted keys (5 per pattern * 4 patterns)
+            assert result == 20
+
+    def test_invalidate_school_cache_fallback(self):
+        """
+        Test invalidate_school_cache with fallback (DummyCache).
+
+        In test environment with DummyCache, delete_pattern is not supported.
+        """
+        school_id = 1
+        school_slug = "test-school"
+
+        # Invalidate school cache
+        result = invalidate_school_cache(school_id, school_slug)
+
+        # In test environment (dummy cache), only cache.delete calls succeed
+        # invalidate_meal_cache returns 0, plus 2 for page and list cache
+        assert result == 2
+
+    def test_invalidate_school_cache_without_slug(self):
+        """Test invalidate_school_cache without providing slug."""
+        school_id = 1
+
+        # Invalidate school cache without slug
+        result = invalidate_school_cache(school_id)
+
+        # Should still clear meal cache and school list, but not page cache
+        # In test environment: 0 (meals) + 0 (no page) + 1 (list) = 1
+        assert result == 1
+
+    def test_invalidate_school_list_cache(self):
+        """Test invalidating school list cache."""
+        # Call invalidate function - should not raise any errors
+        invalidate_school_list_cache()
+
+        # In DummyCache, nothing is actually cached or deleted, but function should work
+        assert True
 
 
 class TestGetCachedOrQuery:

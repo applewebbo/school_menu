@@ -5,6 +5,8 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from school_menu.cache import invalidate_meal_cache, invalidate_school_cache
+
 
 class Meal(models.Model):
     class Types(models.TextChoices):
@@ -53,6 +55,19 @@ class DetailedMeal(Meal):
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate meal cache after successful save
+        if self.school_id:
+            invalidate_meal_cache(self.school_id)
+
+    def delete(self, *args, **kwargs):
+        school_id = self.school_id
+        super().delete(*args, **kwargs)
+        # Invalidate meal cache after successful delete
+        if school_id:
+            invalidate_meal_cache(school_id)
+
 
 class SimpleMeal(Meal):
     menu = models.TextField(max_length=600)
@@ -61,6 +76,19 @@ class SimpleMeal(Meal):
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate meal cache after successful save
+        if self.school_id:
+            invalidate_meal_cache(self.school_id)
+
+    def delete(self, *args, **kwargs):
+        school_id = self.school_id
+        super().delete(*args, **kwargs)
+        # Invalidate meal cache after successful delete
+        if school_id:
+            invalidate_meal_cache(school_id)
 
 
 class AnnualMeal(Meal):
@@ -71,6 +99,19 @@ class AnnualMeal(Meal):
 
     def __str__(self):
         return f"{self.school.name} [{self.date:%d/%m}]"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Invalidate meal cache after successful save
+        if self.school_id:
+            invalidate_meal_cache(self.school_id)
+
+    def delete(self, *args, **kwargs):
+        school_id = self.school_id
+        super().delete(*args, **kwargs)
+        # Invalidate meal cache after successful delete
+        if school_id:
+            invalidate_meal_cache(school_id)
 
     class Meta:
         ordering = ["-date"]
@@ -136,6 +177,10 @@ class School(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(f"{self.name}-{self.city}")
         super().save(*args, **kwargs)
+        # Invalidate all caches when school settings change
+        # Settings like menu_type, season_choice, week_bias, and alternative
+        # menu flags affect display even without modifying meals
+        invalidate_school_cache(self.id, self.slug)
 
     def get_absolute_url(self):
         return reverse("school_menu:school_menu", kwargs={"slug": self.slug})

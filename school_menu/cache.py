@@ -172,3 +172,95 @@ def get_cached_or_query(
     cache.set(key, data, timeout)
 
     return data
+
+
+def invalidate_meal_cache(school_id: int) -> int:
+    """
+    Clear all meal-related caches for a specific school.
+
+    This includes:
+    - Individual meal caches (meal:*)
+    - Weekly meal caches (meals:*)
+    - Annual meal caches (annual_meals:*)
+    - Types menu caches (types_menu:*)
+
+    Args:
+        school_id: The school's database ID
+
+    Returns:
+        Total number of cache keys deleted
+
+    Example:
+        >>> invalidate_meal_cache(1)
+        45  # Deleted 45 cache keys
+    """
+    total_deleted = 0
+
+    # Patterns to delete
+    patterns = [
+        f"*meal:{school_id}:*",  # Individual meals
+        f"*meals:{school_id}:*",  # Weekly meals
+        f"*annual_meals:{school_id}:*",  # Annual meals
+        f"*types_menu:{school_id}*",  # Types menus
+    ]
+
+    # Check if cache backend supports delete_pattern (Redis backend)
+    if hasattr(cache, "delete_pattern"):
+        for pattern in patterns:
+            total_deleted += cache.delete_pattern(pattern)
+    # Fallback for non-redis backends (e.g., database cache, dummy cache)
+    # In these cases, we can't use pattern matching, so just return 0
+
+    return total_deleted
+
+
+def invalidate_school_cache(school_id: int, school_slug: str = None) -> int:
+    """
+    Clear ALL caches for a specific school.
+
+    This is used when school settings change (menu_type, season_choice,
+    week_bias, alternative menu flags) which affect display even without
+    modifying meals.
+
+    Clears:
+    - All meal-related caches (via invalidate_meal_cache)
+    - School page cache
+    - School list cache (public pages)
+
+    Args:
+        school_id: The school's database ID
+        school_slug: The school's slug identifier (optional, will skip page cache if not provided)
+
+    Returns:
+        Total number of cache keys deleted
+
+    Example:
+        >>> invalidate_school_cache(1, 'my-school-city')
+        48  # Deleted 48 cache keys
+    """
+    # Clear all meal caches
+    total_deleted = invalidate_meal_cache(school_id)
+
+    # Clear school page cache if slug provided
+    if school_slug:
+        invalidate_school_page(school_slug)
+        total_deleted += 1
+
+    # Clear public school list cache
+    invalidate_school_list_cache()
+    total_deleted += 1
+
+    return total_deleted
+
+
+def invalidate_school_list_cache() -> None:
+    """
+    Clear cached public school list.
+
+    This should be called when school settings change that affect
+    the public school list display (is_published, name, city, etc.)
+
+    Example:
+        >>> invalidate_school_list_cache()
+    """
+    cache.delete("school_list_public")

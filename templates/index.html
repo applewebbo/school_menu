@@ -21,8 +21,8 @@
 </div>
 {% endpartialdef %}
 {% block content %}
-<div class="container mx-auto mb-8 max-w-screen-lg">
-    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+<div class="container mx-auto mb-8 max-w-5xl">
+    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-7xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
         {% if user.is_authenticated %}
             <div class="place-self-center mx-auto">{% include 'partials/_menu.html' %}</div>
         {% else %}

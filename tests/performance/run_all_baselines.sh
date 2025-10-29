@@ -55,7 +55,7 @@ run_test() {
     echo "────────────────────────────────────────────────────────────────────────────────"
 
     # Run the test and append output to metrics file
-    ENVIRONMENT=test uv run pytest -v --tb=short -m performance "$SCRIPT_DIR/$test_file" >> "$METRICS_FILE" 2>&1
+    ENVIRONMENT=test uv run pytest -v --tb=short --no-cov -m performance "$SCRIPT_DIR/$test_file" >> "$METRICS_FILE" 2>&1
 
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ $test_name completed successfully${NC}"

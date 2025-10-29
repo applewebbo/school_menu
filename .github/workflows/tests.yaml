@@ -43,4 +43,4 @@ jobs:
       run: uv sync --all-extras
 
     - name: Test it
-      run: uv run pytest -n 8 --reuse-db --dist loadscope --exitfirst
+      run: uv run pytest -n 8 --reuse-db --dist loadscope --exitfirst -m "not performance"

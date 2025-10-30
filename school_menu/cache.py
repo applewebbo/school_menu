@@ -183,6 +183,7 @@ def invalidate_meal_cache(school_id: int) -> int:
     - Weekly meal caches (meals:*)
     - Annual meal caches (annual_meals:*)
     - Types menu caches (types_menu:*)
+    - JSON API cache (json_api:*)
 
     Args:
         school_id: The school's database ID
@@ -202,6 +203,7 @@ def invalidate_meal_cache(school_id: int) -> int:
         f"*meals:{school_id}:*",  # Weekly meals
         f"*annual_meals:{school_id}:*",  # Annual meals
         f"*types_menu:{school_id}*",  # Types menus
+        "*json_api*",  # JSON API cache (all schools, as cache_page uses complex keys)
     ]
 
     # Check if cache backend supports delete_pattern (Redis backend)

@@ -52,6 +52,13 @@ class DetailedMeal(Meal):
     fruit = models.CharField(max_length=200, default="Frutta di Stagione")
     snack = models.CharField(max_length=200)
 
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["school", "week", "season"], name="detailed_sch_week_season"
+            ),
+        ]
+
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
 
@@ -73,6 +80,13 @@ class SimpleMeal(Meal):
     menu = models.TextField(max_length=600)
     morning_snack = models.CharField(max_length=200, blank=True)
     afternoon_snack = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(
+                fields=["school", "week", "season"], name="simple_sch_week_season"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.get_day_display()} - {self.get_week_display()} [{self.get_season_display()}]"
@@ -115,6 +129,11 @@ class AnnualMeal(Meal):
 
     class Meta:
         ordering = ["-date"]
+        indexes = [
+            models.Index(
+                fields=["school", "date", "is_active"], name="annual_sch_date_active"
+            ),
+        ]
 
 
 class School(models.Model):

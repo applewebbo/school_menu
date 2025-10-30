@@ -174,18 +174,19 @@ class TestCacheInvalidation:
             result = invalidate_meal_cache(school_id)
 
             # Verify delete_pattern was called with correct patterns
-            assert mock_cache.delete_pattern.call_count == 4
+            assert mock_cache.delete_pattern.call_count == 5
             expected_patterns = [
                 f"*meal:{school_id}:*",
                 f"*meals:{school_id}:*",
                 f"*annual_meals:{school_id}:*",
                 f"*types_menu:{school_id}*",
+                "*json_api*",
             ]
             for pattern in expected_patterns:
                 mock_cache.delete_pattern.assert_any_call(pattern)
 
-            # Verify it returns the total number of deleted keys (5 per pattern * 4 patterns)
-            assert result == 20
+            # Verify it returns the total number of deleted keys (5 per pattern * 5 patterns)
+            assert result == 25
 
     def test_invalidate_school_cache_fallback(self):
         """

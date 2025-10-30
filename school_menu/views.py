@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
+from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 from tablib.exceptions import InvalidDimensions
@@ -109,7 +110,7 @@ def index(request):
 
 def school_menu(request, slug, meal_type="S"):
     """Return school menu for the given school"""
-    school = get_object_or_404(School, slug=slug)
+    school = get_object_or_404(School.objects.select_related("user"), slug=slug)
     pk = request.session.get("anon_notification_pk")
     notifications_status = get_notifications_status(pk, school)
     if not school.is_published:
@@ -163,7 +164,7 @@ def school_menu(request, slug, meal_type="S"):
 
 def get_menu(request, school_id, week, day, meal_type):
     """get menu for the given school, day, week and type"""
-    school = get_object_or_404(School, pk=school_id)
+    school = get_object_or_404(School.objects.select_related("user"), pk=school_id)
     pk = request.session.get("anon_notification_pk")
     notifications_status = get_notifications_status(pk, school)
     season = get_season(school)
@@ -208,6 +209,7 @@ def get_schools_json_list(request):
 
 
 @require_http_methods(["GET"])
+@cache_page(86400, key_prefix="json_api")
 def get_school_json_menu(request, slug):
     school = get_object_or_404(School, slug=slug)
     current_week, adjusted_day = get_current_date()

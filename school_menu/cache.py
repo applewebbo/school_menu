@@ -13,10 +13,13 @@ Cache Key Patterns:
 Default TTL: 24 hours (86400 seconds)
 """
 
+import logging
 from collections.abc import Callable
 from typing import Any
 
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
 
 
 def get_meal_cache_key(
@@ -163,13 +166,16 @@ def get_cached_or_query(
     cached_data = cache.get(key)
 
     if cached_data is not None:
+        logger.debug(f"Cache HIT: key={key}, ttl={timeout}s")
         return cached_data
 
     # Cache miss - execute query function
+    logger.debug(f"Cache MISS: key={key}, ttl={timeout}s")
     data = query_func()
 
     # Cache the result
     cache.set(key, data, timeout)
+    logger.debug(f"Cache SET: key={key}, ttl={timeout}s")
 
     return data
 

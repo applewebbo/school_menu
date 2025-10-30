@@ -1,5 +1,6 @@
 """Tests for cache utility functions."""
 
+import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -349,3 +350,236 @@ class TestGetCachedOrQuery:
         result = get_cached_or_query(cache_key, query_func)
 
         assert result == "simple string"
+
+
+class TestCacheLogging:
+    """Test cache hit/miss logging."""
+
+    def setup_method(self):
+        """Clear cache before each test."""
+        cache.clear()
+
+    def teardown_method(self):
+        """Clear cache after each test."""
+        cache.clear()
+
+    def test_cache_miss_logging(self, caplog):
+        """Test that cache misses are logged at DEBUG level."""
+
+        def query_func():
+            return {"data": "test"}
+
+        cache_key = "test_log_key"
+
+        with caplog.at_level(logging.DEBUG, logger="school_menu.cache"):
+            result = get_cached_or_query(cache_key, query_func, timeout=300)
+
+            # In DummyCache, we should see MISS and SET logs
+            assert any("Cache MISS" in record.message for record in caplog.records)
+            assert any("Cache SET" in record.message for record in caplog.records)
+            assert result == {"data": "test"}
+
+    def test_cache_hit_logging(self, caplog):
+        """Test that cache hits are logged at DEBUG level."""
+        cache_key = "test_hit_key"
+        cached_value = {"data": "cached"}
+
+        # Mock cache to simulate a hit
+        with patch("school_menu.cache.cache") as mock_cache:
+            mock_cache.get.return_value = cached_value
+
+            with caplog.at_level(logging.DEBUG, logger="school_menu.cache"):
+                result = get_cached_or_query(cache_key, lambda: {}, timeout=300)
+
+                # Verify HIT log appears
+                assert any("Cache HIT" in record.message for record in caplog.records)
+                assert result == cached_value
+
+
+class TestModelCacheInvalidation:
+    """Test cache invalidation on model save/delete operations."""
+
+    def test_simple_meal_save_invalidates_cache(self, school):
+        """Test that saving a SimpleMeal triggers cache invalidation."""
+        from school_menu.models import SimpleMeal
+
+        with patch("school_menu.models.invalidate_meal_cache") as mock_invalidate:
+            SimpleMeal.objects.create(
+                school=school,
+                week=1,
+                day=1,
+                season=1,
+                type="S",
+                menu="Test menu",
+            )
+
+            # Verify invalidate_meal_cache was called with school ID
+            mock_invalidate.assert_called_once_with(school.id)
+
+    def test_simple_meal_delete_invalidates_cache(self, school):
+        """Test that deleting a SimpleMeal triggers cache invalidation."""
+        from school_menu.models import SimpleMeal
+
+        meal = SimpleMeal.objects.create(
+            school=school,
+            week=1,
+            day=1,
+            season=1,
+            type="S",
+            menu="Test menu",
+        )
+
+        with patch("school_menu.models.invalidate_meal_cache") as mock_invalidate:
+            meal.delete()
+
+            # Verify invalidate_meal_cache was called with school ID
+            mock_invalidate.assert_called_once_with(school.id)
+
+    def test_detailed_meal_save_invalidates_cache(self, school):
+        """Test that saving a DetailedMeal triggers cache invalidation."""
+        from school_menu.models import DetailedMeal
+
+        with patch("school_menu.models.invalidate_meal_cache") as mock_invalidate:
+            DetailedMeal.objects.create(
+                school=school,
+                week=1,
+                day=1,
+                season=1,
+                type="S",
+                first_course="Pasta",
+                second_course="Chicken",
+                side_dish="Salad",
+                fruit="Apple",
+                snack="Crackers",
+            )
+
+            # Verify invalidate_meal_cache was called with school ID
+            mock_invalidate.assert_called_once_with(school.id)
+
+    def test_detailed_meal_delete_invalidates_cache(self, school):
+        """Test that deleting a DetailedMeal triggers cache invalidation."""
+        from school_menu.models import DetailedMeal
+
+        meal = DetailedMeal.objects.create(
+            school=school,
+            week=1,
+            day=1,
+            season=1,
+            type="S",
+            first_course="Pasta",
+            second_course="Chicken",
+            side_dish="Salad",
+            fruit="Apple",
+            snack="Crackers",
+        )
+
+        with patch("school_menu.models.invalidate_meal_cache") as mock_invalidate:
+            meal.delete()
+
+            # Verify invalidate_meal_cache was called with school ID
+            mock_invalidate.assert_called_once_with(school.id)
+
+    def test_annual_meal_save_invalidates_cache(self, school):
+        """Test that saving an AnnualMeal triggers cache invalidation."""
+        from datetime import date
+
+        from school_menu.models import AnnualMeal
+
+        with patch("school_menu.models.invalidate_meal_cache") as mock_invalidate:
+            AnnualMeal.objects.create(
+                school=school,
+                day=1,
+                type="S",
+                menu="Test menu",
+                date=date(2025, 1, 15),
+            )
+
+            # Verify invalidate_meal_cache was called with school ID
+            mock_invalidate.assert_called_once_with(school.id)
+
+    def test_annual_meal_delete_invalidates_cache(self, school):
+        """Test that deleting an AnnualMeal triggers cache invalidation."""
+        from datetime import date
+
+        from school_menu.models import AnnualMeal
+
+        meal = AnnualMeal.objects.create(
+            school=school,
+            day=1,
+            type="S",
+            menu="Test menu",
+            date=date(2025, 1, 15),
+        )
+
+        with patch("school_menu.models.invalidate_meal_cache") as mock_invalidate:
+            meal.delete()
+
+            # Verify invalidate_meal_cache was called with school ID
+            mock_invalidate.assert_called_once_with(school.id)
+
+    def test_school_save_invalidates_cache(self, user):
+        """Test that saving a School triggers cache invalidation."""
+        from school_menu.models import School
+
+        with patch("school_menu.models.invalidate_school_cache") as mock_invalidate:
+            school = School.objects.create(
+                name="Test School",
+                city="Test City",
+                user=user,
+            )
+
+            # Verify invalidate_school_cache was called with school ID and slug
+            mock_invalidate.assert_called_once_with(school.id, school.slug)
+
+    def test_school_update_invalidates_cache(self, school):
+        """Test that updating a School triggers cache invalidation."""
+
+        # Update the school
+        with patch("school_menu.models.invalidate_school_cache") as mock_invalidate:
+            school.menu_type = "S"
+            school.save()
+
+            # Verify invalidate_school_cache was called
+            mock_invalidate.assert_called_once_with(school.id, school.slug)
+
+
+class TestCacheIsolation:
+    """Test that cache is properly isolated between schools."""
+
+    def test_cache_isolation_between_schools(
+        self, school, school_factory, user_factory
+    ):
+        """Test that cache invalidation for one school doesn't affect another."""
+        from school_menu.models import SimpleMeal
+
+        # Create a second school using factory
+        second_user = user_factory()
+        second_school = school_factory(user=second_user)
+
+        # Create meals for both schools
+        SimpleMeal.objects.create(
+            school=school,
+            week=1,
+            day=1,
+            season=1,
+            type="S",
+            menu="School 1 menu",
+        )
+
+        SimpleMeal.objects.create(
+            school=second_school,
+            week=1,
+            day=1,
+            season=1,
+            type="S",
+            menu="School 2 menu",
+        )
+
+        # Generate cache keys for both schools
+        key1 = get_meal_cache_key(school.id, 1, 1, "1", "S")
+        key2 = get_meal_cache_key(second_school.id, 1, 1, "1", "S")
+
+        # Verify keys are different
+        assert key1 != key2
+        assert str(school.id) in key1
+        assert str(second_school.id) in key2

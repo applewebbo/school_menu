@@ -381,6 +381,15 @@ elif ENVIRONMENT == "prod":
         },
     }
 
+    # CACHE TIMEOUTS - TTL values for different data types
+    CACHE_TIMEOUTS = {
+        "MEAL": 86400,  # 24 hours - meal data changes infrequently
+        "ANNUAL_MEAL": 604800,  # 7 days - annual menus are more stable
+        "TYPES_MENU": 86400,  # 24 hours - alternative menu availability
+        "JSON_API": 86400,  # 24 hours - public JSON API responses
+        "SCHOOL_PAGE": 86400,  # 24 hours - public school menu pages
+    }
+
     # DJANGO SCHEDULED BACKUPS - Enabled in production only
     SCHEDULED_BACKUPS = {
         # Enable/disable the backup system

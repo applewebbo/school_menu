@@ -13,6 +13,7 @@ from school_menu.utils import (
     ChoicesWidget,
     build_types_menu,
     calculate_week,
+    detect_csv_format,
     fill_missing_dates,
     get_alt_menu,
     get_current_date,
@@ -716,3 +717,52 @@ class TestGetNotificationsStatus(TestCase):
             school=school, daily_notification=True
         )
         assert get_notifications_status(notification.pk, school) is True
+
+
+class TestDetectCSVFormat:
+    def test_detect_comma_delimiter(self):
+        """Test Sniffer detection of comma delimiter"""
+        csv_content = (
+            "settimana,giorno,pranzo,spuntino,merenda\n1,Lunedì,Pasta,Yogurt,Mela\n"
+        )
+        delimiter, quotechar = detect_csv_format(csv_content)
+        assert delimiter == ","
+        assert quotechar == '"'
+
+    def test_detect_semicolon_delimiter(self):
+        """Test Sniffer detection of semicolon delimiter (Numbers export)"""
+        csv_content = (
+            "settimana;giorno;pranzo;spuntino;merenda\n1;Lunedì;Pasta;Yogurt;Mela\n"
+        )
+        delimiter, quotechar = detect_csv_format(csv_content)
+        assert delimiter == ";"
+        assert quotechar == '"'
+
+    def test_detect_quoted_fields_comma(self):
+        """Test detection with quoted fields and comma delimiter"""
+        csv_content = '"settimana","giorno","pranzo","spuntino","merenda"\n"1","Lunedì","Pasta, Ragù","Yogurt","Mela"\n'
+        delimiter, quotechar = detect_csv_format(csv_content)
+        assert delimiter == ","
+        assert quotechar == '"'
+
+    def test_detect_quoted_fields_semicolon(self):
+        """Test detection with quoted fields and semicolon delimiter"""
+        csv_content = '"settimana";"giorno";"pranzo";"spuntino";"merenda"\n"1";"Lunedì";"Pasta; Ragù";"Yogurt";"Mela"\n'
+        delimiter, quotechar = detect_csv_format(csv_content)
+        assert delimiter == ";"
+        assert quotechar == '"'
+
+    def test_fallback_no_delimiters_defaults_to_comma(self):
+        """Test fallback when Sniffer fails with no delimiters - defaults to comma"""
+        csv_content = "a"  # Single character, Sniffer fails, no delimiters
+        delimiter, quotechar = detect_csv_format(csv_content)
+        # Fallback: 0 semicolons NOT > 0 commas, defaults to comma
+        assert delimiter == ","
+        assert quotechar == '"'
+
+    def test_fallback_prefer_semicolon_when_more_common(self):
+        """Test fallback: semicolon preferred when more common - hits line 35 TRUE"""
+        csv_content = "a;b\nc"  # Inconsistent - Sniffer fails, has 1 semicolon
+        delimiter, quotechar = detect_csv_format(csv_content)
+        # Fallback: 1 semicolon > 0 commas, returns semicolon
+        assert delimiter == ";"

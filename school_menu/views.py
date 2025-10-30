@@ -41,6 +41,7 @@ from school_menu.serializers import (
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
+    detect_csv_format,
     fill_missing_dates,
     get_adjusted_year,
     get_alt_menu,
@@ -388,12 +389,18 @@ def upload_menu(request, school_id, meal_type):
                 resource = DetailedMealResource()
             dataset = Dataset()
             try:
-                dataset.load(file.read().decode(), format="csv")
-            except (InvalidDimensions, Exception):
+                # Read and detect CSV format
+                content = file.read().decode("utf-8")
+                delimiter, quotechar = detect_csv_format(content)
+                # Load with detected delimiter
+                dataset.load(
+                    content, format="csv", delimiter=delimiter, quotechar=quotechar
+                )
+            except (InvalidDimensions, Exception) as e:
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "Il file CSV non è valido. Controlla il delimitatore e il formato.",
+                    f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
                 )
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}
@@ -448,12 +455,18 @@ def upload_annual_menu(request, school_id, meal_type):
             resource = AnnualMenuResource()
             dataset = Dataset()
             try:
-                dataset.load(file.read().decode(), format="csv")
-            except (InvalidDimensions, Exception):
+                # Read and detect CSV format
+                content = file.read().decode("utf-8")
+                delimiter, quotechar = detect_csv_format(content)
+                # Load with detected delimiter
+                dataset.load(
+                    content, format="csv", delimiter=delimiter, quotechar=quotechar
+                )
+            except (InvalidDimensions, Exception) as e:
                 messages.add_message(
                     request,
                     messages.ERROR,
-                    "Il file CSV non è valido. Controlla il delimitatore e il formato.",
+                    f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
                 )
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}

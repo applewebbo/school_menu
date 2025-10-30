@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
@@ -8,6 +9,34 @@ from import_export.widgets import Widget
 from notifications.models import AnonymousMenuNotification
 from school_menu.cache import get_cached_or_query
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+
+
+def detect_csv_format(content: str) -> tuple[str, str]:
+    """
+    Detect CSV delimiter and quote character.
+    Returns: (delimiter, quotechar)
+    Uses csv.Sniffer for detection with fallback to comma then semicolon.
+    """
+    # Try csv.Sniffer first on a sample of the content
+    try:
+        sample = content[:1024]  # Use first 1KB for detection
+        sniffer = csv.Sniffer()
+        dialect = sniffer.sniff(sample, delimiters=",;")
+        return dialect.delimiter, dialect.quotechar
+    except Exception:  # nosec B110
+        # Sniffer failed, use fallback manual detection
+        pass  # Intentionally fall through to manual detection
+
+    # Fallback: try to detect by counting delimiters in first few lines
+    lines = content.split("\n")[:5]  # Check first 5 lines
+    comma_count = sum(line.count(",") for line in lines)
+    semicolon_count = sum(line.count(";") for line in lines)
+
+    if semicolon_count > comma_count:
+        return ";", '"'
+
+    # Default to comma (backward compatibility)
+    return ",", '"'
 
 
 # TODO: need to refactor this function when number of weeks is different than 4 in settings

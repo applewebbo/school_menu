@@ -614,7 +614,7 @@ class TestUploadMenuView(TestCase):
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
         assert (
-            "Il file CSV non è valido. Controlla il delimitatore e il formato."
+            "Il file CSV non è valido. Impossibile riconoscere il formato"
             in messages[0].message
         )
 
@@ -747,7 +747,7 @@ class TestUploadAnnualMenuView(TestCase):
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
         assert (
-            "Il file CSV non è valido. Controlla il delimitatore e il formato."
+            "Il file CSV non è valido. Impossibile riconoscere il formato"
             in messages[0].message
         )
         assert AnnualMeal.objects.filter(school=school).count() == 0

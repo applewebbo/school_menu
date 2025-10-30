@@ -11,6 +11,124 @@ Made with **Django**, **Tailwind** and **Htmx**
 Demo Site:
 http://menu.webbografico.com
 
+## Setup Instructions
+
+### Prerequisites
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) - Fast Python package manager
+- Redis (optional, for production caching and background tasks)
+
+### Installation
+
+1. **Install dependencies:**
+   ```bash
+   just install
+   ```
+
+2. **Run database migrations:**
+   ```bash
+   just migrate
+   ```
+
+3. **Create cache table:**
+   ```bash
+   uv run python manage.py createcachetable django_cache
+   ```
+
+4. **Compile translation files:**
+   ```bash
+   just compilemessages
+   ```
+
+5. **Run the development server:**
+   ```bash
+   just local
+   ```
+
+### Environment Configuration
+
+Create a `.env` file in the project root:
+
+```env
+ENVIRONMENT=dev  # Options: dev, prod, test
+SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Production only
+DATABASE_URL=postgres://user:pass@localhost/dbname
+REDIS_PASSWORD=your-redis-password
+```
+
+## Just Commands
+
+This project uses [just](https://github.com/casey/just) for task management. Available commands:
+
+### Setup
+- `just install` - Install/sync dependencies using uv
+- `just update_all` - Update all dependencies and pre-commit hooks
+- `just update <package>` - Update a specific package
+- `just lock` - Rebuild lock file from scratch
+- `just clean` - Remove temporary files (.venv, .pytest_cache, etc.)
+- `just fresh` - Recreate virtualenv from scratch (clean + install)
+
+### Development
+- `just local` - Run local development server with Tailwind
+- `just serve` - Run development server + workers using overmind
+- `just makemigrations` - Create database migrations
+- `just migrate` - Run database migrations
+- `just compilemessages` - Compile translation files
+- `just makemessages` - Update translation files
+- `just tasks` - Run Django Q2 task worker
+
+### Testing & Quality
+- `just test [args]` - Run tests sequentially (useful for debugging with -s, -x flags)
+- `just ftest [args]` - Run tests in parallel using 8 workers (faster, for CI)
+- `just perftest [args]` - Run performance tests only
+- `just perfbaseline` - Run complete performance baseline suite
+- `just lint` - Run Ruff linting/formatting and pre-commit hooks
+- `just secure` - Check for unsecured dependencies
+
+## Code Stack
+
+### Backend
+- **Django 5.0+** - Web framework
+- **Django Q2** - Background task queue with Redis
+- **Django REST Framework** - API endpoints
+- **PostgreSQL** - Production database
+- **SQLite** - Development/testing database
+- **Redis** - Caching and task queue backend
+
+### Frontend
+- **Tailwind CSS** - Utility-first CSS framework (via django-tailwind-cli)
+- **DaisyUI** - Tailwind component library
+- **htmx** - Dynamic HTML without JavaScript
+- **Alpine.js** - Lightweight JavaScript framework
+- **Heroicons** - Icon library
+
+### Authentication & User Management
+- **django-allauth** - Email-based authentication with social login support
+- **django-crispy-forms** + **crispy-tailwind** - Form rendering
+
+### Features & Utilities
+- **django-import-export** - CSV/Excel import/export for menus
+- **django-pwa** - Progressive Web App support
+- **django-webpush** - Browser push notifications
+- **django-dbbackup** - Database backups to Dropbox
+- **django-cookiebanner** - GDPR cookie consent
+- **django-social-share** - Social sharing functionality
+- **Whitenoise** - Static file serving
+
+### Development Tools
+- **uv** - Fast Python package manager
+- **pytest** + **pytest-django** - Testing framework
+- **factory-boy** - Test data generation
+- **Ruff** - Linting and formatting
+- **pre-commit** - Git hooks for code quality
+- **django-debug-toolbar** - Development debugging (dev only)
+- **Locust** - Performance testing
+- **pytest-benchmark** - Performance benchmarking
+
 ## Technical Setup
 
 ### Cache Configuration

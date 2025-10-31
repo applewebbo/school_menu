@@ -39,6 +39,61 @@ def detect_csv_format(content: str) -> tuple[str, str]:
     return ",", '"'
 
 
+def filter_dataset_columns(dataset, allowed_columns: list[str]) -> tuple:
+    """
+    Filter dataset to remove unnamed, whitespace-only, and extra columns.
+
+    Args:
+        dataset: tablib Dataset object
+        allowed_columns: List of column names that are allowed (required + optional)
+
+    Returns:
+        tuple: (filtered_dataset, removed_columns)
+            - filtered_dataset: Dataset with only valid columns
+            - removed_columns: List of column names that were removed
+
+    Removes:
+        - Columns with empty names ('')
+        - Columns with whitespace-only names ('   ')
+        - Columns not in the allowed_columns list
+    """
+    from tablib import Dataset
+
+    original_headers = dataset.headers
+    removed_columns = []
+
+    # Identify columns to keep
+    columns_to_keep = []
+    for i, header in enumerate(original_headers):
+        # Skip empty or whitespace-only column names
+        if not header or not header.strip():
+            removed_columns.append(header if header else "(unnamed)")
+            continue
+
+        # Skip columns not in allowed list
+        if header not in allowed_columns:
+            removed_columns.append(header)
+            continue
+
+        columns_to_keep.append(i)
+
+    # If no columns need to be removed, return original dataset
+    if not removed_columns:
+        return dataset, []
+
+    # Create new dataset with only valid columns
+    filtered_dataset = Dataset()
+    filtered_headers = [original_headers[i] for i in columns_to_keep]
+    filtered_dataset.headers = filtered_headers
+
+    # Copy rows with only valid columns
+    for row in dataset:
+        filtered_row = [row[i] for i in columns_to_keep]
+        filtered_dataset.append(filtered_row)
+
+    return filtered_dataset, removed_columns
+
+
 # TODO: need to refactor this function when number of weeks is different than 4 in settings
 def calculate_week(week, bias):
     """
@@ -179,12 +234,19 @@ def build_types_menu(weekly_meals, school, week=None, season=None):
 
 
 def validate_dataset(dataset, menu_type):
-    """validates menu import dataset for required columns and values before importing into database and return validates = False and message if not valid"""
+    """
+    Validates menu import dataset for required columns and values.
+
+    Returns:
+        tuple: (validates, message, filtered_dataset)
+            - validates: bool indicating if dataset is valid
+            - message: error message if not valid, None otherwise
+            - filtered_dataset: dataset with only allowed columns
+    """
     validates = True
     message = None
-    columns = dataset.headers
 
-    # check required headers presence
+    # Define required and allowed columns based on menu type
     if menu_type == School.Types.SIMPLE:
         required_columns = [
             "giorno",
@@ -193,6 +255,7 @@ def validate_dataset(dataset, menu_type):
             "spuntino",
             "merenda",
         ]
+        allowed_columns = required_columns  # No optional columns for simple menu
     else:
         required_columns = [
             "giorno",
@@ -203,20 +266,35 @@ def validate_dataset(dataset, menu_type):
             "frutta",
             "spuntino",
         ]
+        allowed_columns = required_columns  # No optional columns for detailed menu
+
+    # Filter out unnamed, whitespace-only, and extra columns
+    filtered_dataset, removed_columns = filter_dataset_columns(dataset, allowed_columns)
+
+    columns = filtered_dataset.headers
+
+    # Handle case where dataset is completely invalid (no headers)
+    if columns is None:
+        validates = False
+        message = "Formato non valido. Il file non contiene intestazioni valide."
+        return validates, message, filtered_dataset
+
+    # check required headers presence
     if not all(column in columns for column in required_columns):
         validates = False
-        message = "Formato non valido. Il file non contiene tutte le colonne richieste."
-        return validates, message
+        missing = [col for col in required_columns if col not in columns]
+        message = f"Formato non valido. Il file non contiene tutte le colonne richieste. Colonne mancanti: {', '.join(missing)}"
+        return validates, message, filtered_dataset
 
     # check if the day column contains only valid day names
     days = {"Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì"}
-    day_values = dataset["giorno"]
+    day_values = filtered_dataset["giorno"]
     if not all(day in days for day in day_values):
         validates = False
         message = 'Formato non valido. La colonna "giorno" contiene valori diversi dai giorni della settimana.'
 
     # check if week values are 1 to 4
-    weeks = dataset["settimana"]
+    weeks = filtered_dataset["settimana"]
     try:
         weeks = [int(week) for week in weeks]
     except ValueError:
@@ -224,40 +302,63 @@ def validate_dataset(dataset, menu_type):
         message = (
             'Formato non valido. La colonna "settimana" contiene valori non numerici.'
         )
-        return validates, message
+        return validates, message, filtered_dataset
     if not all(0 < week <= 4 for week in weeks):
         validates = False
         message = 'Formato non valido. La colonna "settimana" contiene valori non compresi fra 1 e 4.'
 
     # if everything ok return validates = True and no message
-    return validates, message
+    return validates, message, filtered_dataset
 
 
 def validate_annual_dataset(dataset):
-    """validates menu import dataset for required columns and values before importing into database and return validates = False and message if not valid"""
+    """
+    Validates annual menu import dataset for required columns and values.
+
+    Returns:
+        tuple: (validates, message, filtered_dataset)
+            - validates: bool indicating if dataset is valid
+            - message: error message if not valid, None otherwise
+            - filtered_dataset: dataset with only allowed columns
+    """
     validates = True
     message = None
 
-    # check required headers presence
-    columns = dataset.headers
+    # Define required and allowed columns
     required_columns = ["data", "primo", "secondo", "contorno", "frutta", "altro"]
+    # giorno is optional (auto-calculated from data) so we allow it but don't require it
+    allowed_columns = required_columns + ["giorno"]
+
+    # Filter out unnamed, whitespace-only, and extra columns
+    filtered_dataset, removed_columns = filter_dataset_columns(dataset, allowed_columns)
+
+    # check required headers presence
+    columns = filtered_dataset.headers
+
+    # Handle case where dataset is completely invalid (no headers)
+    if columns is None:
+        validates = False
+        message = "Formato non valido. Il file non contiene intestazioni valide."
+        return validates, message, filtered_dataset
+
     if not all(column in columns for column in required_columns):
         validates = False
-        message = "Formato non valido. Il file non contiene tutte le colonne richieste."
-        return validates, message
+        missing = [col for col in required_columns if col not in columns]
+        message = f"Formato non valido. Il file non contiene tutte le colonne richieste. Colonne mancanti: {', '.join(missing)}"
+        return validates, message, filtered_dataset
 
     # check if data column contain valid data values
-    dates = dataset["data"]
+    dates = filtered_dataset["data"]
     for date_str in dates:
         try:
             datetime.strptime(date_str, "%d/%m/%Y")
         except ValueError:
             validates = False
             message = 'Formato non valido. La colonna "data" contiene date in formato non valido. Usa il formato GG/MM/AAAA'
-            return validates, message
+            return validates, message, filtered_dataset
 
     # if everything ok return validates = True and no message
-    return validates, message
+    return validates, message, filtered_dataset
 
 
 class ChoicesWidget(Widget):

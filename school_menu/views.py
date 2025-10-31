@@ -405,7 +405,7 @@ def upload_menu(request, school_id, meal_type):
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}
                 )
-            validates, message = validate_dataset(dataset, menu_type)
+            validates, message, filtered_dataset = validate_dataset(dataset, menu_type)
             if not validates:
                 context = {
                     "form": form,
@@ -415,11 +415,19 @@ def upload_menu(request, school_id, meal_type):
                 }
                 return TemplateResponse(request, "upload-menu.html", context)
             result = resource.import_data(
-                dataset, dry_run=True, school=school, season=season, type=meal_type
+                filtered_dataset,
+                dry_run=True,
+                school=school,
+                season=season,
+                type=meal_type,
             )
             if not result.has_errors():  # pragma: no cover
                 result = resource.import_data(
-                    dataset, dry_run=False, school=school, season=season, type=meal_type
+                    filtered_dataset,
+                    dry_run=False,
+                    school=school,
+                    season=season,
+                    type=meal_type,
                 )
                 # Explicitly invalidate cache after bulk import
                 # (django-import-export may use bulk_create which bypasses save())
@@ -471,7 +479,7 @@ def upload_annual_menu(request, school_id, meal_type):
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}
                 )
-            validates, message = validate_annual_dataset(dataset)
+            validates, message, filtered_dataset = validate_annual_dataset(dataset)
             if not validates:
                 context = {
                     "form": form,
@@ -481,11 +489,11 @@ def upload_annual_menu(request, school_id, meal_type):
                 }
                 return TemplateResponse(request, "upload-menu.html", context)
             result = resource.import_data(
-                dataset, dry_run=True, school=school, type=meal_type
+                filtered_dataset, dry_run=True, school=school, type=meal_type
             )
             if not result.has_errors():  # pragma: no cover
                 result = resource.import_data(
-                    dataset, dry_run=False, school=school, type=meal_type
+                    filtered_dataset, dry_run=False, school=school, type=meal_type
                 )
                 fill_missing_dates(school, meal_type)
                 # Explicitly invalidate cache after bulk import and fill_missing_dates

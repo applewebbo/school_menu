@@ -290,30 +290,42 @@ class TestValidateDataset(TestCase):
         dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
         dataset.append(["Lunedì", 1, "Pasta al Pomodoro", "Yogurt", "Mela"])
 
-        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
 
         assert validates is True
         assert message is None
+        assert filtered_dataset.headers == [
+            "giorno",
+            "settimana",
+            "pranzo",
+            "spuntino",
+            "merenda",
+        ]
 
     def test_simple_meal_validate_missing_column(self):
         dataset = Dataset()
         dataset.headers = ["giorno", "settimana", "pranzo"]
         dataset.append(["Lunedì", 1, "Pasta al Pomodoro"])
 
-        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
 
         assert validates is False
-        assert (
-            message
-            == "Formato non valido. Il file non contiene tutte le colonne richieste."
-        )
+        assert "Il file non contiene tutte le colonne richieste" in message
+        assert "spuntino" in message
+        assert "merenda" in message
 
     def test_simple_meal_validate_wrong_day(self):
         dataset = Dataset()
         dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
         dataset.append(["Lun", 1, "Pasta al Pomodoro", "Yogurt", "Mela"])
 
-        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
 
         assert validates is False
         assert (
@@ -326,7 +338,9 @@ class TestValidateDataset(TestCase):
         dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
         dataset.append(["Lunedì", "prima", "Pasta al Pomodoro", "Yogurt", "Mela"])
 
-        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
 
         assert validates is False
         assert (
@@ -339,7 +353,9 @@ class TestValidateDataset(TestCase):
         dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
         dataset.append(["Lunedì", 5, "Pasta al Pomodoro", "Yogurt", "Mela"])
 
-        validates, message = validate_dataset(dataset, School.Types.SIMPLE)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
 
         assert validates is False
         assert (
@@ -370,10 +386,21 @@ class TestValidateDataset(TestCase):
             ]
         )
 
-        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
 
         assert validates is True
         assert message is None
+        assert filtered_dataset.headers == [
+            "giorno",
+            "settimana",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
 
     def test_detailed_meal_validate_missing_column(self):
         dataset = Dataset()
@@ -396,13 +423,13 @@ class TestValidateDataset(TestCase):
             ]
         )
 
-        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
 
         assert validates is False
-        assert (
-            message
-            == "Formato non valido. Il file non contiene tutte le colonne richieste."
-        )
+        assert "Il file non contiene tutte le colonne richieste" in message
+        assert "spuntino" in message
 
     def test_detailed_meal_validate_wrong_day(self):
         dataset = Dataset()
@@ -427,7 +454,9 @@ class TestValidateDataset(TestCase):
             ]
         )
 
-        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
 
         assert validates is False
         assert (
@@ -458,7 +487,9 @@ class TestValidateDataset(TestCase):
             ]
         )
 
-        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
 
         assert validates is False
         assert (
@@ -489,7 +520,9 @@ class TestValidateDataset(TestCase):
             ]
         )
 
-        validates, message = validate_dataset(dataset, School.Types.DETAILED)
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
 
         assert validates is False
         assert (
@@ -511,10 +544,18 @@ class TestValidateAnnualDataset:
         ]
         dataset.append(["28/12/2024", "Pasta", "Bistecca", "Fagiolini", "Mela", "Pane"])
 
-        validates, message = validate_annual_dataset(dataset)
+        validates, message, filtered_dataset = validate_annual_dataset(dataset)
 
         assert validates is True
         assert message is None
+        assert filtered_dataset.headers == [
+            "data",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "altro",
+        ]
 
     def test_detailed_meal_validate_missing_column(self):
         dataset = Dataset()
@@ -527,13 +568,11 @@ class TestValidateAnnualDataset:
         ]
         dataset.append(["28/12/2024", "Pasta", "Bistecca", "Fagiolini", "Mela"])
 
-        validates, message = validate_annual_dataset(dataset)
+        validates, message, filtered_dataset = validate_annual_dataset(dataset)
 
         assert validates is False
-        assert (
-            message
-            == "Formato non valido. Il file non contiene tutte le colonne richieste."
-        )
+        assert "Il file non contiene tutte le colonne richieste" in message
+        assert "altro" in message
 
     def test_detailed_meal_validate_wrong_daye(self):
         dataset = Dataset()
@@ -547,7 +586,7 @@ class TestValidateAnnualDataset:
         ]
         dataset.append(["28/12", "Pasta", "Bistecca", "Fagiolini", "Mela", "Pane"])
 
-        validates, message = validate_annual_dataset(dataset)
+        validates, message, filtered_dataset = validate_annual_dataset(dataset)
 
         assert validates is False
         assert (

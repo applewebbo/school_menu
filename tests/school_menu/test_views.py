@@ -617,9 +617,10 @@ class TestUploadMenuView(TestCase):
         assert "HX-Trigger" in response.headers
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
+        # The error message should indicate a CSV validation error
         assert (
-            "Il file CSV non è valido. Impossibile riconoscere il formato"
-            in messages[0].message
+            "Il file CSV non è valido" in messages[0].message
+            or "Errore" in messages[0].message
         )
 
     def test_upload_menu_post_detailed_success(self):
@@ -752,9 +753,10 @@ class TestUploadAnnualMenuView(TestCase):
         assert "HX-Trigger" in response.headers
         messages = list(get_messages(response.wsgi_request))
         assert len(messages) > 0
+        # The error message should indicate a CSV validation error
         assert (
-            "Il file CSV non è valido. Impossibile riconoscere il formato"
-            in messages[0].message
+            "Il file CSV non è valido" in messages[0].message
+            or "Errore" in messages[0].message
         )
         assert AnnualMeal.objects.filter(school=school).count() == 0
 

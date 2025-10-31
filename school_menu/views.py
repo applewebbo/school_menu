@@ -396,11 +396,38 @@ def upload_menu(request, school_id, meal_type):
                 dataset.load(
                     content, format="csv", delimiter=delimiter, quotechar=quotechar
                 )
-            except (InvalidDimensions, Exception) as e:
+            except InvalidDimensions as e:
                 messages.add_message(
                     request,
                     messages.ERROR,
                     f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
+                )
+                return HttpResponse(
+                    status=204, headers={"HX-Trigger": "menuUploadError"}
+                )
+            except ValueError as e:
+                # ValueError often indicates quote-related parsing errors
+                error_str = str(e).lower()
+                if "quote" in error_str or "delimiter" in error_str:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        f"Il file CSV contiene virgolette o delimitatori non validi. Verifica che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}",
+                    )
+                else:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        f"Il file CSV non è valido. Errore: {str(e)}",
+                    )
+                return HttpResponse(
+                    status=204, headers={"HX-Trigger": "menuUploadError"}
+                )
+            except Exception as e:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    f"Errore durante la lettura del file CSV. Verifica il formato del file. Errore: {str(e)}",
                 )
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}
@@ -470,11 +497,38 @@ def upload_annual_menu(request, school_id, meal_type):
                 dataset.load(
                     content, format="csv", delimiter=delimiter, quotechar=quotechar
                 )
-            except (InvalidDimensions, Exception) as e:
+            except InvalidDimensions as e:
                 messages.add_message(
                     request,
                     messages.ERROR,
                     f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
+                )
+                return HttpResponse(
+                    status=204, headers={"HX-Trigger": "menuUploadError"}
+                )
+            except ValueError as e:
+                # ValueError often indicates quote-related parsing errors
+                error_str = str(e).lower()
+                if "quote" in error_str or "delimiter" in error_str:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        f"Il file CSV contiene virgolette o delimitatori non validi. Verifica che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}",
+                    )
+                else:
+                    messages.add_message(
+                        request,
+                        messages.ERROR,
+                        f"Il file CSV non è valido. Errore: {str(e)}",
+                    )
+                return HttpResponse(
+                    status=204, headers={"HX-Trigger": "menuUploadError"}
+                )
+            except Exception as e:
+                messages.add_message(
+                    request,
+                    messages.ERROR,
+                    f"Errore durante la lettura del file CSV. Verifica il formato del file. Errore: {str(e)}",
                 )
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}

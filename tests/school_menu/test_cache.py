@@ -25,39 +25,52 @@ pytestmark = pytest.mark.django_db
 class TestCacheKeyGeneration:
     """Test cache key generation functions."""
 
-    def test_get_meal_cache_key(self):
+    @pytest.mark.parametrize(
+        "school_id,week,day,season,meal_type,expected_key",
+        [
+            (1, 2, 3, "INVERNALE", "STANDARD", "meal:1:2:3:INVERNALE:STANDARD"),
+            (
+                42,
+                4,
+                5,
+                "PRIMAVERILE",
+                "NO_GLUTINE",
+                "meal:42:4:5:PRIMAVERILE:NO_GLUTINE",
+            ),
+        ],
+    )
+    def test_get_meal_cache_key(
+        self, school_id, week, day, season, meal_type, expected_key
+    ):
         """Test meal cache key generation with various parameters."""
         key = get_meal_cache_key(
-            school_id=1, week=2, day=3, season="INVERNALE", meal_type="STANDARD"
+            school_id=school_id, week=week, day=day, season=season, meal_type=meal_type
         )
-        assert key == "meal:1:2:3:INVERNALE:STANDARD"
+        assert key == expected_key
 
-    def test_get_meal_cache_key_different_params(self):
-        """Test meal cache key with different parameters."""
-        key = get_meal_cache_key(
-            school_id=42, week=4, day=5, season="PRIMAVERILE", meal_type="NO_GLUTINE"
-        )
-        assert key == "meal:42:4:5:PRIMAVERILE:NO_GLUTINE"
-
-    def test_get_types_menu_cache_key(self):
+    @pytest.mark.parametrize(
+        "school_id,expected_key",
+        [
+            (1, "types_menu:1"),
+            (99, "types_menu:99"),
+        ],
+    )
+    def test_get_types_menu_cache_key(self, school_id, expected_key):
         """Test types menu cache key generation."""
-        key = get_types_menu_cache_key(school_id=1)
-        assert key == "types_menu:1"
+        key = get_types_menu_cache_key(school_id=school_id)
+        assert key == expected_key
 
-    def test_get_types_menu_cache_key_different_school(self):
-        """Test types menu cache key with different school ID."""
-        key = get_types_menu_cache_key(school_id=99)
-        assert key == "types_menu:99"
-
-    def test_get_school_menu_cache_key(self):
+    @pytest.mark.parametrize(
+        "school_slug,expected_key",
+        [
+            ("my-school-city", "school_page:my-school-city"),
+            ("another-school", "school_page:another-school"),
+        ],
+    )
+    def test_get_school_menu_cache_key(self, school_slug, expected_key):
         """Test school menu page cache key generation."""
-        key = get_school_menu_cache_key(school_slug="my-school-city")
-        assert key == "school_page:my-school-city"
-
-    def test_get_school_menu_cache_key_different_slug(self):
-        """Test school menu page cache key with different slug."""
-        key = get_school_menu_cache_key(school_slug="another-school")
-        assert key == "school_page:another-school"
+        key = get_school_menu_cache_key(school_slug=school_slug)
+        assert key == expected_key
 
 
 class TestCacheInvalidation:

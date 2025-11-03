@@ -189,101 +189,87 @@ class TestGetUser(TestCase):
         assert alt_menu is False
 
 
-class TestGetAltMenu(TestCase):
-    def test_get_alt_menu_standard(self):
+class TestGetAltMenu:
+    @pytest.mark.parametrize(
+        "school_flags,expected",
+        [
+            (
+                {
+                    "no_gluten": False,
+                    "no_lactose": False,
+                    "vegetarian": False,
+                    "special": False,
+                },
+                False,
+            ),
+            ({"no_gluten": True}, True),
+            ({"no_lactose": True}, True),
+            ({"vegetarian": True}, True),
+            ({"special": True}, True),
+        ],
+    )
+    def test_get_alt_menu(self, school_flags, expected):
         user = UserFactory()
-        SchoolFactory(
-            user=user,
-            no_gluten=False,
-            no_lactose=False,
-            vegetarian=False,
-            special=False,
-        )
+        SchoolFactory(user=user, **school_flags)
 
         alt_menu = get_alt_menu(user)
 
-        assert alt_menu is False
+        assert alt_menu is expected
 
-    def test_get_alt_menu_no_gluten(self):
+
+class TestBuildTypesMenu:
+    @pytest.mark.parametrize(
+        "school_flags,create_all_types,expected_menu",
+        [
+            (
+                {},
+                False,
+                {"Standard": "S"},
+            ),
+            (
+                {
+                    "no_gluten": True,
+                    "no_lactose": True,
+                    "vegetarian": True,
+                    "special": True,
+                },
+                True,
+                {
+                    "Standard": "S",
+                    "No Glutine": "G",
+                    "No Lattosio": "L",
+                    "Vegetariano": "V",
+                    "Speciale": "P",
+                },
+            ),
+            (
+                {
+                    "no_gluten": True,
+                    "no_lactose": False,
+                    "vegetarian": True,
+                    "special": False,
+                },
+                True,
+                {"Standard": "S", "No Glutine": "G", "Vegetariano": "V"},
+            ),
+        ],
+    )
+    def test_build_types_menu(self, school_flags, create_all_types, expected_menu):
         user = UserFactory()
-        SchoolFactory(user=user, no_gluten=True)
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE, **school_flags)
 
-        alt_menu = get_alt_menu(user)
-
-        assert alt_menu is True
-
-    def test_get_alt_menu_no_lactose(self):
-        user = UserFactory()
-        SchoolFactory(user=user, no_lactose=True)
-
-        alt_menu = get_alt_menu(user)
-
-        assert alt_menu is True
-
-    def test_get_alt_menu_vegetarian(self):
-        user = UserFactory()
-        SchoolFactory(user=user, vegetarian=True)
-
-        alt_menu = get_alt_menu(user)
-
-        assert alt_menu is True
-
-    def test_get_alt_menu_special(self):
-        user = UserFactory()
-        SchoolFactory(user=user, special=True)
-
-        alt_menu = get_alt_menu(user)
-
-        assert alt_menu is True
-
-
-class TestBuildTypesMenu(TestCase):
-    def test_with_standard_only(self):
-        user = UserFactory()
-        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
-        SimpleMealFactory.create_batch(5, school=school, type=SimpleMeal.Types.STANDARD)
+        if create_all_types:
+            for type_choice in SimpleMeal.Types.choices:
+                SimpleMealFactory(school=school, type=type_choice[0])
+        else:
+            SimpleMealFactory.create_batch(
+                5, school=school, type=SimpleMeal.Types.STANDARD
+            )
 
         meals = SimpleMeal.objects.all()
-
         types_menu = build_types_menu(meals, school)
 
-        assert types_menu == {"Standard": "S"}
-
-    def test_with_other_types(self):
-        user = UserFactory()
-        school = SchoolFactory(
-            user=user, no_gluten=True, no_lactose=True, vegetarian=True, special=True
-        )
-        for type in SimpleMeal.Types.choices:
-            SimpleMealFactory(school=school, type=type[0])
-        meals = SimpleMeal.objects.all()
-
-        types_menu = build_types_menu(meals, school)
-
-        assert types_menu == {
-            "Standard": "S",
-            "No Glutine": "G",
-            "No Lattosio": "L",
-            "Vegetariano": "V",
-            "Speciale": "P",
-        }
-
-    def test_with_some_inactive_types(self):
-        user = UserFactory()
-        school = SchoolFactory(
-            user=user, no_gluten=True, no_lactose=False, vegetarian=True, special=False
-        )
-        for type in SimpleMeal.Types.choices:
-            SimpleMealFactory(school=school, type=type[0])
-        meals = SimpleMeal.objects.all()
-
-        types_menu = build_types_menu(meals, school)
-
-        assert types_menu == {
-            "Standard": "S",
-            "No Glutine": "G",
-            "Vegetariano": "V",
-        }
+        assert types_menu == expected_menu
 
 
 class TestValidateDataset(TestCase):

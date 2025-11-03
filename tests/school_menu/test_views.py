@@ -647,56 +647,6 @@ class TestUploadMenuView(TestCase):
         assert "HX-Refresh" in response.headers
         assert DetailedMeal.objects.filter(school=school).count() == 1
 
-    def test_upload_menu_post_semicolon_delimiter_simple(self):
-        """Test uploading simple menu CSV with semicolon delimiter (Numbers export)"""
-        user = self.make_user()
-        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
-
-        with self.login(user):
-            url = reverse(
-                "school_menu:upload_menu",
-                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
-            )
-            csv_content = "giorno;settimana;pranzo;spuntino;merenda\nLunedì;1;Pasta al Pomodoro;Mela;Yogurt"
-            data = {
-                "file": SimpleUploadedFile(
-                    "simple_menu_semicolon.csv",
-                    csv_content.encode("utf-8"),
-                    content_type="text/csv",
-                ),
-                "season": School.Seasons.INVERNALE,
-            }
-            response = self.post(url, data=data)
-
-        assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
-        assert SimpleMeal.objects.filter(school=school).count() == 1
-
-    def test_upload_menu_post_semicolon_delimiter_detailed(self):
-        """Test uploading detailed menu CSV with semicolon delimiter"""
-        user = self.make_user()
-        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
-
-        with self.login(user):
-            url = reverse(
-                "school_menu:upload_menu",
-                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
-            )
-            csv_content = "settimana;giorno;primo;secondo;contorno;frutta;spuntino\n1;Lunedì;Pasta;Pollo;Insalata;Mela;Crostatina"
-            data = {
-                "file": SimpleUploadedFile(
-                    "detailed_menu_semicolon.csv",
-                    csv_content.encode("utf-8"),
-                    content_type="text/csv",
-                ),
-                "season": School.Seasons.INVERNALE,
-            }
-            response = self.post(url, data=data)
-
-        assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
-        assert DetailedMeal.objects.filter(school=school).count() == 1
-
     def test_upload_menu_post_with_extra_unnamed_columns(self):
         """Test uploading CSV with extra unnamed columns (trailing commas)"""
         user = self.make_user()

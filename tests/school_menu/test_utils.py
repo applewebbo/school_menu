@@ -15,6 +15,7 @@ from school_menu.utils import (
     calculate_week,
     detect_csv_format,
     fill_missing_dates,
+    filter_dataset_columns,
     get_alt_menu,
     get_current_date,
     get_meals_for_annual_menu,
@@ -805,3 +806,114 @@ class TestDetectCSVFormat:
         delimiter, quotechar = detect_csv_format(csv_content)
         # Fallback: 1 semicolon > 0 commas, returns semicolon
         assert delimiter == ";"
+        assert quotechar == '"'
+
+
+class TestFilterDatasetColumns:
+    """Test column filtering for CSV flexibility (unnamed, whitespace, extra columns)"""
+
+    def test_filter_unnamed_columns(self):
+        """Test filtering out unnamed columns (empty string)"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "", "pranzo", "spuntino"]
+        dataset.append(["Lunedì", "extra", "Pasta", "Mela"])
+        allowed_columns = ["giorno", "pranzo", "spuntino", "merenda"]
+
+        filtered_dataset, removed_columns = filter_dataset_columns(
+            dataset, allowed_columns
+        )
+
+        assert filtered_dataset.headers == ["giorno", "pranzo", "spuntino"]
+        assert "(unnamed)" in removed_columns
+        assert len(filtered_dataset[0]) == 3
+
+    def test_filter_whitespace_only_columns(self):
+        """Test filtering out columns with whitespace-only names"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "   ", "pranzo", "\t\n"]
+        dataset.append(["Lunedì", "extra1", "Pasta", "extra2"])
+        allowed_columns = ["giorno", "pranzo", "spuntino"]
+
+        filtered_dataset, removed_columns = filter_dataset_columns(
+            dataset, allowed_columns
+        )
+
+        assert filtered_dataset.headers == ["giorno", "pranzo"]
+        assert len(removed_columns) == 2
+        assert len(filtered_dataset[0]) == 2
+
+    def test_filter_extra_named_columns(self):
+        """Test filtering out extra named columns not in allowed list"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "pranzo", "extra_col", "spuntino", "another_extra"]
+        dataset.append(["Lunedì", "Pasta", "XXX", "Mela", "YYY"])
+        allowed_columns = ["giorno", "pranzo", "spuntino"]
+
+        filtered_dataset, removed_columns = filter_dataset_columns(
+            dataset, allowed_columns
+        )
+
+        assert filtered_dataset.headers == ["giorno", "pranzo", "spuntino"]
+        assert "extra_col" in removed_columns
+        assert "another_extra" in removed_columns
+        assert len(removed_columns) == 2
+        assert filtered_dataset[0] == ("Lunedì", "Pasta", "Mela")
+
+    def test_no_columns_to_remove(self):
+        """Test dataset with no columns to remove returns original"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "pranzo", "spuntino"]
+        dataset.append(["Lunedì", "Pasta", "Mela"])
+        allowed_columns = ["giorno", "pranzo", "spuntino", "merenda"]
+
+        filtered_dataset, removed_columns = filter_dataset_columns(
+            dataset, allowed_columns
+        )
+
+        assert filtered_dataset.headers == dataset.headers
+        assert removed_columns == []
+        assert filtered_dataset == dataset
+
+    def test_mixed_filtering_scenario(self):
+        """Test filtering with unnamed, whitespace, and extra columns combined"""
+        dataset = Dataset()
+        dataset.headers = [
+            "giorno",
+            "",
+            "pranzo",
+            "  ",
+            "extra1",
+            "spuntino",
+            "extra2",
+        ]
+        dataset.append(["Lunedì", "X1", "Pasta", "X2", "X3", "Mela", "X4"])
+        allowed_columns = ["giorno", "pranzo", "spuntino", "merenda"]
+
+        filtered_dataset, removed_columns = filter_dataset_columns(
+            dataset, allowed_columns
+        )
+
+        assert filtered_dataset.headers == ["giorno", "pranzo", "spuntino"]
+        assert len(removed_columns) == 4  # unnamed, whitespace, extra1, extra2
+        assert "(unnamed)" in removed_columns
+        assert "extra1" in removed_columns
+        assert "extra2" in removed_columns
+        assert filtered_dataset[0] == ("Lunedì", "Pasta", "Mela")
+
+    def test_all_columns_valid(self):
+        """Test that all valid columns are preserved in correct order"""
+        dataset = Dataset()
+        dataset.headers = ["settimana", "giorno", "primo", "secondo"]
+        dataset.append([1, "Lunedì", "Pasta", "Pollo"])
+        dataset.append([2, "Martedì", "Riso", "Pesce"])
+        allowed_columns = ["settimana", "giorno", "primo", "secondo", "contorno"]
+
+        filtered_dataset, removed_columns = filter_dataset_columns(
+            dataset, allowed_columns
+        )
+
+        assert filtered_dataset.headers == ["settimana", "giorno", "primo", "secondo"]
+        assert removed_columns == []
+        assert len(filtered_dataset) == 2
+        assert filtered_dataset[0] == (1, "Lunedì", "Pasta", "Pollo")
+        assert filtered_dataset[1] == (2, "Martedì", "Riso", "Pesce")

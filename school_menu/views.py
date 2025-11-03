@@ -389,10 +389,11 @@ def upload_menu(request, school_id, meal_type):
                 resource = DetailedMealResource()
             dataset = Dataset()
             try:
-                # Read and detect CSV format
+                # Read and detect CSV format (supports both comma and semicolon delimiters)
+                # This allows importing CSVs exported from Numbers, Excel, and other tools
                 content = file.read().decode("utf-8")
                 delimiter, quotechar = detect_csv_format(content)
-                # Load with detected delimiter
+                # Load with detected delimiter and quote character
                 dataset.load(
                     content, format="csv", delimiter=delimiter, quotechar=quotechar
                 )
@@ -432,6 +433,8 @@ def upload_menu(request, school_id, meal_type):
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}
                 )
+            # Validate and filter dataset (removes unnamed and extra columns)
+            # This allows CSVs with trailing commas or additional columns to work correctly
             validates, message, filtered_dataset = validate_dataset(dataset, menu_type)
             if not validates:
                 context = {
@@ -490,10 +493,11 @@ def upload_annual_menu(request, school_id, meal_type):
             resource = AnnualMenuResource()
             dataset = Dataset()
             try:
-                # Read and detect CSV format
+                # Read and detect CSV format (supports both comma and semicolon delimiters)
+                # This allows importing CSVs exported from Numbers, Excel, and other tools
                 content = file.read().decode("utf-8")
                 delimiter, quotechar = detect_csv_format(content)
-                # Load with detected delimiter
+                # Load with detected delimiter and quote character
                 dataset.load(
                     content, format="csv", delimiter=delimiter, quotechar=quotechar
                 )
@@ -533,6 +537,8 @@ def upload_annual_menu(request, school_id, meal_type):
                 return HttpResponse(
                     status=204, headers={"HX-Trigger": "menuUploadError"}
                 )
+            # Validate and filter dataset (removes unnamed and extra columns)
+            # This allows CSVs with trailing commas or additional columns to work correctly
             validates, message, filtered_dataset = validate_annual_dataset(dataset)
             if not validates:
                 context = {

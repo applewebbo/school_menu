@@ -39,6 +39,41 @@ def detect_csv_format(content: str) -> tuple[str, str]:
     return ",", '"'
 
 
+def detect_menu_type(headers: list) -> str | None:
+    """
+    Detect menu type based on CSV column headers.
+
+    Args:
+        headers: List of column header names from CSV
+
+    Returns:
+        'simple' - Simple menu (has pranzo column)
+        'detailed' - Detailed menu (has primo, secondo, contorno, frutta)
+        'annual' - Annual menu (has data column instead of settimana)
+        None - Unknown/unrecognized format
+    """
+    if not headers:
+        return None
+
+    # Convert to lowercase set for case-insensitive comparison
+    headers_set = {h.lower() for h in headers if h and h.strip()}
+
+    # Annual menu has 'data' instead of 'settimana'
+    if "data" in headers_set:
+        return "annual"
+
+    # Detailed menu has primo, secondo, contorno, frutta
+    detailed_cols = {"primo", "secondo", "contorno", "frutta"}
+    if detailed_cols.issubset(headers_set):
+        return "detailed"
+
+    # Simple menu has pranzo
+    if "pranzo" in headers_set:
+        return "simple"
+
+    return None  # Unknown format
+
+
 def filter_dataset_columns(dataset, allowed_columns: list[str]) -> tuple:
     """
     Filter dataset to remove unnamed, whitespace-only, and extra columns.
@@ -246,6 +281,23 @@ def validate_dataset(dataset, menu_type):
     validates = True
     message = None
 
+    # Detect menu type from CSV headers before validation
+    detected_type = detect_menu_type(dataset.headers)
+    expected_type = "simple" if menu_type == School.Types.SIMPLE else "detailed"
+
+    # Check if detected type matches expected type
+    if detected_type and detected_type != expected_type:
+        validates = False
+        type_names = {
+            "simple": "Menu Semplice",
+            "detailed": "Menu Dettagliato",
+            "annual": "Menu Annuale",
+        }
+        detected_name = type_names.get(detected_type, "formato sconosciuto")
+        expected_name = type_names.get(expected_type, "formato sconosciuto")
+        message = f"Il file caricato sembra essere un {detected_name}, ma hai selezionato {expected_name}. Verifica di aver caricato il file corretto."
+        return validates, message, dataset
+
     # Define required and allowed columns based on menu type
     if menu_type == School.Types.SIMPLE:
         required_columns = [
@@ -323,6 +375,20 @@ def validate_annual_dataset(dataset):
     """
     validates = True
     message = None
+
+    # Detect menu type from CSV headers before validation
+    detected_type = detect_menu_type(dataset.headers)
+
+    # Check if detected type is actually a weekly menu (simple or detailed) instead of annual
+    if detected_type in ("simple", "detailed"):
+        validates = False
+        type_names = {
+            "simple": "Menu Semplice",
+            "detailed": "Menu Dettagliato",
+        }
+        detected_name = type_names.get(detected_type, "Menu Settimanale")
+        message = f"Il file caricato sembra essere un {detected_name} (con settimane), ma hai selezionato Menu Annuale. Verifica di aver caricato il file corretto."
+        return validates, message, dataset
 
     # Define required and allowed columns
     required_columns = ["data", "primo", "secondo", "contorno", "frutta", "altro"]

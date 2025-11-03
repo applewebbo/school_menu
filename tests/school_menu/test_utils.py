@@ -14,6 +14,7 @@ from school_menu.utils import (
     build_types_menu,
     calculate_week,
     detect_csv_format,
+    detect_menu_type,
     fill_missing_dates,
     filter_dataset_columns,
     get_alt_menu,
@@ -532,6 +533,109 @@ class TestValidateDataset(TestCase):
         )
 
 
+class TestMenuTypeMismatch(TestCase):
+    """Test menu type mismatch detection in validation"""
+
+    def test_simple_uploaded_when_detailed_expected(self):
+        """Test error when simple menu uploaded for detailed menu type"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lunedì", 1, "Pasta", "Mela", "Yogurt"])
+
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
+
+        assert validates is False
+        assert "Menu Semplice" in message
+        assert "Menu Dettagliato" in message
+        assert "Verifica di aver caricato il file corretto" in message
+
+    def test_detailed_uploaded_when_simple_expected(self):
+        """Test error when detailed menu uploaded for simple menu type"""
+        dataset = Dataset()
+        dataset.headers = [
+            "settimana",
+            "giorno",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        dataset.append([1, "Lunedì", "Pasta", "Pollo", "Insalata", "Mela", "Yogurt"])
+
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
+
+        assert validates is False
+        assert "Menu Dettagliato" in message
+        assert "Menu Semplice" in message
+        assert "Verifica di aver caricato il file corretto" in message
+
+    def test_annual_uploaded_when_detailed_expected(self):
+        """Test error when annual menu uploaded for detailed menu type"""
+        dataset = Dataset()
+        dataset.headers = ["data", "primo", "secondo", "contorno", "frutta", "altro"]
+        dataset.append(["01/01/2024", "Pasta", "Pollo", "Insalata", "Mela", "Pane"])
+
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.DETAILED
+        )
+
+        assert validates is False
+        assert "Menu Annuale" in message
+        assert "Menu Dettagliato" in message
+
+    def test_simple_uploaded_when_annual_expected(self):
+        """Test error when simple menu uploaded for annual menu"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lunedì", 1, "Pasta", "Mela", "Yogurt"])
+
+        validates, message, filtered_dataset = validate_annual_dataset(dataset)
+
+        assert validates is False
+        assert "Menu Semplice" in message
+        assert "Menu Annuale" in message
+        assert "con settimane" in message
+
+    def test_detailed_uploaded_when_annual_expected(self):
+        """Test error when detailed menu uploaded for annual menu"""
+        dataset = Dataset()
+        dataset.headers = [
+            "settimana",
+            "giorno",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        dataset.append([1, "Lunedì", "Pasta", "Pollo", "Insalata", "Mela", "Yogurt"])
+
+        validates, message, filtered_dataset = validate_annual_dataset(dataset)
+
+        assert validates is False
+        assert "Menu Dettagliato" in message
+        assert "Menu Annuale" in message
+        assert "con settimane" in message
+
+    def test_correct_type_passes_validation(self):
+        """Test that correct menu type passes mismatch check"""
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        dataset.append(["Lunedì", 1, "Pasta", "Mela", "Yogurt"])
+
+        validates, message, filtered_dataset = validate_dataset(
+            dataset, School.Types.SIMPLE
+        )
+
+        # Should pass type mismatch check (may fail other validations but not type mismatch)
+        assert validates is True or "sembra essere" not in (message or "")
+
+
 class TestValidateAnnualDataset:
     def test_validate_annual_dataset_success(self):
         dataset = Dataset()
@@ -807,6 +911,66 @@ class TestDetectCSVFormat:
         # Fallback: 1 semicolon > 0 commas, returns semicolon
         assert delimiter == ";"
         assert quotechar == '"'
+
+
+class TestDetectMenuType:
+    """Test menu type detection from CSV headers"""
+
+    def test_detect_simple_menu(self):
+        """Test detection of simple menu (has pranzo column)"""
+        headers = ["giorno", "settimana", "pranzo", "spuntino", "merenda"]
+        assert detect_menu_type(headers) == "simple"
+
+    def test_detect_detailed_menu(self):
+        """Test detection of detailed menu (has primo, secondo, contorno, frutta)"""
+        headers = [
+            "settimana",
+            "giorno",
+            "primo",
+            "secondo",
+            "contorno",
+            "frutta",
+            "spuntino",
+        ]
+        assert detect_menu_type(headers) == "detailed"
+
+    def test_detect_annual_menu(self):
+        """Test detection of annual menu (has data column)"""
+        headers = ["data", "primo", "secondo", "contorno", "frutta", "altro"]
+        assert detect_menu_type(headers) == "annual"
+
+    def test_detect_case_insensitive(self):
+        """Test that detection is case-insensitive"""
+        headers = ["GIORNO", "SETTIMANA", "PRANZO", "SPUNTINO", "MERENDA"]
+        assert detect_menu_type(headers) == "simple"
+
+    def test_detect_with_extra_columns(self):
+        """Test that detection works even with extra columns"""
+        headers = [
+            "giorno",
+            "settimana",
+            "pranzo",
+            "spuntino",
+            "merenda",
+            "extra1",
+            "extra2",
+        ]
+        assert detect_menu_type(headers) == "simple"
+
+    def test_detect_unknown_format(self):
+        """Test that unknown format returns None"""
+        headers = ["foo", "bar", "baz"]
+        assert detect_menu_type(headers) is None
+
+    def test_detect_empty_headers(self):
+        """Test that empty headers return None"""
+        assert detect_menu_type([]) is None
+        assert detect_menu_type(None) is None
+
+    def test_detect_with_whitespace_headers(self):
+        """Test detection ignores whitespace-only headers"""
+        headers = ["giorno", "  ", "pranzo", "", "spuntino", "merenda"]
+        assert detect_menu_type(headers) == "simple"
 
 
 class TestFilterDatasetColumns:

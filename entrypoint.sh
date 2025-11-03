@@ -9,6 +9,9 @@ python manage.py makemigrations
 echo "Migrating database..."
 python manage.py migrate
 
+echo "Creating cache table..."
+python manage.py createcachetable django_cache
+
 echo "Building production css files..."
 python manage.py tailwind build
 

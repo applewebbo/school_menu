@@ -261,14 +261,42 @@ def invalidate_school_cache(school_id: int, school_slug: str = None) -> int:
     return total_deleted
 
 
-def invalidate_school_list_cache() -> None:
+def invalidate_school_list_cache() -> int:
     """
-    Clear cached public school list.
+    Clear cached public school list and search results.
 
     This should be called when school settings change that affect
     the public school list display (is_published, name, city, etc.)
 
+    Clears:
+    - School list page cache (school_list:*)
+    - Schools JSON API cache (schools_json:*)
+    - Search results cache (search:*)
+
+    Returns:
+        Total number of cache keys deleted
+
     Example:
         >>> invalidate_school_list_cache()
+        3  # Deleted 3 cache keys
     """
-    cache.delete("school_list_public")
+    total_deleted = 0
+
+    # Patterns to delete
+    patterns = [
+        "*school_list*",  # School list page
+        "*schools_json*",  # Schools JSON API
+        "*search*",  # Search results
+    ]
+
+    # Check if cache backend supports delete_pattern (Redis backend)
+    if hasattr(cache, "delete_pattern"):
+        for pattern in patterns:
+            total_deleted += cache.delete_pattern(pattern)
+    else:
+        # Fallback for non-redis backends
+        # Try to delete common keys
+        cache.delete("school_list_public")
+        total_deleted = 1
+
+    return total_deleted

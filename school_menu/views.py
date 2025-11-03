@@ -2,6 +2,8 @@ from datetime import date, datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.cache import cache
+from django.db import connection
 from django.db.models import Q
 from django.forms import modelformset_factory
 from django.http import JsonResponse
@@ -202,6 +204,7 @@ def get_menu(request, school_id, week, day, meal_type):
 
 
 @require_http_methods(["GET"])
+@cache_page(86400, key_prefix="schools_json")
 def get_schools_json_list(request):
     schools = School.objects.filter(is_published=True)
     serializer = SchoolSerializer(schools, many=True)
@@ -366,6 +369,7 @@ def school_update(request):
     return render(request, "partials/school.html", context)
 
 
+@cache_page(86400, key_prefix="school_list")
 def school_list(request):
     schools = School.objects.exclude(is_published=False)
     context = {"schools": schools}
@@ -561,6 +565,7 @@ def create_weekly_menu(request, school_id, week, season, meal_type):
     return render(request, "create-weekly-menu.html", context)
 
 
+@cache_page(3600, key_prefix="search")
 def search_schools(request):
     """get the schools based on the search input via htmx"""
     context = {}
@@ -634,3 +639,65 @@ def export_menu(request, school_id, season, meal_type):
 
     response = HttpResponse(data.csv, content_type="text/csv")
     return response
+
+
+@require_http_methods(["GET"])
+def health_check(request):
+    """
+    Health check endpoint for monitoring service status.
+
+    Tests connectivity to:
+    - Redis cache backend
+    - PostgreSQL/SQLite database
+
+    Returns:
+        JSON response with service status and details
+
+    Example responses:
+        Healthy: {"status": "healthy", "services": {"cache": "ok", "database": "ok"}}
+        Degraded: {"status": "degraded", "services": {"cache": "error", "database": "ok"}}
+        Unhealthy: {"status": "unhealthy", "services": {"cache": "error", "database": "error"}}
+    """
+    services = {}
+    overall_status = "healthy"
+
+    # Test Redis cache connectivity
+    try:
+        test_key = "_health_check_test"
+        test_value = "ok"
+        cache.set(test_key, test_value, timeout=10)
+        cached_value = cache.get(test_key)
+
+        if cached_value == test_value:
+            services["cache"] = "ok"
+            cache.delete(test_key)
+        else:
+            services["cache"] = "error"
+            overall_status = "degraded"
+    except Exception as e:
+        services["cache"] = f"error: {str(e)}"
+        overall_status = "degraded"
+
+    # Test database connectivity
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+        services["database"] = "ok"
+    except Exception as e:
+        services["database"] = f"error: {str(e)}"
+        overall_status = "unhealthy"
+
+    # Overall status logic:
+    # - healthy: all services ok
+    # - degraded: cache down but database ok
+    # - unhealthy: database down (critical)
+    response_data = {
+        "status": overall_status,
+        "services": services,
+    }
+
+    # Return 200 for healthy/degraded, 503 for unhealthy
+    status_code = 200 if overall_status != "unhealthy" else 503
+
+    return JsonResponse(response_data, status=status_code)

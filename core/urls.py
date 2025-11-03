@@ -5,9 +5,12 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 
+from school_menu.views import health_check
+
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path("health/", health_check, name="health_check"),
     path("", include("school_menu.urls")),
     path("contacts/", include("contacts.urls")),
     path("users/", include("users.urls")),

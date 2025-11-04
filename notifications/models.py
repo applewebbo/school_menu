@@ -1,5 +1,6 @@
 import hashlib
 
+from django.conf import settings
 from django.db import models
 
 from school_menu.models import School
@@ -86,3 +87,48 @@ class DailyNotification(models.Model):
 
     def __str__(self):
         return f"Daily notification for {self.school} at {self.created_at}"
+
+
+class BroadcastNotification(models.Model):
+    """
+    Admin-created broadcast notifications sent to multiple users
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SENDING = "sending", "Sending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+
+    title = models.CharField(max_length=100, help_text="Notification title")
+    message = models.TextField(help_text="Notification body text")
+    url = models.URLField(
+        blank=True, help_text="Optional URL when notification is clicked"
+    )
+
+    target_schools = models.ManyToManyField(
+        School, blank=True, help_text="Leave empty to send to all schools"
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    recipients_count = models.IntegerField(
+        default=0, help_text="Number of notifications sent"
+    )
+    success_count = models.IntegerField(default=0)
+    failure_count = models.IntegerField(default=0)
+
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Broadcast Notification"
+        verbose_name_plural = "Broadcast Notifications"
+
+    def __str__(self):
+        return f"{self.title} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"

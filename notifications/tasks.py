@@ -3,9 +3,10 @@ import logging
 from datetime import date, timedelta
 
 from django.conf import settings
+from django.utils import timezone
 from pywebpush import WebPushException, webpush
 
-from notifications.models import AnonymousMenuNotification
+from notifications.models import AnonymousMenuNotification, BroadcastNotification
 from notifications.utils import build_menu_notification_payload
 from school_menu.models import AnnualMeal, DetailedMeal, SimpleMeal
 
@@ -144,3 +145,56 @@ def send_same_day_6pm_menu_notification():
     Sends menu notifications for the current day at 6 PM.
     """
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_6PM)
+
+
+def send_broadcast_notification(broadcast_pk):
+    """
+    Send a broadcast notification to all matching subscriptions
+    """
+    broadcast = BroadcastNotification.objects.get(pk=broadcast_pk)
+
+    # Build base query
+    subscriptions = AnonymousMenuNotification.objects.filter(daily_notification=True)
+
+    # Filter by schools if specified
+    if broadcast.target_schools.exists():
+        subscriptions = subscriptions.filter(school__in=broadcast.target_schools.all())
+
+    # Build payload
+    payload = {
+        "head": broadcast.title,
+        "body": broadcast.message,
+        "icon": "/static/img/notification-bell.png",
+    }
+
+    if broadcast.url:
+        payload["url"] = broadcast.url
+    else:
+        payload["url"] = "/"
+
+    # Send to all matching subscriptions
+    success_count = 0
+    failure_count = 0
+
+    for subscription in subscriptions:
+        try:
+            send_test_notification(subscription.subscription_info, payload)
+            success_count += 1
+        except Exception as e:
+            logger.error(
+                f"Failed to send broadcast to subscription {subscription.pk}: {e}"
+            )
+            failure_count += 1
+
+    # Update broadcast record
+    broadcast.sent_at = timezone.now()
+    broadcast.status = BroadcastNotification.Status.SENT
+    broadcast.recipients_count = subscriptions.count()
+    broadcast.success_count = success_count
+    broadcast.failure_count = failure_count
+    broadcast.save()
+
+    logger.info(
+        f"Broadcast '{broadcast.title}' sent: "
+        f"{success_count} success, {failure_count} failures"
+    )

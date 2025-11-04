@@ -151,3 +151,22 @@ class TestBroadcastNotificationAdmin:
         action = broadcast_admin.send_broadcast
         assert hasattr(action, "short_description")
         assert action.short_description == "Send selected broadcasts"
+
+    @patch("notifications.admin.async_task")
+    def test_send_broadcast_action_all_already_sent(
+        self, mock_async_task, broadcast_admin, admin_request
+    ):
+        """Test send_broadcast action when all broadcasts are already sent."""
+        broadcast1 = BroadcastNotificationFactory(
+            status=BroadcastNotification.Status.SENT
+        )
+        broadcast2 = BroadcastNotificationFactory(
+            status=BroadcastNotification.Status.SENT
+        )
+        queryset = BroadcastNotification.objects.filter(
+            pk__in=[broadcast1.pk, broadcast2.pk]
+        )
+
+        broadcast_admin.send_broadcast(admin_request, queryset)
+
+        mock_async_task.assert_not_called()

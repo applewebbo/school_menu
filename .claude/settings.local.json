@@ -18,5 +18,5 @@
   "enabledMcpjsonServers": [
     "playwright"
   ],
-  "outputStyle": "Explanatory"
+  "outputStyle": "default"
 }

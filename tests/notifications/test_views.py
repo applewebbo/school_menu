@@ -394,3 +394,181 @@ def test_test_notification_with_payload(client, school_factory, annual_meal_fact
         payload = mock_async_task.call_args[0][2]
         assert payload["head"] != "Notifica di prova"
         assert "body" in payload
+
+
+# Tests for duplicate prevention and cookie-based recovery (issue #190)
+
+
+def test_save_subscription_prevents_duplicates(client, school_factory):
+    """Test that saving the same subscription twice updates instead of creating duplicate."""
+    school = school_factory()
+    url = reverse("notifications:save_subscription")
+    subscription_info = '{"endpoint": "https://example.com/push/endpoint1", "keys": {"p256dh": "test_p256dh", "auth": "test_auth"}}'
+
+    # First subscription
+    data = {
+        "school": school.pk,
+        "subscription_info": subscription_info,
+        "notification_time": AnonymousMenuNotification.PREVIOUS_DAY_6PM,
+    }
+    response = client.post(url, data)
+    assert response.status_code == 204
+    assert AnonymousMenuNotification.objects.count() == 1
+    first_notification = AnonymousMenuNotification.objects.first()
+
+    # Second subscription with same endpoint but different school/time
+    school2 = school_factory()
+    data["school"] = school2.pk
+    data["notification_time"] = AnonymousMenuNotification.SAME_DAY_12PM
+    response = client.post(url, data)
+    assert response.status_code == 204
+
+    # Should still have only 1 notification (updated, not created)
+    assert AnonymousMenuNotification.objects.count() == 1
+    updated_notification = AnonymousMenuNotification.objects.first()
+
+    # Same pk (updated existing record)
+    assert updated_notification.pk == first_notification.pk
+    # But with updated values
+    assert updated_notification.school == school2
+    assert (
+        updated_notification.notification_time
+        == AnonymousMenuNotification.SAME_DAY_12PM
+    )
+
+
+def test_save_subscription_sets_persistent_cookie(client, school_factory):
+    """Test that save_subscription sets a persistent cookie for recovery."""
+    school = school_factory()
+    url = reverse("notifications:save_subscription")
+    data = {
+        "school": school.pk,
+        "subscription_info": '{"endpoint": "https://example.com/push/endpoint2", "keys": {"p256dh": "test_p256dh", "auth": "test_auth"}}',
+        "notification_time": AnonymousMenuNotification.SAME_DAY_12PM,
+    }
+    response = client.post(url, data)
+    assert response.status_code == 204
+
+    # Check that cookie was set
+    assert "subscription_endpoint" in response.cookies
+    cookie = response.cookies["subscription_endpoint"]
+
+    # Cookie should have long expiry (1 year = 31536000 seconds)
+    assert cookie["max-age"] == 365 * 24 * 60 * 60
+    assert cookie["httponly"]
+    assert cookie["samesite"] == "Lax"
+
+    # Cookie value should be the hashed endpoint
+    notification = AnonymousMenuNotification.objects.first()
+    assert cookie.value == notification.subscription_endpoint
+
+
+def test_delete_subscription_clears_cookie(client, school_factory):
+    """Test that delete_subscription clears the persistent cookie."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={
+            "endpoint": "https://example.com/push/endpoint3",
+            "keys": {"p256dh": "a", "auth": "b"},
+        },
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+
+    # Set the cookie manually (simulating it was set during save_subscription)
+    client.cookies["subscription_endpoint"] = notification.subscription_endpoint
+
+    url = reverse("notifications:delete_subscription")
+    response = client.post(url)
+    assert response.status_code == 204
+
+    # Check that cookie was deleted
+    assert response.cookies["subscription_endpoint"].value == ""
+
+
+def test_notification_settings_recovers_from_cookie(client, school_factory):
+    """Test that notification_settings recovers session from persistent cookie when session is missing."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={
+            "endpoint": "https://example.com/push/endpoint4",
+            "keys": {"p256dh": "a", "auth": "b"},
+        },
+    )
+
+    # Simulate: user has cookie but no session (session expired)
+    client.cookies["subscription_endpoint"] = notification.subscription_endpoint
+    # Explicitly don't set session
+
+    url = reverse("notifications:notification_settings")
+    response = client.get(url)
+    assert response.status_code == 200
+
+    # Session should have been recovered
+    assert client.session.get("anon_notification_pk") == notification.pk
+
+    # Notification should be in context
+    assert "notification" in response.context
+    assert response.context["notification"] == notification
+
+
+def test_notification_settings_clears_invalid_cookie(client):
+    """Test that notification_settings clears cookie if subscription doesn't exist."""
+    # Set a cookie with a hash that doesn't match any subscription
+    client.cookies["subscription_endpoint"] = "invalid_hash_that_does_not_exist"
+
+    url = reverse("notifications:notification_settings")
+    response = client.get(url)
+    assert response.status_code == 200
+
+    # Cookie should be cleared
+    assert response.cookies["subscription_endpoint"].value == ""
+
+    # Session should not be set
+    assert "anon_notification_pk" not in client.session
+
+
+def test_save_subscription_without_endpoint(client, school_factory):
+    """Test that save_subscription fails gracefully if subscription_info lacks endpoint."""
+    school = school_factory()
+    url = reverse("notifications:save_subscription")
+    data = {
+        "school": school.pk,
+        "subscription_info": '{"keys": {"p256dh": "test_p256dh", "auth": "test_auth"}}',  # Missing endpoint
+        "notification_time": AnonymousMenuNotification.SAME_DAY_12PM,
+    }
+    response = client.post(url, data)
+
+    # Should return 400 error
+    assert response.status_code == 400
+
+    # No notification should be created
+    assert AnonymousMenuNotification.objects.count() == 0
+
+
+def test_save_subscription_shows_updated_message(client, school_factory):
+    """Test that save_subscription shows 'updated' message for existing subscriptions."""
+    school = school_factory()
+    url = reverse("notifications:save_subscription")
+    subscription_info = '{"endpoint": "https://example.com/push/endpoint5", "keys": {"p256dh": "test_p256dh", "auth": "test_auth"}}'
+
+    # First subscription
+    data = {
+        "school": school.pk,
+        "subscription_info": subscription_info,
+        "notification_time": AnonymousMenuNotification.PREVIOUS_DAY_6PM,
+    }
+    response = client.post(url, data)
+    messages = list(get_messages(response.wsgi_request))
+    assert len(messages) == 1
+    assert "abilitate" in str(messages[0])
+
+    # Second subscription with same endpoint
+    response = client.post(url, data)
+    messages = list(get_messages(response.wsgi_request))
+    # Should have 2 messages total (1 from first, 1 from second)
+    assert len(messages) == 2
+    assert "aggiornate" in str(messages[1])

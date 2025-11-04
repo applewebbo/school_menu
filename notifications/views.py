@@ -14,12 +14,35 @@ from notifications.utils import build_menu_notification_payload
 def notification_settings(request):
     pk = request.session.get("anon_notification_pk")
     context = {}
+
+    # Try to recover subscription from persistent cookie if session is missing
+    if not pk:
+        endpoint_hash = request.COOKIES.get("subscription_endpoint")
+        if endpoint_hash:
+            try:
+                notification = AnonymousMenuNotification.objects.get(
+                    subscription_endpoint=endpoint_hash
+                )
+                # Restore session
+                request.session["anon_notification_pk"] = notification.pk
+                request.session.save()
+                pk = notification.pk
+            except AnonymousMenuNotification.DoesNotExist:
+                # Cookie exists but subscription doesn't - clear the cookie
+                pass
+
     if pk:
         notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
         context["notification"] = notification
 
     context["form"] = AnonymousMenuNotificationForm()
-    return render(request, "notifications/notification_settings.html", context)
+    response = render(request, "notifications/notification_settings.html", context)
+
+    # Clear invalid cookie if subscription wasn't found
+    if not pk and request.COOKIES.get("subscription_endpoint"):
+        response.delete_cookie("subscription_endpoint")
+
+    return response
 
 
 def notifications_buttons(request, pk):
@@ -35,17 +58,55 @@ def save_subscription(request):
         school = form.cleaned_data["school"]
         subscription_info = form.cleaned_data["subscription_info"]
         notification_time = form.cleaned_data["notification_time"]
-        notification = AnonymousMenuNotification.objects.create(
-            school=school,
-            subscription_info=subscription_info,
-            notification_time=notification_time,
+
+        # Extract and hash endpoint for uniqueness
+        endpoint = AnonymousMenuNotification.extract_endpoint(subscription_info)
+        if not endpoint:
+            return TemplateResponse(
+                request,
+                "notifications/partials/subscription_form.html",
+                {"form": form},
+                status=400,
+            )
+
+        endpoint_hash = AnonymousMenuNotification.hash_endpoint(endpoint)
+
+        # Use update_or_create to prevent duplicates
+        notification, created = AnonymousMenuNotification.objects.update_or_create(
+            subscription_endpoint=endpoint_hash,
+            defaults={
+                "school": school,
+                "subscription_info": subscription_info,
+                "notification_time": notification_time,
+                "daily_notification": True,
+            },
         )
+
+        # Store notification PK in session
         request.session["anon_notification_pk"] = notification.pk
         request.session.save()
-        messages.add_message(
-            request, messages.SUCCESS, "Notifiche abilitate con successo"
+
+        # Store endpoint hash in persistent cookie (1 year expiry) for recovery
+        response = HttpResponse(status=204, headers={"HX-Refresh": "true"})
+        response.set_cookie(
+            "subscription_endpoint",
+            endpoint_hash,
+            max_age=365 * 24 * 60 * 60,  # 1 year
+            httponly=True,
+            secure=request.is_secure(),
+            samesite="Lax",
         )
-        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+
+        if created:
+            messages.add_message(
+                request, messages.SUCCESS, "Notifiche abilitate con successo"
+            )
+        else:
+            messages.add_message(
+                request, messages.SUCCESS, "Notifiche aggiornate con successo"
+            )
+
+        return response
     else:
         return TemplateResponse(
             request,
@@ -68,7 +129,10 @@ def delete_subscription(request):
             messages.add_message(
                 request, messages.SUCCESS, "Notifiche disabilitate con successo"
             )
-            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+            # Clear the persistent cookie as well
+            response = HttpResponse(status=204, headers={"HX-Refresh": "true"})
+            response.delete_cookie("subscription_endpoint")
+            return response
         except AnonymousMenuNotification.DoesNotExist:
             return HttpResponse(status=404)
         except Exception as e:

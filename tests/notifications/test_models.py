@@ -1,7 +1,13 @@
 import pytest
 
-from notifications.models import AnonymousMenuNotification, DailyNotification
+from notifications.models import (
+    AnonymousMenuNotification,
+    BroadcastNotification,
+    DailyNotification,
+)
+from tests.notifications.factories import BroadcastNotificationFactory
 from tests.school_menu.factories import SchoolFactory
+from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -169,3 +175,82 @@ class TestDailyNotificationModel:
         created_at = notification.created_at
         expected_str = f"Daily notification for {school} at {created_at}"
         assert str(notification) == expected_str
+
+
+class TestBroadcastNotificationModel:
+    def test_create_and_str(self):
+        """Test creation and __str__ of BroadcastNotification."""
+        user = UserFactory()
+        broadcast = BroadcastNotification.objects.create(
+            title="Test Broadcast",
+            message="Test message",
+            url="https://example.com",
+            created_by=user,
+        )
+        expected_str = (
+            f"{broadcast.title} - {broadcast.created_at.strftime('%Y-%m-%d %H:%M')}"
+        )
+        assert str(broadcast) == expected_str
+
+    def test_default_status(self):
+        """Test that default status is DRAFT."""
+        broadcast = BroadcastNotificationFactory()
+        assert broadcast.status == BroadcastNotification.Status.DRAFT
+
+    def test_status_choices(self):
+        """Test that all status choices exist."""
+        assert BroadcastNotification.Status.DRAFT == "draft"
+        assert BroadcastNotification.Status.SENDING == "sending"
+        assert BroadcastNotification.Status.SENT == "sent"
+        assert BroadcastNotification.Status.FAILED == "failed"
+
+    def test_optional_url(self):
+        """Test that URL is optional."""
+        broadcast = BroadcastNotification.objects.create(
+            title="Test", message="Test message"
+        )
+        assert broadcast.url == ""
+
+    def test_target_schools_many_to_many(self):
+        """Test that target_schools can have multiple schools."""
+        broadcast = BroadcastNotificationFactory()
+        school1 = SchoolFactory()
+        school2 = SchoolFactory()
+        broadcast.target_schools.add(school1, school2)
+        assert broadcast.target_schools.count() == 2
+        assert school1 in broadcast.target_schools.all()
+        assert school2 in broadcast.target_schools.all()
+
+    def test_empty_target_schools(self):
+        """Test that target_schools can be empty."""
+        broadcast = BroadcastNotificationFactory()
+        assert broadcast.target_schools.count() == 0
+
+    def test_meta_options(self):
+        """Test Meta options of BroadcastNotification."""
+        meta = BroadcastNotification._meta
+        assert meta.verbose_name == "Broadcast Notification"
+        assert meta.verbose_name_plural == "Broadcast Notifications"
+        assert meta.ordering == ["-created_at"]
+
+    def test_default_counts_are_zero(self):
+        """Test that default counts are zero."""
+        broadcast = BroadcastNotificationFactory()
+        assert broadcast.recipients_count == 0
+        assert broadcast.success_count == 0
+        assert broadcast.failure_count == 0
+
+    def test_sent_at_null_by_default(self):
+        """Test that sent_at is null by default."""
+        broadcast = BroadcastNotificationFactory()
+        assert broadcast.sent_at is None
+
+    def test_created_by_can_be_null(self):
+        """Test that created_by can be null (SET_NULL on delete)."""
+        user = UserFactory()
+        broadcast = BroadcastNotification.objects.create(
+            title="Test", message="Test message", created_by=user
+        )
+        user.delete()
+        broadcast.refresh_from_db()
+        assert broadcast.created_by is None

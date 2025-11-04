@@ -6,11 +6,12 @@ import time_machine
 from django.contrib.auth import get_user_model
 from pywebpush import WebPushException
 
-from notifications.models import AnonymousMenuNotification
+from notifications.models import AnonymousMenuNotification, BroadcastNotification
 from notifications.tasks import (
     _has_menu_for_date,
     _is_school_in_session,
     _send_menu_notifications,
+    send_broadcast_notification,
     send_previous_day_6pm_menu_notification,
     send_same_day_6pm_menu_notification,
     send_same_day_9am_menu_notification,
@@ -18,7 +19,10 @@ from notifications.tasks import (
     send_test_notification,
 )
 from school_menu.models import School
-from tests.notifications.factories import AnonymousMenuNotificationFactory
+from tests.notifications.factories import (
+    AnonymousMenuNotificationFactory,
+    BroadcastNotificationFactory,
+)
 from tests.school_menu.factories import (
     AnnualMealFactory,
     DetailedMealFactory,
@@ -292,3 +296,153 @@ def test_send_menu_notifications_check_disabled(
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 
     mock_send_notification.assert_called_once()
+
+
+class TestSendBroadcastNotification:
+    @patch("notifications.tasks.send_test_notification")
+    def test_send_to_all_subscriptions(self, mock_send_test):
+        """Test broadcast sends to all subscriptions with daily_notification=True."""
+        school1 = SchoolFactory()
+        school2 = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school1, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school2, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school1, daily_notification=False)
+
+        broadcast = BroadcastNotificationFactory(
+            title="Test Broadcast", message="Test message", url="https://example.com"
+        )
+
+        send_broadcast_notification(broadcast.pk)
+
+        assert mock_send_test.call_count == 2
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.SENT
+        assert broadcast.recipients_count == 2
+        assert broadcast.success_count == 2
+        assert broadcast.failure_count == 0
+        assert broadcast.sent_at is not None
+
+    @patch("notifications.tasks.send_test_notification")
+    def test_filter_by_target_schools(self, mock_send_test):
+        """Test broadcast filters by target schools."""
+        school1 = SchoolFactory()
+        school2 = SchoolFactory()
+        school3 = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school1, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school2, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school3, daily_notification=True)
+
+        broadcast = BroadcastNotificationFactory()
+        broadcast.target_schools.add(school1, school2)
+
+        send_broadcast_notification(broadcast.pk)
+
+        assert mock_send_test.call_count == 2
+        broadcast.refresh_from_db()
+        assert broadcast.recipients_count == 2
+        assert broadcast.success_count == 2
+
+    @patch("notifications.tasks.send_test_notification")
+    def test_respects_daily_notification_flag(self, mock_send_test):
+        """Test broadcast respects daily_notification=False."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=False)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=False)
+
+        broadcast = BroadcastNotificationFactory()
+
+        send_broadcast_notification(broadcast.pk)
+
+        assert mock_send_test.call_count == 1
+        broadcast.refresh_from_db()
+        assert broadcast.recipients_count == 1
+
+    @patch("notifications.tasks.send_test_notification")
+    def test_payload_with_url(self, mock_send_test):
+        """Test broadcast payload includes URL when provided."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        broadcast = BroadcastNotificationFactory(
+            title="Test", message="Message", url="https://example.com/test"
+        )
+
+        send_broadcast_notification(broadcast.pk)
+
+        mock_send_test.assert_called_once()
+        args, _ = mock_send_test.call_args
+        payload = args[1]
+        assert payload["head"] == "Test"
+        assert payload["body"] == "Message"
+        assert payload["url"] == "https://example.com/test"
+        assert payload["icon"] == "/static/img/notification-bell.png"
+
+    @patch("notifications.tasks.send_test_notification")
+    def test_payload_without_url(self, mock_send_test):
+        """Test broadcast payload defaults to / when URL is empty."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        broadcast = BroadcastNotificationFactory(
+            title="Test", message="Message", url=""
+        )
+
+        send_broadcast_notification(broadcast.pk)
+
+        mock_send_test.assert_called_once()
+        args, _ = mock_send_test.call_args
+        payload = args[1]
+        assert payload["url"] == "/"
+
+    @patch("notifications.tasks.logger")
+    @patch("notifications.tasks.send_test_notification")
+    def test_handles_send_failures(self, mock_send_test, mock_logger):
+        """Test broadcast handles individual send failures."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        mock_send_test.side_effect = [None, Exception("Send failed"), None]
+
+        broadcast = BroadcastNotificationFactory()
+
+        send_broadcast_notification(broadcast.pk)
+
+        assert mock_send_test.call_count == 3
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.SENT
+        assert broadcast.recipients_count == 3
+        assert broadcast.success_count == 2
+        assert broadcast.failure_count == 1
+        mock_logger.error.assert_called_once()
+
+    @patch("notifications.tasks.send_test_notification")
+    def test_no_subscriptions(self, mock_send_test):
+        """Test broadcast with no matching subscriptions."""
+        broadcast = BroadcastNotificationFactory()
+
+        send_broadcast_notification(broadcast.pk)
+
+        mock_send_test.assert_not_called()
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.SENT
+        assert broadcast.recipients_count == 0
+        assert broadcast.success_count == 0
+        assert broadcast.failure_count == 0
+
+    @patch("notifications.tasks.logger")
+    @patch("notifications.tasks.send_test_notification")
+    def test_logs_completion(self, mock_send_test, mock_logger):
+        """Test broadcast logs completion message."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        broadcast = BroadcastNotificationFactory(title="Test Broadcast")
+
+        send_broadcast_notification(broadcast.pk)
+
+        mock_logger.info.assert_called_with(
+            "Broadcast 'Test Broadcast' sent: 1 success, 0 failures"
+        )

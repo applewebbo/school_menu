@@ -260,7 +260,7 @@ def build_types_menu(weekly_meals, school, week=None, season=None):
         meals = {}
         for menu_type in active_menu:
             if menu_type in available_types:
-                meals[Meal.Types(menu_type).label] = menu_type
+                meals[str(Meal.Types(menu_type).label)] = menu_type
 
         return meals
 

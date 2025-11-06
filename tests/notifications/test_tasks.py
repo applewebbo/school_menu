@@ -418,19 +418,18 @@ class TestSendBroadcastNotification:
         assert broadcast.failure_count == 1
         mock_logger.error.assert_called_once()
 
-    @patch("notifications.tasks.send_test_notification")
-    def test_no_subscriptions(self, mock_send_test):
+    def test_no_subscriptions(self):
         """Test broadcast with no matching subscriptions."""
         broadcast = BroadcastNotificationFactory()
 
         send_broadcast_notification(broadcast.pk)
 
-        mock_send_test.assert_not_called()
         broadcast.refresh_from_db()
         assert broadcast.status == BroadcastNotification.Status.SENT
         assert broadcast.recipients_count == 0
         assert broadcast.success_count == 0
         assert broadcast.failure_count == 0
+        assert broadcast.sent_at is not None
 
     @patch("notifications.tasks.logger")
     @patch("notifications.tasks.send_test_notification")
@@ -444,5 +443,107 @@ class TestSendBroadcastNotification:
         send_broadcast_notification(broadcast.pk)
 
         mock_logger.info.assert_called_with(
-            "Broadcast 'Test Broadcast' sent: 1 success, 0 failures"
+            "Broadcast 'Test Broadcast' completed with status sent: 1 success, 0 failures"
         )
+
+    @patch("notifications.tasks.webpush")
+    def test_broadcast_status_failed_when_all_fail(self, mock_webpush):
+        """Test broadcast status is FAILED when all sends fail."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+        mock_webpush.side_effect = WebPushException(
+            "Send failed", response=mock_response
+        )
+
+        broadcast = BroadcastNotificationFactory()
+
+        send_broadcast_notification(broadcast.pk)
+
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.FAILED
+        assert broadcast.recipients_count == 2
+        assert broadcast.success_count == 0
+        assert broadcast.failure_count == 2
+        assert broadcast.sent_at is not None
+
+    @patch("notifications.tasks.webpush")
+    def test_broadcast_status_failed_when_majority_fail(self, mock_webpush):
+        """Test broadcast status is FAILED when majority of sends fail."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+
+        # 2 fail, 1 succeeds
+        mock_webpush.side_effect = [
+            WebPushException("Failed", response=mock_response),
+            WebPushException("Failed", response=mock_response),
+            None,
+        ]
+
+        broadcast = BroadcastNotificationFactory()
+
+        send_broadcast_notification(broadcast.pk)
+
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.FAILED
+        assert broadcast.recipients_count == 3
+        assert broadcast.success_count == 1
+        assert broadcast.failure_count == 2
+
+    @patch("notifications.tasks.webpush")
+    def test_broadcast_status_sent_when_majority_succeed(self, mock_webpush):
+        """Test broadcast status is SENT when majority succeed despite some failures."""
+        school = SchoolFactory()
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+        AnonymousMenuNotificationFactory(school=school, daily_notification=True)
+
+        mock_response = MagicMock()
+        mock_response.status_code = 500
+
+        # 1 fails, 2 succeed
+        mock_webpush.side_effect = [
+            None,
+            None,
+            WebPushException("Failed", response=mock_response),
+        ]
+
+        broadcast = BroadcastNotificationFactory()
+
+        send_broadcast_notification(broadcast.pk)
+
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.SENT
+        assert broadcast.recipients_count == 3
+        assert broadcast.success_count == 2
+        assert broadcast.failure_count == 1
+
+    def test_broadcast_handles_task_crash(self):
+        """Test broadcast status is FAILED when task crashes unexpectedly."""
+        broadcast = BroadcastNotificationFactory(
+            status=BroadcastNotification.Status.SENDING
+        )
+
+        # Pass invalid broadcast_pk to simulate crash scenario
+        with pytest.raises(Exception, match="Database error"):
+            with patch(
+                "notifications.tasks.AnonymousMenuNotification.objects.filter"
+            ) as mock_filter:
+                mock_filter.side_effect = Exception("Database error")
+                send_broadcast_notification(broadcast.pk)
+
+        broadcast.refresh_from_db()
+        assert broadcast.status == BroadcastNotification.Status.FAILED
+
+    def test_broadcast_handles_nonexistent_broadcast(self):
+        """Test task handles gracefully when broadcast doesn't exist."""
+        send_broadcast_notification(99999)
+        # Should not raise exception, just log error and return

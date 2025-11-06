@@ -71,9 +71,14 @@ class BroadcastNotificationAdmin(admin.ModelAdmin):
         """
         sent_count = 0
         for broadcast in queryset:
-            if broadcast.status == BroadcastNotification.Status.SENT:
+            if broadcast.status in [
+                BroadcastNotification.Status.SENT,
+                BroadcastNotification.Status.SENDING,
+            ]:
                 self.message_user(
-                    request, f"'{broadcast.title}' already sent", level="warning"
+                    request,
+                    f"'{broadcast.title}' already sent or currently sending",
+                    level="warning",
                 )
                 continue
 

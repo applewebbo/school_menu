@@ -151,50 +151,85 @@ def send_broadcast_notification(broadcast_pk):
     """
     Send a broadcast notification to all matching subscriptions
     """
-    broadcast = BroadcastNotification.objects.get(pk=broadcast_pk)
+    try:
+        broadcast = BroadcastNotification.objects.get(pk=broadcast_pk)
+    except BroadcastNotification.DoesNotExist:
+        logger.error(f"BroadcastNotification {broadcast_pk} not found")
+        return
 
-    # Build base query
-    subscriptions = AnonymousMenuNotification.objects.filter(daily_notification=True)
+    try:
+        # Build base query
+        subscriptions = AnonymousMenuNotification.objects.filter(
+            daily_notification=True
+        )
 
-    # Filter by schools if specified
-    if broadcast.target_schools.exists():
-        subscriptions = subscriptions.filter(school__in=broadcast.target_schools.all())
-
-    # Build payload
-    payload = {
-        "head": broadcast.title,
-        "body": broadcast.message,
-        "icon": "/static/img/notification-bell.png",
-    }
-
-    if broadcast.url:
-        payload["url"] = broadcast.url
-    else:
-        payload["url"] = "/"
-
-    # Send to all matching subscriptions
-    success_count = 0
-    failure_count = 0
-
-    for subscription in subscriptions:
-        try:
-            send_test_notification(subscription.subscription_info, payload)
-            success_count += 1
-        except Exception as e:
-            logger.error(
-                f"Failed to send broadcast to subscription {subscription.pk}: {e}"
+        # Filter by schools if specified
+        if broadcast.target_schools.exists():
+            subscriptions = subscriptions.filter(
+                school__in=broadcast.target_schools.all()
             )
-            failure_count += 1
 
-    # Update broadcast record
-    broadcast.sent_at = timezone.now()
-    broadcast.status = BroadcastNotification.Status.SENT
-    broadcast.recipients_count = subscriptions.count()
-    broadcast.success_count = success_count
-    broadcast.failure_count = failure_count
-    broadcast.save()
+        # Build payload
+        payload = {
+            "head": broadcast.title,
+            "body": broadcast.message,
+            "icon": "/static/img/notification-bell.png",
+        }
 
-    logger.info(
-        f"Broadcast '{broadcast.title}' sent: "
-        f"{success_count} success, {failure_count} failures"
-    )
+        if broadcast.url:
+            payload["url"] = broadcast.url
+        else:
+            payload["url"] = "/"
+
+        # Send to all matching subscriptions
+        success_count = 0
+        failure_count = 0
+        total_recipients = subscriptions.count()
+
+        for subscription in subscriptions:
+            try:
+                send_test_notification(subscription.subscription_info, payload)
+                success_count += 1
+            except Exception as e:
+                logger.error(
+                    f"Failed to send broadcast to subscription {subscription.pk}: {e}"
+                )
+                failure_count += 1
+
+        # Determine final status based on results (Option B)
+        if total_recipients == 0:
+            # No recipients found - still mark as SENT for audit trail
+            final_status = BroadcastNotification.Status.SENT
+        elif success_count == 0:
+            # All sends failed
+            final_status = BroadcastNotification.Status.FAILED
+        elif failure_count > success_count:
+            # More failures than successes
+            final_status = BroadcastNotification.Status.FAILED
+        else:
+            # Success (even with some failures)
+            final_status = BroadcastNotification.Status.SENT
+
+        # Update broadcast record
+        broadcast.sent_at = timezone.now()
+        broadcast.status = final_status
+        broadcast.recipients_count = total_recipients
+        broadcast.success_count = success_count
+        broadcast.failure_count = failure_count
+        broadcast.save()
+
+        logger.info(
+            f"Broadcast '{broadcast.title}' completed with status {final_status}: "
+            f"{success_count} success, {failure_count} failures"
+        )
+
+    except Exception as e:
+        # Catch-all for unexpected errors during task execution
+        logger.error(f"Unexpected error in send_broadcast_notification: {e}")
+
+        # Mark as FAILED so admin knows something went wrong
+        broadcast.status = BroadcastNotification.Status.FAILED
+        broadcast.save()
+
+        # Re-raise so Django-Q can log it
+        raise

@@ -170,3 +170,25 @@ class TestBroadcastNotificationAdmin:
         broadcast_admin.send_broadcast(admin_request, queryset)
 
         mock_async_task.assert_not_called()
+
+    @patch("notifications.admin.async_task")
+    def test_send_broadcast_action_skips_sending_status(
+        self, mock_async_task, broadcast_admin, admin_request
+    ):
+        """Test send_broadcast action skips broadcasts with SENDING status."""
+        broadcast1 = BroadcastNotificationFactory(
+            status=BroadcastNotification.Status.SENDING
+        )
+        broadcast2 = BroadcastNotificationFactory(
+            status=BroadcastNotification.Status.DRAFT
+        )
+        queryset = BroadcastNotification.objects.filter(
+            pk__in=[broadcast1.pk, broadcast2.pk]
+        )
+
+        broadcast_admin.send_broadcast(admin_request, queryset)
+
+        assert mock_async_task.call_count == 1
+        mock_async_task.assert_called_with(
+            "notifications.tasks.send_broadcast_notification", broadcast2.pk
+        )

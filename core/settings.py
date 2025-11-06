@@ -283,11 +283,14 @@ if ENVIRONMENT == "dev":
     MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]
 
     # Silk configuration
-    SILKY_PYTHON_PROFILER = True
-    SILKY_PYTHON_PROFILER_BINARY = True
+    SILKY_PYTHON_PROFILER = False  # Disable to avoid .prof file issues
+    SILKY_PYTHON_PROFILER_BINARY = False
     SILKY_AUTHENTICATION = True
     SILKY_AUTHORISATION = True
     SILKY_META = True
+    SILKY_MAX_REQUEST_BODY_SIZE = 1024  # Limit stored request size (KB)
+    SILKY_MAX_RESPONSE_BODY_SIZE = 1024  # Limit stored response size (KB)
+    SILKY_MAX_RECORDED_REQUESTS = 1000  # Auto-cleanup old requests
 
     # DJANGO-Q
     Q_CLUSTER = {

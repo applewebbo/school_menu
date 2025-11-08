@@ -166,13 +166,23 @@ ANYMAIL = {
     "MAILGUN_SENDER_DOMAIN": env("MAILGUN_SENDER_DOMAIN"),
 }
 
-# DBBACKUP
-DBBACKUP_STORAGE = "storages.backends.dropbox.DropBoxStorage"
-DBBACKUP_STORAGE_OPTIONS = {
-    "oauth2_access_token": env("DROPBOX_OAUTH2_ACCESS_TOKEN"),
-    "oauth2_refresh_token": env("DROPBOX_OAUTH2_REFRESH_TOKEN"),
-    "app_secret": env("DROPBOX_APP_SECRET"),
-    "app_key": env("DROPBOX_APP_KEY"),
+# DBBACKUP - django-dbbackup 5.0 uses STORAGES dictionary
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+    "dbbackup": {
+        "BACKEND": "storages.backends.dropbox.DropBoxStorage",
+        "OPTIONS": {
+            "oauth2_access_token": env("DROPBOX_OAUTH2_ACCESS_TOKEN"),
+            "oauth2_refresh_token": env("DROPBOX_OAUTH2_REFRESH_TOKEN"),
+            "app_secret": env("DROPBOX_APP_SECRET"),
+            "app_key": env("DROPBOX_APP_KEY"),
+        },
+    },
 }
 
 # COOKIEBANNER

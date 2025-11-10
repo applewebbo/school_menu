@@ -350,6 +350,10 @@ elif ENVIRONMENT == "prod":
             "PORT": "5432",
         }
     }
+    # UMAMI TRACKING
+    UMAMI_SCRIPT_URL = env("UMAMI_SCRIPT_URL", default=None)
+    UMAMI_WEBSITE_ID = env("UMAMI_WEBSITE_ID", default=None)
+    UMAMI_DOMAINS = env("UMAMI_DOMAINS", default=None)
     # DBBACKUP
     DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
     # DJANGO-Q

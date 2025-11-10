@@ -1,4 +1,4 @@
-{% load static %}
+{% load settings_tags static %}
 <!-- Tooltip -->
 <script src="{% static 'js/popper.min.js' %}"></script>
 <script src="{% static 'js/tippy-bundle.umd.min.js' %}"></script>
@@ -10,9 +10,14 @@
 <script defer src="{% static 'js/alpine-clipboard.min.js' %}"></script>
 <script defer src="{% static 'js/alpine.min.js' %}"></script>
 <!-- Umami Analytics Code -->
+{% get_setting 'UMAMI_SCRIPT_URL' as umami_script_url %}
+{% get_setting 'UMAMI_WEBSITE_ID' as umami_website_id %}
+{% get_setting 'UMAMI_DOMAINS' as umami_domains %}
+{% if umami_script_url and umami_website_id %}
 <script defer
-        src="https://analytics.local.webbografico.com/script.js"
-        data-website-id="746fd00c-77c2-4b88-b5a6-208648d5e5cb"
-        data-domains="menu.webbografico.com,menu.local.webbografico.com"></script>
+        src="{{ umami_script_url }}"
+        data-website-id="{{ umami_website_id }}"
+        {% if umami_domains %}data-domains="{{ umami_domains }}"{% endif %}></script>
+{% endif %}
 <!-- Custom JS -->
 <script defer src="{% static 'js/custom.js' %}"></script>

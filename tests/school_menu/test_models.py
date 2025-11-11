@@ -46,6 +46,49 @@ class TestSchoolModel:
 
         assert school.get_absolute_url() == f"/menu/{school.slug}/"
 
+    def test_slug_generated_on_creation(self, user_factory):
+        """Test that slug is automatically generated when creating a school."""
+        from school_menu.models import School
+
+        user = user_factory()
+        school = School.objects.create(user=user, name="Scuola Elementare", city="Roma")
+
+        assert school.slug == "scuola-elementare-roma"
+
+    def test_slug_stable_on_update(self, user_factory, school_factory):
+        """Test that slug doesn't change when updating other fields."""
+        user = user_factory()
+        school = school_factory(user=user, name="Scuola Elementare", city="Roma")
+        original_slug = school.slug
+
+        # Update various fields
+        school.menu_type = "D"
+        school.week_bias = 2
+        school.season_choice = 1
+        school.save()
+
+        # Slug should remain unchanged
+        assert school.slug == original_slug
+
+    def test_slug_stable_when_updating_name_and_city(
+        self, user_factory, school_factory
+    ):
+        """Test that slug doesn't change even if name/city are updated."""
+        user = user_factory()
+        school = school_factory(user=user, name="Scuola Elementare", city="Roma")
+        original_slug = school.slug
+
+        # Try to change name and city
+        school.name = "Scuola Media"
+        school.city = "Milano"
+        school.save()
+
+        # Slug should remain unchanged (this prevents breaking URLs)
+        assert school.slug == original_slug
+        # But the actual fields should be updated
+        assert school.name == "Scuola Media"
+        assert school.city == "Milano"
+
 
 class TestAnnualMenuModel:
     def test_factory(self, user_factory, school_factory, annual_meal_factory):

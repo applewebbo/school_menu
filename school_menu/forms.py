@@ -1,6 +1,7 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Submit
 from django import forms
+from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
@@ -84,6 +85,30 @@ class SchoolForm(forms.ModelForm):
                 "max_value": "Il valore massimo è 3",
             },
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get("name")
+        city = cleaned_data.get("city")
+
+        if name and city:
+            # Generate the slug that would be created
+            potential_slug = slugify(f"{name}-{city}")
+
+            # Check if a school with this slug already exists
+            # Exclude current instance on updates
+            existing_schools = School.objects.filter(slug=potential_slug)
+            if self.instance.pk:
+                existing_schools = existing_schools.exclude(pk=self.instance.pk)
+
+            if existing_schools.exists():
+                raise forms.ValidationError(
+                    f"Esiste già una scuola con nome '{name}' nella città '{city}'. "
+                    f"Scegli un nome diverso o aggiungi ulteriori dettagli "
+                    f"(es. '{name} Via Rossi')."
+                )
+
+        return cleaned_data
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

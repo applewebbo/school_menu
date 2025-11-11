@@ -194,7 +194,9 @@ class School(models.Model):
         return f"{self.name} - {self.city} ({str(self.user)})"
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(f"{self.name}-{self.city}")
+        # Only generate slug on creation to prevent URL changes and IntegrityErrors
+        if not self.pk:
+            self.slug = slugify(f"{self.name}-{self.city}")
         super().save(*args, **kwargs)
         # Invalidate all caches when school settings change
         # Settings like menu_type, season_choice, week_bias, and alternative

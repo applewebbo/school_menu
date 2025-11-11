@@ -340,6 +340,7 @@ elif ENVIRONMENT == "prod":
     DEBUG = env.bool("DEBUG", default=False)
     ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
+    PREPEND_WWW = True
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",

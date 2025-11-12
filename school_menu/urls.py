@@ -44,6 +44,7 @@ htmx_urlpatterns = [
     path("school/", views.school_view, name="school_view"),
     path("school/create/", views.school_create, name="school_create"),
     path("school/update/", views.school_update, name="school_update"),
+    path("school/delete/", views.school_delete, name="school_delete"),
     path(
         "menu/<int:school_id>/<str:meal_type>/upload/",
         views.upload_menu,

@@ -1,0 +1,27 @@
+{% load heroicons static %}
+<div class="modal-content">
+    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
+        <h3 id="school-delete-title"
+            data-modal-title
+            class="text-xl font-semibold text-gray-900 dark:text-white">Elimina la tua scuola</h3>
+        <button type="button"
+                class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                x-on:click="openModal = false">
+            {% heroicon_solid 'x-mark' class="size-7" %}
+            <span class="sr-only">Close modal</span>
+        </button>
+    </div>
+    <div class="grid gap-y-4 gap-x-8 py-3 px-5 mt-3 md:py-4 md:px-6">
+        <p class="text-sm text-gray-500">
+            Sei sicuro di voler eliminare <strong>{{ school.name }}</strong>? Questa azione cancellerà anche tutti i menu associati.
+        </p>
+        <form hx-post="{% url 'school_menu:school_delete' %}"
+              hx-target="body">
+            <button type="submit" class="mb-4 btn btn-error btn-block">Elimina Scuola</button>
+        </form>
+        <div class="flex items-center py-2 px-6 m-auto mb-4 text-red-800 bg-red-50 rounded border border-red-200">
+            {% heroicon_solid 'exclamation-triangle' class="size-5 me-4 min-w-5" %}
+            <span class="text-sm italic">Attenzione, l'eliminazione della scuola è immediata e definitiva.</span>
+        </div>
+    </div>
+</div>

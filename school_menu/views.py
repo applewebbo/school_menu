@@ -17,7 +17,11 @@ from tablib.exceptions import InvalidDimensions
 
 from contacts.models import MenuReport
 from notifications.tasks import _is_school_in_session
-from school_menu.cache import get_cached_or_query, invalidate_meal_cache
+from school_menu.cache import (
+    get_cached_or_query,
+    invalidate_meal_cache,
+    invalidate_school_cache,
+)
 from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
@@ -787,3 +791,24 @@ def health_check(request):
     status_code = 200 if overall_status != "unhealthy" else 503
 
     return JsonResponse(response_data, status=status_code)
+
+
+@login_required
+def school_delete(request):
+    """Delete the school associated with the current user"""
+    user = request.user
+    school = get_object_or_404(School, user=user)
+    if request.method == "POST":
+        school_id = school.id
+        school_slug = school.slug
+        school_name = school.name
+        school.delete()
+        # Invalidate all school-related caches
+        invalidate_school_cache(school_id, school_slug)
+        messages.add_message(
+            request,
+            messages.SUCCESS,
+            f"<strong>{school_name}</strong> eliminata con successo",
+        )
+        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    return render(request, "school_menu/school_delete.html", context={"school": school})

@@ -457,6 +457,82 @@ class SettingView(TestCase):
         self.response_200(response)
         assert "user" in response.context
 
+    def test_school_delete_get(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:school_delete")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "school_menu/school_delete.html")
+        assert "school" in response.context
+        assert response.context["school"] == school
+
+    def test_school_delete_post_success(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        school_name = school.name
+        school_id = school.id
+
+        with self.login(user):
+            response = self.post("school_menu:school_delete")
+
+        self.response_204(response)
+        message = list(get_messages(response.wsgi_request))[0].message
+        assert message == f"<strong>{school_name}</strong> eliminata con successo"
+        assert School.objects.filter(id=school_id).count() == 0
+        assert School.objects.filter(user=user).count() == 0
+
+    def test_school_delete_with_meals(self):
+        """Test that deleting a school also deletes associated meals"""
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
+        DetailedMealFactory(school=school, week=1, day=1)
+        DetailedMealFactory(school=school, week=1, day=2)
+
+        with self.login(user):
+            response = self.post("school_menu:school_delete")
+
+        self.response_204(response)
+        assert School.objects.filter(user=user).count() == 0
+        # Meals should be deleted via cascade
+        assert DetailedMeal.objects.filter(school=school).count() == 0
+
+    def test_school_delete_without_school(self):
+        """Test delete view when user has no school"""
+        user = self.make_user()
+
+        with self.login(user):
+            response = self.get("school_menu:school_delete")
+
+        assert response.status_code == 404
+
+    def test_school_delete_requires_login(self):
+        """Test that delete view requires authentication"""
+        response = self.get("school_menu:school_delete")
+
+        assert response.status_code == 302
+        assert "/accounts/login/" in response.url
+
+    def test_school_delete_invalidates_cache(self):
+        """Test that deleting a school invalidates all related caches"""
+        from unittest.mock import patch
+
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        school_id = school.id
+        school_slug = school.slug
+
+        with self.login(user):
+            with patch("school_menu.views.invalidate_school_cache") as mock_invalidate:
+                response = self.post("school_menu:school_delete")
+
+                # Verify cache invalidation was called with correct parameters
+                mock_invalidate.assert_called_once_with(school_id, school_slug)
+
+        self.response_204(response)
+
 
 class SchoolListView(TestCase):
     def test_get(self):

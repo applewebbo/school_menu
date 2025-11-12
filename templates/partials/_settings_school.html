@@ -96,8 +96,16 @@
                         {% endif %}
                     </div>
                 </div>
-                <div class="md:text-right">
-                    <button class="inline-flex justify-center items-center mt-2 w-full md:w-auto btn btn-sm btn-primary btn-outline dark:btn-soft"
+                <div class="flex flex-col gap-2 mt-2 md:flex-row md:justify-end">
+                    <button class="inline-flex justify-center items-center w-full md:w-auto btn btn-sm btn-error btn-outline dark:btn-soft"
+                            hx-get="{% url 'school_menu:school_delete' %}"
+                            hx-target="#dialog"
+                            hx-swap="innerHTML"
+                            @click="$dispatch('open-modal')">
+                        Elimina
+                        {% heroicon_outline 'exclamation-triangle' class="hidden md:block size-4" %}
+                    </button>
+                    <button class="inline-flex justify-center items-center w-full md:w-auto btn btn-sm btn-primary btn-outline dark:btn-soft"
                             hx-target="#school"
                             hx-swap="outerHTML"
                             hx-get="{% url 'school_menu:school_update' %}">

@@ -17,7 +17,7 @@ from tablib.exceptions import InvalidDimensions
 
 from contacts.models import MenuReport
 from notifications.tasks import _is_school_in_session
-from school_menu.cache import invalidate_meal_cache
+from school_menu.cache import get_cached_or_query, invalidate_meal_cache
 from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
@@ -370,9 +370,14 @@ def school_update(request):
     return render(request, "partials/school.html", context)
 
 
-@cache_page(86400, key_prefix="school_list")
 def school_list(request):
-    schools = School.objects.exclude(is_published=False)
+    """Return list of all published schools with cached queryset."""
+    cache_key = "school_list_queryset"
+
+    def get_schools():
+        return list(School.objects.exclude(is_published=False))
+
+    schools = get_cached_or_query(cache_key, get_schools, timeout=86400)
     context = {"schools": schools}
     return TemplateResponse(request, "school-list.html", context)
 

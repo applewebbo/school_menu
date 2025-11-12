@@ -10,6 +10,7 @@ This module tests:
 """
 
 import pytest
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import connection
 from django.test import override_settings
@@ -17,26 +18,32 @@ from django.urls import reverse
 
 from school_menu.models import School
 
+User = get_user_model()
+
 pytestmark = pytest.mark.django_db
 
 
 class TestSchoolListCaching:
     """Test caching behavior for school_list view."""
 
-    def test_school_list_view_has_cache_decorator(self, client, school_factory):
-        """Test that school_list view has cache decorator applied."""
+    def test_school_list_uses_queryset_caching(self, client, school_factory):
+        """Test that school_list view renders correctly with queryset caching."""
         # Create published schools
         school_factory.create_batch(3, is_published=True)
 
         url = reverse("school_menu:school_list")
 
-        # Make request - should work regardless of cache backend
+        # Make request - should work with queryset caching
         response = client.get(url)
         assert response.status_code == 200
 
         # Verify schools are in response
         content = response.content.decode()
         assert "school" in content.lower()
+
+        # Second request should also work (uses cached queryset if cache backend supports it)
+        response2 = client.get(url)
+        assert response2.status_code == 200
 
     def test_school_list_cache_invalidated_on_school_save(self, client, school_factory):
         """Test that school_list cache is cleared when a school is saved."""
@@ -70,6 +77,35 @@ class TestSchoolListCaching:
         content = response.content.decode()
         assert "Published School" in content
         assert "Unpublished School" not in content
+
+    def test_school_list_navbar_shows_correct_login_state(
+        self, client, school_factory, user_factory
+    ):
+        """Verify navbar shows correct state for authenticated and anonymous users.
+
+        This test verifies that with queryset-level caching (not page caching),
+        the navbar renders correctly for each user based on their login state.
+        """
+        school_factory(is_published=True)
+
+        url = reverse("school_menu:school_list")
+
+        # Anonymous user sees "Entra" (login) button but not logout
+        response_anon = client.get(url)
+        assert response_anon.status_code == 200
+        content_anon = response_anon.content.decode()
+        assert "Entra" in content_anon
+        assert "Esci" not in content_anon  # Logout button only for auth users
+
+        # Authenticated user sees logout button
+        user = user_factory()
+        client.force_login(user)
+        response_auth = client.get(url)
+        assert response_auth.status_code == 200
+        content_auth = response_auth.content.decode()
+        assert "Esci" in content_auth  # Logout button appears
+        # Verify settings link uses user.id in URL
+        assert f"/settings/{user.id}/" in content_auth
 
 
 class TestSchoolsJsonListCaching:

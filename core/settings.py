@@ -21,6 +21,7 @@ env = environ.Env(
 
 ENVIRONMENT = env("ENVIRONMENT", default="prod")
 SECRET_KEY = env("SECRET_KEY")
+REDIRECT_WWW = env("REDIRECT_WWW", default=True)
 
 # Application definition
 
@@ -340,7 +341,7 @@ elif ENVIRONMENT == "prod":
     DEBUG = env.bool("DEBUG", default=False)
     ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
-    PREPEND_WWW = True
+    PREPEND_WWW = REDIRECT_WWW
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",

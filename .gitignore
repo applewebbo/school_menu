@@ -188,3 +188,6 @@ src/intellisense.css
 # CLAUDE
 .claude/plans/
 .playwright-mcp/
+
+# TESTS
+tests/performance/

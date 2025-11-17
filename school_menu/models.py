@@ -46,11 +46,11 @@ class Meal(models.Model):
 
 
 class DetailedMeal(Meal):
-    first_course = models.CharField(max_length=200)
-    second_course = models.CharField(max_length=200)
-    side_dish = models.CharField(max_length=200)
-    fruit = models.CharField(max_length=200, default="Frutta di Stagione")
-    snack = models.CharField(max_length=200)
+    first_course = models.CharField(max_length=200, blank=True)
+    second_course = models.CharField(max_length=200, blank=True)
+    side_dish = models.CharField(max_length=200, blank=True)
+    fruit = models.CharField(max_length=200, blank=True, default="Frutta di Stagione")
+    snack = models.CharField(max_length=200, blank=True)
 
     class Meta:
         indexes = [

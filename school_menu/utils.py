@@ -1,4 +1,5 @@
 import csv
+import logging
 from datetime import datetime, timedelta
 
 from django.contrib.auth import get_user_model
@@ -9,6 +10,8 @@ from import_export.widgets import Widget
 from notifications.models import AnonymousMenuNotification
 from school_menu.cache import get_cached_or_query
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+
+logger = logging.getLogger(__name__)
 
 
 def detect_csv_format(content: str) -> tuple[str, str]:
@@ -147,13 +150,13 @@ def get_current_date(next_day=False):
     Get current week and day.
     If next_day is True, returns the data for the next day.
     """
-    target_date = datetime.now()
+    target_date = timezone.now()
     if next_day:
         target_date += timedelta(days=1)
 
     # if it's weekend, get next monday
     if target_date.weekday() >= 5:  # Saturday or Sunday
-        target_date += timezone.timedelta(days=(7 - target_date.weekday()))
+        target_date += timedelta(days=(7 - target_date.weekday()))
 
     current_week = target_date.isocalendar()[1]
     day = target_date.isocalendar()[2]
@@ -167,7 +170,7 @@ def get_season(school):
     """
     season = school.season_choice
     if season == School.Seasons.AUTOMATICA:
-        today = datetime.now()
+        today = timezone.now()
         day, month = today.day, today.month
         if (
             month in [10, 11, 12, 1, 2]
@@ -182,7 +185,7 @@ def get_season(school):
 
 def get_adjusted_year():
     """Get current year if date is after September 1st, otherwise previous year"""
-    today = datetime.now()
+    today = timezone.now()
     adjusted_year = today.year if today.month >= 9 else today.year - 1
 
     return adjusted_year
@@ -496,13 +499,13 @@ def get_meals_for_annual_menu(school, next_day=False):
     Cache key: annual_meals:{school_id}:{year}:w{week}
     TTL: 7 days (604800 seconds)
     """
-    target_date = datetime.now().date()
+    target_date = timezone.now().date()
     if next_day:
         target_date += timedelta(days=1)
 
     # If weekend, get next Monday's date
     if target_date.weekday() >= 5:  # Saturday (5) or Sunday (6)
-        target_date += timezone.timedelta(days=(7 - target_date.weekday()))
+        target_date += timedelta(days=(7 - target_date.weekday()))
 
     # Get meals for the week of the target date
     year, week, _ = target_date.isocalendar()

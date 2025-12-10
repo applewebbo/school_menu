@@ -243,22 +243,27 @@ class GetMenuView(TestCase):
 
     # ... (omitting unchanged parts of the file for brevity)
 
-    @time_machine.travel("2025-04-12")  # Saturday
     def test_get_with_annual_menu(self):
         """Test get_menu view with an annual menu on a weekend"""
-        # Create a school and meals
-        school = SchoolFactory(annual_menu=True)
-        next_monday = date(2025, 4, 14)  # Next Monday
-        monday_meal = AnnualMealFactory(
-            school=school, date=next_monday, type="S", is_active=True
-        )
+        from datetime import datetime
+        from unittest import mock
 
-        # Call the view
-        response = self.get("school_menu:get_menu", school.pk, 15, 1, "S")
+        with mock.patch("school_menu.utils.timezone") as mock_timezone:
+            mock_timezone.now.return_value = datetime(2025, 4, 12, 12, 0)  # Saturday
 
-        # Assertions
-        self.response_200(response)
-        assert response.context["meal"] == monday_meal
+            # Create a school and meals
+            school = SchoolFactory(annual_menu=True)
+            next_monday = date(2025, 4, 14)  # Next Monday
+            monday_meal = AnnualMealFactory(
+                school=school, date=next_monday, type="S", is_active=True
+            )
+
+            # Call the view
+            response = self.get("school_menu:get_menu", school.pk, 15, 1, "S")
+
+            # Assertions
+            self.response_200(response)
+            assert response.context["meal"] == monday_meal
 
     def test_get_with_detailed_menu(self):
         school = SchoolFactory(

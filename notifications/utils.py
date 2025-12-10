@@ -1,3 +1,7 @@
+import logging
+
+from django.utils import timezone
+
 from school_menu.models import School
 from school_menu.utils import (
     calculate_week,
@@ -7,6 +11,8 @@ from school_menu.utils import (
     get_season,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def build_menu_notification_payload(school, is_previous_day=False):
     """
@@ -14,17 +20,42 @@ def build_menu_notification_payload(school, is_previous_day=False):
 
     Note: meals_for_today is a list (not QuerySet) after caching implementation.
     """
+    now = timezone.now()
+    logger.info(
+        f"[Notification Debug] Building menu for school '{school.name}' (ID={school.id}), "
+        f"is_previous_day={is_previous_day}, current_time={now.isoformat()}, "
+        f"timezone={now.tzname()}"
+    )
+
     if school.annual_menu:
+        logger.info(
+            f"[Notification Debug] Using annual menu for school '{school.name}'"
+        )
         _, meals_for_today = get_meals_for_annual_menu(school, next_day=is_previous_day)
     else:
         current_week, day = get_current_date(next_day=is_previous_day)
         season = get_season(school)
         week = calculate_week(current_week, school.week_bias)
+
+        logger.info(
+            f"[Notification Debug] School '{school.name}': ISO_week={current_week}, "
+            f"weekday={day}, season={season}, bias={school.week_bias}, "
+            f"calculated_menu_week={week} (formula: ({current_week}+{school.week_bias})%4)"
+        )
+
         _, meals_for_today = get_meals(school, season, week, day)
 
     # meals_for_today is a list, check if it's not empty
     if not meals_for_today:
+        logger.warning(
+            f"[Notification Debug] No meals found for school '{school.name}' "
+            f"(is_previous_day={is_previous_day})"
+        )
         return None
+
+    logger.info(
+        f"[Notification Debug] Found {len(meals_for_today)} meal(s) for school '{school.name}'"
+    )
 
     body = "Nessun menu previsto."
     head = f"Menu {school.name}"

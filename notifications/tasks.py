@@ -97,9 +97,21 @@ def _send_menu_notifications(notification_time):
     today = date.today()
     is_previous_day = notification_time == AnonymousMenuNotification.PREVIOUS_DAY_6PM
 
+    logger.info(
+        f"[Notification Debug] Starting notification batch: "
+        f"notification_time={notification_time}, today={today}, "
+        f"is_previous_day={is_previous_day}, total_subscriptions={subscriptions.count()}"
+    )
+
     for subscription in subscriptions:
         school = subscription.school
         target_date = today + timedelta(days=1) if is_previous_day else today
+
+        logger.info(
+            f"[Notification Debug] Processing subscription for school '{school.name}' "
+            f"(ID={school.id}), target_date={target_date}, "
+            f"weekday={target_date.strftime('%A')}"
+        )
 
         # Check if school is in session
         if settings.ENABLE_SCHOOL_DATE_CHECK and not _is_school_in_session(

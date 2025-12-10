@@ -3,7 +3,6 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 import pytest
-import time_machine
 from django.http import Http404
 from django.test import TestCase
 from tablib import Dataset
@@ -57,24 +56,28 @@ class TestCalculateWeek:
         )
 
 
-@time_machine.travel("2023-04-03")
 def test_get_current_date_monday():
-    assert get_current_date() == (14, 1)
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2023, 4, 3, 12, 0)
+        assert get_current_date() == (14, 1)
 
 
-@time_machine.travel("2023-04-08")
 def test_get_current_date_saturday():
-    assert get_current_date() == (15, 1)
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2023, 4, 8, 12, 0)
+        assert get_current_date() == (15, 1)
 
 
-@time_machine.travel("2023-04-09")
 def test_get_current_date_sunday():
-    assert get_current_date() == (15, 1)
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2023, 4, 9, 12, 0)
+        assert get_current_date() == (15, 1)
 
 
-@time_machine.travel("2023-04-03")
 def test_get_current_date_next_day():
-    assert get_current_date(next_day=True) == (14, 2)
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2023, 4, 3, 12, 0)
+        assert get_current_date(next_day=True) == (14, 2)
 
 
 class TestGetSeason:
@@ -139,8 +142,8 @@ class TestGetSeason:
         season_choice: School.Seasons | School.Seasons | School.Seasons,
         expected_season: School.Seasons | School.Seasons,
     ):
-        with mock.patch("school_menu.utils.datetime") as mock_datetime:
-            mock_datetime.now.return_value = current_date
+        with mock.patch("school_menu.utils.timezone") as mock_timezone:
+            mock_timezone.now.return_value = current_date
             school = School(season_choice=season_choice)
             assert get_season(school) == expected_season
 
@@ -720,35 +723,38 @@ class TestChoicesWidget:
         assert choices_widget.render("Nonexistent") == ""
 
 
-@time_machine.travel("2024-01-03")  # A Wednesday
 def test_get_meals_for_annual_menu_weekday():
     """Test getting meals on a regular weekday (returns list, not QuerySet)."""
-    school = SchoolFactory()
-    meal = AnnualMealFactory(school=school, date=date(2024, 1, 3), is_active=True)
-    _, today_meals = get_meals_for_annual_menu(school)
-    assert today_meals[0] == meal
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2024, 1, 3, 12, 0)
+        school = SchoolFactory()
+        meal = AnnualMealFactory(school=school, date=date(2024, 1, 3), is_active=True)
+        _, today_meals = get_meals_for_annual_menu(school)
+        assert today_meals[0] == meal
 
 
-@time_machine.travel("2024-01-06")  # A Saturday
 def test_get_meals_for_annual_menu_weekend():
     """Test getting meals on a weekend (returns list, not QuerySet)."""
-    school = SchoolFactory()
-    monday_meal = AnnualMealFactory(
-        school=school, date=date(2024, 1, 8), is_active=True
-    )
-    _, today_meals = get_meals_for_annual_menu(school)
-    assert today_meals[0] == monday_meal
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2024, 1, 6, 12, 0)
+        school = SchoolFactory()
+        monday_meal = AnnualMealFactory(
+            school=school, date=date(2024, 1, 8), is_active=True
+        )
+        _, today_meals = get_meals_for_annual_menu(school)
+        assert today_meals[0] == monday_meal
 
 
-@time_machine.travel("2024-01-07")  # A Sunday
 def test_get_meals_for_annual_menu_next_day():
     """Test getting meals for the next day (returns list, not QuerySet)."""
-    school = SchoolFactory()
-    monday_meal = AnnualMealFactory(
-        school=school, date=date(2024, 1, 8), is_active=True
-    )
-    _, today_meals = get_meals_for_annual_menu(school, next_day=True)
-    assert today_meals[0] == monday_meal
+    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        mock_timezone.now.return_value = datetime(2024, 1, 7, 12, 0)
+        school = SchoolFactory()
+        monday_meal = AnnualMealFactory(
+            school=school, date=date(2024, 1, 8), is_active=True
+        )
+        _, today_meals = get_meals_for_annual_menu(school, next_day=True)
+        assert today_meals[0] == monday_meal
 
 
 class TestFillMissingDates(TestCase):

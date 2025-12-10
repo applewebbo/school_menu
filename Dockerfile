@@ -1,5 +1,5 @@
 # pull official base image
-FROM python:3.13-slim-bookworm
+FROM python:3.13.9-slim-bookworm
 
 # set environment variables
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1

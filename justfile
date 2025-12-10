@@ -116,7 +116,7 @@ lint:
     @just _pre-commit run --all-files
 
 _pre-commit *args:
-    uvx --with pre-commit-uv pre-commit {{ args }}
+    uvx prek {{ args }}
 
 # Check for unsecured dependencies
 [group('utility')]

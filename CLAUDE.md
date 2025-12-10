@@ -274,3 +274,4 @@ Pre-commit hooks run automatically via `.pre-commit-config.yaml`:
 ## Documentation
 
 Use docstrings for all public functions, classes, and methods.
+- always use just ftest for checking coverage and running tests

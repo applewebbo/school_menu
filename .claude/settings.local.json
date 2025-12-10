@@ -9,7 +9,8 @@
       "Bash(find:*)",
       "Bash(uv sync:*)",
       "Bash(just ftest:*)",
-      "Bash(uv add:*)"
+      "Bash(uv add:*)",
+      "Bash(gh release list:*)"
     ],
     "deny": [],
     "ask": []

@@ -65,6 +65,55 @@ from school_menu.utils import (
 logger = logging.getLogger(__name__)
 
 
+def get_school_menu_context(school, meal_type="S"):
+    """
+    Build common context for school menu display.
+
+    Args:
+        school: School object
+        meal_type: Meal type code (default "S" for Standard)
+
+    Returns:
+        dict: Context dictionary with school menu data
+    """
+    current_week, adjusted_day = get_current_date()
+    bias = school.week_bias
+    adjusted_week = calculate_week(current_week, bias)
+    season = get_season(school)
+    alt_menu = get_alt_menu(school.user)
+
+    if school.annual_menu:
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+        types_menu = build_types_menu(weekly_meals, school)
+    else:
+        weekly_meals, meals_for_today = get_meals(
+            school, season, adjusted_week, adjusted_day
+        )
+        types_menu = build_types_menu(weekly_meals, school, adjusted_week, season)
+
+    # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
+    weekly_meals = [m for m in weekly_meals if m.type == meal_type]
+
+    # Get today's meal for the selected type
+    try:
+        meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
+    except StopIteration:
+        meal_for_today = None
+
+    year = get_adjusted_year()
+
+    return {
+        "school": school,
+        "meal": meal_for_today,
+        "weekly_meals": weekly_meals,
+        "week": adjusted_week,
+        "day": adjusted_day,
+        "year": year,
+        "alt_menu": alt_menu,
+        "types_menu": types_menu,
+    }
+
+
 def index(request):
     context = {}
     if request.user.is_authenticated:
@@ -73,12 +122,6 @@ def index(request):
         except School.DoesNotExist:
             school = None
             return redirect(reverse("school_menu:settings", args=[request.user.pk]))
-        current_week, adjusted_day = get_current_date()
-        bias = school.week_bias
-        adjusted_week = calculate_week(current_week, bias)
-        season = get_season(school)
-        alt_menu = get_alt_menu(school.user)
-        meal_type = "S"
         if not _is_school_in_session(school, datetime.now()):
             context = {
                 "not_in_session": True,
@@ -87,34 +130,8 @@ def index(request):
                 "school": school,
             }
             return render(request, "index.html", context)
-        if school.annual_menu:
-            weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
-            types_menu = build_types_menu(weekly_meals, school)
-        else:
-            weekly_meals, meals_for_today = get_meals(
-                school, season, adjusted_week, adjusted_day
-            )
-            types_menu = build_types_menu(weekly_meals, school, adjusted_week, season)
 
-        # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
-        weekly_meals = [m for m in weekly_meals if m.type == meal_type]
-
-        # Get today's meal for the selected type
-        try:
-            meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
-        except StopIteration:
-            meal_for_today = None
-
-        context = {
-            "school": school,
-            "meal": meal_for_today,
-            "weekly_meals": weekly_meals,
-            "week": adjusted_week,
-            "day": adjusted_day,
-            "year": datetime.now().year,
-            "alt_menu": alt_menu,
-            "types_menu": types_menu,
-        }
+        context = get_school_menu_context(school, meal_type="S")
     return render(request, "index.html", context)
 
 
@@ -133,42 +150,8 @@ def school_menu(request, slug, meal_type="S"):
             "school": school,
         }
         return render(request, "school-menu.html", context)
-    current_week, adjusted_day = get_current_date()
-    bias = school.week_bias
-    adjusted_week = calculate_week(current_week, bias)
-    season = get_season(school)
-    alt_menu = get_alt_menu(school.user)
-    if school.annual_menu:
-        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
-        types_menu = build_types_menu(weekly_meals, school)
-    else:
-        weekly_meals, meals_for_today = get_meals(
-            school, season, adjusted_week, adjusted_day
-        )
-        types_menu = build_types_menu(weekly_meals, school, adjusted_week, season)
-
-    year = get_adjusted_year()
-
-    # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
-    weekly_meals = [m for m in weekly_meals if m.type == meal_type]
-
-    # Get today's meal for the selected type
-    try:
-        meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
-    except StopIteration:
-        meal_for_today = None
-
-    context = {
-        "school": school,
-        "meal": meal_for_today,
-        "weekly_meals": weekly_meals,
-        "week": adjusted_week,
-        "day": adjusted_day,
-        "year": year,
-        "alt_menu": alt_menu,
-        "types_menu": types_menu,
-        "notifications_status": notifications_status,
-    }
+    context = get_school_menu_context(school, meal_type)
+    context["notifications_status"] = notifications_status
     return render(request, "school-menu.html", context)
 
 

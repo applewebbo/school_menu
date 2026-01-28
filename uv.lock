@@ -1263,6 +1263,19 @@ wheels = [
 ]
 
 [[package]]
+name = "nplusone"
+version = "1.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "blinker" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/26/da/663f551cdda166eaf75a564f64d022c6eb03c710ba83c3fb0f4ac664ebde/nplusone-1.0.0.tar.gz", hash = "sha256:1726c0a10c0aa7eabb04e24db2882ff97b6b7ee29d729a8d97dcbd12ef5a5651", size = 13501, upload-time = "2018-05-21T03:40:25.01Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/6b/9721ba7c68036316bd8aeb596b397253590c87d7045c9d6fc82b7364eff4/nplusone-1.0.0-py2.py3-none-any.whl", hash = "sha256:96b1e6e29e6af3e71b67d0cc012a5ec8c97c6a2f5399f4ba41a2bbe0e253a9ac", size = 15920, upload-time = "2018-05-21T03:40:23.69Z" },
+]
+
+[[package]]
 name = "numpy"
 version = "2.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1893,6 +1906,7 @@ dev = [
     { name = "djlint" },
     { name = "locust" },
     { name = "memory-profiler" },
+    { name = "nplusone" },
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-benchmark" },
@@ -1952,6 +1966,7 @@ dev = [
     { name = "djlint", specifier = ">=1.36.2" },
     { name = "locust", specifier = ">=2.29.0" },
     { name = "memory-profiler", specifier = ">=0.61.0" },
+    { name = "nplusone", specifier = ">=1.0.0" },
     { name = "pre-commit", specifier = ">=4.0.1" },
     { name = "pytest", specifier = "<=8.3.5" },
     { name = "pytest-benchmark", specifier = ">=4.0.0" },

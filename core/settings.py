@@ -467,4 +467,12 @@ elif ENVIRONMENT == "test":
         "ENABLED": False,
     }
 
+    # NPLUSONE - N+1 query detection in tests
+    # Logs warnings for potential N+1 queries without failing tests
+    # This helps detect performance issues without false positives from intentional eager loading
+    MIDDLEWARE += ["nplusone.ext.django.NPlusOneMiddleware"]
+    NPLUSONE_RAISE = False  # Log warnings instead of raising exceptions
+    NPLUSONE_LOGGER = logging.getLogger("nplusone")
+    NPLUSONE_LOG_LEVEL = logging.WARNING
+
     logging.disable()

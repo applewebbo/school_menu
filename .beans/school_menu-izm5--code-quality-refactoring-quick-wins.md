@@ -19,7 +19,7 @@ Improvements to code quality, maintainability and documentation.
 - [x] Replace all print() statements with proper logging
 - [x] Refactor duplicate code in index() and school_menu() views
 - [x] Add missing docstrings to all views
-- [ ] Consolidate CSV error handling with decorator or shared function
+- [x] Consolidate CSV error handling with decorator or shared function
 
 **Files affected:**
 - school_menu/constants.py (new)

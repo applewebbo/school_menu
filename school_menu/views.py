@@ -65,6 +65,60 @@ from school_menu.utils import (
 logger = logging.getLogger(__name__)
 
 
+def load_csv_dataset(file, request):
+    """
+    Load and parse CSV file with error handling.
+
+    Args:
+        file: Uploaded file object
+        request: Django request object (for adding error messages)
+
+    Returns:
+        tuple: (dataset, error_response) where:
+            - dataset is the loaded Dataset object (or None if error)
+            - error_response is HttpResponse with error (or None if success)
+    """
+    dataset = Dataset()
+    try:
+        # Read and detect CSV format (supports both comma and semicolon delimiters)
+        # This allows importing CSVs exported from Numbers, Excel, and other tools
+        content = file.read().decode("utf-8")
+        delimiter, quotechar = detect_csv_format(content)
+        # Load with detected delimiter and quote character
+        dataset.load(content, format="csv", delimiter=delimiter, quotechar=quotechar)
+        return dataset, None
+    except InvalidDimensions as e:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
+        )
+        return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
+    except ValueError as e:
+        # ValueError often indicates quote-related parsing errors
+        error_str = str(e).lower()
+        if "quote" in error_str or "delimiter" in error_str:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f"Il file CSV contiene virgolette o delimitatori non validi. Verifica che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}",
+            )
+        else:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                f"Il file CSV non è valido. Errore: {str(e)}",
+            )
+        return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
+    except Exception as e:
+        messages.add_message(
+            request,
+            messages.ERROR,
+            f"Errore durante la lettura del file CSV. Verifica il formato del file. Errore: {str(e)}",
+        )
+        return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
+
+
 def get_school_menu_context(school, meal_type="S"):
     """
     Build common context for school menu display.
@@ -400,52 +454,11 @@ def upload_menu(request, school_id, meal_type):
                 resource = SimpleMealResource()
             else:
                 resource = DetailedMealResource()
-            dataset = Dataset()
-            try:
-                # Read and detect CSV format (supports both comma and semicolon delimiters)
-                # This allows importing CSVs exported from Numbers, Excel, and other tools
-                content = file.read().decode("utf-8")
-                delimiter, quotechar = detect_csv_format(content)
-                # Load with detected delimiter and quote character
-                dataset.load(
-                    content, format="csv", delimiter=delimiter, quotechar=quotechar
-                )
-            except InvalidDimensions as e:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
-                )
-                return HttpResponse(
-                    status=204, headers={"HX-Trigger": "menuUploadError"}
-                )
-            except ValueError as e:
-                # ValueError often indicates quote-related parsing errors
-                error_str = str(e).lower()
-                if "quote" in error_str or "delimiter" in error_str:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        f"Il file CSV contiene virgolette o delimitatori non validi. Verifica che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}",
-                    )
-                else:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        f"Il file CSV non è valido. Errore: {str(e)}",
-                    )
-                return HttpResponse(
-                    status=204, headers={"HX-Trigger": "menuUploadError"}
-                )
-            except Exception as e:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    f"Errore durante la lettura del file CSV. Verifica il formato del file. Errore: {str(e)}",
-                )
-                return HttpResponse(
-                    status=204, headers={"HX-Trigger": "menuUploadError"}
-                )
+
+            # Load CSV dataset with error handling
+            dataset, error_response = load_csv_dataset(file, request)
+            if error_response:
+                return error_response
             # Validate and filter dataset (removes unnamed and extra columns)
             # This allows CSVs with trailing commas or additional columns to work correctly
             validates, message, filtered_dataset = validate_dataset(dataset, menu_type)
@@ -507,52 +520,11 @@ def upload_annual_menu(request, school_id, meal_type):
         if form.is_valid():
             file = request.FILES["file"]
             resource = AnnualMenuResource()
-            dataset = Dataset()
-            try:
-                # Read and detect CSV format (supports both comma and semicolon delimiters)
-                # This allows importing CSVs exported from Numbers, Excel, and other tools
-                content = file.read().decode("utf-8")
-                delimiter, quotechar = detect_csv_format(content)
-                # Load with detected delimiter and quote character
-                dataset.load(
-                    content, format="csv", delimiter=delimiter, quotechar=quotechar
-                )
-            except InvalidDimensions as e:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
-                )
-                return HttpResponse(
-                    status=204, headers={"HX-Trigger": "menuUploadError"}
-                )
-            except ValueError as e:
-                # ValueError often indicates quote-related parsing errors
-                error_str = str(e).lower()
-                if "quote" in error_str or "delimiter" in error_str:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        f"Il file CSV contiene virgolette o delimitatori non validi. Verifica che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}",
-                    )
-                else:
-                    messages.add_message(
-                        request,
-                        messages.ERROR,
-                        f"Il file CSV non è valido. Errore: {str(e)}",
-                    )
-                return HttpResponse(
-                    status=204, headers={"HX-Trigger": "menuUploadError"}
-                )
-            except Exception as e:
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    f"Errore durante la lettura del file CSV. Verifica il formato del file. Errore: {str(e)}",
-                )
-                return HttpResponse(
-                    status=204, headers={"HX-Trigger": "menuUploadError"}
-                )
+
+            # Load CSV dataset with error handling
+            dataset, error_response = load_csv_dataset(file, request)
+            if error_response:
+                return error_response
             # Validate and filter dataset (removes unnamed and extra columns)
             # This allows CSVs with trailing commas or additional columns to work correctly
             validates, message, filtered_dataset = validate_annual_dataset(dataset)

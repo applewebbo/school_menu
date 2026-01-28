@@ -119,7 +119,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
@@ -264,7 +263,6 @@ PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "static/js/serviceworker.js")
 filterwarnings(
     "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."
 )
-FORMS_URLFIELD_ASSUME_HTTPS = True
 
 # DJANGO-DEBUG-TOOLBAR
 INTERNAL_IPS = [
@@ -317,7 +315,7 @@ if ENVIRONMENT == "dev":
             "host": "localhost",
             "port": 6379,
             "db": 0,
-            "password": "",
+            "password": "",  # nosec B105
         },
     }
 

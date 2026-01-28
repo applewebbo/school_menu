@@ -553,6 +553,15 @@ def get_meals_for_annual_menu(school, next_day=False):
 
 
 def fill_missing_dates(school, meal_type):
+    """
+    Fill missing weekday dates with inactive annual meals.
+
+    Optimized to use bulk_create for massive performance improvement (N queries → 1 query).
+
+    Args:
+        school: School object
+        meal_type: Meal type code
+    """
     existing_dates = set(
         AnnualMeal.objects.filter(school=school, type=meal_type).values_list(
             "date", flat=True
@@ -562,17 +571,25 @@ def fill_missing_dates(school, meal_type):
     end_date = max(existing_dates)
     current_date = start_date
 
+    # Collect all missing dates in a list
+    meals_to_create = []
     while current_date <= end_date:
         if current_date.weekday() <= LAST_WORKING_DAY:  # Monday to Friday
             if current_date not in existing_dates:
-                AnnualMeal.objects.create(
-                    school=school,
-                    type=meal_type,
-                    date=current_date,
-                    day=current_date.weekday() + 1,
-                    is_active=False,
+                meals_to_create.append(
+                    AnnualMeal(
+                        school=school,
+                        type=meal_type,
+                        date=current_date,
+                        day=current_date.weekday() + 1,
+                        is_active=False,
+                    )
                 )
         current_date += timedelta(days=1)
+
+    # Bulk create all missing meals in a single query (N→1 query optimization)
+    if meals_to_create:
+        AnnualMeal.objects.bulk_create(meals_to_create)
 
 
 def get_notifications_status(pk, school):

@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime
 
 from django.contrib import messages
@@ -60,6 +61,8 @@ from school_menu.utils import (
     validate_annual_dataset,
     validate_dataset,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -479,7 +482,9 @@ def upload_menu(request, school_id, meal_type):
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
             else:  # pragma: no cover
-                print(result.row_errors())
+                logger.error(
+                    "Menu import failed with row errors: %s", result.row_errors()
+                )
                 messages.add_message(
                     request,
                     messages.ERROR,
@@ -576,7 +581,9 @@ def upload_annual_menu(request, school_id, meal_type):
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
             else:  # pragma: no cover
-                print(result.row_errors())
+                logger.error(
+                    "Menu import failed with row errors: %s", result.row_errors()
+                )
                 messages.add_message(
                     request,
                     messages.ERROR,

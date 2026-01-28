@@ -16,7 +16,7 @@ Improvements to code quality, maintainability and documentation.
 
 ## Checklist
 - [x] Create constants.py with all magic numbers (cache TTLs, equinox dates, etc.)
-- [ ] Replace all print() statements with proper logging
+- [x] Replace all print() statements with proper logging
 - [ ] Refactor duplicate code in index() and school_menu() views
 - [ ] Add missing docstrings to all views
 - [ ] Consolidate CSV error handling with decorator or shared function

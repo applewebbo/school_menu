@@ -9,6 +9,22 @@ from import_export.widgets import Widget
 
 from notifications.models import AnonymousMenuNotification
 from school_menu.cache import get_cached_or_query
+from school_menu.constants import (
+    ACADEMIC_YEAR_START_MONTH,
+    AUTUMN_EQUINOX_DAY,
+    AUTUMN_EQUINOX_MONTH,
+    CACHE_TTL_7_DAYS,
+    CACHE_TTL_24_HOURS,
+    CSV_HEADER_LINES,
+    CSV_SAMPLE_SIZE,
+    FIRST_WEEKEND_DAY,
+    LAST_WORKING_DAY,
+    MAX_WEEK_NUMBER,
+    MIN_WEEK_NUMBER,
+    SPRING_EQUINOX_DAY,
+    SPRING_EQUINOX_MONTH,
+    WINTER_MONTHS,
+)
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 
 logger = logging.getLogger(__name__)
@@ -22,7 +38,7 @@ def detect_csv_format(content: str) -> tuple[str, str]:
     """
     # Try csv.Sniffer first on a sample of the content
     try:
-        sample = content[:1024]  # Use first 1KB for detection
+        sample = content[:CSV_SAMPLE_SIZE]  # Use first 1KB for detection
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(sample, delimiters=",;")
         return dialect.delimiter, dialect.quotechar
@@ -31,7 +47,7 @@ def detect_csv_format(content: str) -> tuple[str, str]:
         pass  # Intentionally fall through to manual detection
 
     # Fallback: try to detect by counting delimiters in first few lines
-    lines = content.split("\n")[:5]  # Check first 5 lines
+    lines = content.split("\n")[:CSV_HEADER_LINES]  # Check first 5 lines
     comma_count = sum(line.count(",") for line in lines)
     semicolon_count = sum(line.count(";") for line in lines)
 
@@ -155,7 +171,7 @@ def get_current_date(next_day=False):
         target_date += timedelta(days=1)
 
     # if it's weekend, get next monday
-    if target_date.weekday() >= 5:  # Saturday or Sunday
+    if target_date.weekday() >= FIRST_WEEKEND_DAY:  # Saturday or Sunday
         target_date += timedelta(days=(7 - target_date.weekday()))
 
     current_week = target_date.isocalendar()[1]
@@ -173,9 +189,9 @@ def get_season(school):
         today = timezone.now()
         day, month = today.day, today.month
         if (
-            month in [10, 11, 12, 1, 2]
-            or (month == 3 and day < 21)
-            or (month == 9 and day > 22)
+            month in WINTER_MONTHS
+            or (month == SPRING_EQUINOX_MONTH and day < SPRING_EQUINOX_DAY)
+            or (month == AUTUMN_EQUINOX_MONTH and day > AUTUMN_EQUINOX_DAY)
         ):
             season = School.Seasons.INVERNALE
         else:
@@ -186,7 +202,9 @@ def get_season(school):
 def get_adjusted_year():
     """Get current year if date is after September 1st, otherwise previous year"""
     today = timezone.now()
-    adjusted_year = today.year if today.month >= 9 else today.year - 1
+    adjusted_year = (
+        today.year if today.month >= ACADEMIC_YEAR_START_MONTH else today.year - 1
+    )
 
     return adjusted_year
 
@@ -268,7 +286,7 @@ def build_types_menu(weekly_meals, school, week=None, season=None):
         return meals
 
     # Get cached or query types menu
-    return get_cached_or_query(cache_key, query_types, timeout=86400)
+    return get_cached_or_query(cache_key, query_types, timeout=CACHE_TTL_24_HOURS)
 
 
 def validate_dataset(dataset, menu_type):
@@ -358,9 +376,9 @@ def validate_dataset(dataset, menu_type):
             'Formato non valido. La colonna "settimana" contiene valori non numerici.'
         )
         return validates, message, filtered_dataset
-    if not all(0 < week <= 4 for week in weeks):
+    if not all(MIN_WEEK_NUMBER <= week <= MAX_WEEK_NUMBER for week in weeks):
         validates = False
-        message = 'Formato non valido. La colonna "settimana" contiene valori non compresi fra 1 e 4.'
+        message = f'Formato non valido. La colonna "settimana" contiene valori non compresi fra {MIN_WEEK_NUMBER} e {MAX_WEEK_NUMBER}.'
 
     # if everything ok return validates = True and no message
     return validates, message, filtered_dataset
@@ -480,7 +498,9 @@ def get_meals(school, season, week, day):
         return list(queryset)
 
     # Get cached or query weekly meals
-    weekly_meals = get_cached_or_query(cache_key, query_weekly_meals, timeout=86400)
+    weekly_meals = get_cached_or_query(
+        cache_key, query_weekly_meals, timeout=CACHE_TTL_24_HOURS
+    )
 
     # Filter for today's meals from the cached list
     meals_for_today = [m for m in weekly_meals if m.day == day]
@@ -504,7 +524,7 @@ def get_meals_for_annual_menu(school, next_day=False):
         target_date += timedelta(days=1)
 
     # If weekend, get next Monday's date
-    if target_date.weekday() >= 5:  # Saturday (5) or Sunday (6)
+    if target_date.weekday() >= FIRST_WEEKEND_DAY:  # Saturday (5) or Sunday (6)
         target_date += timedelta(days=(7 - target_date.weekday()))
 
     # Get meals for the week of the target date
@@ -522,7 +542,9 @@ def get_meals_for_annual_menu(school, next_day=False):
         return list(queryset)
 
     # Get cached or query weekly meals
-    weekly_meals = get_cached_or_query(cache_key, query_weekly_meals, timeout=604800)
+    weekly_meals = get_cached_or_query(
+        cache_key, query_weekly_meals, timeout=CACHE_TTL_7_DAYS
+    )
 
     # Filter for today's meals from the cached list
     meals_for_today = [m for m in weekly_meals if m.date == target_date and m.is_active]
@@ -541,7 +563,7 @@ def fill_missing_dates(school, meal_type):
     current_date = start_date
 
     while current_date <= end_date:
-        if current_date.weekday() < 5:  # Monday to Friday
+        if current_date.weekday() <= LAST_WORKING_DAY:  # Monday to Friday
             if current_date not in existing_dates:
                 AnnualMeal.objects.create(
                     school=school,

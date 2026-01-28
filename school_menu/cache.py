@@ -19,6 +19,8 @@ from typing import Any
 
 from django.core.cache import cache
 
+from school_menu.constants import CACHE_TTL_24_HOURS
+
 logger = logging.getLogger(__name__)
 
 
@@ -142,7 +144,7 @@ def invalidate_types_menu(school_id: int) -> None:
 def get_cached_or_query(
     key: str,
     query_func: Callable[[], Any],
-    timeout: int = 86400,
+    timeout: int = CACHE_TTL_24_HOURS,
 ) -> Any:
     """
     Generic cache-or-query helper function.

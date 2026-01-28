@@ -18,7 +18,7 @@ Improvements to code quality, maintainability and documentation.
 - [x] Create constants.py with all magic numbers (cache TTLs, equinox dates, etc.)
 - [x] Replace all print() statements with proper logging
 - [x] Refactor duplicate code in index() and school_menu() views
-- [ ] Add missing docstrings to all views
+- [x] Add missing docstrings to all views
 - [ ] Consolidate CSV error handling with decorator or shared function
 
 **Files affected:**

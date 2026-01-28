@@ -115,6 +115,12 @@ def get_school_menu_context(school, meal_type="S"):
 
 
 def index(request):
+    """
+    Display homepage with authenticated user's school menu.
+
+    Redirects to settings if no school is configured.
+    Shows current day menu with weekly overview.
+    """
     context = {}
     if request.user.is_authenticated:
         try:
@@ -197,6 +203,7 @@ def get_menu(request, school_id, week, day, meal_type):
 @require_http_methods(["GET"])
 @cache_page(86400, key_prefix="schools_json")
 def get_schools_json_list(request):
+    """Return JSON list of all published schools."""
     schools = School.objects.filter(is_published=True)
     serializer = SchoolSerializer(schools, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -205,6 +212,7 @@ def get_schools_json_list(request):
 @require_http_methods(["GET"])
 @cache_page(86400, key_prefix="json_api")
 def get_school_json_menu(request, slug):
+    """Return JSON menu data for a specific school."""
     school = get_object_or_404(School, slug=slug)
     current_week, adjusted_day = get_current_date()
     bias = school.week_bias
@@ -249,6 +257,7 @@ def settings_view(request, pk):
 
 @login_required
 def menu_report_count(request):
+    """Return partial with menu report count for authenticated user."""
     user = request.user
     report_count = MenuReport.objects.filter(receiver=user).count()
     return render(
@@ -277,12 +286,14 @@ def menu_settings_partial(request, pk):
 
 @login_required
 def school_settings_partial(request):
+    """Return school settings partial for htmx reload."""
     user = request.user
     return render(request, "settings.html#school", {"user": user})
 
 
 @login_required
 def school_view(request):
+    """Display school detail view for authenticated user's school."""
     user = request.user
     school = get_object_or_404(School, user=user)
     context = {"school": school}
@@ -291,6 +302,7 @@ def school_view(request):
 
 @login_required
 def school_create(request):
+    """Create new school for authenticated user via htmx form."""
     if request.method == "POST":
         form = SchoolForm(request.POST)
         if form.is_valid():
@@ -321,6 +333,7 @@ def school_create(request):
 
 @login_required
 def school_update(request):
+    """Update authenticated user's school via htmx form."""
     user = request.user
     school = get_object_or_404(School, user=user)
     if request.method == "POST":
@@ -374,6 +387,7 @@ def school_list(request):
 
 @login_required
 def upload_menu(request, school_id, meal_type):
+    """Upload weekly menu CSV file for school."""
     school = get_object_or_404(School, pk=school_id)
     menu_type = school.menu_type
     active_menu = meal_type
@@ -485,6 +499,7 @@ def upload_menu(request, school_id, meal_type):
 
 @login_required
 def upload_annual_menu(request, school_id, meal_type):
+    """Upload annual menu CSV file for school."""
     school = get_object_or_404(School, pk=school_id)
     active_menu = meal_type
     if request.method == "POST":
@@ -584,6 +599,7 @@ def upload_annual_menu(request, school_id, meal_type):
 
 @login_required
 def create_weekly_menu(request, school_id, week, season, meal_type):
+    """Create or display weekly menu form for specific week and season."""
     qs = School.objects.all().select_related("user")
     school = get_object_or_404(qs, pk=school_id)
     menu_type = school.menu_type
@@ -673,6 +689,7 @@ def search_schools(request):
 
 
 def export_modal_view(request, school_id, meal_type):
+    """Display export modal with available seasons for school menu."""
     school = get_object_or_404(School, pk=school_id)
     if school.annual_menu:
         model = AnnualMeal
@@ -703,6 +720,7 @@ def export_modal_view(request, school_id, meal_type):
 
 @login_required
 def export_menu(request, school_id, season, meal_type):
+    """Export school menu as CSV file for specified season and meal type."""
     school = get_object_or_404(School, pk=school_id)
     if school.annual_menu:
         model = AnnualMeal

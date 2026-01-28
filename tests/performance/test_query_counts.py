@@ -286,6 +286,78 @@ class TestSearchFunctionalityQueryCount:
         )
 
 
+class TestIndexViewQueryCount:
+    """Test query counts for authenticated user homepage (index)"""
+
+    def test_index_query_count(self, client, large_dataset, django_user_model):
+        """
+        Test query count for authenticated user's homepage.
+
+        Expected: ≤50 queries (includes Silk profiling overhead in test environment)
+        - Fetch user and session
+        - Fetch school with user relation
+        - Fetch weekly meals
+        - Build types menu
+        Note: In production without profiling middleware, expect ≤10 queries
+        """
+        # Use existing user from dataset
+        user = large_dataset["users"][0]
+
+        client.force_login(user)
+        url = reverse("school_menu:index")
+
+        with CaptureQueriesContext(connection) as context:
+            response = client.get(url)
+
+        assert response.status_code == 200
+        num_queries = len(context.captured_queries)
+
+        # Log and print results
+        log_query_results("index_view", num_queries, context.captured_queries)
+        print_query_details("index_view", num_queries, context.captured_queries)
+
+        # Assert reasonable query count (higher due to test environment overhead)
+        assert num_queries <= 50, (
+            f"Index view should use ≤50 queries, got {num_queries}"
+        )
+
+
+class TestSettingsViewQueryCount:
+    """Test query counts for user settings page"""
+
+    def test_settings_query_count(self, client, large_dataset, django_user_model):
+        """
+        Test query count for settings page.
+
+        Expected: ≤50 queries (includes Silk profiling overhead in test environment)
+        - Fetch user and session
+        - Fetch school
+        - Fetch menu reports with prefetch
+        - Build menu context
+        Note: In production without profiling middleware, expect ≤15 queries
+        """
+        # Use existing user from dataset
+        user = large_dataset["users"][0]
+
+        client.force_login(user)
+        url = reverse("school_menu:settings", kwargs={"pk": user.pk})
+
+        with CaptureQueriesContext(connection) as context:
+            response = client.get(url)
+
+        assert response.status_code == 200
+        num_queries = len(context.captured_queries)
+
+        # Log and print results
+        log_query_results("settings_view", num_queries, context.captured_queries)
+        print_query_details("settings_view", num_queries, context.captured_queries)
+
+        # Assert reasonable query count (higher due to test environment overhead)
+        assert num_queries <= 50, (
+            f"Settings view should use ≤50 queries, got {num_queries}"
+        )
+
+
 @pytest.fixture(autouse=True, scope="module")
 def setup_baseline_metrics_file():
     """Clear baseline metrics file before running tests"""

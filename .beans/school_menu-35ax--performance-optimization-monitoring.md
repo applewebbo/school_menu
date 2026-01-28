@@ -18,7 +18,7 @@ Database query optimization and performance monitoring.
 - [x] Optimize fill_missing_dates() to use bulk_create instead of loop (N→1 query)
 - [x] Implement N+1 query monitoring with django-nplusone
 - [x] Add cache warming management command (python manage.py warm_cache)
-- [ ] Add assertNumQueries() tests for critical views
+- [x] Add assertNumQueries() tests for critical views
 
 **Files affected:**
 - school_menu/utils.py (fill_missing_dates)

@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 
 from school_menu.models import School
 from school_menu.utils import (
+    build_types_menu,
     calculate_week,
     get_current_date,
     get_meals,
@@ -60,11 +61,17 @@ class Command(BaseCommand):
                 if school.annual_menu:
                     # Warm cache for annual menu
                     weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
+                    # Warm types menu cache
+                    build_types_menu(weekly_meals, school)
                 else:
                     # Warm cache for weekly menu (all weeks and seasons)
                     for week in range(1, 5):  # Weeks 1-4
                         for season_choice in [1, 2]:  # Summer and Winter
-                            get_meals(school, season_choice, week, adjusted_day)
+                            weekly_meals, _ = get_meals(
+                                school, season_choice, week, adjusted_day
+                            )
+                            # Warm types menu cache
+                            build_types_menu(weekly_meals, school, week, season_choice)
 
                 success_count += 1
                 self.stdout.write(f"  ✓ {school.name} ({school.slug})")

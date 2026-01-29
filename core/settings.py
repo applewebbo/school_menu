@@ -1,6 +1,7 @@
 # import os
 import os
 from pathlib import Path
+from typing import Any
 from warnings import filterwarnings
 
 import environ
@@ -329,14 +330,14 @@ if ENVIRONMENT == "dev":
     }
 
     # DJANGO SCHEDULED BACKUPS - Disabled in development
-    SCHEDULED_BACKUPS = {
+    SCHEDULED_BACKUPS: dict[str, Any] = {
         "ENABLED": False,
     }
 
 # PRODUCTION SPECIFIC SETTINGS
 elif ENVIRONMENT == "prod":
     DEBUG = env.bool("DEBUG", default=False)
-    ALLOWED_HOSTS: list[str] = env("ALLOWED_HOSTS")
+    ALLOWED_HOSTS = env("ALLOWED_HOSTS")
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
     PREPEND_WWW = REDIRECT_WWW
     DATABASES = {

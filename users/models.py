@@ -6,7 +6,7 @@ from .managers import UserManager
 
 
 class User(AbstractUser):
-    username = None
+    username = None  # type: ignore[assignment]
     email = models.EmailField(_("email address"), unique=True)
     tc_agreement = models.BooleanField(
         default=False, verbose_name="Termini e condizioni"
@@ -15,7 +15,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = UserManager()
+    objects = UserManager()  # type: ignore[assignment,misc]
 
     def __str__(self):
         return self.email

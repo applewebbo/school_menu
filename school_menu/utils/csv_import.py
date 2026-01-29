@@ -1,6 +1,7 @@
 """CSV import, validation, and widget utilities for school menu management."""
 
 import csv
+from collections.abc import Sequence
 from typing import Any
 
 from import_export.widgets import Widget
@@ -360,13 +361,16 @@ class ChoicesWidget(Widget):
     which are automatically converted to database codes (e.g., "CHOC").
     """
 
-    def __init__(self, choices: list[tuple[str, str]], *args: Any, **kwargs: Any):
+    def __init__(
+        self, choices: Sequence[tuple[str | int, str]], *args: Any, **kwargs: Any
+    ):
         """
         Initialize widget with Django model choices.
 
         Args:
             choices: List of (value, label) tuples from Django model choices
                     e.g., [('CHOC', 'Chocolate'), ('VAN', 'Vanilla')]
+                    or [(1, 'Monday'), (2, 'Tuesday')] for IntegerChoices
             *args: Additional positional arguments
             **kwargs: Additional keyword arguments
         """

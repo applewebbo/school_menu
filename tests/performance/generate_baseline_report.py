@@ -9,11 +9,12 @@ report with all performance metrics and optimization targets.
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 
 def parse_metrics_file(file_path: Path) -> dict:
     """Parse baseline metrics file into structured data."""
-    metrics = {
+    metrics: dict[str, Any] = {
         "query_counts": {},
         "response_times": {},
         "response_sizes": {},
@@ -201,8 +202,10 @@ def generate_markdown_report(metrics: dict) -> str:
     )
     for test_name, sizes in sorted(metrics["response_sizes"].items()):
         # Target compression: >70% for HTML/CSS, >60% for JS
-        target = 70.0 if "html" in test_name or "css" in test_name else 60.0
-        status = "✅ Good" if sizes["size_reduction"] >= target else "⚠️ Review"
+        compression_target = 70.0 if "html" in test_name or "css" in test_name else 60.0
+        status = (
+            "✅ Good" if sizes["size_reduction"] >= compression_target else "⚠️ Review"
+        )
         report.append(
             f"| {test_name} | {sizes['uncompressed_kb']:.2f} KB | "
             f"{sizes['compressed_kb']:.2f} KB | {sizes['compression_ratio']:.1f}% | "

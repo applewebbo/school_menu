@@ -8,11 +8,12 @@ calculates percentage improvements, and displays a formatted comparison table.
 
 import re
 from pathlib import Path
+from typing import Any
 
 
 def parse_metrics_simple(file_path: Path) -> dict:
     """Parse metrics file and extract key performance indicators."""
-    metrics = {}
+    metrics: dict[str, Any] = {}
 
     with open(file_path) as f:
         content = f.read()

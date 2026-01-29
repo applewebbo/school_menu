@@ -248,7 +248,7 @@ class GetMenuView(TestCase):
         from datetime import datetime
         from unittest import mock
 
-        with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
             mock_timezone.now.return_value = datetime(2025, 4, 12, 12, 0)  # Saturday
 
             # Create a school and meals

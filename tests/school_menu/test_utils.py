@@ -57,25 +57,25 @@ class TestCalculateWeek:
 
 
 def test_get_current_date_monday():
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2023, 4, 3, 12, 0)
         assert get_current_date() == (14, 1)
 
 
 def test_get_current_date_saturday():
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2023, 4, 8, 12, 0)
         assert get_current_date() == (15, 1)
 
 
 def test_get_current_date_sunday():
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2023, 4, 9, 12, 0)
         assert get_current_date() == (15, 1)
 
 
 def test_get_current_date_next_day():
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2023, 4, 3, 12, 0)
         assert get_current_date(next_day=True) == (14, 2)
 
@@ -142,7 +142,7 @@ class TestGetSeason:
         season_choice: School.Seasons | School.Seasons | School.Seasons,
         expected_season: School.Seasons | School.Seasons,
     ):
-        with mock.patch("school_menu.utils.timezone") as mock_timezone:
+        with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
             mock_timezone.now.return_value = current_date
             school = School(season_choice=season_choice)
             assert get_season(school) == expected_season
@@ -725,7 +725,7 @@ class TestChoicesWidget:
 
 def test_get_meals_for_annual_menu_weekday():
     """Test getting meals on a regular weekday (returns list, not QuerySet)."""
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2024, 1, 3, 12, 0)
         school = SchoolFactory()
         meal = AnnualMealFactory(school=school, date=date(2024, 1, 3), is_active=True)
@@ -735,7 +735,7 @@ def test_get_meals_for_annual_menu_weekday():
 
 def test_get_meals_for_annual_menu_weekend():
     """Test getting meals on a weekend (returns list, not QuerySet)."""
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2024, 1, 6, 12, 0)
         school = SchoolFactory()
         monday_meal = AnnualMealFactory(
@@ -747,7 +747,7 @@ def test_get_meals_for_annual_menu_weekend():
 
 def test_get_meals_for_annual_menu_next_day():
     """Test getting meals for the next day (returns list, not QuerySet)."""
-    with mock.patch("school_menu.utils.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2024, 1, 7, 12, 0)
         school = SchoolFactory()
         monday_meal = AnnualMealFactory(

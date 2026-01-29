@@ -1,11 +1,11 @@
 ---
 # school_menu-8jn8
 title: Create utils/meals.py module
-status: todo
+status: completed
 type: task
 priority: normal
 created_at: 2026-01-29T08:54:17Z
-updated_at: 2026-01-29T08:55:02Z
+updated_at: 2026-01-29T11:39:24Z
 parent: school_menu-j8h7
 blocking:
     - school_menu-lgmd

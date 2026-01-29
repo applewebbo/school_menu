@@ -9,7 +9,7 @@ tags:
     - architecture
     - gh-issue-208
 created_at: 2026-01-27T14:36:43Z
-updated_at: 2026-01-27T14:41:35Z
+updated_at: 2026-01-29T09:01:58Z
 blocking:
     - school_menu-izm5
 ---

@@ -22,7 +22,7 @@ pytestmark = pytest.mark.django_db
 class TestScheduledDatabaseBackup:
     """Test the scheduled database backup task with email notifications."""
 
-    @override_settings(ADMINS=[("Admin", "admin@example.com")])
+    @override_settings(ADMINS=["admin@example.com"])
     @patch("django_scheduled_backups.tasks.management.call_command")
     @patch("django_scheduled_backups.tasks.get_setting")
     def test_backup_success_creates_record_and_sends_email(
@@ -57,7 +57,7 @@ class TestScheduledDatabaseBackup:
         assert "[Backup] Database Backup Successful" in mail.outbox[0].subject
         assert "completed successfully" in mail.outbox[0].body
 
-    @override_settings(ADMINS=[("Admin", "admin@example.com")])
+    @override_settings(ADMINS=["admin@example.com"])
     @patch("django_scheduled_backups.tasks.management.call_command")
     @patch("django_scheduled_backups.tasks.get_setting")
     def test_backup_failure_creates_record_and_sends_email_and_raises(
@@ -162,7 +162,7 @@ class TestScheduledDatabaseBackup:
 class TestScheduledMediaBackup:
     """Test the scheduled media backup task with email notifications."""
 
-    @override_settings(ADMINS=[("Admin", "admin@example.com")])
+    @override_settings(ADMINS=["admin@example.com"])
     @patch("django_scheduled_backups.tasks.management.call_command")
     @patch("django_scheduled_backups.tasks.get_setting")
     def test_media_backup_success(self, mock_get_setting, mock_call_command):
@@ -298,7 +298,7 @@ class TestEmailNotifications:
         # Assert - no email should be sent
         assert len(mail.outbox) == 0
 
-    @override_settings(ADMINS=[("Admin", "admin@example.com")])
+    @override_settings(ADMINS=["admin@example.com"])
     @patch("django_scheduled_backups.tasks.mail_admins")
     @patch("django_scheduled_backups.tasks.get_setting")
     def test_send_success_email_exception_is_logged(
@@ -322,7 +322,7 @@ class TestEmailNotifications:
         # Assert - mail_admins was called
         assert mock_mail_admins.called
 
-    @override_settings(ADMINS=[("Admin", "admin@example.com")])
+    @override_settings(ADMINS=["admin@example.com"])
     @patch("django_scheduled_backups.tasks.mail_admins")
     @patch("django_scheduled_backups.tasks.get_setting")
     def test_send_failure_email_exception_is_logged(

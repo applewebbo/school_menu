@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "neapolitan",
     "pwa",
     "rest_framework",
-    "template_partials",
     "webpush",
     # INTERNAL APPS
     "contacts",

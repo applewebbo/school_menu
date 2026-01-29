@@ -10,7 +10,9 @@
       "Bash(uv sync:*)",
       "Bash(just ftest:*)",
       "Bash(uv add:*)",
-      "Bash(gh release list:*)"
+      "Bash(gh release list:*)",
+      "Bash(beans update:*)",
+      "Bash(beans query:*)"
     ],
     "deny": [],
     "ask": []

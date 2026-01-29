@@ -43,7 +43,7 @@ class TestConfigurationSettings:
 
     @override_settings(
         SCHEDULED_BACKUPS={},
-        ADMINS=[("Admin", "admin@example.com"), ("Manager", "manager@example.com")],
+        ADMINS=["admin@example.com", "manager@example.com"],
     )
     def test_get_notification_emails_falls_back_to_admins(self):
         """Test that notification emails fall back to ADMINS."""

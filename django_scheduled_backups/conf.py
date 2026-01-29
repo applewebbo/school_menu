@@ -59,9 +59,9 @@ def get_notification_emails():
     if emails:
         return emails if isinstance(emails, list) else [emails]
 
-    # Fallback to ADMINS
+    # Fallback to ADMINS (expects list of email strings)
     admins = getattr(settings, "ADMINS", [])
-    return [email for name, email in admins]
+    return list(admins)
 
 
 def is_enabled():

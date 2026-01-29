@@ -1,17 +1,18 @@
 import logging
 from datetime import date, datetime
-from typing import Any
+from typing import Any, cast
 
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
 from django.db import connection
 from django.db.models import Q
 from django.forms import modelformset_factory
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.response import HttpResponse, TemplateResponse
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_http_methods
@@ -184,7 +185,6 @@ def index(request: HttpRequest) -> HttpResponse:
         try:
             school = School.objects.get(user=request.user)
         except School.DoesNotExist:
-            school = None
             return redirect(reverse("school_menu:settings", args=[request.user.pk]))
         if not _is_school_in_session(school, datetime.now()):
             context = {
@@ -283,14 +283,18 @@ def get_school_json_menu(request: HttpRequest, slug: str) -> JsonResponse:
         serializer = AnnualMealSerializer(weekly_meals, many=True)
     else:
         if school.menu_type == School.Types.SIMPLE:
-            weekly_meals = SimpleMeal.objects.filter(
-                school=school, week=adjusted_week, season=season
-            ).order_by("day")
+            weekly_meals = list(
+                SimpleMeal.objects.filter(
+                    school=school, week=adjusted_week, season=season
+                ).order_by("day")
+            )
             serializer = SimpleMealSerializer(weekly_meals, many=True)
         else:
-            weekly_meals = DetailedMeal.objects.filter(
-                school=school, week=adjusted_week, season=season
-            ).order_by("day")
+            weekly_meals = list(
+                DetailedMeal.objects.filter(
+                    school=school, week=adjusted_week, season=season
+                ).order_by("day")
+            )
             serializer = DetailedMealSerializer(weekly_meals, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
@@ -318,7 +322,9 @@ def settings_view(request: HttpRequest, pk: int) -> HttpResponse:
 @login_required
 def menu_report_count(request: HttpRequest) -> HttpResponse:
     """Return partial with menu report count for authenticated user."""
+    User = get_user_model()
     user = request.user
+    assert isinstance(user, User)  # login_required guarantees this
     report_count = MenuReport.objects.filter(receiver=user).count()
     return render(
         request,
@@ -454,7 +460,7 @@ def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpRes
     if request.method == "POST":
         form = UploadMenuForm(request.POST, request.FILES)
         if form.is_valid():
-            file = request.FILES["file"]
+            file = cast(UploadedFile, request.FILES["file"])
             season = form.cleaned_data["season"]
             if menu_type == School.Types.SIMPLE:
                 resource = SimpleMealResource()
@@ -526,7 +532,7 @@ def upload_annual_menu(
     if request.method == "POST":
         form = UploadAnnualMenuForm(request.POST, request.FILES)
         if form.is_valid():
-            file = request.FILES["file"]
+            file = cast(UploadedFile, request.FILES["file"])
             resource = AnnualMenuResource()
 
             # Load CSV dataset with error handling
@@ -591,7 +597,7 @@ def create_weekly_menu(
             week=week, season=season, school=school, type=meal_type
         )
     else:
-        weekly_meals = DetailedMeal.objects.filter(
+        weekly_meals = DetailedMeal.objects.filter(  # type: ignore[assignment]
             week=week, season=season, school=school, type=meal_type
         )
     # if the meals don't exist, create them with blank values
@@ -619,12 +625,12 @@ def create_weekly_menu(
         )
     else:
         MealFormSet = modelformset_factory(
-            DetailedMeal,
-            form=DetailedMealForm,
+            DetailedMeal,  # type: ignore[arg-type]
+            form=DetailedMealForm,  # type: ignore[arg-type]
             extra=0,
             fields=("first_course", "second_course", "side_dish", "fruit", "snack"),
         )
-        meals = DetailedMeal.objects.filter(
+        meals = DetailedMeal.objects.filter(  # type: ignore[assignment]
             week=week, season=season, school=school, type=meal_type
         )
     formset = MealFormSet(request.POST or None, queryset=meals)
@@ -666,7 +672,7 @@ def search_schools(request: HttpRequest) -> HttpResponse:
     if not schools:
         context["no_schools"] = True
     else:
-        context["schools"] = schools
+        context["schools"] = schools  # type: ignore[assignment]
     return TemplateResponse(request, template, context)
 
 
@@ -683,9 +689,9 @@ def export_modal_view(
     else:
         annual_meals = None
         if school.menu_type == School.Types.SIMPLE:
-            model = SimpleMeal
+            model = SimpleMeal  # type: ignore[assignment]
         else:
-            model = DetailedMeal
+            model = DetailedMeal  # type: ignore[assignment]
         summer_meals = model.objects.filter(
             school=school, season=School.Seasons.PRIMAVERILE, type=meal_type
         ).exists()
@@ -712,10 +718,10 @@ def export_menu(
         model = AnnualMeal
         resource = AnnualMenuExportResource()
     elif school.menu_type == School.Types.SIMPLE:
-        model = SimpleMeal
+        model = SimpleMeal  # type: ignore[assignment]
         resource = SimpleMealExportResource()
     else:
-        model = DetailedMeal
+        model = DetailedMeal  # type: ignore[assignment]
         resource = DetailedMealExportResource()
 
     meals = model.objects.filter(school=school, season=season, type=meal_type)

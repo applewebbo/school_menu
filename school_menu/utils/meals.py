@@ -78,7 +78,7 @@ def build_types_menu(
     weekly_meals: list,
     school: School,
     week: int | None = None,
-    season: str | None = None,
+    season: int | None = None,
 ) -> dict[str, str]:
     """
     Build the alternate meal menu for the given school, caching for 24 hours.

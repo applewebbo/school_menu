@@ -132,7 +132,7 @@ def build_types_menu(
     return get_cached_or_query(cache_key, query_types, timeout=CACHE_TTL_24_HOURS)
 
 
-def get_meals(school: School, season: str, week: int, day: int) -> tuple[list, list]:
+def get_meals(school: School, season: int, week: int, day: int) -> tuple[list, list]:
     """
     Get meals for a school, caching weekly meals for 24 hours.
 
@@ -154,6 +154,7 @@ def get_meals(school: School, season: str, week: int, day: int) -> tuple[list, l
         - Key: meals:{school_id}:w{week}:s{season}
         - TTL: 24 hours (86400 seconds)
     """
+    meal: type[SimpleMeal] | type[DetailedMeal]
     if school.menu_type == School.Types.SIMPLE:
         meal = SimpleMeal
     else:

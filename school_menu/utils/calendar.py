@@ -79,7 +79,7 @@ def get_current_date(next_day: bool = False) -> tuple[int, int]:
     return current_week, day
 
 
-def get_season(school: School) -> str:
+def get_season(school: School) -> int:
     """
     Get the current season for a school based on its settings.
 

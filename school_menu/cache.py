@@ -224,7 +224,7 @@ def invalidate_meal_cache(school_id: int) -> int:
     return total_deleted
 
 
-def invalidate_school_cache(school_id: int, school_slug: str = None) -> int:
+def invalidate_school_cache(school_id: int, school_slug: str | None = None) -> int:
     """
     Clear ALL caches for a specific school.
 

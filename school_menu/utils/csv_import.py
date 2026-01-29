@@ -40,7 +40,7 @@ def detect_csv_format(content: str) -> tuple[str, str]:
         sample = content[:CSV_SAMPLE_SIZE]  # Use first 1KB for detection
         sniffer = csv.Sniffer()
         dialect = sniffer.sniff(sample, delimiters=",;")
-        return dialect.delimiter, dialect.quotechar
+        return dialect.delimiter, dialect.quotechar or '"'
     except Exception:  # nosec B110
         # Sniffer failed, use fallback manual detection
         pass  # Intentionally fall through to manual detection

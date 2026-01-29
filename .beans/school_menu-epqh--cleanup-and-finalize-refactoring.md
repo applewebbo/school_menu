@@ -1,10 +1,11 @@
 ---
 # school_menu-epqh
 title: Cleanup and finalize refactoring
-status: todo
+status: completed
 type: task
+priority: normal
 created_at: 2026-01-29T08:54:28Z
-updated_at: 2026-01-29T08:54:28Z
+updated_at: 2026-01-29T11:45:35Z
 parent: school_menu-j8h7
 ---
 

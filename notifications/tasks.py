@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import date, timedelta
+from typing import Any
 
 from django.conf import settings
 from django.utils import timezone
@@ -8,14 +9,27 @@ from pywebpush import WebPushException, webpush
 
 from notifications.models import AnonymousMenuNotification, BroadcastNotification
 from notifications.utils import build_menu_notification_payload
-from school_menu.models import AnnualMeal, DetailedMeal, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
 
 logger = logging.getLogger(__name__)
 
 
-def send_test_notification(subscription_info, payload):
+def send_test_notification(
+    subscription_info: dict[str, Any], payload: dict[str, Any]
+) -> None:
     """
-    Task che invia una notifica di prova in maniera asincrona
+    Send a test push notification asynchronously.
+
+    Args:
+        subscription_info: Web push subscription information (endpoint, keys)
+        payload: Notification payload with title, body, icon, etc.
+
+    Raises:
+        WebPushException: If the push notification fails to send
+        Exception: For any unexpected errors
+
+    Note:
+        Automatically deletes expired or invalid subscriptions (404/410 responses)
     """
     try:
         webpush(
@@ -45,9 +59,19 @@ def send_test_notification(subscription_info, payload):
     logger.info("notifica di prova inviata")
 
 
-def _has_menu_for_date(school, target_date):
+def _has_menu_for_date(school: School, target_date: date) -> bool:
     """
-    Checks if a menu exists for a specific school on a given date.
+    Check if a menu exists for a specific school on a given date.
+
+    Args:
+        school: School instance to check
+        target_date: Date to check for menu availability
+
+    Returns:
+        True if an active menu exists for the date, False otherwise
+
+    Note:
+        Checks AnnualMeal first, then SimpleMeal/DetailedMeal based on school type
     """
     day_of_week = target_date.weekday() + 1  # Monday is 1, Sunday is 7
 
@@ -64,9 +88,22 @@ def _has_menu_for_date(school, target_date):
         return DetailedMeal.objects.filter(school=school, day=day_of_week).exists()
 
 
-def _is_school_in_session(school, target_date):
+def _is_school_in_session(school: School, target_date: date) -> bool:
     """
-    Checks if the school is in session on a given date based on start/end month/day.
+    Check if the school is in session on a given date.
+
+    Uses the school's start_month/start_day and end_month/end_day to determine
+    if the target date falls within the academic year.
+
+    Args:
+        school: School instance with session date configuration
+        target_date: Date to check
+
+    Returns:
+        True if school is in session on target date, False otherwise
+
+    Note:
+        Handles academic years that span calendar years (e.g., Sept to June)
     """
     start_month = school.start_month
     start_day = school.start_day
@@ -86,9 +123,17 @@ def _is_school_in_session(school, target_date):
         return today_tuple >= start_tuple or today_tuple <= end_tuple
 
 
-def _send_menu_notifications(notification_time):
+def _send_menu_notifications(notification_time: str) -> None:
     """
-    Sends menu notifications for a specific time.
+    Send menu notifications to all subscribers for a specific time slot.
+
+    Args:
+        notification_time: Notification time code (e.g., 'PD6', 'SD9', 'SD12', 'SD6')
+
+    Note:
+        - Skips notifications if school is not in session (when ENABLE_SCHOOL_DATE_CHECK=True)
+        - Sends notifications for next day if notification_time is PREVIOUS_DAY_6PM
+        - Automatically cleans up invalid subscriptions
     """
     logger.info(f"Invio notifiche per l'orario: {notification_time}...")
     subscriptions = AnonymousMenuNotification.objects.filter(
@@ -131,37 +176,57 @@ def _send_menu_notifications(notification_time):
     logger.info(f"Notifiche per l'orario {notification_time} inviate.")
 
 
-def send_previous_day_6pm_menu_notification():
+def send_previous_day_6pm_menu_notification() -> None:
     """
-    Sends menu notifications for the next day at 6 PM.
+    Send menu notifications for the next day at 6 PM.
+
+    Scheduled task for Django-Q2 to send tomorrow's menu notifications.
     """
     _send_menu_notifications(AnonymousMenuNotification.PREVIOUS_DAY_6PM)
 
 
-def send_same_day_9am_menu_notification():
+def send_same_day_9am_menu_notification() -> None:
     """
-    Sends menu notifications for the current day at 9 AM.
+    Send menu notifications for the current day at 9 AM.
+
+    Scheduled task for Django-Q2 to send today's menu notifications.
     """
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 
 
-def send_same_day_12pm_menu_notification():
+def send_same_day_12pm_menu_notification() -> None:
     """
-    Sends menu notifications for the current day at 12 PM.
+    Send menu notifications for the current day at 12 PM.
+
+    Scheduled task for Django-Q2 to send today's menu notifications.
     """
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_12PM)
 
 
-def send_same_day_6pm_menu_notification():
+def send_same_day_6pm_menu_notification() -> None:
     """
-    Sends menu notifications for the current day at 6 PM.
+    Send menu notifications for the current day at 6 PM.
+
+    Scheduled task for Django-Q2 to send today's menu notifications.
     """
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_6PM)
 
 
-def send_broadcast_notification(broadcast_pk):
+def send_broadcast_notification(broadcast_pk: int) -> None:
     """
-    Send a broadcast notification to all matching subscriptions
+    Send a broadcast notification to all matching subscriptions.
+
+    Args:
+        broadcast_pk: Primary key of the BroadcastNotification to send
+
+    Note:
+        - Updates broadcast record with sent_at, status, and recipient counts
+        - Marks as FAILED if broadcast not found or if most sends fail
+        - Marks as SENT even if no recipients (for audit trail)
+        - Automatically cleans up invalid subscriptions
+
+    Raises:
+        Exception: Re-raises unexpected errors for Django-Q2 logging
     """
     try:
         broadcast = BroadcastNotification.objects.get(pk=broadcast_pk)

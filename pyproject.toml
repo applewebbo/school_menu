@@ -17,7 +17,8 @@ dev = [
   "django-silk>=5.1.0",
   "memory-profiler>=0.61.0",
   "pytest-monitor>=1.6.6",
-  "nplusone>=1.0.0"
+  "nplusone>=1.0.0",
+  "django-stubs[compatible-mypy]>=5.2.9"
 ]
 
 [project]
@@ -71,8 +72,38 @@ exclude_also = [
 branch = true
 omit = ['*/.venv/*', '*/migrations/*', '*/tests/*', '*/test_*.py', '*/settings/*', '*/wsgi.py', '*/asgi.py', '*/manage.py', '*/core/*', '*/users/*', "school_menu/resources.py", "school_menu/serializers.py", "school_menu/templatetags/custom_tailwind.py", "school_menu/management/*", "django_scheduled_backups/admin.py", "django_scheduled_backups/management/*"]
 
+[tool.django-stubs]
+django_settings_module = "core.settings"
+strict_settings = false
+
 [tool.djlint]
 ignore = "T002,H006"
+
+[tool.mypy]
+disallow_incomplete_defs = false
+# Allow untyped calls for Django magic
+disallow_untyped_calls = false
+disallow_untyped_defs = false
+explicit_package_bases = true
+# Ignore missing imports (for libraries without type stubs)
+ignore_missing_imports = true
+plugins = ["mypy_django_plugin.main"]
+pretty = true
+python_version = "3.14"
+# Show error codes
+show_error_codes = true
+# Strict mode settings
+strict = false
+warn_redundant_casts = true
+warn_return_any = false
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+disallow_untyped_calls = false
+# Less strict in tests
+disallow_untyped_defs = false
+module = "tests.*"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "core.settings"

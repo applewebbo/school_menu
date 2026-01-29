@@ -115,6 +115,11 @@ lint:
     uv run ruff format .
     @just _pre-commit run --all-files
 
+# Run type checking with mypy
+[group('utility')]
+typecheck:
+    uv run mypy .
+
 _pre-commit *args:
     uvx prek {{ args }}
 

@@ -1,13 +1,15 @@
 import logging
 from datetime import date, datetime
+from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
+from django.core.files.uploadedfile import UploadedFile
 from django.db import connection
 from django.db.models import Q
 from django.forms import modelformset_factory
-from django.http import JsonResponse
+from django.http import HttpRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import HttpResponse, TemplateResponse
 from django.urls import reverse
@@ -65,7 +67,9 @@ from school_menu.utils import (
 logger = logging.getLogger(__name__)
 
 
-def load_csv_dataset(file, request):
+def load_csv_dataset(
+    file: UploadedFile, request: HttpRequest
+) -> tuple[Dataset | None, HttpResponse | None]:
     """
     Load and parse CSV file with error handling.
 
@@ -119,7 +123,7 @@ def load_csv_dataset(file, request):
         return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
 
 
-def get_school_menu_context(school, meal_type="S"):
+def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, Any]:
     """
     Build common context for school menu display.
 
@@ -168,7 +172,7 @@ def get_school_menu_context(school, meal_type="S"):
     }
 
 
-def index(request):
+def index(request: HttpRequest) -> HttpResponse:
     """
     Display homepage with authenticated user's school menu.
 
@@ -195,7 +199,7 @@ def index(request):
     return render(request, "index.html", context)
 
 
-def school_menu(request, slug, meal_type="S"):
+def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpResponse:
     """Return school menu for the given school"""
     school = get_object_or_404(School.objects.select_related("user"), slug=slug)
     pk = request.session.get("anon_notification_pk")
@@ -215,7 +219,9 @@ def school_menu(request, slug, meal_type="S"):
     return render(request, "school-menu.html", context)
 
 
-def get_menu(request, school_id, week, day, meal_type):
+def get_menu(
+    request: HttpRequest, school_id: int, week: int, day: int, meal_type: str
+) -> HttpResponse:
     """get menu for the given school, day, week and type"""
     school = get_object_or_404(School.objects.select_related("user"), pk=school_id)
     pk = request.session.get("anon_notification_pk")
@@ -256,7 +262,7 @@ def get_menu(request, school_id, week, day, meal_type):
 
 @require_http_methods(["GET"])
 @cache_page(86400, key_prefix="schools_json")
-def get_schools_json_list(request):
+def get_schools_json_list(request: HttpRequest) -> JsonResponse:
     """Return JSON list of all published schools."""
     schools = School.objects.filter(is_published=True)
     serializer = SchoolSerializer(schools, many=True)
@@ -265,7 +271,7 @@ def get_schools_json_list(request):
 
 @require_http_methods(["GET"])
 @cache_page(86400, key_prefix="json_api")
-def get_school_json_menu(request, slug):
+def get_school_json_menu(request: HttpRequest, slug: str) -> JsonResponse:
     """Return JSON menu data for a specific school."""
     school = get_object_or_404(School, slug=slug)
     current_week, adjusted_day = get_current_date()
@@ -292,7 +298,7 @@ def get_school_json_menu(request, slug):
 
 
 @login_required
-def settings_view(request, pk):
+def settings_view(request: HttpRequest, pk: int) -> HttpResponse:
     """Get the settings page"""
     user, alt_menu = get_user(pk)
     active_menu = request.session.get("active_menu", "S")
@@ -310,7 +316,7 @@ def settings_view(request, pk):
 
 
 @login_required
-def menu_report_count(request):
+def menu_report_count(request: HttpRequest) -> HttpResponse:
     """Return partial with menu report count for authenticated user."""
     user = request.user
     report_count = MenuReport.objects.filter(receiver=user).count()
@@ -322,7 +328,7 @@ def menu_report_count(request):
 
 
 @login_required
-def menu_settings_partial(request, pk):
+def menu_settings_partial(request: HttpRequest, pk: int) -> HttpResponse:
     """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
     user, alt_menu = get_user(pk)
     active_menu = request.GET.get("active_menu", "S")
@@ -339,14 +345,14 @@ def menu_settings_partial(request, pk):
 
 
 @login_required
-def school_settings_partial(request):
+def school_settings_partial(request: HttpRequest) -> HttpResponse:
     """Return school settings partial for htmx reload."""
     user = request.user
     return render(request, "settings.html#school", {"user": user})
 
 
 @login_required
-def school_view(request):
+def school_view(request: HttpRequest) -> HttpResponse:
     """Display school detail view for authenticated user's school."""
     user = request.user
     school = get_object_or_404(School, user=user)
@@ -355,7 +361,7 @@ def school_view(request):
 
 
 @login_required
-def school_create(request):
+def school_create(request: HttpRequest) -> HttpResponse:
     """Create new school for authenticated user via htmx form."""
     if request.method == "POST":
         form = SchoolForm(request.POST)
@@ -386,7 +392,7 @@ def school_create(request):
 
 
 @login_required
-def school_update(request):
+def school_update(request: HttpRequest) -> HttpResponse:
     """Update authenticated user's school via htmx form."""
     user = request.user
     school = get_object_or_404(School, user=user)
@@ -427,7 +433,7 @@ def school_update(request):
     return render(request, "partials/school.html", context)
 
 
-def school_list(request):
+def school_list(request: HttpRequest) -> HttpResponse:
     """Return list of all published schools with cached queryset."""
     cache_key = "school_list_queryset"
 
@@ -440,7 +446,7 @@ def school_list(request):
 
 
 @login_required
-def upload_menu(request, school_id, meal_type):
+def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpResponse:
     """Upload weekly menu CSV file for school."""
     school = get_object_or_404(School, pk=school_id)
     menu_type = school.menu_type
@@ -511,7 +517,9 @@ def upload_menu(request, school_id, meal_type):
 
 
 @login_required
-def upload_annual_menu(request, school_id, meal_type):
+def upload_annual_menu(
+    request: HttpRequest, school_id: int, meal_type: str
+) -> HttpResponse:
     """Upload annual menu CSV file for school."""
     school = get_object_or_404(School, pk=school_id)
     active_menu = meal_type
@@ -570,7 +578,9 @@ def upload_annual_menu(request, school_id, meal_type):
 
 
 @login_required
-def create_weekly_menu(request, school_id, week, season, meal_type):
+def create_weekly_menu(
+    request: HttpRequest, school_id: int, week: int, season: str, meal_type: str
+) -> HttpResponse:
     """Create or display weekly menu form for specific week and season."""
     qs = School.objects.all().select_related("user")
     school = get_object_or_404(qs, pk=school_id)
@@ -634,7 +644,7 @@ def create_weekly_menu(request, school_id, week, season, meal_type):
 
 
 @cache_page(3600, key_prefix="search")
-def search_schools(request):
+def search_schools(request: HttpRequest) -> HttpResponse:
     """get the schools based on the search input via htmx"""
     context = {}
     query = request.GET.get("q")
@@ -660,7 +670,9 @@ def search_schools(request):
     return TemplateResponse(request, template, context)
 
 
-def export_modal_view(request, school_id, meal_type):
+def export_modal_view(
+    request: HttpRequest, school_id: int, meal_type: str
+) -> HttpResponse:
     """Display export modal with available seasons for school menu."""
     school = get_object_or_404(School, pk=school_id)
     if school.annual_menu:
@@ -691,7 +703,9 @@ def export_modal_view(request, school_id, meal_type):
 
 
 @login_required
-def export_menu(request, school_id, season, meal_type):
+def export_menu(
+    request: HttpRequest, school_id: int, season: str, meal_type: str
+) -> HttpResponse:
     """Export school menu as CSV file for specified season and meal type."""
     school = get_object_or_404(School, pk=school_id)
     if school.annual_menu:
@@ -712,7 +726,7 @@ def export_menu(request, school_id, season, meal_type):
 
 
 @require_http_methods(["GET"])
-def health_check(request):
+def health_check(request: HttpRequest) -> JsonResponse:
     """
     Health check endpoint for monitoring service status.
 
@@ -774,7 +788,7 @@ def health_check(request):
 
 
 @login_required
-def school_delete(request):
+def school_delete(request: HttpRequest) -> HttpResponse:
     """Delete the school associated with the current user"""
     user = request.user
     school = get_object_or_404(School, user=user)

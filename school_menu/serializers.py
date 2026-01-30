@@ -51,7 +51,18 @@ class AnnualMealSerializer(serializers.ModelSerializer):
 
 
 class SchoolSerializer(serializers.ModelSerializer):
-    url = serializers.URLField(source="get_json_url", read_only=True)
+    url = serializers.SerializerMethodField()
+
+    def get_url(self, obj):
+        """Return API v1 menu URL for this school."""
+        from django.urls import reverse
+
+        request = self.context.get("request")
+        url = reverse("menu-detail", kwargs={"slug": obj.slug})
+
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
     class Meta:
         model = School

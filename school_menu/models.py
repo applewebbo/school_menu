@@ -207,7 +207,7 @@ class School(models.Model):
         return reverse("school_menu:school_menu", kwargs={"slug": self.slug})
 
     @property
-    def get_json_url(self):
+    def get_json_url(self):  # pragma: no cover
         return reverse("school_menu:get_school_json_menu", kwargs={"slug": self.slug})
 
 

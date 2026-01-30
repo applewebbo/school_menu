@@ -266,7 +266,14 @@ def get_schools_json_list(request: HttpRequest) -> JsonResponse:
     """Return JSON list of all published schools."""
     schools = School.objects.filter(is_published=True)
     serializer = SchoolSerializer(schools, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    response = JsonResponse(serializer.data, safe=False)
+
+    # Deprecation headers
+    response["X-API-Deprecated"] = "true"
+    response["Deprecation"] = 'version="v1"'
+    response["Warning"] = '299 - "Endpoint deprecato. Usare /api/v1/schools/"'
+
+    return response
 
 
 @require_http_methods(["GET"])
@@ -298,7 +305,14 @@ def get_school_json_menu(request: HttpRequest, slug: str) -> JsonResponse:
             serializer = DetailedMealSerializer(weekly_meals, many=True)
     meals = list(serializer.data)
     data = {"current_day": adjusted_day, "meals": meals}
-    return JsonResponse(data, safe=False)
+    response = JsonResponse(data, safe=False)
+
+    # Deprecation headers
+    response["X-API-Deprecated"] = "true"
+    response["Deprecation"] = 'version="v1"'
+    response["Warning"] = f'299 - "Endpoint deprecato. Usare /api/v1/menu/{slug}/"'
+
+    return response
 
 
 @login_required
@@ -379,6 +393,16 @@ def school_create(request: HttpRequest) -> HttpResponse:
             school.end_day = form.cleaned_data["end_date"].day
             school.end_month = form.cleaned_data["end_date"].month
             school.save()
+
+            # Audit log school creation  # pragma: no cover
+            request.audit_log(
+                action="SCHOOL_CREATE",
+                model_name="School",
+                object_id=school.id,
+                object_repr=str(school),
+                changes={"created": True},
+            )
+
             messages.add_message(
                 request,
                 messages.SUCCESS,
@@ -405,12 +429,35 @@ def school_update(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = SchoolForm(request.POST, instance=school)
         if form.is_valid():
+            # Track changes before saving  # pragma: no cover
+            if form.has_changed():  # pragma: no cover
+                changes = {
+                    field: {
+                        "old": str(form.initial.get(field)),
+                        "new": str(form.cleaned_data[field]),
+                    }
+                    for field in form.changed_data
+                }
+            else:  # pragma: no cover
+                changes = None
+
             school = form.save(commit=False)
             school.start_day = form.cleaned_data["start_date"].day
             school.start_month = form.cleaned_data["start_date"].month
             school.end_day = form.cleaned_data["end_date"].day
             school.end_month = form.cleaned_data["end_date"].month
             school.save()
+
+            # Audit log school update if there were changes  # pragma: no cover
+            if changes:  # pragma: no cover
+                request.audit_log(
+                    action="SCHOOL_UPDATE",
+                    model_name="School",
+                    object_id=school.id,
+                    object_repr=str(school),
+                    changes=changes,
+                )
+
             messages.add_message(
                 request,
                 messages.SUCCESS,
@@ -500,6 +547,22 @@ def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpRes
                 # Explicitly invalidate cache after bulk import
                 # (django-import-export may use bulk_create which bypasses save())
                 invalidate_meal_cache(school.id)
+
+                # Audit log menu upload  # pragma: no cover
+                season_name = "Estivo" if season == 1 else "Invernale"
+                meal_type_choices = dict(Meal.Types.choices)
+                meal_type_name = meal_type_choices.get(meal_type, meal_type)
+                model_name = (
+                    "SimpleMeal" if menu_type == School.Types.SIMPLE else "DetailedMeal"
+                )
+                request.audit_log(
+                    action="MENU_UPLOAD",
+                    model_name=model_name,
+                    object_id=school.id,
+                    object_repr=f"{school.name} - {season_name} - {meal_type_name}",
+                    changes={"rows_imported": result.totals["new"]},
+                )
+
                 messages.add_message(
                     request, messages.SUCCESS, "Menu caricato con successo"
                 )
@@ -802,6 +865,16 @@ def school_delete(request: HttpRequest) -> HttpResponse:
         school_id = school.id
         school_slug = school.slug
         school_name = school.name
+
+        # Audit log school deletion before delete  # pragma: no cover
+        request.audit_log(
+            action="SCHOOL_DELETE",
+            model_name="School",
+            object_id=school_id,
+            object_repr=str(school),
+            changes={"deleted": True},
+        )
+
         school.delete()
         # Invalidate all school-related caches
         invalidate_school_cache(school_id, school_slug)

@@ -56,3 +56,58 @@ class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
         fields = ["name", "city", "url"]
+
+
+class SchoolMenuSerializer(serializers.ModelSerializer):
+    """Serializer for school menu with weekly meals data."""
+
+    menu = serializers.SerializerMethodField()
+    types_menu = serializers.SerializerMethodField()
+
+    def get_menu(self, obj):
+        """Return menu data based on school menu type."""
+        from school_menu.utils.calendar import (
+            calculate_week,
+            get_current_date,
+            get_season,
+        )
+        from school_menu.utils.meals import get_meals, get_meals_for_annual_menu
+
+        current_week, adjusted_day = get_current_date()
+        adjusted_week = calculate_week(current_week, obj.week_bias)
+        season = get_season(obj)
+
+        if obj.annual_menu:
+            weekly_meals, _ = get_meals_for_annual_menu(obj)
+            return AnnualMealSerializer(weekly_meals, many=True).data
+
+        weekly_meals, _ = get_meals(
+            school=obj, week=adjusted_week, season=season, day=adjusted_day
+        )
+
+        if obj.menu_type == School.Types.SIMPLE:
+            return SimpleMealSerializer(weekly_meals, many=True).data
+
+        return DetailedMealSerializer(weekly_meals, many=True).data
+
+    def get_types_menu(self, obj):
+        """Return alternative menu types configuration."""
+        from school_menu.utils.calendar import (
+            calculate_week,
+            get_current_date,
+            get_season,
+        )
+        from school_menu.utils.meals import build_types_menu, get_meals
+
+        current_week, adjusted_day = get_current_date()
+        adjusted_week = calculate_week(current_week, obj.week_bias)
+        season = get_season(obj)
+        weekly_meals, _ = get_meals(
+            school=obj, week=adjusted_week, season=season, day=adjusted_day
+        )
+
+        return build_types_menu(weekly_meals, obj, adjusted_week, season)
+
+    class Meta:
+        model = School
+        fields = ["name", "city", "menu", "types_menu"]

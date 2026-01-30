@@ -64,6 +64,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "csp.middleware.CSPMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -294,6 +295,22 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "school_menu.api.exceptions.custom_exception_handler",
 }
 
+# CONTENT SECURITY POLICY
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "https://connect.facebook.net",
+    "'nonce-{nonce}'",
+)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # Tailwind requires unsafe-inline
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_FONT_SRC = ("'self'", "data:")
+CSP_CONNECT_SRC = ("'self'",)
+CSP_FRAME_SRC = ("https://www.facebook.com",)
+
+# Report-only mode initially to avoid breaking existing functionality
+CSP_REPORT_ONLY = True
+
 
 # DEVELOPMENT SPECIFIC SETTINGS
 if ENVIRONMENT == "dev":
@@ -376,6 +393,10 @@ elif ENVIRONMENT == "prod":
     UMAMI_SCRIPT_URL = env("UMAMI_SCRIPT_URL", default=None)
     UMAMI_WEBSITE_ID = env("UMAMI_WEBSITE_ID", default=None)
     UMAMI_DOMAINS = env("UMAMI_DOMAINS", default=None)
+
+    # Add Umami to CSP if configured
+    if UMAMI_SCRIPT_URL:
+        CSP_SCRIPT_SRC += (UMAMI_SCRIPT_URL,)
     # DBBACKUP
     DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
     # DJANGO-Q

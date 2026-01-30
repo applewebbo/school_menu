@@ -26,7 +26,7 @@
                 defer
                 crossorigin="anonymous"
                 src="https://connect.facebook.net/it_IT/sdk.js#xfbml=1&version=v20.0"
-                nonce="6qSLf5Dz"></script>
+                nonce="{{ request.csp_nonce }}"></script>
         {% include 'partials/navbar.html' %}
         {% block content %}
         {% endblock content %}
@@ -36,7 +36,7 @@
         <!-- Messages -->
         <div id="messages" class="z-3" hx-boost="true">{% include 'partials/messages.html' %}</div>
     </body>
-    <script>
+    <script nonce="{{ request.csp_nonce }}">
         document.addEventListener('alpine:init', () => {
             // Magic: $tooltip
             Alpine.magic('tooltip', el => message => {

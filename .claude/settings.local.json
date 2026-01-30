@@ -13,7 +13,8 @@
       "Bash(gh release list:*)",
       "Bash(beans update:*)",
       "Bash(beans query:*)",
-      "Bash(just lint:*)"
+      "Bash(just lint:*)",
+      "Bash(beans create:*)"
     ],
     "deny": [],
     "ask": []

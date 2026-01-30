@@ -1,7 +1,7 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 
-from .models import AnnualMeal, DetailedMeal, School, SimpleMeal
+from .models import AnnualMeal, AuditLog, DetailedMeal, School, SimpleMeal
 from .resources import DetailedMealResource, SimpleMealResource
 
 # from .forms import CustomExportForm
@@ -68,3 +68,38 @@ class SchoolAdmin(admin.ModelAdmin):
             },
         ),
     )
+
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = [
+        "timestamp",
+        "user",
+        "action",
+        "model_name",
+        "object_repr",
+        "ip_address",
+    ]
+    list_filter = ["action", "model_name", "timestamp"]
+    search_fields = ["object_repr", "user__email", "ip_address"]
+    readonly_fields = [
+        "timestamp",
+        "user",
+        "action",
+        "model_name",
+        "object_id",
+        "object_repr",
+        "changes",
+        "ip_address",
+        "user_agent",
+    ]
+    date_hierarchy = "timestamp"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser

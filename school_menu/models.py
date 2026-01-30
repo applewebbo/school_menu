@@ -209,3 +209,40 @@ class School(models.Model):
     @property
     def get_json_url(self):
         return reverse("school_menu:get_school_json_menu", kwargs={"slug": self.slug})
+
+
+class AuditLog(models.Model):
+    """Track critical system actions for security and compliance."""
+
+    class Actions(models.TextChoices):
+        SCHOOL_CREATE = "SCHOOL_CREATE", _("Scuola creata")
+        SCHOOL_UPDATE = "SCHOOL_UPDATE", _("Scuola aggiornata")
+        SCHOOL_DELETE = "SCHOOL_DELETE", _("Scuola eliminata")
+        MENU_UPLOAD = "MENU_UPLOAD", _("Menu caricato")
+        MENU_DELETE = "MENU_DELETE", _("Menu eliminato")
+        SETTINGS_CHANGE = "SETTINGS_CHANGE", _("Impostazioni modificate")
+
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    action = models.CharField(max_length=50, choices=Actions.choices)
+    model_name = models.CharField(max_length=100)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    object_repr = models.CharField(max_length=200)
+    changes = models.JSONField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = "audit log"
+        verbose_name_plural = "audit logs"
+        ordering = ["-timestamp"]
+        indexes = [
+            models.Index(fields=["-timestamp"], name="audit_timestamp_idx"),
+            models.Index(fields=["user", "-timestamp"], name="audit_user_time_idx"),
+            models.Index(fields=["action", "-timestamp"], name="audit_action_time_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.object_repr} ({self.timestamp:%Y-%m-%d %H:%M})"

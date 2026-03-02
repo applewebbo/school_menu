@@ -155,7 +155,7 @@ class TestAPIConfiguration:
         assert callable(custom_exception_handler)
 
     def test_custom_exception_handler_429_response(self):
-        """Test custom exception handler formats 429 responses."""
+        """Test custom exception handler formats 429 JSON response for API requests."""
         from rest_framework.exceptions import Throttled
         from rest_framework.request import Request
         from rest_framework.test import APIRequestFactory
@@ -164,7 +164,7 @@ class TestAPIConfiguration:
         from school_menu.api.exceptions import custom_exception_handler
 
         factory = APIRequestFactory()
-        request = factory.get("/")
+        request = factory.get("/api/v1/schools/")
 
         # Create a throttled exception
         exc = Throttled(wait=3600)
@@ -179,6 +179,27 @@ class TestAPIConfiguration:
         assert response.data["error"] == "Troppe richieste"
         assert "detail" in response.data
         assert "retry_after" in response.data
+
+    def test_custom_exception_handler_429_html_response(self):
+        """Test custom exception handler renders 429.html for browser requests."""
+        from rest_framework.exceptions import Throttled
+        from rest_framework.request import Request
+        from rest_framework.test import APIRequestFactory
+        from rest_framework.views import exception_handler as default_handler
+
+        from school_menu.api.exceptions import custom_exception_handler
+
+        factory = APIRequestFactory()
+        request = factory.get("/some-page/", HTTP_ACCEPT="text/html")
+
+        exc = Throttled(wait=3600)
+        context = {"request": Request(request)}
+
+        default_handler(exc, context)
+        response = custom_exception_handler(exc, context)
+
+        assert response.status_code == 429
+        assert b"429" in response.content
 
     def test_custom_exception_handler_non_429_passthrough(self):
         """Test custom exception handler passes through non-429 errors."""

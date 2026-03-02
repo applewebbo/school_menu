@@ -219,6 +219,24 @@ class TestHasMenuForDate:
 
 
 @time_machine.travel("2025-08-18")  # A Monday
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_skips_when_no_meals(
+    mock_send_notification, school_in_session
+):
+    """Test that notification is skipped when no meals exist (payload is None)."""
+    AnonymousMenuNotificationFactory(
+        school=school_in_session,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+    )
+    # No meals created -> build_menu_notification_payload returns None
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    mock_send_notification.assert_not_called()
+
+
+@time_machine.travel("2025-08-18")  # A Monday
 @patch("notifications.tasks.settings")
 @patch("notifications.tasks.send_test_notification")
 def test_send_menu_notifications_school_not_in_session(

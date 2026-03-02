@@ -170,6 +170,12 @@ def _send_menu_notifications(notification_time: str) -> None:
 
         payload = build_menu_notification_payload(school, is_previous_day)
 
+        if payload is None:
+            logger.info(
+                f"Skipping notification for {school.name} on {target_date}: no meals found."
+            )
+            continue
+
         payload["icon"] = "/static/img/notification-bell.png"
         payload["url"] = school.get_absolute_url()
         send_test_notification(subscription.subscription_info, payload)

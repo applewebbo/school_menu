@@ -91,6 +91,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "core.context_processors.app_version",
             ],
         },
     },
@@ -273,6 +274,7 @@ INTERNAL_IPS = [
 
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
+APP_VERSION = "2026.1"
 
 # DJANGO REST FRAMEWORK
 REST_FRAMEWORK = {

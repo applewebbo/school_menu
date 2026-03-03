@@ -20,7 +20,7 @@ if [[ ! -f "$PROJECT_ROOT/.env" ]]; then
     exit 1
 fi
 
-CODEBERG_TOKEN=$(grep "^CODEBERG_API_TOKEN=" "$PROJECT_ROOT/.env" | cut -d'=' -f2)
+CODEBERG_TOKEN=$(grep "^CODEBERG_API_TOKEN=" "$PROJECT_ROOT/.env" | cut -d'=' -f2 | tr -d '"' | tr -d "'")
 if [[ -z "$CODEBERG_TOKEN" ]]; then
     echo -e "${RED}Error: CODEBERG_API_TOKEN not found in .env${NC}" >&2
     exit 1
@@ -75,7 +75,7 @@ cmd_list() {
     detect_repo
 
     echo -e "${GREEN}Fetching $state issues for $REPO_OWNER/$REPO_NAME...${NC}"
-    api_request GET "/repos/$REPO_OWNER/$REPO_NAME/issues?state=$state" | \
+    api_request GET "/repos/$REPO_OWNER/$REPO_NAME/issues?type=issues&state=$state" | \
         python3 -c "
 import sys, json
 issues = json.load(sys.stdin)
@@ -174,7 +174,7 @@ cmd_label() {
 
     # Get all repo labels to resolve names -> IDs
     local repo_labels
-    repo_labels=$(api_request GET "/repos/$REPO_OWNER/$REPO_NAME/labels?limit=50")
+    repo_labels=$(api_request GET "/repos/$REPO_OWNER/$REPO_NAME/labels?limit=1000")
 
     # Resolve label names to IDs
     local label_ids
@@ -192,8 +192,7 @@ for name in requested:
     else:
         missing.append(name)
 if missing:
-    import sys as _sys
-    print(f'Warning: labels not found in repo: {missing}', file=_sys.stderr)
+    print(f'Warning: labels not found in repo: {missing}', file=sys.stderr)
 print(json.dumps({'labels': ids}))
 " "${labels[@]}")
 

@@ -227,9 +227,13 @@ release-create tag previous_tag="" draft="false" prerelease="false":
         PREV_TAG="{{previous_tag}}"
     fi
 
-    echo "🔍 Generating release notes (comparing with ${PREV_TAG})..."
+    echo "🔍 Generating release notes (comparing with ${PREV_TAG:-initial commit})..."
 
-    COMMITS=$(git log ${PREV_TAG}..{{tag}} --pretty=format:"- %s" --reverse 2>/dev/null || echo "- Initial release")
+    if [ -z "$PREV_TAG" ]; then
+        COMMITS=$(git log {{tag}} --pretty=format:"- %s" --reverse 2>/dev/null || echo "- Initial release")
+    else
+        COMMITS=$(git log ${PREV_TAG}..{{tag}} --pretty=format:"- %s" --reverse 2>/dev/null || echo "- Initial release")
+    fi
 
     FEATURES=$(echo "$COMMITS" | grep -E "^- (✨|feat)" || true)
     FIXES=$(echo "$COMMITS" | grep -E "^- (🐛|fix)" || true)

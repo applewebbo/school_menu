@@ -1,7 +1,7 @@
 ---
 # school_menu-oevx
 title: API Standardization & Security Hardening
-status: todo
+status: completed
 type: epic
 priority: normal
 tags:
@@ -10,7 +10,7 @@ tags:
     - api
     - gh-issue-209
 created_at: 2026-01-27T14:36:56Z
-updated_at: 2026-01-27T14:41:48Z
+updated_at: 2026-03-02T13:53:57Z
 ---
 
 REST API improvements and security enhancements.
@@ -43,3 +43,5 @@ REST API improvements and security enhancements.
 
 **Time estimate:** ~6-8 hours
 **Impact:** Medium-High - Security, compliance, API quality
+
+## Summary of Changes\n\nAll 4 tasks completed:\n- DRF API v1 with ViewSets, pagination, throttling\n- Rate limiting 100 req/h anon via DRF AnonRateThrottle\n- Custom 429 HTML page (templates/429.html) + browser/API routing in exception handler\n- CSP headers with dynamic nonce\n- Audit log model and middleware

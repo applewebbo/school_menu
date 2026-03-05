@@ -1,3 +1,10 @@
+# ⚠️ It's not the end...
+
+This repository has been archived. The active development has been moved to a new location:
+
+**👉 [CODEBERG REPOSITORY](https://codeberg.org/webbografico/school_menu)**
+
+
 # Welcome to Mensa Scuola
 
 Do you want to know what your kid is eating at school. Sick of searching through a long excel file published on the school site or making complex operations to calculate what week are you in?

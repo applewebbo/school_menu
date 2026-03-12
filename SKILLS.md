@@ -79,18 +79,17 @@ Custom skills available for common Django workflows. Use these for automated qua
 7. Labels closed issues with release version
 8. Optionally creates next release branch
 
-### `/deploy` - Deploy to Production (Caprover)
+### `/deploy` - Deploy to Production (Coolify)
 **Use when:** Ready to deploy to production after a release or hotfix
 
 **What it does:**
 1. Validates branch (warns if not on `main`), clean working tree and remote sync
 2. Runs quick health check (tests, lint, Django check, migrations)
-3. Asks which deploy mode to use (`--default` or interactive)
-4. Shows confirmation summary before deploying
-5. Runs `caprover deploy` streaming output in real time
-6. Verifies the app is up with an HTTP health check
+3. Shows confirmation summary before deploying
+4. Triggers deployment via Coolify webhook (HTTP POST)
+5. Verifies the app is up with an HTTP health check
 
-**App:** `school_menu` on Caprover
+**App:** `school_menu` on Coolify (deploys via Dockerfile automatically on push to `main`)
 
 ### `/deps-update` - Safe Dependency Updates
 **Use when:** Weekly maintenance, security patches, package upgrades
@@ -110,8 +109,7 @@ Custom skills available for common Django workflows. Use these for automated qua
 1. Cleans Python caches (`__pycache__`, `.pyc`, `.pyo`)
 2. Clears expired Django sessions
 3. Cleans test artifacts (`htmlcov/`, `.pytest_cache/`, `.ruff_cache/`)
-4. Optimizes SQLite (`VACUUM`, `ANALYZE`, integrity check)
-5. Reports on old backups and suggests rotation
+4. Run tailwind-cleanup command to erase old tailwindcss files
 
 ## Codeberg Issue Management
 

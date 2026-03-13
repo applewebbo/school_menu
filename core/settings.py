@@ -412,7 +412,7 @@ elif ENVIRONMENT == "prod":
         "orm": "default",
         "catch_up": False,
         "redis": {
-            "host": "srv-captain--school-menu-redis",
+            "host": env("REDIS_HOST"),
             "port": 6379,
             "db": 0,
             "password": env("REDIS_PASSWORD", default=""),
@@ -421,10 +421,11 @@ elif ENVIRONMENT == "prod":
 
     # CACHES - Use Redis with database fallback in production
     redis_password = env("REDIS_PASSWORD", default="")
+    redis_host = env("REDIS_HOST")
     redis_url = (
-        f"redis://:{redis_password}@srv-captain--school-menu-redis:6379/1"
+        f"redis://:{redis_password}@{redis_host}:6379/1"
         if redis_password
-        else "redis://srv-captain--school-menu-redis:6379/1"
+        else f"redis://{redis_host}:6379/1"
     )
     CACHES = {
         "default": {

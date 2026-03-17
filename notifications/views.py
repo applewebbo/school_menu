@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -36,6 +37,7 @@ def notification_settings(request):
         context["notification"] = notification
 
     context["form"] = AnonymousMenuNotificationForm()
+    context["vapid_public_key"] = settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"]
     response = render(request, "notifications/notification_settings.html", context)
 
     # Clear invalid cookie if subscription wasn't found
@@ -111,7 +113,10 @@ def save_subscription(request):
         return TemplateResponse(
             request,
             "notifications/partials/subscription_form.html",
-            {"form": form},
+            {
+                "form": form,
+                "vapid_public_key": settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"],
+            },
             status=400,
         )
 

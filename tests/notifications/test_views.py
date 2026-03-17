@@ -549,6 +549,29 @@ def test_save_subscription_without_endpoint(client, school_factory):
     assert AnonymousMenuNotification.objects.count() == 0
 
 
+def test_notification_settings_context_has_vapid_key(client):
+    """Test that notification_settings includes vapid_public_key in context."""
+    url = reverse("notifications:notification_settings")
+    response = client.get(url)
+    assert response.status_code == 200
+    assert "vapid_public_key" in response.context
+    assert response.context["vapid_public_key"]
+
+
+def test_save_subscription_error_context_has_vapid_key(client):
+    """Test that save_subscription includes vapid_public_key in error response context."""
+    url = reverse("notifications:save_subscription")
+    data = {
+        "school": 999,
+        "subscription_info": '{"endpoint": "test_endpoint", "keys": {"p256dh": "test_p256dh", "auth": "test_auth"}}',
+        "notification_time": AnonymousMenuNotification.SAME_DAY_12PM,
+    }
+    response = client.post(url, data)
+    assert response.status_code == 400
+    assert "vapid_public_key" in response.context
+    assert response.context["vapid_public_key"]
+
+
 def test_save_subscription_shows_updated_message(client, school_factory):
     """Test that save_subscription shows 'updated' message for existing subscriptions."""
     school = school_factory()

@@ -3,7 +3,10 @@
 <form id="school-select-form"
       hx-post="{% url 'notifications:save_subscription' %}"
       hx-target="this"
-      hx-swap="outerHTML">
+      hx-swap="outerHTML"
+      x-data="{ selectedSchool: null, schoolsWithAlt: {{ schools_with_alt_menus|default:'[]' }} }"
+      x-init="selectedSchool = $el.querySelector('#id_school')?.value"
+      @change.capture="if ($event.target.id === 'id_school') selectedSchool = $event.target.value">
     {% csrf_token %}
     {{ form.subscription_info }}
     <div>
@@ -12,6 +15,15 @@
             {{ form.school }}
         </label>
         {% for error in form.school.errors %}
+            <p class="text-xs italic text-error">{{ error }}</p>
+        {% endfor %}
+    </div>
+    <div class="mt-4" x-show="schoolsWithAlt.includes(Number(selectedSchool))">
+        <label for="{{ form.meal_type.id_for_label }}" class="w-full select">
+            <span class="label">{{ form.meal_type.label }}</span>
+            {{ form.meal_type }}
+        </label>
+        {% for error in form.meal_type.errors %}
             <p class="text-xs italic text-error">{{ error }}</p>
         {% endfor %}
     </div>

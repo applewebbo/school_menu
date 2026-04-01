@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 import time_machine
+from django import forms as django_forms
 from django.contrib.messages import get_messages
 from django.urls import reverse
 from pywebpush import WebPushException
@@ -595,3 +596,42 @@ def test_save_subscription_shows_updated_message(client, school_factory):
     # Should have 2 messages total (1 from first, 1 from second)
     assert len(messages) == 2
     assert "aggiornate" in str(messages[1])
+
+
+def test_change_school_form_hides_meal_type_when_no_alt_menus(client, school_factory):
+    """When school has no alt menus, meal_type field should be rendered as HiddenInput."""
+    school = school_factory(
+        no_gluten=False, no_lactose=False, vegetarian=False, special=False
+    )
+    notification = AnonymousMenuNotification.objects.create(
+        school=school, subscription_info="test"
+    )
+    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    response = client.get(url)
+    assert response.status_code == 200
+    form = response.context["form"]
+    assert isinstance(form.fields["meal_type"].widget, django_forms.HiddenInput)
+
+
+@patch(
+    "notifications.views.async_task",
+    side_effect=Exception("Unexpected error"),
+)
+def test_test_notification_unexpected_exception(
+    mock_async_task, client, school_factory
+):
+    """Test test_notification view with an unexpected generic exception."""
+    school = school_factory()
+    notification = AnonymousMenuNotification.objects.create(
+        school=school,
+        subscription_info={"endpoint": "test", "keys": {"p256dh": "a", "auth": "b"}},
+    )
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:test_notification")
+    response = client.post(url)
+    assert response.status_code == 200
+    assert (
+        "Errore durante l'invio della notifica di prova." in response.content.decode()
+    )

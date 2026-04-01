@@ -64,9 +64,17 @@ def school_not_in_session():
 
 def create_simple_meals_for_all_seasons_and_weeks(school, day):
     """Helper function to create SimpleMeal for all seasons and weeks."""
+    from school_menu.models import Meal
+
     for season in School.Seasons.values:
         for week in range(1, 5):  # Weeks 1 to 4
-            SimpleMealFactory(school=school, day=day, season=season, week=week)
+            SimpleMealFactory(
+                school=school,
+                day=day,
+                season=season,
+                week=week,
+                type=Meal.Types.STANDARD,
+            )
 
 
 @time_machine.travel("2025-08-18")  # A Monday

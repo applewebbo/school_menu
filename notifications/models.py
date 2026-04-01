@@ -3,7 +3,7 @@ import hashlib
 from django.conf import settings
 from django.db import models
 
-from school_menu.models import School
+from school_menu.models import Meal, School
 
 
 class AnonymousMenuNotification(models.Model):
@@ -36,6 +36,12 @@ class AnonymousMenuNotification(models.Model):
         choices=NOTIFICATION_TIME_CHOICES,
         default=SAME_DAY_12PM,
         verbose_name="Orario di notifica",
+    )
+    meal_type = models.CharField(
+        max_length=1,
+        choices=Meal.Types.choices,
+        default=Meal.Types.STANDARD,
+        verbose_name="Tipo di menu",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 

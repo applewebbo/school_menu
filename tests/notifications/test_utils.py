@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from notifications.utils import build_menu_notification_payload
-from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
+from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 
 User = get_user_model()
 pytestmark = pytest.mark.django_db
@@ -259,3 +259,55 @@ def test_build_menu_notification_payload_annual_menu_empty_parts(annual_school):
     payload = build_menu_notification_payload(annual_school)
     assert payload is not None
     assert payload["body"] == "Nessun menu previsto."
+
+
+@pytest.fixture
+def school_with_gluten(user):
+    return School.objects.create(
+        name="Gluten School",
+        city="Test City",
+        user=User.objects.create_user("gluten@test.com", "test"),
+        menu_type=School.Types.SIMPLE,
+        no_gluten=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "meal_type, expected_menu",
+    [
+        (Meal.Types.STANDARD, "Standard Menu"),
+        (Meal.Types.GLUTEN_FREE, "Gluten Free Menu"),
+    ],
+)
+def test_build_menu_notification_payload_filters_by_meal_type(
+    school_with_gluten, meal_type, expected_menu
+):
+    """Regression test: notification must send the correct meal type, not a random one."""
+    SimpleMeal.objects.create(
+        school=school_with_gluten,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.STANDARD,
+        menu="Standard Menu",
+    )
+    SimpleMeal.objects.create(
+        school=school_with_gluten,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.GLUTEN_FREE,
+        menu="Gluten Free Menu",
+    )
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+    ):
+        payload = build_menu_notification_payload(
+            school_with_gluten, meal_type=meal_type
+        )
+    assert payload is not None
+    assert expected_menu in payload["body"]

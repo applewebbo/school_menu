@@ -37,6 +37,9 @@ def notification_settings(request):
         context["notification"] = notification
 
     context["form"] = AnonymousMenuNotificationForm()
+    context["schools_with_alt_menus"] = (
+        AnonymousMenuNotificationForm.get_schools_with_alt_menus()
+    )
     context["vapid_public_key"] = settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"]
     response = render(request, "notifications/notification_settings.html", context)
 
@@ -74,12 +77,14 @@ def save_subscription(request):
         endpoint_hash = AnonymousMenuNotification.hash_endpoint(endpoint)
 
         # Use update_or_create to prevent duplicates
+        meal_type = form.cleaned_data.get("meal_type") or "S"
         notification, created = AnonymousMenuNotification.objects.update_or_create(
             subscription_endpoint=endpoint_hash,
             defaults={
                 "school": school,
                 "subscription_info": subscription_info,
                 "notification_time": notification_time,
+                "meal_type": meal_type,
                 "daily_notification": True,
             },
         )
@@ -116,6 +121,7 @@ def save_subscription(request):
             {
                 "form": form,
                 "vapid_public_key": settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"],
+                "schools_with_alt_menus": AnonymousMenuNotificationForm.get_schools_with_alt_menus(),
             },
             status=400,
         )
@@ -163,7 +169,9 @@ def test_notification(request):
         )
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
-    payload = build_menu_notification_payload(notification.school)
+    payload = build_menu_notification_payload(
+        notification.school, meal_type=notification.meal_type
+    )
     if not payload:
         payload = {
             "head": "Notifica di prova",
@@ -241,5 +249,16 @@ def change_school(request, pk):
     else:
         form = AnonymousMenuNotificationForm(instance=notification)
 
-    context = {"form": form, "notification": notification}
+    context = {
+        "form": form,
+        "notification": notification,
+        "school_has_alt_menus": any(
+            [
+                notification.school.no_gluten,
+                notification.school.no_lactose,
+                notification.school.vegetarian,
+                notification.school.special,
+            ]
+        ),
+    }
     return render(request, "notifications/partials/change_school.html", context)

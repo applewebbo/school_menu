@@ -168,7 +168,9 @@ def _send_menu_notifications(notification_time: str) -> None:
             )
             continue
 
-        payload = build_menu_notification_payload(school, is_previous_day)
+        payload = build_menu_notification_payload(
+            school, is_previous_day, meal_type=subscription.meal_type
+        )
 
         if payload is None:
             logger.info(

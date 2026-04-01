@@ -14,17 +14,22 @@ from school_menu.utils import (
 logger = logging.getLogger(__name__)
 
 
-def build_menu_notification_payload(school, is_previous_day=False):
+def build_menu_notification_payload(school, is_previous_day=False, meal_type="S"):
     """
     Builds the payload (head and body) for the daily menu notification for a given school.
+
+    Args:
+        school: School instance
+        is_previous_day: If True, builds payload for tomorrow's menu
+        meal_type: Meal type code to filter by (default 'S' for Standard)
 
     Note: meals_for_today is a list (not QuerySet) after caching implementation.
     """
     now = timezone.now()
     logger.info(
         f"[Notification Debug] Building menu for school '{school.name}' (ID={school.id}), "
-        f"is_previous_day={is_previous_day}, current_time={now.isoformat()}, "
-        f"timezone={now.tzname()}"
+        f"is_previous_day={is_previous_day}, meal_type={meal_type}, "
+        f"current_time={now.isoformat()}, timezone={now.tzname()}"
     )
 
     if school.annual_menu:
@@ -44,6 +49,9 @@ def build_menu_notification_payload(school, is_previous_day=False):
         )
 
         _, meals_for_today = get_meals(school, season, week, day)
+
+    # Filter meals by the requested meal type
+    meals_for_today = [m for m in meals_for_today if m.type == meal_type]
 
     # meals_for_today is a list, check if it's not empty
     if not meals_for_today:

@@ -290,6 +290,21 @@ release-delete tag:
     echo "✓ Release {{tag}} deleted"
 
 ##########################################################################
+# Deployment
+##########################################################################
+
+# Deploy to production via Coolify webhook
+[group('deployment')]
+deploy:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    WEBHOOK_URL=$(grep "^COOLIFY_WEBHOOK_URL=" .env | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+    WEBHOOK_TOKEN=$(grep "^COOLIFY_WEBHOOK_TOKEN=" .env | cut -d'=' -f2 | tr -d '"' | tr -d "'")
+    echo "🚀 Deploying to production..."
+    curl -s -X GET "${WEBHOOK_URL}?token=${WEBHOOK_TOKEN}" | jq .
+    echo "✓ Deploy triggered"
+
+##########################################################################
 # Beans
 ##########################################################################
 

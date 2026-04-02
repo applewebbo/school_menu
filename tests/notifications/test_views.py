@@ -613,6 +613,28 @@ def test_change_school_form_hides_meal_type_when_no_alt_menus(client, school_fac
     assert isinstance(form.fields["meal_type"].widget, django_forms.HiddenInput)
 
 
+def test_change_school_form_shows_meal_type_choices_with_alt_menus(
+    client, school_factory
+):
+    """When school has alt menus, meal_type field should include all available choices."""
+    school = school_factory(
+        no_gluten=True, no_lactose=True, vegetarian=True, special=True
+    )
+    notification = AnonymousMenuNotification.objects.create(
+        school=school, subscription_info="test"
+    )
+    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    response = client.get(url)
+    assert response.status_code == 200
+    form = response.context["form"]
+    choice_values = [c[0] for c in form.fields["meal_type"].choices]
+    assert "S" in choice_values
+    assert "G" in choice_values
+    assert "L" in choice_values
+    assert "V" in choice_values
+    assert "P" in choice_values
+
+
 @patch(
     "notifications.views.async_task",
     side_effect=Exception("Unexpected error"),

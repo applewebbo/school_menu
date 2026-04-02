@@ -93,7 +93,7 @@ test *args:
 # Run fast tests (unit tests only, excludes performance)
 [group('utility')]
 ftest *args:
-    ENVIRONMENT=test uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst -m "not performance" {{ args }}
+    ENVIRONMENT=test uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst -m "not performance" -p no:benchmark {{ args }}
 
 
 # Run performance tests only

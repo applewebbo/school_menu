@@ -178,12 +178,14 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
     "dbbackup": {
-        "BACKEND": "storages.backends.dropbox.DropBoxStorage",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         "OPTIONS": {
-            "oauth2_access_token": env("DROPBOX_OAUTH2_ACCESS_TOKEN"),
-            "oauth2_refresh_token": env("DROPBOX_OAUTH2_REFRESH_TOKEN"),
-            "app_secret": env("DROPBOX_APP_SECRET"),
-            "app_key": env("DROPBOX_APP_KEY"),
+            "access_key": env("OVH_S3_ACCESS_KEY", default=""),
+            "secret_key": env("OVH_S3_SECRET_KEY", default=""),
+            "bucket_name": env("OVH_S3_BUCKET_NAME", default=""),
+            "endpoint_url": env("OVH_S3_ENDPOINT_URL", default=""),
+            "region_name": env("OVH_S3_REGION", default="eu-south-mil"),
+            "default_acl": "private",
         },
     },
 }

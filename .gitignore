@@ -1,3 +1,6 @@
+# Infrastructure files with secrets
+infra/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

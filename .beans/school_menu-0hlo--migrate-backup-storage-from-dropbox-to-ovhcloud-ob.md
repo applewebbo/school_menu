@@ -1,11 +1,11 @@
 ---
 # school_menu-0hlo
 title: Migrate backup storage from Dropbox to OVHcloud Object Storage
-status: in-progress
+status: completed
 type: task
 priority: high
 created_at: 2026-03-20T10:11:54Z
-updated_at: 2026-04-03T07:47:38Z
+updated_at: 2026-04-03T08:28:07Z
 ---
 
 Migrate django-dbbackup storage from Dropbox to OVHcloud Object Storage (S3-compatible). Server already on OVHcloud, same provider, EU data residency, no OAuth token expiry issues.
@@ -71,3 +71,7 @@ Target:
 - `django-storages` S3Boto3Storage requires `boto3` but NOT `s3transfer` extra if boto3 is installed separately
 - Set `default_acl` to `"private"` to prevent public access to backup files
 - `DBBACKUP_FILENAME_TEMPLATE` stays unchanged (MenuAppCloud-{datetime}.{extension})
+
+## Summary of Changes
+
+Replaced django-storages[dropbox] + dropbox package with boto3 + django-storages[s3]. Updated STORAGES config in settings.py to use S3Boto3Storage with OVHcloud Milan endpoint. Added OVH_S3_* vars to .env.example.

@@ -20,17 +20,13 @@ RUN apt-get update && \
     apt-get update && \
     # Install the rest of the packages
     apt-get install --no-install-recommends -y \
-    tmux \
+    supervisor \
     postgresql-client-16 \
     libpq-dev \
     unzip && \
     # Clean up to reduce image size
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-
-# Install Overmind
-RUN curl -L https://github.com/DarthSim/overmind/releases/download/v2.5.1/overmind-v2.5.1-linux-amd64.gz | gunzip > /usr/local/bin/overmind && \
-    chmod +x /usr/local/bin/overmind
 
 # Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \

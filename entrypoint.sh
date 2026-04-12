@@ -18,5 +18,5 @@ python manage.py tailwind build
 echo "Collecting static files..."
 python manage.py collectstatic --no-input
 
-echo "Starting overmind..."
-overmind start -r all
+echo "Starting supervisord..."
+supervisord -c /app/supervisord.conf

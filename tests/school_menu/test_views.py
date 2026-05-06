@@ -1057,7 +1057,9 @@ class CreateWeeklyMenuView(TestCase):
             vegetarian=False,
             special=False,
         )
-        SimpleMealFactory.create_batch(5, school=school, type=Meal.Types.STANDARD)
+        SimpleMealFactory.create_batch(
+            5, school=school, week=1, season=1, type=Meal.Types.STANDARD
+        )
 
         with self.login(user):
             response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")

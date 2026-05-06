@@ -1,0 +1,26 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block content %}
+<h1>Importa CSV per: {{ school.name }} ({{ school.city }})</h1>
+<p>Tipo menu: <strong>{{ school.get_menu_type_display }}</strong></p>
+
+{% if errors %}
+<ul class="messagelist">
+    {% for error in errors %}
+    <li class="error">{{ error }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <fieldset class="module aligned">
+        {{ form.as_p }}
+    </fieldset>
+    <div class="submit-row">
+        <input type="submit" value="Importa" class="default">
+        <a href="{% url 'admin:school_menu_school_changelist' %}" class="button cancel-link">Annulla</a>
+    </div>
+</form>
+{% endblock content %}

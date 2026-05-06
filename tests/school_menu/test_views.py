@@ -238,6 +238,29 @@ class GetMenuView(TestCase):
 
         self.response_200(response)
         assert response.context["meal"] == meal
+        assert "Spuntino Mattino" in response.content.decode()
+        assert "Merenda Pomeriggio" in response.content.decode()
+
+    def test_get_with_simple_menu_hides_snack_titles_when_empty(self):
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, season_choice=School.Seasons.PRIMAVERILE
+        )
+        SimpleMeal.objects.create(
+            school=school,
+            day=1,
+            week=1,
+            menu="Pasta al Pomodoro",
+            morning_snack="",
+            afternoon_snack="",
+            season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
+        )
+
+        response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
+
+        self.response_200(response)
+        assert "Spuntino Mattino" not in response.content.decode()
+        assert "Merenda Pomeriggio" not in response.content.decode()
 
     import time_machine
 

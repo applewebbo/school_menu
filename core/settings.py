@@ -315,6 +315,11 @@ CSP_FRAME_SRC = ("https://www.facebook.com",)
 # Report-only mode initially to avoid breaking existing functionality
 CSP_REPORT_ONLY = True
 
+# Trust the reverse proxy (Coolify) TLS termination so Django recognises
+# forwarded requests as HTTPS. Without this the CSRF Origin check compares the
+# browser's https Origin against an http scheme and rejects logins (#222).
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 
 # DEVELOPMENT SPECIFIC SETTINGS
 if ENVIRONMENT == "dev":

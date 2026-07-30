@@ -17,7 +17,7 @@ def contact(request):
         email = form.cleaned_data["email"]
         message = form.cleaned_data["message"]
         send_mail(
-            f"Contatto da {name} su menu.webbografico.com",
+            f"Contatto da {name} su menuscolastico.it",
             f"{message}\n\nRispondi a {email}",
             None,
             ["e.bonardi@me.com"],
@@ -48,7 +48,7 @@ def menu_report(request, school_id):
         else:
             message = f"{report.message}"
         send_mail(
-            f"Segnalazione ricevuta da {name} su menu.webbografico.com",
+            f"Segnalazione ricevuta da {name} su menuscolastico.it",
             message,
             None,
             [email],
@@ -86,7 +86,7 @@ def report_feedback(request, report_id):
     if form.is_valid():
         message = form.cleaned_data["message"]
         send_mail(
-            f"Risposta a segnalazione ricevuta da {report.name} su menu.webbografico.com",
+            f"Risposta a segnalazione ricevuta da {report.name} su menuscolastico.it",
             message,
             None,
             [report.email],

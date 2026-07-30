@@ -40,11 +40,11 @@ class Command(BaseCommand):
             )
 
         # Prepare and send result email
-        result_message = f"Controllo Utenti Inattivi su menu.webbografico.com\n\nUtenti totali: {total_users}\nUtenti cancellati: {deleted_count}\nUtenti avvisati: {notified_count}"
+        result_message = f"Controllo Utenti Inattivi su menuscolastico.it\n\nUtenti totali: {total_users}\nUtenti cancellati: {deleted_count}\nUtenti avvisati: {notified_count}"
         self.stdout.write(self.style.SUCCESS(result_message))
 
         send_mail(
-            "Controllo Utenti Inattivi su menu.webbografico.com",
+            "Controllo Utenti Inattivi su menuscolastico.it",
             result_message,
             settings.DEFAULT_FROM_EMAIL,
             [settings.ADMIN_EMAIL],

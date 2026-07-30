@@ -75,7 +75,7 @@ Custom skills available for common Django workflows. Use these for automated qua
 3. Fetches issue details to enrich release descriptions
 4. Merges to main with `--ff-only` (linear history)
 5. Creates tag and pushes to origin
-6. Creates Codeberg release with detailed, human-readable release notes
+6. Creates GitHub release with detailed, human-readable release notes
 7. Labels closed issues with release version
 8. Optionally creates next release branch
 
@@ -111,9 +111,9 @@ Custom skills available for common Django workflows. Use these for automated qua
 3. Cleans test artifacts (`htmlcov/`, `.pytest_cache/`, `.ruff_cache/`)
 4. Run tailwind-cleanup command to erase old tailwindcss files
 
-## Codeberg Issue Management
+## GitHub Issue Management
 
-Use `just` recipes to manage Codeberg issues without leaving the terminal:
+Use `just` recipes to manage GitHub issues without leaving the terminal (backed by the `gh` CLI):
 
 ```bash
 just issues              # List open issues
@@ -121,10 +121,9 @@ just issues closed       # List closed issues
 just issue 42            # Show issue details + comments
 just issue-create "Title" "Body"   # Create new issue
 just issue-comment 42 "text"       # Add comment
-just issue-check 42 "step text"    # Check off a task in issue body
 just issue-close 42                # Close issue
 just issue-reopen 42               # Reopen issue
-just issue-label 42 bug release    # Add labels
+just issue-label 42 bug            # Add a label
 ```
 
 ## Release Management
@@ -134,7 +133,7 @@ just release-list                          # List all releases
 just release-show v2026.1                  # Show release details
 just release-create v2026.1               # Create release from current tag
 just release-create v2026.1 v2025.4       # With explicit previous tag
-just release-create v2026.1 "" true       # Draft release
+just release-create v2026.1 "" true       # Pre-release
 just release-delete v2026.1               # Delete a release (caution!)
 ```
 
@@ -162,7 +161,7 @@ just beans_completed   # List completed beans
 ### Release Cycle
 ```bash
 /review      # Review branch changes
-/release     # Complete release workflow (merge, tag, Codeberg release)
+/release     # Complete release workflow (merge, tag, GitHub release)
 /deploy      # Deploy to production
 ```
 
@@ -182,6 +181,5 @@ just beans_completed   # List completed beans
 
 ## Setup
 
-1. Add `CODEBERG_API_TOKEN` to `.env` (see `.env.example`)
-2. The `bin/codeberg` script auto-detects the repository from git remote
-3. Requires `jq` and `curl` installed on the system
+1. Install and authenticate the GitHub CLI: `gh auth login` (needs `repo`, `workflow` scopes)
+2. Recipes target the repo explicitly via the `github_repo` justfile variable

@@ -60,7 +60,7 @@ dependencies = [
 ]
 name = "school_menu"
 requires-python = ">= 3.14"
-version = "2026.1.7"
+version = "2026.1.8"
 
 [tool.bandit]
 skips = ["B101", "B311"]

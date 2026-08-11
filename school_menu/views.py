@@ -501,7 +501,7 @@ def school_list(request: HttpRequest) -> HttpResponse:
 @login_required
 def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpResponse:
     """Upload weekly menu CSV file for school."""
-    school = get_object_or_404(School, pk=school_id)
+    school = get_object_or_404(School, pk=school_id, user=request.user)
     menu_type = school.menu_type
     active_menu = meal_type
     if request.method == "POST":
@@ -590,7 +590,7 @@ def upload_annual_menu(
     request: HttpRequest, school_id: int, meal_type: str
 ) -> HttpResponse:
     """Upload annual menu CSV file for school."""
-    school = get_object_or_404(School, pk=school_id)
+    school = get_object_or_404(School, pk=school_id, user=request.user)
     active_menu = meal_type
     if request.method == "POST":
         form = UploadAnnualMenuForm(request.POST, request.FILES)
@@ -652,7 +652,7 @@ def create_weekly_menu(
 ) -> HttpResponse:
     """Create or display weekly menu form for specific week and season."""
     qs = School.objects.all().select_related("user")
-    school = get_object_or_404(qs, pk=school_id)
+    school = get_object_or_404(qs, pk=school_id, user=request.user)
     menu_type = school.menu_type
     # check if the meal for the given week and season already exists
     if menu_type == School.Types.SIMPLE:
@@ -739,11 +739,12 @@ def search_schools(request: HttpRequest) -> HttpResponse:
     return TemplateResponse(request, template, context)
 
 
+@login_required
 def export_modal_view(
     request: HttpRequest, school_id: int, meal_type: str
 ) -> HttpResponse:
     """Display export modal with available seasons for school menu."""
-    school = get_object_or_404(School, pk=school_id)
+    school = get_object_or_404(School, pk=school_id, user=request.user)
     if school.annual_menu:
         model = AnnualMeal
         summer_meals = None
@@ -776,7 +777,7 @@ def export_menu(
     request: HttpRequest, school_id: int, season: str, meal_type: str
 ) -> HttpResponse:
     """Export school menu as CSV file for specified season and meal type."""
-    school = get_object_or_404(School, pk=school_id)
+    school = get_object_or_404(School, pk=school_id, user=request.user)
     if school.annual_menu:
         model = AnnualMeal
         resource = AnnualMenuExportResource()

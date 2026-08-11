@@ -1170,7 +1170,10 @@ class TestExportModalView(TestCase):
             5, school=school, season=SimpleMeal.Seasons.ESTIVO, type=Meal.Types.STANDARD
         )
 
-        response = self.get("school_menu:export_modal", school.pk, Meal.Types.STANDARD)
+        with self.login(user):
+            response = self.get(
+                "school_menu:export_modal", school.pk, Meal.Types.STANDARD
+            )
 
         self.response_200(response)
         assertTemplateUsed(response, "export-menu.html")
@@ -1187,7 +1190,10 @@ class TestExportModalView(TestCase):
             type=Meal.Types.STANDARD,
         )
 
-        response = self.get("school_menu:export_modal", school.pk, Meal.Types.STANDARD)
+        with self.login(user):
+            response = self.get(
+                "school_menu:export_modal", school.pk, Meal.Types.STANDARD
+            )
 
         self.response_200(response)
         assertTemplateUsed(response, "export-menu.html")
@@ -1203,7 +1209,10 @@ class TestExportModalView(TestCase):
             type=Meal.Types.STANDARD,
         )
 
-        response = self.get("school_menu:export_modal", school.pk, Meal.Types.STANDARD)
+        with self.login(user):
+            response = self.get(
+                "school_menu:export_modal", school.pk, Meal.Types.STANDARD
+            )
 
         self.response_200(response)
         assertTemplateUsed(response, "export-menu.html")
@@ -1385,3 +1394,80 @@ class TestMenuReportCountView(TestCase):
             response = self.get("school_menu:menu_report_count")
 
         self.response_200(response)
+
+
+class TestSchoolScopedViewsAuthorization(TestCase):
+    """School-scoped views must only be reachable by the school owner."""
+
+    def setUp(self):
+        self.owner = self.make_user("owner@test.com")
+        self.school = SchoolFactory(user=self.owner, menu_type=School.Types.SIMPLE)
+        self.intruder = self.make_user("intruder@test.com")
+
+    def test_upload_menu_denied_to_other_user(self):
+        with self.login(self.intruder):
+            response = self.get(
+                "school_menu:upload_menu", self.school.pk, Meal.Types.STANDARD
+            )
+
+        self.response_404(response)
+
+    def test_upload_menu_post_denied_to_other_user(self):
+        csv_content = (
+            b"giorno,settimana,pranzo,spuntino,merenda\nLunedi,1,Pasta,Mela,Pane\n"
+        )
+        file = SimpleUploadedFile("menu.csv", csv_content, content_type="text/csv")
+
+        with self.login(self.intruder):
+            response = self.post(
+                "school_menu:upload_menu",
+                self.school.pk,
+                Meal.Types.STANDARD,
+                data={"file": file, "season": School.Seasons.PRIMAVERILE},
+            )
+
+        self.response_404(response)
+        assert not SimpleMeal.objects.filter(school=self.school).exists()
+
+    def test_upload_annual_menu_denied_to_other_user(self):
+        with self.login(self.intruder):
+            response = self.get(
+                "school_menu:upload_annual_menu", self.school.pk, Meal.Types.STANDARD
+            )
+
+        self.response_404(response)
+
+    def test_create_weekly_menu_denied_to_other_user(self):
+        with self.login(self.intruder):
+            response = self.get(
+                "school_menu:create_weekly_menu", self.school.pk, 1, 1, "S"
+            )
+
+        self.response_404(response)
+        assert not SimpleMeal.objects.filter(school=self.school).exists()
+
+    def test_export_modal_denied_to_other_user(self):
+        with self.login(self.intruder):
+            response = self.get(
+                "school_menu:export_modal", self.school.pk, Meal.Types.STANDARD
+            )
+
+        self.response_404(response)
+
+    def test_export_modal_denied_to_anonymous(self):
+        response = self.get(
+            "school_menu:export_modal", self.school.pk, Meal.Types.STANDARD
+        )
+
+        self.response_302(response)
+
+    def test_export_menu_denied_to_other_user(self):
+        with self.login(self.intruder):
+            response = self.get(
+                "school_menu:export_menu",
+                school_id=self.school.pk,
+                season=SimpleMeal.Seasons.ESTIVO,
+                meal_type=Meal.Types.STANDARD,
+            )
+
+        self.response_404(response)

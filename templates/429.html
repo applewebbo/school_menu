@@ -5,13 +5,13 @@
 {% endblock page_title %}
 
 {% block content %}
-    <section class="flex items-center p-16 h-screen bg-base-100">
+    <section class="bg-base-100 flex h-screen items-center p-16">
         <div class="container flex flex-col items-center">
-            <div class="flex flex-col gap-2 max-w-md text-center md:gap-4">
-                <h1 class="text-5xl font-extrabold md:text-8xl text-secondary">
+            <div class="flex max-w-md flex-col gap-2 text-center md:gap-4">
+                <h1 class="text-secondary text-5xl font-extrabold md:text-8xl">
                     <span class="sr-only">Errore</span>429
                 </h1>
-                <p class="text-2xl leading-tight md:text-3xl text-pretty">Troppe richieste. Riprova tra qualche minuto.</p>
+                <p class="text-2xl leading-tight text-pretty md:text-3xl">Troppe richieste. Riprova tra qualche minuto.</p>
                 <a href="{% url 'school_menu:index' %}" class="link link-secondary">Ritorna alla Home</a>
             </div>
         </div>

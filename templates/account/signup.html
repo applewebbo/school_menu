@@ -5,8 +5,8 @@
 {% endblock page_title %}
 
 {% block content %}
-    <div class="my-8 mx-auto max-w-sm">
-        <h1 class="text-xl font-bold tracking-tight leading-tight text-center md:text-2xl text-base-content">
+    <div class="mx-auto my-8 max-w-sm">
+        <h1 class="text-base-content text-center text-xl leading-tight font-bold tracking-tight md:text-2xl">
             {% translate "Sign Up" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
@@ -16,13 +16,13 @@
             {% csrf_token %}
             <div>
                 <label for="{{ form.email.id_for_label }}"
-                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.email.label }}</label>
+                       class="text-base-content/90 mb-2 block text-sm font-bold">{{ form.email.label }}</label>
                 {{ form.email|add_class:"input w-full" }}
                 {{ form.email.errors }}
             </div>
             <div>
                 <label for="{{ form.password1.id_for_label }}"
-                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.password1.label }}</label>
+                       class="text-base-content/90 mb-2 block text-sm font-bold">{{ form.password1.label }}</label>
                 {{ form.password1|add_class:"input w-full" }}
                 {{ form.password1.errors }}
             </div>
@@ -31,7 +31,7 @@
                     {{ form.tc_agree|add_class:"checkbox" }}
                     {{ form.tc_agree.label }}
                 </label>
-                <div class="mt-1 text-xs text-base-content/70">{{ form.tc_agree.help_text|safe }}</div>
+                <div class="text-base-content/70 mt-1 text-xs">{{ form.tc_agree.help_text|safe }}</div>
                 {{ form.tc_agree.errors }}
             </div>
             {% if redirect_field_value %}
@@ -39,7 +39,7 @@
                        name="{{ redirect_field_name }}"
                        value="{{ redirect_field_value }}" />
             {% endif %}
-            <button class="mt-2 w-full btn btn-primary" type="submit">{% translate "Sign Up" %}</button>
+            <button class="btn btn-primary mt-2 w-full" type="submit">{% translate "Sign Up" %}</button>
             <p class="text-sm font-light text-gray-500 dark:text-gray-400">
                 {% blocktranslate %}Hai già un account? Allora puoi <a href="{{ login_url }}" class="link link-primary">entrare qui</a>{% endblocktranslate %}
             </p>

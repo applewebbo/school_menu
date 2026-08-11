@@ -1,8 +1,8 @@
 {% load crispy_forms_tags %}
 <section class="container mx-auto max-w-screen-lg" id="school">
-  <div class="px-4 mt-8">
-    <div class="block p-6 mt-6 rounded-lg border shadow bg-base-200 border-base-300">
-        <h5 class="mb-4 text-2xl font-bold tracking-tight text-base-content grow">Scuola</h5>
+  <div class="mt-8 px-4">
+    <div class="bg-base-200 border-base-300 mt-6 block rounded-lg border p-6 shadow">
+        <h5 class="text-base-content mb-4 grow text-2xl font-bold tracking-tight">Scuola</h5>
         <form hx-post="{% if create %} {% url 'school_menu:school_create' %} {% else %} {% url 'school_menu:school_update' %} {% endif %}"
               hx-target="#school"
               hx-swap="outerHTML"

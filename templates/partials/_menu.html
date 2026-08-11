@@ -16,7 +16,7 @@
                 {% endif %}
                 {% include 'partials/_types_menu.html' %}
             {% if not school.annual_menu %}
-            <div class="flex flex-col gap-1 justify-center items-center mt-4 md:flex-row md:gap-2 md:mt-8">
+            <div class="mt-4 flex flex-col items-center justify-center gap-1 md:mt-8 md:flex-row md:gap-2">
                 <div class="badge badge-secondary me-1">Settimana {{ week }}</div>
                 <div class="badge badge-primary me-1">
                     {% if meal.season == 2 %}
@@ -38,25 +38,25 @@
             {% if not_in_session %}
             {% include 'partials/_not_in_session.html' %}
             {% else %}
-            <img src="{% static 'img/calendar.png' %}" alt="" class="mx-auto mt-8 xl:mt-12 max-w-24">
-            <h1 class="pt-6 text-xl font-medium tracking-tight text-base-content">
+            <img src="{% static 'img/calendar.png' %}" alt="" class="mx-auto mt-8 max-w-24 xl:mt-12">
+            <h1 class="text-base-content pt-6 text-xl font-medium tracking-tight">
                 Nessun menù per il giorno selezionato
             </h1>
             {% endif %}
         {% endif %}
     </div>
-    <div class="mt-14 mb-8 divider">NOTIFICHE</div>
+    <div class="divider mt-14 mb-8">NOTIFICHE</div>
     <div id="notifications_status">
         {% include 'notifications/partials/school_notifications.html' %}
     </div>
-    <div class="mt-14 mb-8 divider">CONDIVIDI</div>
+    <div class="divider mt-14 mb-8">CONDIVIDI</div>
     <div id="share"
-         class="flex flex-col gap-3 justify-center mx-12 mt-4 mb-8 md:flex-row md:mx-0"
+         class="mx-12 mt-4 mb-8 flex flex-col justify-center gap-3 md:mx-0 md:flex-row"
          x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
         <!--   https://www.alpinejs.dev/component/tooltip -->
         <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
            x-tooltip="Condividi via email"
-           class="inline-flex items-center btn">
+           class="btn inline-flex items-center">
             {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-1" %}
             Email
         </a>
@@ -67,12 +67,12 @@
                 x-tooltip="Copia negli appunti"
                 x-clipboard="address"
                 @click="$clipboard(input)"
-                class="inline-flex items-center btn">
+                class="btn inline-flex items-center">
             {% heroicon_solid "clipboard-document-check" class="w-5 h-5 text-sky-500 me-1" %}
             Copia
         </button>
         <a href="{% url 'contacts:menu_report' school.pk %}"
-           class="inline-flex items-center btn"
+           class="btn inline-flex items-center"
            x-tooltip="Segnala un problema">
             {% heroicon_outline "exclamation-triangle" class="w-5 h-5 text-red-500 me-1" %}
             Segnala

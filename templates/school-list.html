@@ -6,16 +6,16 @@
 
 {% block content %}
 <div class="container mx-auto mb-8 max-w-screen-lg">
-    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-        <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Scuole</h1>
+    <div class="mx-auto grid max-w-screen-lg px-4 pt-8 pb-4 lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+        <h1 class="mb-4 text-center text-2xl font-semibold tracking-tight">Scuole</h1>
         <p class="text-base-content">
             Qui puoi vedere tutte le scuole e i relativi menu creati dai nostri utenti. Non siamo responsabili della correttezza dei menu pubblicati.
         </p>
-        <div class="grid grid-cols-1 gap-3 mx-auto max-w-screen-xl md:grid-cols-2 grid-cols">
+        <div class="mx-auto grid max-w-screen-xl grid-cols grid-cols-1 gap-3 md:grid-cols-2">
             <!-- School Search -->
             <div id="search" class="my-4 md:order-last">
-                <div class="flex items-center my-4 mx-auto max-w-sm">
-                    <label for="simple-search" class="relative input">
+                <div class="mx-auto my-4 flex max-w-sm items-center">
+                    <label for="simple-search" class="input relative">
                         <span class="sr-only">Cerca scuola o città</span>
                         {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-primary" %}
                         <input type="search"
@@ -31,7 +31,7 @@
                                 autocomplete="off"
                                 required />
                         <span id="spinner"
-                                class="absolute top-2 htmx-indicator loading loading-bars text-primary loading-md end-8">
+                                class="htmx-indicator loading loading-bars text-primary loading-md absolute end-8 top-2">
                         </span>
                     </label>
                 </div>
@@ -41,11 +41,11 @@
             <div id="school-list">
                 <ul class="md:mt-6">
                     {% if no_schools %}
-                        <p class="italic font-light text-error">Nessuna scuola soddisfa i criteri di ricerca...</p>
+                        <p class="text-error font-light italic">Nessuna scuola soddisfa i criteri di ricerca...</p>
                     {% else %}
                         {% for school in schools %}
                             <li class="mb-3">
-                                <a class="font-medium hover:underline text-base-content/90 underline-offset-2 hover:text-primary"
+                                <a class="text-base-content/90 hover:text-primary font-medium underline-offset-2 hover:underline"
                                     href="{{ school.get_absolute_url }}">{{ school.name }} ({{ school.city }})
                                     {% if index %}
                                         {% heroicon_solid 'arrow-right-circle' class="text-primary size-5 ms-2" %}

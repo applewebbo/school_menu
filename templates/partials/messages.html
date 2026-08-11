@@ -22,9 +22,9 @@
                     {% endif %}
                     <span class="sr-only">Info</span>
                 </div>
-                <div class="text-sm font-normal ms-3 me-1">{{ message|safe }}</div>
+                <div class="ms-3 me-1 text-sm font-normal">{{ message|safe }}</div>
                 <button type="button"
-                        class="bg-transparent border-0 shadow-none btn btn-sm"
+                        class="btn btn-sm border-0 bg-transparent shadow-none"
                         @click="show = !show"
                         aria-label="Close">
                     <span class="sr-only">Close</span>

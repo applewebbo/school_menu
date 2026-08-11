@@ -1,8 +1,8 @@
 {% extends "base-simplified.html" %}
 {% load account custom_form_tags i18n socialaccount static %}
 {% block content %}
-    <div class="my-8 mx-auto max-w-sm">
-        <h1 class="text-xl font-bold tracking-tight leading-tight text-center md:text-2xl text-base-content">
+    <div class="mx-auto my-8 max-w-sm">
+        <h1 class="text-base-content text-center text-xl leading-tight font-bold tracking-tight md:text-2xl">
             {% translate "Sign In" %}
         </h1>
         <form class="space-y-4 md:space-y-6"
@@ -11,13 +11,13 @@
             {% csrf_token %}
             <div>
                 <label for="{{ form.login.id_for_label }}"
-                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.login.label }}</label>
+                       class="text-base-content/90 mb-2 block text-sm font-bold">{{ form.login.label }}</label>
                 {{ form.login|add_class:"input w-full" }}
                 {{ form.login.errors }}
             </div>
             <div>
                 <label for="{{ form.password.id_for_label }}"
-                       class="block mb-2 text-sm font-bold text-base-content/90">{{ form.password.label }}</label>
+                       class="text-base-content/90 mb-2 block text-sm font-bold">{{ form.password.label }}</label>
                 {{ form.password|add_class:"input w-full" }}
                 {{ form.password.errors }}
             </div>
@@ -26,12 +26,12 @@
                        name="{{ redirect_field_name }}"
                        value="{{ redirect_field_value }}" />
             {% endif %}
-            <div class="mb-3 text-sm text-right">
+            <div class="mb-3 text-right text-sm">
                 <a href="{% url 'account_reset_password' %}"
                    class="link link-primary">{% translate "Forgot Password?" %}</a>
             </div>
-            <button type="submit" class="w-full btn btn-primary">{% translate "Sign In" %}</button>
-            <p class="text-sm font-light text-base-content/90">
+            <button type="submit" class="btn btn-primary w-full">{% translate "Sign In" %}</button>
+            <p class="text-base-content/90 text-sm font-light">
                 {% blocktranslate %}Non hai ancora un account?
     <a href="{{ signup_url }}" class="link link-primary">Registrati qui</a>{% endblocktranslate %}
             </p>

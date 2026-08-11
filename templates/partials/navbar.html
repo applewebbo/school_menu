@@ -1,11 +1,11 @@
 {% load active_link_tags heroicons static %}
 <div x-data="{ open: false }">
     <nav class="bg-base-100">
-        <div class="flex flex-wrap justify-between items-center p-4 mx-auto max-w-screen-lg">
+        <div class="mx-auto flex max-w-screen-lg flex-wrap items-center justify-between p-4">
             <a href="{% url 'school_menu:index' %}"
-               class="flex items-center space-x-3 rtl:space-x-reverse grow">
+               class="flex grow items-center space-x-3 rtl:space-x-reverse">
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo Menu Scolastico colorato">
-                <span class="self-center font-semibold tracking-tight whitespace-nowrap md:text-2xl text-base-content">Menu Scolastico</span>
+                <span class="text-base-content self-center font-semibold tracking-tight whitespace-nowrap md:text-2xl">Menu Scolastico</span>
             </a>
             <div class="flex items-end space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
                 {% if user.is_authenticated %}
@@ -13,7 +13,7 @@
                     <a href="{% url 'account_login' %}" class="btn btn-sm btn-primary">Entra</a>
                 {% endif %}
                 <button type="button"
-                        class="inline-flex justify-center items-center p-2 w-10 h-10 text-sm text-gray-500 rounded-lg md:hidden dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+                        class="inline-flex h-10 w-10 items-center justify-center rounded-lg p-2 text-sm text-gray-500 hover:bg-gray-100 md:hidden dark:text-gray-100 dark:hover:bg-gray-700"
                         aria-controls="navbar-cta"
                         aria-expanded="false"
                         x-on:click="open = ! open">
@@ -22,10 +22,10 @@
                     {% heroicon_outline "x-mark" x_show="open" %}
                 </button>
             </div>
-            <div class="hidden justify-between items-center w-full md:flex md:order-1 md:w-auto md:me-8"
+            <div class="hidden w-full items-center justify-between md:order-1 md:me-8 md:flex md:w-auto"
                  id="navbar-cta">
                  <!-- Menu Desktop -->
-                <ul class="flex flex-col p-4 mt-4 font-medium rounded-lg border border-gray-100 md:flex-row md:p-0 md:mt-0 md:space-x-5 md:border-0 rtl:space-x-reverse">
+                <ul class="mt-4 flex flex-col rounded-lg border border-gray-100 p-4 font-medium md:mt-0 md:flex-row md:space-x-5 md:border-0 md:p-0 rtl:space-x-reverse">
                     <li>
                         <a href="{% url 'school_menu:index' %}"
                            class="lg_menu_item {% active_link 'school_menu:index' css_class='lg_menu_active' strict=True %}">Home</a>
@@ -60,12 +60,12 @@
                 </ul>
             </div>
         </div>
-        <div class="justify-between items-center w-full md:hidden"
+        <div class="w-full items-center justify-between md:hidden"
              x-cloak
              x-show="open"
              x-collapse.duration.500>
              <!-- Menu Mobile -->
-            <ul class="flex flex-col gap-x-0 gap-y-2 p-4 px-5 text-base-content">
+            <ul class="text-base-content flex flex-col gap-x-0 gap-y-2 p-4 px-5">
                 <li>
                     <a href="{% url 'school_menu:index' %}"
                        class="mob_menu_item {% active_link 'school_menu:index' css_class='mob_menu_active' strict=True %}">Home</a>
@@ -92,7 +92,7 @@
                             {% csrf_token %}
                             <button type="submit"
                                     href="{% url 'account_logout' %}"
-                                    class="w-full text-left mob_menu_item">
+                                    class="mob_menu_item w-full text-left">
                                 Esci
                             </button>
                         </form>

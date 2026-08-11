@@ -12,23 +12,23 @@
 
 {% block content %}
     <div class="container mx-auto mb-8 max-w-screen-md">
-        <div class="grid px-4 pt-8 pb-4 mx-auto lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-            <h1 class="mb-4 text-xl font-semibold tracking-tight text-center md:text-2xl text-pretty">Impostazioni Notifiche Menù Giornaliero</h1>
-            <div class="py-3 px-5 mt-3 md:py-4 md:px-6"
+        <div class="mx-auto grid px-4 pt-8 pb-4 lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+            <h1 class="mb-4 text-center text-xl font-semibold tracking-tight text-pretty md:text-2xl">Impostazioni Notifiche Menù Giornaliero</h1>
+            <div class="mt-3 px-5 py-3 md:px-6 md:py-4"
                  x-data="pwaInstallPrompt()"
                  x-init="checkStandalone(); console.log('PWA Alpine state', {isStandalone, canPrompt, installMessage})">
                 {% include 'notifications/partials/pwa_install.html' %}
                 <template x-if="!isStandalone && !canPrompt && !unsupportedMessage">
-                    <div class="mt-4 alert x-cloak">
+                    <div class="alert x-cloak mt-4">
                         {% heroicon_solid 'information-circle' class="text-info size-7" %}
                         Hai già installato questo sito come web app? Aprila dal menu delle app, dal dock o dalla schermata home del tuo dispositivo.
                     </div>
                 </template>
                 <div x-show="isStandalone">
                     {% if notification.school %}
-                        <div class="mx-auto max-w-lg sm:border sm:border-gray-200 sm:shadow sm:card">
+                        <div class="sm:card mx-auto max-w-lg sm:border sm:border-gray-200 sm:shadow">
                             <div class="sm:card-body">
-                                <h2 class="mb-6 text-lg font-bold tracking-tight text-center sm:mb-8 md:text-xl md:text-left text-base-content">Gestisci le tue impostazioni</h2>
+                                <h2 class="text-base-content mb-6 text-center text-lg font-bold tracking-tight sm:mb-8 md:text-left md:text-xl">Gestisci le tue impostazioni</h2>
                                  <!-- NOTIFICATION SETTINGS START -->
                                 {% partialdef buttons inline %}
                                 <div id="notifications-buttons"
@@ -40,9 +40,9 @@
                                             <div class="mb-2">
                                                 <p class="mb-3 text-base/5">Stai ricevendo notifiche giornaliere (<strong>{{ notification.get_notification_time_display }}</strong>) del menu <strong>{{ notification.get_meal_type_display }}</strong> della scuola <strong>{{ notification.school.name }}</strong>.</p>
 
-                                                <p class="italic text-gray-500 text-sm/4">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu e l'orario in cui vuoi riceverla.</p>
+                                                <p class="text-sm/4 text-gray-500 italic">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu e l'orario in cui vuoi riceverla.</p>
                                             </div>
-                                            <button class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
+                                            <button class="btn btn-sm btn-primary btn-outline mt-3 flex items-center gap-2"
                                                     hx-get="{% url 'notifications:change_school' notification.pk %}"
                                                     hx-target="#school">
                                                 Modifica
@@ -54,12 +54,12 @@
                                         <li>
                                             <div class="mb-2">
                                                 <p class="mb-3 text-base/5">Ricevi una notifica di prova</p>
-                                                <p class="italic text-gray-500 text-sm/4">Clicca su test per ricevere una notifica di prova verificando la corretta configurazione del tuo dispositivo</p>
+                                                <p class="text-sm/4 text-gray-500 italic">Clicca su test per ricevere una notifica di prova verificando la corretta configurazione del tuo dispositivo</p>
                                             </div>
                                             <button hx-post="{% url 'notifications:test_notification' %}"
                                                         hx-target="#test-notification-result"
                                                         hx-swap="innerHTML"
-                                                        class="flex gap-2 items-center mt-3 btn btn-sm btn-primary btn-outline"
+                                                        class="btn btn-sm btn-primary btn-outline mt-3 flex items-center gap-2"
                                                         type="button">
                                                         Test
                                                         {% heroicon_outline 'paper-airplane' class="size-4" %}
@@ -69,10 +69,10 @@
                                         <li>
                                             <div class="mb-2">
                                                 <p class="mb-3 text-base/5">Notifiche abilitate</p>
-                                                <p class="italic text-gray-500 text-sm/4">Clicca su disabilita per disabilitare la ricezione delle notifiche sul tuo dispositivo</p>
+                                                <p class="text-sm/4 text-gray-500 italic">Clicca su disabilita per disabilitare la ricezione delle notifiche sul tuo dispositivo</p>
                                             </div>
                                         </li>
-                                        <button class="flex gap-2 items-center mt-3 btn btn-sm btn-error btn-outline"
+                                        <button class="btn btn-sm btn-error btn-outline mt-3 flex items-center gap-2"
                                                 hx-post="{% url 'notifications:delete_subscription' %}"
                                                 hx-target="#test-notification-result"
                                                 hx-swap="innerHTML">

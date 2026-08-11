@@ -1,23 +1,23 @@
 {% load filters heroicons %}
 <div class="modal-content">
-    <div class="flex justify-between items-center p-3 pb-4 rounded-t border-b md:p-4 dark:border-gray-600">
+    <div class="flex items-center justify-between rounded-t border-b p-3 pb-4 md:p-4 dark:border-gray-600">
         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Segnalazione da {{ report.name }}</h3>
         <button type="button"
-                class="inline-flex justify-center items-center w-8 h-8 text-sm text-gray-400 bg-transparent rounded-lg hover:text-gray-900 hover:bg-gray-200 ms-auto dark:hover:bg-gray-600 dark:hover:text-white"
+                class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
                 x-on:click="openModal = false">
             {% heroicon_solid 'x-mark' class="size-7" %}
             <span class="sr-only">Close modal</span>
         </button>
     </div>
-    <div class="overflow-x-auto m-4">
-        <div class="flex items-center p-4 my-4 text-sm text-blue-800 bg-blue-50 rounded-lg border border-blue-300 md:my-8"
+    <div class="m-4 overflow-x-auto">
+        <div class="my-4 flex items-center rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-800 md:my-8"
              role="alert">
             {% heroicon_solid 'envelope' class='inline flex-shrink-0 w-4 h-4 me-3' %}
             <span class="sr-only">Messaggio Ricevuto</span>
             <div>{{ report.message }}</div>
         </div>
-        <div id="actions" class="flex gap-2 justify-end items-center mb-4">
-            <button class="flex items-center btn btn-sm btn-default"
+        <div id="actions" class="mb-4 flex items-center justify-end gap-2">
+            <button class="btn btn-sm btn-default flex items-center"
                     hx-get="{% url 'contacts:report_list' %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"
@@ -32,7 +32,7 @@
                     {% if not report.get_notified %}disabled{% endif %}>
                 {% heroicon_outline 'envelope' class='size-5' %}Rispondi
             </button>
-            <button class="flex items-center btn btn-sm btn-error"
+            <button class="btn btn-sm btn-error flex items-center"
                     hx-post="{% url 'contacts:report_delete' report.pk %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"

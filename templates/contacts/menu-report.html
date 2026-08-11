@@ -2,8 +2,8 @@
 {% load crispy_forms_tags %}
 {% block content %}
     <section>
-        <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-lg lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-            <h1 class="mb-4 text-2xl font-semibold tracking-tight text-center">Segnalazione</h1>
+        <div class="mx-auto grid max-w-screen-lg px-4 pt-8 pb-4 lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+            <h1 class="mb-4 text-center text-2xl font-semibold tracking-tight">Segnalazione</h1>
             <p class="mb-4">
                 Compila il form sottostante per segnalare un errore sul menu della scuola <strong>{{ school.name }} ({{ school.city }})</strong>. Se desideri ricevere una risposta alla tua segnalazione spunta la casella "Voglio essere ricontattato" e inserisci un indirizzo email (il tuo indirizzo non verrà condiviso con il responsabile del menu e verrà eliminato automaticamente dopo 30 giorni).
             </p>
@@ -12,7 +12,7 @@
                 <div class="md:text-right">
                     <button type="submit"
                             name="submit"
-                            class="mt-2 w-full md:w-auto btn btn-sm btn-primary">
+                            class="btn btn-sm btn-primary mt-2 w-full md:w-auto">
                         Invia Messaggio
                     </button>
                 </div>

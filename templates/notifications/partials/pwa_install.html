@@ -1,16 +1,16 @@
 {% load heroicons %}
 <div class="my-4">
     <template x-if="!isStandalone">
-        <div class="flex flex-col gap-4 items-center">
+        <div class="flex flex-col items-center gap-4">
             <template x-if="unsupportedMessage">
-                <div class="my-4 text-center alert alert-warning"
+                <div class="alert alert-warning my-4 text-center"
                      x-text="unsupportedMessage"></div>
             </template>
             <div x-show="isIOS">
                 <p>
                     Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito alla tua schermata home:
                 </p>
-                <ol class="px-4 my-2 list-decimal list-inside md:px-8 md:my-4 text-base/8">
+                <ol class="my-2 list-inside list-decimal px-4 text-base/8 md:my-4 md:px-8">
                     <li>
                         apri il menu di condivisione {% heroicon_outline 'arrow-up-on-square' class="inline-block align-baseline size-5" %}
                     </li>
@@ -21,7 +21,7 @@
                 <p>
                     Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito al dock:
                 </p>
-                <ol class="px-4 my-2 list-decimal list-inside md:px-8 md:my-4 text-base/8">
+                <ol class="my-2 list-inside list-decimal px-4 text-base/8 md:my-4 md:px-8">
                     <li>
                         apri il menu di condivisione {% heroicon_outline 'arrow-up-on-square' class="inline-block align-baseline size-5" %}
                     </li>
@@ -32,7 +32,7 @@
                 <p>
                     Ricevi notifiche giornaliere sul menu della scuola selezionata in due semplici passaggi. Il primo è aggiungere questo sito al dock:
                 </p>
-                <ol class="px-4 my-2 list-decimal list-inside md:px-8 md:my-4 text-base/8">
+                <ol class="my-2 list-inside list-decimal px-4 text-base/8 md:my-4 md:px-8">
                     <li>
                         apri il menu di condivisione {% heroicon_outline 'ellipsis-vertical' class="inline-block align-baseline size-5" %}
                     </li>

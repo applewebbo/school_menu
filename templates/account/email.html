@@ -6,8 +6,8 @@
 
 {% block content %}
 <div class="container mx-auto mb-8 max-w-screen-lg">
-    <div class="grid px-4 pt-8 pb-4 mx-auto max-w-screen-xl lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
-        <div class="block p-6 mt-6 mb-8 bg-white rounded-lg border border-gray-200 shadow dark:bg-gray-800 dark:border-gray-700">
+    <div class="mx-auto grid max-w-screen-xl px-4 pt-8 pb-4 lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">
+        <div class="mt-6 mb-8 block rounded-lg border border-gray-200 bg-white p-6 shadow dark:border-gray-700 dark:bg-gray-800">
             {% element h1 %}
             {% translate "Email Addresses" %}
             {% endelement %}
@@ -23,7 +23,7 @@
             {% with emailaddress=radio.emailaddress %}
             {% element field type="radio" checked=radio.checked name="email" value=emailaddress.email id=radio.id class="radio radio-sm" %}
             {% slot label %}
-            <span class="font-medium text-base-content/90 me-4">{{ emailaddress.email }}</span>
+            <span class="text-base-content/90 me-4 font-medium">{{ emailaddress.email }}</span>
             {% if emailaddress.verified %}
             {% element badge tags="success,email,verified" class="badge-success" %}
             {% translate "Verified" %}
@@ -44,7 +44,7 @@
             {% endfor %}
             {% endslot %}
             {% slot actions %}
-            <div class="grid grid-cols-1 gap-2 mt-6 md:grid-cols-3">
+            <div class="mt-6 grid grid-cols-1 gap-2 md:grid-cols-3">
             {% element button type="submit" name="action_primary" class="btn btn-sm btn-outline btn-secondary me-2 dark:btn-soft" %}
             {% translate 'Make Primary' %}
             {% endelement %}

@@ -23,7 +23,6 @@ from contacts.models import MenuReport
 from notifications.tasks import _is_school_in_session
 from school_menu.cache import (
     get_cached_or_query,
-    invalidate_meal_cache,
     invalidate_school_cache,
 )
 from school_menu.forms import (
@@ -36,11 +35,8 @@ from school_menu.forms import (
 from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
 from school_menu.resources import (
     AnnualMenuExportResource,
-    AnnualMenuResource,
     DetailedMealExportResource,
-    DetailedMealResource,
     SimpleMealExportResource,
-    SimpleMealResource,
 )
 from school_menu.serializers import (
     AnnualMealSerializer,
@@ -48,11 +44,14 @@ from school_menu.serializers import (
     SchoolSerializer,
     SimpleMealSerializer,
 )
+from school_menu.services.menu_import import (
+    import_annual_dataset,
+    import_weekly_dataset,
+)
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
     detect_csv_format,
-    fill_missing_dates,
     get_adjusted_year,
     get_alt_menu,
     get_current_date,
@@ -509,10 +508,6 @@ def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpRes
         if form.is_valid():
             file = cast(UploadedFile, request.FILES["file"])
             season = form.cleaned_data["season"]
-            if menu_type == School.Types.SIMPLE:
-                resource = SimpleMealResource()
-            else:
-                resource = DetailedMealResource()
 
             # Load CSV dataset with error handling
             dataset, error_response = load_csv_dataset(file, request)
@@ -529,52 +524,7 @@ def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpRes
                     "error_message": message,
                 }
                 return TemplateResponse(request, "upload-menu.html", context)
-            result = resource.import_data(
-                filtered_dataset,
-                dry_run=True,
-                school=school,
-                season=season,
-                type=meal_type,
-            )
-            if not result.has_errors():  # pragma: no cover
-                result = resource.import_data(
-                    filtered_dataset,
-                    dry_run=False,
-                    school=school,
-                    season=season,
-                    type=meal_type,
-                )
-                # Explicitly invalidate cache after bulk import
-                # (django-import-export may use bulk_create which bypasses save())
-                invalidate_meal_cache(school.id)
-
-                # Audit log menu upload  # pragma: no cover
-                season_name = "Estivo" if season == 1 else "Invernale"
-                meal_type_choices = dict(Meal.Types.choices)
-                meal_type_name = meal_type_choices.get(meal_type, meal_type)
-                model_name = (
-                    "SimpleMeal" if menu_type == School.Types.SIMPLE else "DetailedMeal"
-                )
-                request.audit_log(
-                    action="MENU_UPLOAD",
-                    model_name=model_name,
-                    object_id=school.id,
-                    object_repr=f"{school.name} - {season_name} - {meal_type_name}",
-                    changes={"rows_imported": result.totals["new"]},
-                )
-
-                messages.add_message(
-                    request, messages.SUCCESS, "Menu caricato con successo"
-                )
-            else:  # pragma: no cover
-                logger.error(
-                    "Menu import failed with row errors: %s", result.row_errors()
-                )
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Qualcosa è andato storto..",
-                )
+            import_weekly_dataset(request, school, filtered_dataset, season, meal_type)
             request.session["active_menu"] = active_menu
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         context = {"form": form, "school": school, "active_menu": active_menu}
@@ -596,7 +546,6 @@ def upload_annual_menu(
         form = UploadAnnualMenuForm(request.POST, request.FILES)
         if form.is_valid():
             file = cast(UploadedFile, request.FILES["file"])
-            resource = AnnualMenuResource()
 
             # Load CSV dataset with error handling
             dataset, error_response = load_csv_dataset(file, request)
@@ -613,29 +562,7 @@ def upload_annual_menu(
                     "error_message": message,
                 }
                 return TemplateResponse(request, "upload-menu.html", context)
-            result = resource.import_data(
-                filtered_dataset, dry_run=True, school=school, type=meal_type
-            )
-            if not result.has_errors():  # pragma: no cover
-                result = resource.import_data(
-                    filtered_dataset, dry_run=False, school=school, type=meal_type
-                )
-                fill_missing_dates(school, meal_type)
-                # Explicitly invalidate cache after bulk import and fill_missing_dates
-                # (django-import-export may use bulk_create which bypasses save())
-                invalidate_meal_cache(school.id)
-                messages.add_message(
-                    request, messages.SUCCESS, "Menu caricato con successo"
-                )
-            else:  # pragma: no cover
-                logger.error(
-                    "Menu import failed with row errors: %s", result.row_errors()
-                )
-                messages.add_message(
-                    request,
-                    messages.ERROR,
-                    "Qualcosa è andato storto..",
-                )
+            import_annual_dataset(request, school, filtered_dataset, meal_type)
             request.session["active_menu"] = active_menu
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
         context = {"form": form, "school": school, "active_menu": active_menu}

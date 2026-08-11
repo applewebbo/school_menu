@@ -7,7 +7,14 @@ from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
 from contacts.models import MenuReport
-from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import (
+    AnnualMeal,
+    AuditLog,
+    DetailedMeal,
+    Meal,
+    School,
+    SimpleMeal,
+)
 from school_menu.test import TestCase
 from school_menu.utils import calculate_week, get_current_date, get_season
 from tests.school_menu.factories import (
@@ -897,6 +904,30 @@ class TestUploadAnnualMenuView(TestCase):
         assert response.status_code == 204
         assert "HX-Refresh" in response.headers
         assert AnnualMeal.objects.filter(school=school).count() == 1
+
+    def test_upload_annual_menu_is_audit_logged(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            url = reverse(
+                "school_menu:upload_annual_menu",
+                kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+            )
+            csv_content = "data,primo,secondo,contorno,frutta,altro\n01/01/2024,Pasta,Pollo,Insalata,Mela,Pane"
+            data = {
+                "file": SimpleUploadedFile(
+                    "annual_menu.csv",
+                    csv_content.encode("utf-8"),
+                    content_type="text/csv",
+                ),
+            }
+            self.post(url, data=data)
+
+        audit = AuditLog.objects.get(action=AuditLog.Actions.MENU_UPLOAD)
+        assert audit.user == user
+        assert audit.model_name == "AnnualMeal"
+        assert audit.changes["source"] == "csv"
 
     def test_upload_annual_menu_post_invalid_data(self):
         user = self.make_user()

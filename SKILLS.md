@@ -13,7 +13,7 @@ Custom skills available for common Django workflows. Use these for automated qua
 3. Detects dangerous operations (RenameField, RemoveField, AddField without default)
 4. Asks for confirmation before creating
 5. Creates migrations and re-runs tests to verify
-6. Reminds to commit migrations and update related beans
+6. Reminds to commit migrations and update related tasks
 
 ### `/check-all` - Comprehensive Health Check
 **Use when:** Before commits, before deployments, during code reviews
@@ -25,7 +25,7 @@ Custom skills available for common Django workflows. Use these for automated qua
 4. Security audit (`just secure`)
 5. Full test suite with 100% coverage (`just ftest`)
 6. Counts TODO/FIXME comments
-7. Lists open beans
+7. Lists open tasks
 
 **Output:** Health report with overall status (HEALTHY / NEEDS ATTENTION / FAILING)
 
@@ -137,11 +137,11 @@ just release-create v2026.1 "" true       # Pre-release
 just release-delete v2026.1               # Delete a release (caution!)
 ```
 
-## Beans Task Tracking
+## Task Tracking (taskdb)
 
 ```bash
-just beans             # List active beans (ready to work on)
-just beans_completed   # List completed beans
+just tasks-list        # List ready/in-progress tasks
+just tasks-done        # List completed tasks
 ```
 
 ## Recommended Workflows

@@ -242,15 +242,15 @@ deploy:
     echo "✓ Deploy triggered"
 
 ##########################################################################
-# Beans
+# Tasks
 ##########################################################################
 
-# List active beans (excludes completed and scrapped)
-[group('beans')]
-beans:
-    beans list --ready
+# List all ready/in-progress tasks
+[group('tasks')]
+tasks-list:
+    taskdb list
 
-# List completed beans
-[group('beans')]
-beans_completed:
-    beans list -s completed
+# List completed tasks
+[group('tasks')]
+tasks-done:
+    taskdb list --status done

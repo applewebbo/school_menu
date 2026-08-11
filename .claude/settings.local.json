@@ -15,12 +15,16 @@
       "Bash(just issues:*)",
       "Bash(just issue-*:*)",
       "Bash(just release-*:*)",
-      "Bash(just beans:*)",
+      "Bash(just tasks-*:*)",
       "Bash(uv add:*)",
-      "Bash(beans list:*)",
-      "Bash(beans update:*)",
-      "Bash(beans query:*)",
-      "Bash(beans create:*)"
+      "Bash(taskdb list:*)",
+      "Bash(taskdb view:*)",
+      "Bash(taskdb search:*)",
+      "Bash(taskdb update:*)",
+      "Bash(taskdb comment:*)",
+      "Bash(taskdb complete:*)",
+      "Bash(taskdb create:*)",
+      "WebFetch(domain:menuscolastico.it)"
     ],
     "deny": [],
     "ask": []

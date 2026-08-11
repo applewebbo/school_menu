@@ -402,9 +402,13 @@ elif ENVIRONMENT == "prod":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
-    # Short max-age as a reversible first step: HSTS cannot be revoked remotely.
-    # Raise to 31536000 with SECURE_HSTS_INCLUDE_SUBDOMAINS once verified in production (#230).
-    SECURE_HSTS_SECONDS = 3600
+    # Verified in production with a 1 hour max-age before raising it to a year (#230).
+    SECURE_HSTS_SECONDS = 31536000
+    # SECURE_HSTS_INCLUDE_SUBDOMAINS stays off on purpose: mail.menuscolastico.it (Aruba
+    # webmail) and admin.menuscolastico.it serve HTTP only — no TLS listener on port 443 —
+    # so including subdomains would make both unreachable from any browser that has visited
+    # the site. Revisit only if those hosts move to HTTPS. SECURE_HSTS_PRELOAD stays off too:
+    # removal from the browser preload list takes months.
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",

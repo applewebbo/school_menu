@@ -1,0 +1,1 @@
+../../all/00000/00005-raise-hsts-max-age-to-1-year-no-includesubdomains.md

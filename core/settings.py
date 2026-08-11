@@ -395,6 +395,16 @@ elif ENVIRONMENT == "prod":
     ALLOWED_HOSTS = env("ALLOWED_HOSTS")
     CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS").split(",")
     PREPEND_WWW = REDIRECT_WWW
+
+    # TRANSPORT SECURITY
+    # The Coolify proxy already redirects http -> https and terminates TLS
+    # (see SECURE_PROXY_SSL_HEADER above); these are defence in depth.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    # Short max-age as a reversible first step: HSTS cannot be revoked remotely.
+    # Raise to 31536000 with SECURE_HSTS_INCLUDE_SUBDOMAINS once verified in production (#230).
+    SECURE_HSTS_SECONDS = 3600
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",

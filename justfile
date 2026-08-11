@@ -67,6 +67,14 @@ crawl *args:
 makemigrations:
     uv run python manage.py makemigrations
 
+# Check for missing migrations in first-party apps only.
+# Third-party apps can carry upstream model/migration drift we cannot fix: django-webpush
+# 0.3.6 declares SubscriptionInfo.user_agent with blank=True but never shipped the matching
+# migration (a no-op AlterField), and the file would have to live in .venv, which uv sync recreates.
+[group('development')]
+check-migrations:
+    ENVIRONMENT=dev uv run python manage.py makemigrations --check --dry-run contacts django_scheduled_backups notifications school_menu users
+
 # Run database migrations
 [group('development')]
 migrate:

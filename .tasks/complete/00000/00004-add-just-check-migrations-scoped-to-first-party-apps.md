@@ -1,0 +1,1 @@
+../../all/00000/00004-add-just-check-migrations-scoped-to-first-party-apps.md

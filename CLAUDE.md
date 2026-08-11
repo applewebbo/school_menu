@@ -97,6 +97,8 @@ This project uses `just` (justfile) and `uv` for task management and dependency 
 ### Database
 - `just makemigrations` - Create database migrations
 - `just migrate` - Run database migrations
+- `just check-migrations` - Fail if a first-party app has a missing migration (scoped to our
+  apps: third-party packages can carry upstream drift we cannot fix)
 
 ### Internationalization
 - `just makemessages` - Update translation files

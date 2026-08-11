@@ -2389,7 +2389,7 @@ dependencies = [
 ]
 name = "school-menu"
 source = {virtual = "."}
-version = "2026.1.8"
+version = "2026.1.9"
 
 [package.dev-dependencies]
 dev = [

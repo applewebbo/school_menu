@@ -13,7 +13,53 @@ from school_menu.constants import (
     MAX_WEEK_NUMBER,
     MIN_WEEK_NUMBER,
 )
-from school_menu.models import School
+from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
+
+# CSV column -> model field, used to enforce max_length while validating. Neither SQLite
+# nor PostgreSQL enforces max_length on a TextField and django-import-export never calls
+# full_clean(), so an over-long cell would be persisted silently and only blow up later
+# when the value is edited through a form.
+SIMPLE_COLUMN_FIELDS = {
+    "pranzo": (SimpleMeal, "menu"),
+    "spuntino": (SimpleMeal, "morning_snack"),
+    "merenda": (SimpleMeal, "afternoon_snack"),
+}
+DETAILED_COLUMN_FIELDS = {
+    "primo": (DetailedMeal, "first_course"),
+    "secondo": (DetailedMeal, "second_course"),
+    "contorno": (DetailedMeal, "side_dish"),
+    "frutta": (DetailedMeal, "fruit"),
+    "spuntino": (DetailedMeal, "snack"),
+}
+# The annual columns are joined into a single AnnualMeal.menu, so the sum is what counts.
+ANNUAL_MENU_COLUMNS = ["primo", "secondo", "contorno", "frutta", "altro"]
+
+
+def validate_column_lengths(
+    dataset: Dataset, column_fields: dict[str, tuple[Any, str]]
+) -> str | None:
+    """
+    Check that no cell exceeds the max_length of the model field it maps to.
+
+    Args:
+        dataset: tablib Dataset to check
+        column_fields: Mapping of CSV column name to (model, field name)
+
+    Returns:
+        Error message for the first offending cell, None if every cell fits.
+        Row numbers refer to the file, where row 1 is the header.
+    """
+    for column, (model, field_name) in column_fields.items():
+        if column not in (dataset.headers or []):
+            continue
+        max_length = model._meta.get_field(field_name).max_length
+        for index, value in enumerate(dataset[column], start=2):
+            if value and len(str(value)) > max_length:
+                return (
+                    f'Formato non valido. La colonna "{column}" alla riga {index} supera '
+                    f"i {max_length} caratteri consentiti."
+                )
+    return None
 
 
 def detect_csv_format(content: str) -> tuple[str, str]:
@@ -271,6 +317,20 @@ def validate_dataset(
     if not all(MIN_WEEK_NUMBER <= week <= MAX_WEEK_NUMBER for week in weeks):
         validates = False
         message = f'Formato non valido. La colonna "settimana" contiene valori non compresi fra {MIN_WEEK_NUMBER} e {MAX_WEEK_NUMBER}.'
+        return validates, message, filtered_dataset
+
+    if not validates:
+        return validates, message, filtered_dataset
+
+    # check that no cell exceeds the max_length of the field it will be imported into
+    column_fields = (
+        SIMPLE_COLUMN_FIELDS
+        if menu_type == School.Types.SIMPLE
+        else DETAILED_COLUMN_FIELDS
+    )
+    length_message = validate_column_lengths(filtered_dataset, column_fields)
+    if length_message:
+        return False, length_message, filtered_dataset
 
     # if everything ok return validates = True and no message
     return validates, message, filtered_dataset
@@ -348,6 +408,20 @@ def validate_annual_dataset(dataset: Dataset) -> tuple[bool, str | None, Dataset
             validates = False
             message = 'Formato non valido. La colonna "data" contiene date in formato non valido. Usa il formato GG/MM/AAAA'
             return validates, message, filtered_dataset
+
+    # the menu columns are joined with newlines into AnnualMeal.menu, so check the total
+    max_length = AnnualMeal._meta.get_field("menu").max_length
+    columns = [
+        column for column in ANNUAL_MENU_COLUMNS if column in filtered_dataset.headers
+    ]
+    for index, row in enumerate(filtered_dataset.dict, start=2):
+        menu = "\n".join(str(row[column]) for column in columns if row[column])
+        if len(menu) > max_length:
+            message = (
+                f"Formato non valido. Il menu della riga {index} supera "
+                f"i {max_length} caratteri consentiti."
+            )
+            return False, message, filtered_dataset
 
     # if everything ok return validates = True and no message
     return validates, message, filtered_dataset

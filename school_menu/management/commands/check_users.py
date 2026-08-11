@@ -36,7 +36,6 @@ class Command(BaseCommand):
                 "Abbiamo notato che non hai effettuato nessuna attività sul nostro sito negli ultimi 12 mesi.\n Se intendi continuare ad utilizzare i nostri servizi, ti preghiamo di effettuare l'accesso al tuo account entro il prossimo mese.\n\nSe non intendi continuare ad utilizzare i nostri servizi, puoi cancellare il tuo account in qualsiasi momento.\n\nGrazie per aver utilizzato i nostri servizi.",
                 settings.DEFAULT_FROM_EMAIL,
                 [user.email],
-                fail_silently=False,
             )
 
         # Prepare and send result email
@@ -48,7 +47,6 @@ class Command(BaseCommand):
             result_message,
             settings.DEFAULT_FROM_EMAIL,
             [settings.ADMIN_EMAIL],
-            fail_silently=False,
         )
 
         self.stdout.write(self.style.SUCCESS("Results email sent to admin."))

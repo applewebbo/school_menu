@@ -159,7 +159,11 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
 # DJANGO_ANYMAIL
-EMAIL_BACKEND = "anymail.backends.mailgun.EmailBackend"
+MAILERS = {
+    "default": {
+        "BACKEND": "anymail.backends.mailgun.EmailBackend",
+    },
+}
 DEFAULT_FROM_EMAIL = "info@mg.webbografico.com"
 ADMIN_EMAIL = env("ADMIN_EMAIL")
 
@@ -502,7 +506,11 @@ elif ENVIRONMENT == "test":
         }
     }
     PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
-    EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    MAILERS = {
+        "default": {
+            "BACKEND": "django.core.mail.backends.locmem.EmailBackend",
+        },
+    }
     Q_CLUSTER = {
         "name": "school_menu",
         "workers": 1,
@@ -522,13 +530,5 @@ elif ENVIRONMENT == "test":
     SCHEDULED_BACKUPS = {
         "ENABLED": False,
     }
-
-    # NPLUSONE - N+1 query detection in tests
-    # Logs warnings for potential N+1 queries without failing tests
-    # This helps detect performance issues without false positives from intentional eager loading
-    MIDDLEWARE += ["nplusone.ext.django.NPlusOneMiddleware"]
-    NPLUSONE_RAISE = False  # Log warnings instead of raising exceptions
-    NPLUSONE_LOGGER = logging.getLogger("nplusone")
-    NPLUSONE_LOG_LEVEL = logging.WARNING
 
     logging.disable()

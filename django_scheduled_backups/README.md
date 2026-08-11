@@ -41,34 +41,26 @@ Add to your `settings.py`:
 SCHEDULED_BACKUPS = {
     # Enable/disable the backup system
     "ENABLED": True,
-
     # Email addresses to notify (falls back to ADMINS if not set)
     "NOTIFICATION_EMAILS": ["admin@example.com"],
-
     # Database backup configuration
     "DATABASE_BACKUP": {
         "enabled": True,
         "schedule": "0 2 * * *",  # Daily at 2 AM
     },
-
     # Media backup configuration
     "MEDIA_BACKUP": {
         "enabled": False,
         "schedule": "0 3 * * 0",  # Weekly on Sunday at 3 AM
     },
-
     # How many days to keep backup history records
     "HISTORY_RETENTION_DAYS": 90,
-
     # Send email on successful backup
     "EMAIL_ON_SUCCESS": True,
-
     # Send email on failed backup
     "EMAIL_ON_FAILURE": True,
-
     # Task queue backend: 'django_q' or 'celery'
     "TASK_QUEUE": "django_q",
-
     # Email subject prefix
     "EMAIL_SUBJECT_PREFIX": "[Backup]",
 }

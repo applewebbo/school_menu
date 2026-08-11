@@ -21,7 +21,6 @@ def contact(request):
             f"{message}\n\nRispondi a {email}",
             None,
             ["e.bonardi@me.com"],
-            fail_silently=False,
         )
         messages.add_message(
             request,
@@ -52,7 +51,6 @@ def menu_report(request, school_id):
             message,
             None,
             [email],
-            fail_silently=False,
         )
         messages.add_message(
             request,
@@ -90,7 +88,6 @@ def report_feedback(request, report_id):
             message,
             None,
             [report.email],
-            fail_silently=False,
         )
         messages.add_message(
             request,

@@ -46,7 +46,6 @@ This is an automated message from the Django Scheduled Backups system.
         mail_admins(
             subject=subject,
             message=message,
-            fail_silently=False,
         )
         logger.info(f"Success email sent for backup run #{backup_run.id}")
     except Exception as e:
@@ -89,7 +88,6 @@ This is an automated message from the Django Scheduled Backups system.
         mail_admins(
             subject=subject,
             message=message,
-            fail_silently=False,
         )
         logger.info(f"Failure email sent for backup run #{backup_run.id}")
     except Exception as e:

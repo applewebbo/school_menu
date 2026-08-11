@@ -282,6 +282,39 @@ INTERNAL_IPS = [
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
 APP_VERSION = "2026.1.9"
 
+# AI MENU IMPORT (#234)
+# The Gemini key belongs to the site, not to the user: quotas below are what keeps a
+# single account from burning the shared allowance. Everything is env-driven so moving
+# off the free tier, or switching model, needs no code change.
+GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
+# Pinned on purpose: the "-latest" aliases move to a new model without notice, which can
+# silently change both output quality and which tier the request falls under.
+GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.6-flash")
+# Swappable client, so tests inject a fake instead of mocking the SDK.
+AI_MENU_IMPORT_CLIENT = env(
+    "AI_MENU_IMPORT_CLIENT", default="school_menu.ai.client.GeminiClient"
+)
+AI_MENU_IMPORT_USER_DAILY_LIMIT = env.int("AI_MENU_IMPORT_USER_DAILY_LIMIT", default=3)
+# Deliberately below the model's requests-per-day so the user gets our Italian "limit
+# reached" message instead of a raw 429 from Google. Checked on 2026-08-11 in AI Studio:
+# the Flash models allow 20 RPD on the free tier, the Flash Lite ones 500. Re-check when
+# changing GEMINI_MODEL — the two settings only make sense together.
+AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT = env.int(
+    "AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT", default=18
+)
+AI_MENU_IMPORT_MAX_FILE_SIZE = env.int(
+    "AI_MENU_IMPORT_MAX_FILE_SIZE", default=10 * 1024 * 1024
+)
+AI_MENU_IMPORT_MAX_TEXT_CHARS = env.int("AI_MENU_IMPORT_MAX_TEXT_CHARS", default=40000)
+AI_MENU_IMPORT_HTTP_TIMEOUT = env.int("AI_MENU_IMPORT_HTTP_TIMEOUT", default=60)
+AI_MENU_IMPORT_MAX_RETRIES = env.int("AI_MENU_IMPORT_MAX_RETRIES", default=1)
+# Must stay below Q_CLUSTER["retry"], otherwise the broker redelivers a task that is
+# still running and the same file gets billed to Gemini twice.
+AI_MENU_IMPORT_TASK_TIMEOUT = env.int("AI_MENU_IMPORT_TASK_TIMEOUT", default=150)
+AI_MENU_IMPORT_DRAFT_RETENTION_DAYS = env.int(
+    "AI_MENU_IMPORT_DRAFT_RETENTION_DAYS", default=7
+)
+
 # DJANGO REST FRAMEWORK
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
@@ -361,7 +394,9 @@ if ENVIRONMENT == "dev":
         "name": "school_menu",
         "workers": 4,
         "timeout": 60,
-        "retry": 120,
+        # Must exceed the longest per-task timeout (AI_MENU_IMPORT_TASK_TIMEOUT), or the
+        # broker redelivers a task that is still running.
+        "retry": 300,
         "queue_limit": 50,
         "bulk": 10,
         "orm": "default",
@@ -434,7 +469,9 @@ elif ENVIRONMENT == "prod":
         "name": "school_menu",
         "workers": 4,
         "timeout": 60,
-        "retry": 120,
+        # Must exceed the longest per-task timeout (AI_MENU_IMPORT_TASK_TIMEOUT), or the
+        # broker redelivers a task that is still running.
+        "retry": 300,
         "queue_limit": 50,
         "bulk": 10,
         "orm": "default",
@@ -530,7 +567,9 @@ elif ENVIRONMENT == "test":
         "workers": 1,
         "sync": True,
         "timeout": 60,
-        "retry": 120,
+        # Must exceed the longest per-task timeout (AI_MENU_IMPORT_TASK_TIMEOUT), or the
+        # broker redelivers a task that is still running.
+        "retry": 300,
     }
 
     # CACHES - Use dummy cache in testing (no actual caching)

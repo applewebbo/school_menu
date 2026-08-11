@@ -56,7 +56,8 @@ dependencies = [
   "redis>=6.2.0",
   "croniter>=6.0.0",
   "django-active-link>=0.2.2",
-  "django-redis>=5.4.0"
+  "django-redis>=5.4.0",
+  "google-genai>=2.17.0"
 ]
 name = "school_menu"
 requires-python = ">= 3.14"

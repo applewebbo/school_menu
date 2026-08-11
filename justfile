@@ -18,7 +18,7 @@ github_repo := "applewebbo/school_menu"
 [group('setup')]
 @update_all: lock
     uv sync --all-extras --upgrade
-    uvx --with pre-commit-uv pre-commit autoupdate
+    uvx --with pre-commit-uv prek auto-update
 
 # Update a specific package
 [group('setup')]
@@ -57,6 +57,11 @@ fresh: clean install
     rm -f ./.overmind.sock
     uv run overmind start -r all -f ./Procfile.dev
 
+# Crawl the site for broken links / runtime errors (needs a populated dev DB)
+[group('development')]
+crawl *args:
+    ENVIRONMENT=dev uv run python manage.py crawl -v 2 {{ args }}
+
 # Create database migrations
 [group('development')]
 makemigrations:
@@ -93,9 +98,18 @@ test *args:
 
 
 # Run fast tests (unit tests only, excludes performance)
+# TEST_WORKERS controls parallelism (default 4; raise it for faster CI runs).
+# taskpolicy -b routes the xdist workers to the efficiency cores (background QoS) so the
+# performance cores stay free and the Mac remains responsive during the run.
 [group('utility')]
 ftest *args:
-    ENVIRONMENT=test uv run -m pytest -n 8 --reuse-db --dist loadscope --exitfirst -m "not performance" -p no:benchmark {{ args }}
+    taskpolicy -b nice -n 10 env ENVIRONMENT=test uv run pytest -n ${TEST_WORKERS:-4} --reuse-db --dist loadscope --exitfirst -m "not performance" -p no:benchmark {{ args }}
+
+
+# Run fast tests with coverage report (must reach 100%)
+[group('utility')]
+cov *args:
+    taskpolicy -b nice -n 10 env ENVIRONMENT=test uv run pytest -n ${TEST_WORKERS:-4} --reuse-db --dist loadscope --exitfirst -m "not performance" -p no:benchmark --cov=. --cov-report html:htmlcov --cov-report term:skip-covered --cov-fail-under 100 {{ args }}
 
 
 # Run performance tests only
@@ -110,12 +124,12 @@ perfbaseline:
     bash tests/performance/run_all_baselines.sh
 
 
-# Run Ruff linting and formatting
+# Run Ruff linting and formatting; niced to keep the machine responsive
 [group('utility')]
 lint:
-    uv run ruff check --fix --unsafe-fixes .
-    uv run ruff format .
-    @just _pre-commit run --all-files
+    nice -n 10 uv run ruff check --fix --unsafe-fixes .
+    nice -n 10 uv run ruff format .
+    @nice -n 10 just _pre-commit run --all-files
 
 # Run type checking with mypy
 [group('utility')]

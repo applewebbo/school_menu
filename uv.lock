@@ -586,6 +586,28 @@ wheels = [
 
 [[package]]
 dependencies = [
+  {name = "django"},
+  {name = "django-rich"},
+  {name = "rich"}
+]
+name = "django-crawl"
+sdist = {url = "https://files.pythonhosted.org/packages/9c/d4/dca82f9a5f52b2029c89065666e1e48fdb30ca12996d73a868d8fea51469/django_crawl-1.2.0.tar.gz", hash = "sha256:d524f6401cd09aa91c3b5b4a62edbc74e243886d136083ef196515c3a88f17b0", size = 86005, upload-time = "2026-07-27T21:16:57.729Z"}
+source = {registry = "https://pypi.org/simple"}
+version = "1.2.0"
+wheels = [
+  {url = "https://files.pythonhosted.org/packages/48/bf/1b79a527a1a700f6e5903a6d50948d402c234003b177c3acd12f1651be37/django_crawl-1.2.0-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:583c7a1190d812f231af4521e460d0d614e24a4c894066a28c41eb4066e48aad", size = 430299, upload-time = "2026-07-27T21:16:45.472Z"},
+  {url = "https://files.pythonhosted.org/packages/98/97/e097d12ce66f7375cde734a4736dfb54bc87a36e66746002f80f2882df1b/django_crawl-1.2.0-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:9f33bba4944d06f234f35cd63c2042ff1bcdacdaaa306cfd075b6657a098f7a1", size = 422300, upload-time = "2026-07-27T21:16:46.936Z"},
+  {url = "https://files.pythonhosted.org/packages/19/7a/7ef686779eb9fd5fb16763183aae261ea12fe25668283619e9f0d7d5bca0/django_crawl-1.2.0-cp310-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4164abede9f041ba295e7862132e5cd57a87273da99c24ca036549c90c7d7824", size = 475428, upload-time = "2026-07-27T21:16:48.333Z"},
+  {url = "https://files.pythonhosted.org/packages/e2/fa/94634c8005fe208a9579d68759c02834c7b69ce1b99c2dcf9191003fa6b1/django_crawl-1.2.0-cp310-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:7de4a6027c58d68ed1de017f37d6f46e6a655cc03d395d7a2d12054d188203e9", size = 462181, upload-time = "2026-07-27T21:16:49.557Z"},
+  {url = "https://files.pythonhosted.org/packages/22/5b/cdbfb47971f897852e5c6ac8ae44d58b12a888194f99f0c152b14594ea6a/django_crawl-1.2.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:634b3f11ff7977542eaef173d8c725d42f92a98533cced787273ddb6c430ae37", size = 464433, upload-time = "2026-07-27T21:16:50.993Z"},
+  {url = "https://files.pythonhosted.org/packages/42/3a/c36e27633982381d08297d9d1884d39e25a97286117f30c0d6e07aa19475/django_crawl-1.2.0-cp310-abi3-musllinux_1_1_aarch64.whl", hash = "sha256:08dd804cb062968c92d360c255c9c18534c629a6253223c369ff2bbf1d340d1a", size = 652918, upload-time = "2026-07-27T21:16:52.524Z"},
+  {url = "https://files.pythonhosted.org/packages/9b/cd/ad1ba64c2c8d6522c6bd3e828a7e3ba6a5f03a48fd28332f2fc8a59f56e6/django_crawl-1.2.0-cp310-abi3-musllinux_1_1_x86_64.whl", hash = "sha256:8f808131dcbd1bb8fa2eea632f6d61b977a455451ae14ae29751f36fbaab8023", size = 697147, upload-time = "2026-07-27T21:16:54.063Z"},
+  {url = "https://files.pythonhosted.org/packages/ae/18/05ccad9534049fd4dd644aa0bb5f81ac9ae0fab0199f5e3db3f344662d47/django_crawl-1.2.0-cp310-abi3-win_amd64.whl", hash = "sha256:c03e8a71173546fd99708f1825a6980e93453e8c722008b26df44a0934987a58", size = 369602, upload-time = "2026-07-27T21:16:55.372Z"},
+  {url = "https://files.pythonhosted.org/packages/e5/c6/82767c35aa45777f78b578b40aaddb344fe5e57016dd06e0cb0cc67cf93a/django_crawl-1.2.0-cp310-abi3-win_arm64.whl", hash = "sha256:bf862a853759b89a10ac3e17d0285bf2ef952b5cf13e2c5ce779fc23992fc96c", size = 363347, upload-time = "2026-07-27T21:16:56.52Z"}
+]
+
+[[package]]
+dependencies = [
   {name = "django"}
 ]
 name = "django-crispy-forms"
@@ -730,6 +752,19 @@ source = {registry = "https://pypi.org/simple"}
 version = "7.0.0"
 wheels = [
   {url = "https://files.pythonhosted.org/packages/7e/9f/09cdb9a1eebe8533b02a7694ca787acfc1e4d93b5b6175ff99366d4e6d64/django_redis-7.0.0-py3-none-any.whl", hash = "sha256:4b23aa6e0cd0937bb1242e9a463809e6004de3ca2150f34e986306bb6220d688", size = 38932, upload-time = "2026-06-02T14:17:47.281Z"}
+]
+
+[[package]]
+dependencies = [
+  {name = "django"},
+  {name = "rich"}
+]
+name = "django-rich"
+sdist = {url = "https://files.pythonhosted.org/packages/a6/67/e307a5fef657e7992468f567b521534c52e01bdda5a1ae5b12de679a670f/django_rich-2.2.0.tar.gz", hash = "sha256:ecec7842d040024ed8a225699388535e46b87277550c33f46193b52cece2f780", size = 62427, upload-time = "2025-09-18T11:42:17.182Z"}
+source = {registry = "https://pypi.org/simple"}
+version = "2.2.0"
+wheels = [
+  {url = "https://files.pythonhosted.org/packages/27/ed/23fa669493d78cd67e7f6734fa380f8690f2b4d75b4f72fd645a52c3b32a/django_rich-2.2.0-py3-none-any.whl", hash = "sha256:a0d2c916bd9750b6e9beb57407aef5e836c8705d7dbe9e4fd4725f7bbe41c407", size = 9210, upload-time = "2025-09-18T11:42:15.779Z"}
 ]
 
 [[package]]
@@ -2237,6 +2272,7 @@ version = "2026.1.8"
 [package.dev-dependencies]
 dev = [
   {name = "coverage"},
+  {name = "django-crawl"},
   {name = "django-silk"},
   {name = "django-stubs", extra = ["compatible-mypy"]},
   {name = "django-test-plus"},
@@ -2298,6 +2334,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
   {name = "coverage", specifier = ">=7.6.4"},
+  {name = "django-crawl", specifier = ">=1.1.0"},
   {name = "django-silk", specifier = ">=5.1.0"},
   {name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.9"},
   {name = "django-test-plus", specifier = ">=2.2.4"},

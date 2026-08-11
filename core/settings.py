@@ -335,6 +335,9 @@ if ENVIRONMENT == "dev":
         "localhost",
     ]
 
+    # DJANGO CRAWL - Site crawler for broken links / runtime errors (dev only)
+    INSTALLED_APPS += ["django_crawl"]
+
     # DJANGO SILK - Performance profiler (dev only)
     INSTALLED_APPS += ["silk"]
     MIDDLEWARE += ["silk.middleware.SilkyMiddleware"]

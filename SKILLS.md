@@ -23,7 +23,7 @@ Custom skills available for common Django workflows. Use these for automated qua
 2. Migration status verification
 3. Code quality check (`just lint`)
 4. Security audit (`just secure`)
-5. Full test suite with 100% coverage (`just ftest`)
+5. Full test suite with 100% coverage (`just cov`)
 6. Counts TODO/FIXME comments
 7. Lists open tasks
 

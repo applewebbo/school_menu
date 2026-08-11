@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 3. **Ask for GitHub issue number** - Always ask the user which issue number this work relates to
 4. **Make frequent commits** - Commit logical chunks of work to better track changes
 5. **Reference issues in commits** - Include `Fix #123` or `Related to #123` in commit messages
-6. **Test before committing** - Run `just ftest` to ensure 100% coverage before committing
+6. **Test before committing** - Run `just cov` to ensure 100% coverage before committing
 7. **Use rebase, not merge** - When ready to save changes to main: `git checkout main && git rebase feature-branch`
 8. **Verify coverage** - Always check that coverage remains at 100% before final commit to main
 
@@ -26,7 +26,7 @@ git add <files>
 git commit -m "descriptive message (for #123)"
 
 # 4. Before final commit, verify tests
-just ftest
+just cov
 
 # 5. Only use (fix #123) instead of (for #123)  on final commit
 
@@ -35,7 +35,7 @@ git checkout main
 git rebase feature/descriptive-name
 
 # 7. Verify everything still works
-just ftest
+just cov
 
 # 8. Push to remote
 git push origin main
@@ -107,7 +107,9 @@ This project uses `just` (justfile) and `uv` for task management and dependency 
 
 ### Testing & Quality
 - `just test [args]` - Run tests sequentially with pytest (useful for debugging, -s flag for print statements, -x to stop on first failure)
-- `just ftest [args]` - Run tests in parallel using 8 workers (faster, for CI/pre-commit)
+- `just ftest [args]` - Run tests in parallel (TEST_WORKERS, default 4; niced to the efficiency cores)
+- `just cov [args]` - Run tests in parallel with coverage report (must reach 100%)
+- `just crawl [args]` - Crawl the dev site for broken links / runtime errors
 - `just lint` - Run Ruff linting/formatting and all pre-commit hooks
 - `just secure` - Check for unsecured dependencies
 
@@ -294,4 +296,4 @@ Pre-commit hooks run automatically via `.pre-commit-config.yaml`:
 ## Documentation
 
 Use docstrings for all public functions, classes, and methods.
-- always use just ftest for checking coverage and running tests
+- always use just cov for checking coverage and just ftest for running tests

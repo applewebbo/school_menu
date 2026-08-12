@@ -11,6 +11,7 @@ in PENDING is a preview page that polls forever.
 import logging
 
 from django.conf import settings
+from django.core.management import call_command
 from django.utils import timezone
 from django_q.tasks import async_task
 
@@ -81,6 +82,17 @@ def process_menu_import_draft(draft_id):
         )
     finally:
         _discard_file(draft)
+
+
+def purge_menu_import_drafts():
+    """
+    Entry point for the scheduled retention run.
+
+    django-q schedules point at a dotted path, so the schedule targets this rather than
+    the management command: the command stays the manual, inspectable way in (it has
+    --dry-run), and the schedule keeps a stable path even if the command is renamed.
+    """
+    call_command("purge_menu_imports", verbosity=0)
 
 
 def queue_menu_import(draft):

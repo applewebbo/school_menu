@@ -324,6 +324,11 @@ AI_MENU_IMPORT_TASK_TIMEOUT = env.int("AI_MENU_IMPORT_TASK_TIMEOUT", default=150
 AI_MENU_IMPORT_DRAFT_RETENTION_DAYS = env.int(
     "AI_MENU_IMPORT_DRAFT_RETENTION_DAYS", default=7
 )
+# Cron for the retention run, applied by `manage.py setup_ai_import_schedule`. At night,
+# when deleting rows and files competes with nothing.
+AI_MENU_IMPORT_PURGE_SCHEDULE = env(
+    "AI_MENU_IMPORT_PURGE_SCHEDULE", default="30 3 * * *"
+)
 
 # DJANGO REST FRAMEWORK
 REST_FRAMEWORK = {

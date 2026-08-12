@@ -289,18 +289,23 @@ APP_VERSION = "2026.1.9"
 GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 # Pinned on purpose: the "-latest" aliases move to a new model without notice, which can
 # silently change both output quality and which tier the request falls under.
-GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.6-flash")
+# Flash Lite over Flash: 500 requests/day instead of 20 on the free tier, at the cost of
+# some extraction accuracy on messy PDFs. Volume matters more here because a user who has
+# to retry twice must not exhaust the whole site's daily allowance.
+GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.5-flash-lite")
 # Swappable client, so tests inject a fake instead of mocking the SDK.
 AI_MENU_IMPORT_CLIENT = env(
     "AI_MENU_IMPORT_CLIENT", default="school_menu.ai.client.GeminiClient"
 )
-AI_MENU_IMPORT_USER_DAILY_LIMIT = env.int("AI_MENU_IMPORT_USER_DAILY_LIMIT", default=3)
-# Deliberately below the model's requests-per-day so the user gets our Italian "limit
-# reached" message instead of a raw 429 from Google. Checked on 2026-08-11 in AI Studio:
-# the Flash models allow 20 RPD on the free tier, the Flash Lite ones 500. Re-check when
-# changing GEMINI_MODEL — the two settings only make sense together.
+# Generous per user: importing a menu is a rare, once-a-season act, and someone fighting
+# a badly formatted PDF needs room to retry rather than being locked out for the day.
+AI_MENU_IMPORT_USER_DAILY_LIMIT = env.int("AI_MENU_IMPORT_USER_DAILY_LIMIT", default=10)
+# Half the model's real allowance, so the user gets our Italian "limit reached" message
+# instead of a raw 429 from Google, and a runaway loop cannot drain the day. Checked on
+# 2026-08-11 in AI Studio: on the free tier the Flash Lite models allow 500 RPD, the full
+# Flash ones only 20. Re-check when changing GEMINI_MODEL — the two only make sense together.
 AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT = env.int(
-    "AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT", default=18
+    "AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT", default=250
 )
 AI_MENU_IMPORT_MAX_FILE_SIZE = env.int(
     "AI_MENU_IMPORT_MAX_FILE_SIZE", default=10 * 1024 * 1024

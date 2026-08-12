@@ -1,7 +1,9 @@
 import logging
 from datetime import date, datetime
+from functools import partial
 from typing import Any, cast
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
@@ -32,7 +34,14 @@ from school_menu.forms import (
     UploadAnnualMenuForm,
     UploadMenuForm,
 )
-from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import (
+    AnnualMeal,
+    DetailedMeal,
+    Meal,
+    MenuImportDraft,
+    School,
+    SimpleMeal,
+)
 from school_menu.resources import (
     AnnualMenuExportResource,
     DetailedMealExportResource,
@@ -44,6 +53,7 @@ from school_menu.serializers import (
     SchoolSerializer,
     SimpleMealSerializer,
 )
+from school_menu.services import ai_quota
 from school_menu.services.menu_import import (
     import_annual_dataset,
     import_weekly_dataset,
@@ -67,20 +77,21 @@ from school_menu.utils import (
 logger = logging.getLogger(__name__)
 
 
-def load_csv_dataset(
-    file: UploadedFile, request: HttpRequest
-) -> tuple[Dataset | None, HttpResponse | None]:
+def load_csv_dataset(file: UploadedFile) -> tuple[Dataset | None, str | None]:
     """
     Load and parse CSV file with error handling.
 
+    The error is returned as text rather than as a response: the caller decides how to
+    present it, because a file that cannot be parsed is also the moment the AI import is
+    offered as a way out.
+
     Args:
         file: Uploaded file object
-        request: Django request object (for adding error messages)
 
     Returns:
-        tuple: (dataset, error_response) where:
+        tuple: (dataset, error_message) where:
             - dataset is the loaded Dataset object (or None if error)
-            - error_response is HttpResponse with error (or None if success)
+            - error_message is the reason it could not be read (or None on success)
     """
     dataset = Dataset()
     try:
@@ -92,35 +103,69 @@ def load_csv_dataset(
         dataset.load(content, format="csv", delimiter=delimiter, quotechar=quotechar)
         return dataset, None
     except InvalidDimensions as e:
-        messages.add_message(
-            request,
-            messages.ERROR,
-            f"Il file CSV non è valido. Impossibile riconoscere il formato (virgola o punto e virgola). Errore: {str(e)}",
+        return None, (
+            "Il file CSV non è valido. Impossibile riconoscere il formato "
+            f"(virgola o punto e virgola). Errore: {str(e)}"
         )
-        return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
     except ValueError as e:
         # ValueError often indicates quote-related parsing errors
         error_str = str(e).lower()
         if "quote" in error_str or "delimiter" in error_str:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                f"Il file CSV contiene virgolette o delimitatori non validi. Verifica che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}",
+            return None, (
+                "Il file CSV contiene virgolette o delimitatori non validi. Verifica "
+                f"che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}"
             )
-        else:
-            messages.add_message(
-                request,
-                messages.ERROR,
-                f"Il file CSV non è valido. Errore: {str(e)}",
-            )
-        return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
+        return None, f"Il file CSV non è valido. Errore: {str(e)}"
     except Exception as e:
-        messages.add_message(
-            request,
-            messages.ERROR,
-            f"Errore durante la lettura del file CSV. Verifica il formato del file. Errore: {str(e)}",
+        return None, (
+            "Errore durante la lettura del file CSV. Verifica il formato del file. "
+            f"Errore: {str(e)}"
         )
-        return None, HttpResponse(status=204, headers={"HX-Trigger": "menuUploadError"})
+
+
+def offer_ai_import(
+    request: HttpRequest,
+    school: School,
+    file: UploadedFile,
+    *,
+    form: Any,
+    active_menu: str,
+    season: Any = None,
+    error_message: str = "",
+) -> HttpResponse:
+    """
+    Keep the file the user already uploaded and propose the AI as a way forward.
+
+    Re-uploading is the friction this feature exists to remove, so the file is stored on
+    a draft and the user only has to click. With the AI unavailable the same template
+    simply reports the error, exactly as before.
+    """
+    context = {
+        "form": form,
+        "school": school,
+        "active_menu": active_menu,
+        "error_message": error_message,
+    }
+    if settings.AI_MENU_IMPORT_ENABLED:
+        # One offer at a time per school, otherwise every failed attempt leaves another
+        # uploaded file behind.
+        MenuImportDraft.objects.filter(
+            school=school, status=MenuImportDraft.Status.OFFERED
+        ).delete()
+        draft = MenuImportDraft.objects.create(
+            school=school,
+            user=request.user,
+            kind=MenuImportDraft.kind_from_school(school),
+            meal_type=active_menu,
+            season=season or None,
+            source_filename=file.name,
+            source_size=file.size,
+        )
+        file.seek(0)
+        draft.source_file.save(file.name, file, save=True)
+        context["ai_draft"] = draft
+        context["ai_remaining"] = ai_quota.remaining(request.user)
+    return TemplateResponse(request, "upload-menu.html", context)
 
 
 def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, Any]:
@@ -509,21 +554,27 @@ def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpRes
             file = cast(UploadedFile, request.FILES["file"])
             season = form.cleaned_data["season"]
 
+            offer = partial(
+                offer_ai_import,
+                request,
+                school,
+                file,
+                form=form,
+                active_menu=active_menu,
+                season=season,
+            )
+            if not file.name.lower().endswith(".csv"):
+                # Nothing to validate: this format exists only because the AI can read it.
+                return offer()
             # Load CSV dataset with error handling
-            dataset, error_response = load_csv_dataset(file, request)
-            if error_response:
-                return error_response
+            dataset, error_message = load_csv_dataset(file)
+            if error_message:
+                return offer(error_message=error_message)
             # Validate and filter dataset (removes unnamed and extra columns)
             # This allows CSVs with trailing commas or additional columns to work correctly
             validates, message, filtered_dataset = validate_dataset(dataset, menu_type)
             if not validates:
-                context = {
-                    "form": form,
-                    "school": school,
-                    "active_menu": active_menu,
-                    "error_message": message,
-                }
-                return TemplateResponse(request, "upload-menu.html", context)
+                return offer(error_message=message)
             import_weekly_dataset(request, school, filtered_dataset, season, meal_type)
             request.session["active_menu"] = active_menu
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})
@@ -547,21 +598,26 @@ def upload_annual_menu(
         if form.is_valid():
             file = cast(UploadedFile, request.FILES["file"])
 
+            offer = partial(
+                offer_ai_import,
+                request,
+                school,
+                file,
+                form=form,
+                active_menu=active_menu,
+            )
+            if not file.name.lower().endswith(".csv"):
+                # Nothing to validate: this format exists only because the AI can read it.
+                return offer()
             # Load CSV dataset with error handling
-            dataset, error_response = load_csv_dataset(file, request)
-            if error_response:
-                return error_response
+            dataset, error_message = load_csv_dataset(file)
+            if error_message:
+                return offer(error_message=error_message)
             # Validate and filter dataset (removes unnamed and extra columns)
             # This allows CSVs with trailing commas or additional columns to work correctly
             validates, message, filtered_dataset = validate_annual_dataset(dataset)
             if not validates:
-                context = {
-                    "form": form,
-                    "school": school,
-                    "active_menu": active_menu,
-                    "error_message": message,
-                }
-                return TemplateResponse(request, "upload-menu.html", context)
+                return offer(error_message=message)
             import_annual_dataset(request, school, filtered_dataset, meal_type)
             request.session["active_menu"] = active_menu
             return HttpResponse(status=204, headers={"HX-Refresh": "true"})

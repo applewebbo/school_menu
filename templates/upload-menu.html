@@ -27,6 +27,9 @@
                 <p class="text-sm italic">{{ error_message }}</p>
             </div>
         {% endif %}
+        {% if ai_draft %}
+            {% include "partials/ai-import-status.html" with draft=ai_draft remaining=ai_remaining %}
+        {% endif %}
     </div>
     <div class="px-5 pb-3 text-right md:px-6 md:pb-4">
         <button type="submit" id="form-submit" class="btn btn-primary mr-2">Salva</button>

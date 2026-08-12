@@ -1,0 +1,49 @@
+{% load heroicons %}
+<div id="ai-import-status" class="mt-4">
+    {% if quota_message %}
+        <div class="rounded-lg bg-amber-100 px-6 py-3 text-center text-amber-800">
+            <p class="text-sm italic">{{ quota_message }}</p>
+        </div>
+    {% elif draft.status == "PENDING" %}
+        {# Polling stops on its own: the next status that is not PENDING renders without hx-get. #}
+        <div class="bg-base-200 flex items-center justify-center gap-3 rounded-lg px-6 py-4"
+             hx-get="{% url 'school_menu:ai_import_status' draft.pk %}"
+             hx-trigger="load delay:2s"
+             hx-target="#ai-import-status"
+             hx-swap="outerHTML">
+            <span class="loading loading-bars loading-md text-primary"></span>
+            <span class="text-sm italic">Sto leggendo il file, ci vuole qualche secondo...</span>
+        </div>
+    {% elif draft.status == "READY" %}
+        <div class="rounded-lg bg-green-100 px-6 py-4 text-center text-green-800">
+            <p class="mb-3 text-sm italic">
+                Ho letto {{ draft.rows|length }} righe. Controllale prima di salvare.
+            </p>
+            <a href="{% url 'school_menu:ai_import_preview' draft.pk %}"
+               class="btn btn-primary btn-sm">
+                Rivedi il menu
+                {% heroicon_solid 'arrow-right' class="size-4 ms-2" %}
+            </a>
+        </div>
+    {% elif draft.status == "FAILED" %}
+        <div class="rounded-lg bg-red-100 px-6 py-3 text-center text-red-700">
+            <p class="text-sm italic">{{ draft.error_message }}</p>
+        </div>
+    {% else %}
+        <div class="text-center">
+            <p class="mb-3 text-sm italic">
+                Non riesco a leggere questo file. Posso provare a interpretarlo con l'assistente:
+                controllerai il risultato prima di salvarlo.
+            </p>
+            <button type="button"
+                    class="btn btn-secondary btn-sm"
+                    hx-post="{% url 'school_menu:ai_import_start' draft.pk %}"
+                    hx-target="#ai-import-status"
+                    hx-swap="outerHTML">
+                {% heroicon_solid 'sparkles' class="size-4 me-2" %}
+                Interpreta con l'assistente
+            </button>
+            <p class="mt-2 text-xs italic opacity-70">Ti restano {{ remaining }} tentativi oggi</p>
+        </div>
+    {% endif %}
+</div>

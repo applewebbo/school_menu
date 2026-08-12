@@ -293,6 +293,11 @@ GEMINI_API_KEY = env("GEMINI_API_KEY", default="")
 # some extraction accuracy on messy PDFs. Volume matters more here because a user who has
 # to retry twice must not exhaust the whole site's daily allowance.
 GEMINI_MODEL = env("GEMINI_MODEL", default="gemini-3.5-flash-lite")
+# Without a key nothing can be extracted, so the fallback is never offered: proposing a
+# button that always fails is worse than showing only the CSV instructions.
+AI_MENU_IMPORT_ENABLED = env.bool(
+    "AI_MENU_IMPORT_ENABLED", default=bool(GEMINI_API_KEY)
+)
 # Swappable client, so tests inject a fake instead of mocking the SDK.
 AI_MENU_IMPORT_CLIENT = env(
     "AI_MENU_IMPORT_CLIENT", default="school_menu.ai.client.GeminiClient"
@@ -562,6 +567,10 @@ elif ENVIRONMENT == "test":
         }
     }
     PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
+    # Off unless a test opts in, otherwise the suite would behave differently depending
+    # on whether the developer running it happens to have a Gemini key in their .env.
+    AI_MENU_IMPORT_ENABLED = False
+    GEMINI_API_KEY = ""
     MAILERS = {
         "default": {
             "BACKEND": "django.core.mail.backends.locmem.EmailBackend",

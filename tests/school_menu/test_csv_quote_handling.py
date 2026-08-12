@@ -281,12 +281,9 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = InvalidDimensions("CSV structure is invalid")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert "Impossibile riconoscere il formato" in messages[0].message
+        # The error is now rendered in the modal, alongside the AI import offer
+        assert response.status_code == 200
+        self.assertContains(response, "Impossibile riconoscere il formato")
 
     def test_upload_csv_with_value_error(self):
         """Test that ValueError during CSV parsing is handled gracefully"""
@@ -317,15 +314,8 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = ValueError("Invalid quote character in CSV")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert (
-            "virgolette" in messages[0].message
-            or "quote" in messages[0].message.lower()
-        )
+        assert response.status_code == 200
+        self.assertContains(response, "virgolette")
 
     def test_upload_csv_with_generic_value_error(self):
         """Test that generic ValueError is handled gracefully"""
@@ -354,12 +344,8 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = ValueError("Some other parsing error")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert "Il file CSV non è valido" in messages[0].message
+        assert response.status_code == 200
+        self.assertContains(response, "Il file CSV non è valido")
 
     def test_upload_csv_with_generic_exception(self):
         """Test that generic exceptions are handled gracefully"""
@@ -388,12 +374,8 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = RuntimeError("Unexpected error")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert "Errore durante la lettura" in messages[0].message
+        assert response.status_code == 200
+        self.assertContains(response, "Errore durante la lettura")
 
     def test_upload_annual_csv_with_invalid_dimensions(self):
         """Test InvalidDimensions handling for annual menu upload"""
@@ -423,12 +405,9 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = InvalidDimensions("CSV structure is invalid")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert "Impossibile riconoscere il formato" in messages[0].message
+        # The error is now rendered in the modal, alongside the AI import offer
+        assert response.status_code == 200
+        self.assertContains(response, "Impossibile riconoscere il formato")
 
     def test_upload_annual_csv_with_value_error(self):
         """Test ValueError handling for annual menu upload"""
@@ -456,14 +435,8 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = ValueError("Invalid delimiter in CSV")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert (
-            "virgolette" in messages[0].message or "delimitatori" in messages[0].message
-        )
+        assert response.status_code == 200
+        self.assertContains(response, "virgolette")
 
     def test_upload_annual_csv_with_generic_value_error(self):
         """Test generic ValueError handling for annual menu upload"""
@@ -491,12 +464,8 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = ValueError("Some other parsing error")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert "Il file CSV non è valido" in messages[0].message
+        assert response.status_code == 200
+        self.assertContains(response, "Il file CSV non è valido")
 
     def test_upload_annual_csv_with_generic_exception(self):
         """Test generic exception handling for annual menu upload"""
@@ -524,12 +493,8 @@ Lunedi,1,Pasta,Yogurt,Mela
                 mock_load.side_effect = RuntimeError("Unexpected error")
                 response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        from django.contrib.messages import get_messages
-
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        assert "Errore durante la lettura" in messages[0].message
+        assert response.status_code == 200
+        self.assertContains(response, "Errore durante la lettura")
 
 
 class TestCSVAnnualMenuQuoteHandling(TestPlusTestCase):

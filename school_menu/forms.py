@@ -1,11 +1,55 @@
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import HTML, Button, Div, Field, Fieldset, Layout, Submit
 from django import forms
+from django.conf import settings
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
+from school_menu.ai.normalise import (
+    ANNUAL_MENU_MAX_LENGTH,
+    COURSE_MAX_LENGTH,
+    DATE_FORMAT,
+    MAX_WEEK,
+    MENU_MAX_LENGTH,
+    MIN_WEEK,
+    SNACK_MAX_LENGTH,
+    WEEKDAYS,
+)
+from school_menu.models import (
+    DetailedMeal,
+    Meal,
+    MenuImportDraft,
+    School,
+    SimpleMeal,
+)
+
+# Only CSV goes through the classic validation; the others exist so a file the user
+# already has can be handed to the AI instead of being retyped by hand.
+CSV_EXTENSION = "csv"
+AI_EXTENSIONS = ["pdf", "xlsx"]
+
+
+def allowed_upload_extensions():
+    """CSV always; the AI formats only while the import is actually available."""
+    if settings.AI_MENU_IMPORT_ENABLED:
+        return [CSV_EXTENSION, *AI_EXTENSIONS]
+    return [CSV_EXTENSION]
+
+
+def validate_menu_upload(file):
+    """Refuse anything we could not read, before it costs a request or a quota slot."""
+    _, _, extension = file.name.rpartition(".")
+    allowed = allowed_upload_extensions()
+    if extension.lower() not in allowed:
+        formats = ", ".join(allowed)
+        raise forms.ValidationError(f"Il file deve essere in formato {formats}")
+    max_size = settings.AI_MENU_IMPORT_MAX_FILE_SIZE
+    if file.size > max_size:
+        raise forms.ValidationError(
+            f"Il file non può superare i {max_size // (1024 * 1024)} MB"
+        )
+    return file
 
 
 class SchoolForm(forms.ModelForm):
@@ -186,11 +230,7 @@ class UploadMenuForm(forms.Form):
     file = forms.FileField(label="Carica Menu")
 
     def clean_file(self):
-        file = self.cleaned_data.get("file")
-        ext = file.name.split(".")[-1].lower()
-        if ext not in ["csv"]:
-            raise forms.ValidationError("Il file deve essere in formato csv")
-        return file
+        return validate_menu_upload(self.cleaned_data.get("file"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -202,7 +242,7 @@ class UploadMenuForm(forms.Form):
                 Field(
                     "file",
                     css_class="file-input file-input-sm file-input-bordered mb-2",
-                    accept=".csv",
+                    accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
                 ),
                 Div(
                     css_id="spinner",
@@ -217,11 +257,7 @@ class UploadAnnualMenuForm(forms.Form):
     file = forms.FileField(label="Carica Menu")
 
     def clean_file(self):
-        file = self.cleaned_data.get("file")
-        ext = file.name.split(".")[-1].lower()
-        if ext not in ["csv"]:
-            raise forms.ValidationError("Il file deve essere in formato csv")
-        return file
+        return validate_menu_upload(self.cleaned_data.get("file"))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -232,7 +268,7 @@ class UploadAnnualMenuForm(forms.Form):
                 Field(
                     "file",
                     css_class="file-input file-input-sm file-input-bordered mb-2",
-                    accept=".csv",
+                    accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
                 ),
                 Div(
                     css_id="spinner",
@@ -299,3 +335,80 @@ class DetailedMealForm(forms.ModelForm):
             "fruit",
             "snack",
         )
+
+
+# ---------------------------------------------------------------------------
+# AI menu import (#234)
+# ---------------------------------------------------------------------------
+
+# Rows are edited with plain forms, not the ModelForms above: those are bound to saved
+# instances and deliberately exclude `day` and `week`, which are exactly the two fields
+# the AI gets wrong most often and the user must be able to correct. Building model rows
+# just to preview them would also publish a menu that has not been confirmed yet.
+
+
+def _row_field(max_length, widget=None):
+    return forms.CharField(
+        max_length=max_length,
+        required=False,
+        strip=True,
+        widget=widget or forms.TextInput(attrs={"class": "input input-sm w-full"}),
+    )
+
+
+class AiWeeklyRowForm(forms.Form):
+    giorno = forms.ChoiceField(
+        choices=[(day, day) for day in WEEKDAYS],
+        widget=forms.Select(attrs={"class": "select select-sm"}),
+    )
+    settimana = forms.ChoiceField(
+        choices=[(week, week) for week in range(MIN_WEEK, MAX_WEEK + 1)],
+        widget=forms.Select(attrs={"class": "select select-sm"}),
+    )
+
+
+class AiSimpleRowForm(AiWeeklyRowForm):
+    pranzo = _row_field(
+        MENU_MAX_LENGTH,
+        widget=forms.Textarea(
+            attrs={"class": "textarea textarea-sm w-full", "rows": 3}
+        ),
+    )
+    spuntino = _row_field(SNACK_MAX_LENGTH)
+    merenda = _row_field(SNACK_MAX_LENGTH)
+
+
+class AiDetailedRowForm(AiWeeklyRowForm):
+    primo = _row_field(COURSE_MAX_LENGTH)
+    secondo = _row_field(COURSE_MAX_LENGTH)
+    contorno = _row_field(COURSE_MAX_LENGTH)
+    frutta = _row_field(COURSE_MAX_LENGTH)
+    spuntino = _row_field(COURSE_MAX_LENGTH)
+
+
+class AiAnnualRowForm(forms.Form):
+    data = forms.DateField(
+        input_formats=[DATE_FORMAT],
+        widget=forms.TextInput(attrs={"class": "input input-sm w-28"}),
+    )
+    primo = _row_field(ANNUAL_MENU_MAX_LENGTH)
+    secondo = _row_field(ANNUAL_MENU_MAX_LENGTH)
+    contorno = _row_field(ANNUAL_MENU_MAX_LENGTH)
+    frutta = _row_field(ANNUAL_MENU_MAX_LENGTH)
+    altro = _row_field(ANNUAL_MENU_MAX_LENGTH)
+
+    def clean_data(self):
+        """Give the date back in the format the CSV resources expect."""
+        return self.cleaned_data["data"].strftime(DATE_FORMAT)
+
+
+AI_ROW_FORMS = {
+    MenuImportDraft.Kinds.SIMPLE: AiSimpleRowForm,
+    MenuImportDraft.Kinds.DETAILED: AiDetailedRowForm,
+    MenuImportDraft.Kinds.ANNUAL: AiAnnualRowForm,
+}
+
+
+def ai_row_formset(kind):
+    """The formset used to review and correct the rows the AI produced."""
+    return forms.formset_factory(AI_ROW_FORMS[kind], extra=0, can_delete=True)

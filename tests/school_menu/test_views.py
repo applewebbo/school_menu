@@ -749,15 +749,9 @@ class TestUploadMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        # The error message should indicate a CSV validation error
-        assert (
-            "Il file CSV non è valido" in messages[0].message
-            or "Errore" in messages[0].message
-        )
+        # The error is now rendered in the modal, alongside the AI import offer
+        assert response.status_code == 200
+        self.assertContains(response, "Errore")
 
     def test_upload_menu_post_detailed_success(self):
         user = self.make_user()
@@ -990,15 +984,9 @@ class TestUploadAnnualMenuView(TestCase):
             }
             response = self.post(url, data=data)
 
-        assert response.status_code == 204
-        assert "HX-Trigger" in response.headers
-        messages = list(get_messages(response.wsgi_request))
-        assert len(messages) > 0
-        # The error message should indicate a CSV validation error
-        assert (
-            "Il file CSV non è valido" in messages[0].message
-            or "Errore" in messages[0].message
-        )
+        # The error is now rendered in the modal, alongside the AI import offer
+        assert response.status_code == 200
+        self.assertContains(response, "Errore")
         assert AnnualMeal.objects.filter(school=school).count() == 0
 
     def test_upload_annual_menu_post_semicolon_delimiter(self):

@@ -1,7 +1,13 @@
 import factory
 from faker import Faker
 
-from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
+from school_menu.models import (
+    AnnualMeal,
+    DetailedMeal,
+    MenuImportDraft,
+    School,
+    SimpleMeal,
+)
 from tests.users.factories import UserFactory
 
 SCHOOL_PRE = ["Scuola", "Istituto", "Liceo", "Collegio", "Convitto", "Istituto Tecnico"]
@@ -146,3 +152,14 @@ class AnnualMealFactory(factory.django.DjangoModelFactory):
     menu = factory.Iterator(MEAL_LIST)
     snack = factory.Iterator(SNACK_LIST)
     date = factory.Faker("date_this_year")
+
+
+class MenuImportDraftFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = MenuImportDraft
+
+    school = factory.SubFactory(SchoolFactory)
+    user = factory.SelfAttribute("school.user")
+    kind = MenuImportDraft.Kinds.SIMPLE
+    source_filename = "menu.pdf"
+    source_size = 1024

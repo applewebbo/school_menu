@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -246,3 +248,131 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} - {self.object_repr} ({self.timestamp:%Y-%m-%d %H:%M})"
+
+
+def menu_import_upload_to(instance, filename):
+    """Keep uploads out of the way; the task deletes them right after extraction."""
+    return f"menu_imports/{instance.school_id}/{filename}"
+
+
+class MenuImportDraft(models.Model):
+    """A menu file handed to the AI, and the rows it produced, pending user review."""
+
+    class Status(models.TextChoices):
+        OFFERED = "OFFERED", _("Proposto")
+        PENDING = "PENDING", _("In elaborazione")
+        READY = "READY", _("Pronto")
+        FAILED = "FAILED", _("Fallito")
+        CONFIRMED = "CONFIRMED", _("Confermato")
+
+    class Kinds(models.TextChoices):
+        SIMPLE = "S", _("Semplice")
+        DETAILED = "D", _("Dettagliato")
+        ANNUAL = "A", _("Annuale")
+
+    school = models.ForeignKey(
+        "School", on_delete=models.CASCADE, related_name="menu_import_drafts"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="menu_import_drafts",
+    )
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.OFFERED
+    )
+    kind = models.CharField(max_length=1, choices=Kinds.choices)
+    meal_type = models.CharField(
+        max_length=1, choices=Meal.Types.choices, default=Meal.Types.STANDARD
+    )
+    season = models.SmallIntegerField(
+        choices=Meal.Seasons.choices, null=True, blank=True
+    )
+    # Holds the uploaded file only between the offer and the end of extraction: menus may
+    # carry third-party data, so the task deletes it in a finally block.
+    source_file = models.FileField(upload_to=menu_import_upload_to, blank=True)
+    source_filename = models.CharField(max_length=255)
+    source_size = models.PositiveIntegerField(default=0)
+    # Rows use the Italian CSV headers, so confirming rebuilds a tablib Dataset and goes
+    # through the very same validation and resources as a CSV upload.
+    rows = models.JSONField(default=list, blank=True)
+    warnings = models.JSONField(default=list, blank=True)
+    error_code = models.CharField(max_length=30, blank=True)
+    error_message = models.TextField(blank=True)
+    task_id = models.CharField(max_length=32, blank=True)
+    usage = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "bozza di importazione"
+        verbose_name_plural = "bozze di importazione"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "-created_at"], name="draft_user_created_idx"),
+            models.Index(fields=["status", "created_at"], name="draft_status_time_idx"),
+            models.Index(fields=["school", "status"], name="draft_school_status_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.school.name} - {self.get_status_display()} ({self.created_at:%d/%m/%Y %H:%M})"
+
+    @staticmethod
+    def kind_from_school(school):
+        """An annual school always imports annual rows, whatever its menu_type says."""
+        if school.annual_menu:
+            return MenuImportDraft.Kinds.ANNUAL
+        if school.menu_type == School.Types.SIMPLE:
+            return MenuImportDraft.Kinds.SIMPLE
+        return MenuImportDraft.Kinds.DETAILED
+
+    @property
+    def is_annual(self):
+        return self.kind == self.Kinds.ANNUAL
+
+
+class MenuImportQuota(models.Model):
+    """Daily AI import counter, per user plus one site-wide bucket (user is null)."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+        related_name="menu_import_quotas",
+    )
+    date = models.DateField()
+    count = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name = "quota di importazione"
+        verbose_name_plural = "quote di importazione"
+        ordering = ["-date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "date"], name="unique_user_quota_per_day"
+            ),
+            # SQL treats NULLs as distinct, so the constraint above would happily allow
+            # several site-wide rows for the same day and the global cap would leak.
+            models.UniqueConstraint(
+                fields=["date"],
+                condition=models.Q(user__isnull=True),
+                name="unique_global_quota_per_day",
+            ),
+        ]
+
+    def __str__(self):
+        owner = self.user.email if self.user else "globale"
+        return f"{owner} - {self.date:%d/%m/%Y}: {self.count}"
+
+
+@receiver(post_delete, sender=MenuImportDraft)
+def delete_menu_import_file(sender, instance, **kwargs):
+    """Never leave an uploaded menu behind: it may contain third-party data.
+
+    The task already deletes the file once extraction ends; this covers the drafts that
+    are purged, cancelled or removed from the admin before that happens.
+    """
+    if instance.source_file:
+        instance.source_file.delete(save=False)

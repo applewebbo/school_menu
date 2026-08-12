@@ -71,6 +71,9 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
+# User uploads (menu import drafts land here in development)
+media/
+
 # Flask stuff:
 instance/
 .webassets-cache

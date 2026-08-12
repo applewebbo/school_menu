@@ -5,7 +5,15 @@ from django.urls import path
 from import_export.admin import ImportExportModelAdmin
 from tablib import Dataset
 
-from .models import AnnualMeal, AuditLog, DetailedMeal, School, SimpleMeal
+from .models import (
+    AnnualMeal,
+    AuditLog,
+    DetailedMeal,
+    MenuImportDraft,
+    MenuImportQuota,
+    School,
+    SimpleMeal,
+)
 from .resources import DetailedMealResource, SimpleMealResource
 from .utils import validate_dataset
 
@@ -223,3 +231,23 @@ class AuditLogAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.is_superuser
+
+
+@admin.register(MenuImportDraft)
+class MenuImportDraftAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "user", "kind", "status", "created_at"]
+    list_filter = ["status", "kind", "created_at"]
+    search_fields = ["school__name", "user__email", "source_filename"]
+    readonly_fields = ["created_at", "updated_at", "completed_at", "task_id", "usage"]
+    date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        """Drafts are only ever created by the import flow."""
+        return False
+
+
+@admin.register(MenuImportQuota)
+class MenuImportQuotaAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "user", "date", "count"]
+    list_filter = ["date"]
+    search_fields = ["user__email"]

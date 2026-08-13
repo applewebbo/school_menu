@@ -13,7 +13,7 @@ from django.core.files.base import ContentFile
 from django.test import TestCase, override_settings
 from django.utils import timezone
 
-from school_menu.models import MenuImportDraft, MenuImportQuota
+from school_menu.models import Meal, MenuImportDraft, MenuImportQuota
 from school_menu.services.ai_quota import QuotaExceeded
 from school_menu.tasks import process_menu_import_draft, queue_menu_import
 from tests.school_menu import ai_fakes
@@ -100,6 +100,16 @@ class TestProcessDraft(TestCase):
         draft.refresh_from_db()
         assert draft.status == FAILED
         assert not draft.source_file
+
+    def test_the_season_of_the_draft_reaches_the_model(self):
+        """The user picked it in the upload modal; a file holding both seasons needs it."""
+        with ai_settings():
+            draft = make_draft(season=Meal.Seasons.INVERNALE)
+
+            process_menu_import_draft(draft.pk)
+
+        instruction = ai_fakes.RecordingClient.calls[0]["system_instruction"]
+        assert "Estrai soltanto il menu invernale" in instruction
 
     def test_the_kind_of_the_draft_drives_the_extraction(self):
         with ai_settings():

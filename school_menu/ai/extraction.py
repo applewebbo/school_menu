@@ -19,12 +19,14 @@ from pydantic import ValidationError
 from school_menu.ai import prompts, schemas
 from school_menu.ai.client import get_client
 from school_menu.ai.errors import (
+    EmptyResult,
     ExtractionTimeout,
     InvalidResponse,
     UnsupportedFile,
     UpstreamError,
 )
 from school_menu.ai.normalise import normalise_rows
+from school_menu.models import Meal
 
 PDF_EXTENSIONS = {".pdf"}
 TEXT_EXTENSIONS = {".csv", ".txt"}
@@ -125,7 +127,40 @@ def _ask(contents, system_instruction, schema):
                 raise
 
 
-def extract_menu(kind, content, filename):
+def _detected_season(value):
+    """
+    Map whatever the model wrote onto one of the two labels, or "" if neither.
+
+    Matched on the stem rather than the exact string: the answer comes back as
+    "Invernale" or "menù primaverile" often enough to be worth not being strict about.
+    """
+    text = str(value or "").strip().lower()
+    if "invern" in text:
+        return prompts.SEASON_LABELS[Meal.Seasons.INVERNALE]
+    if "primaver" in text or "estiv" in text:
+        return prompts.SEASON_LABELS[Meal.Seasons.ESTIVO]
+    return ""
+
+
+def _season_mismatch(requested, detected):
+    """
+    Return the sentence to show when the file is about the other season, else None.
+
+    Silence is the right answer twice over: when the two agree, and when the document
+    does not name a season at all, which is the common case.
+    """
+    wanted = prompts.SEASON_LABELS.get(requested)
+    found = _detected_season(detected)
+    if not wanted or not found or found == wanted:
+        return None
+    return (
+        f"Il documento sembra contenere il menu {found}, mentre hai scelto di caricare "
+        f"il menu {wanted}. Controlla le righe qui sotto, oppure annulla e ricarica il "
+        "file scegliendo l'altra stagionalità."
+    )
+
+
+def extract_menu(kind, content, filename, season=None):
     """
     Extract the menu contained in an uploaded file.
 
@@ -142,13 +177,26 @@ def extract_menu(kind, content, filename):
     """
     contents = _build_contents(content, filename)
     response = _ask(
-        contents, prompts.build_system_instruction(kind), schemas.json_schema(kind)
+        contents,
+        prompts.build_system_instruction(kind, season=season),
+        schemas.json_schema(kind),
     )
 
     try:
-        raw_rows = schemas.parse(kind, response.text)
+        parsed = schemas.parse(kind, response.text)
     except ValidationError as exc:
         raise InvalidResponse(str(exc)) from exc
 
-    rows, warnings = normalise_rows(kind, raw_rows)
+    mismatch = _season_mismatch(season, parsed.season)
+    try:
+        rows, warnings = normalise_rows(kind, parsed.rows)
+    except EmptyResult:
+        # Nothing survived and the document was about the other season: that is the one
+        # thing the user can act on, so say it instead of "could not read the menu".
+        if mismatch is None:
+            raise
+        raise EmptyResult(user_message=mismatch) from None
+
+    if mismatch is not None:
+        warnings.insert(0, mismatch)
     return ExtractionResult(rows=rows, warnings=warnings, usage=response.usage)

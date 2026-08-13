@@ -10,7 +10,15 @@ tokens insisting on them here.
 """
 
 from school_menu.ai.normalise import MAX_WEEK, MIN_WEEK, WEEKDAYS
-from school_menu.models import MenuImportDraft
+from school_menu.models import Meal, MenuImportDraft
+
+# How the documents name the two seasons, which is not how the database names them.
+# Schools routinely publish both in one file, so the model has to be told which one to
+# take and be able to recognise the other in order to skip it.
+SEASON_LABELS = {
+    Meal.Seasons.INVERNALE: "invernale",
+    Meal.Seasons.ESTIVO: "primaverile-estivo",
+}
 
 BASE = """
 Sei un assistente che estrae il menu di una mensa scolastica italiana da un documento.
@@ -61,8 +69,24 @@ documento. Non includere sabato e domenica.
 """
 
 
-def build_system_instruction(kind):
-    """The instruction sent alongside the file, tailored to the school's menu type."""
+SEASON = """
+Il documento potrebbe contenere sia il menu invernale sia quello primaverile-estivo.
+Estrai soltanto il menu {wanted} e ignora completamente le tabelle dell'altra stagione.
+Nel campo "stagione" scrivi quale stagione hai effettivamente estratto, usando esattamente
+"invernale" oppure "primaverile-estivo". Se il documento non indica nessuna stagione,
+lascia il campo vuoto.
+"""
+
+
+def build_system_instruction(kind, season=None):
+    """
+    The instruction sent alongside the file, tailored to the school's menu type.
+
+    Args:
+        kind: MenuImportDraft.Kinds value
+        season: Meal.Seasons value the user picked when uploading, or None. Ignored for
+            annual menus, which are tied to dates and have no season.
+    """
     if kind == MenuImportDraft.Kinds.ANNUAL:
         specific = ANNUAL
     else:
@@ -77,4 +101,8 @@ def build_system_instruction(kind):
             max_week=MAX_WEEK,
             columns=columns,
         )
+        if season in SEASON_LABELS:
+            specific = (
+                f"{specific.strip()}\n{SEASON.format(wanted=SEASON_LABELS[season])}"
+            )
     return f"{BASE.strip()}\n{specific.strip()}"

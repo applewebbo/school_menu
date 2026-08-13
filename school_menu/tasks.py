@@ -55,7 +55,9 @@ def process_menu_import_draft(draft_id):
     try:
         try:
             content = draft.source_file.read()
-            result = extract_menu(draft.kind, content, draft.source_filename)
+            result = extract_menu(
+                draft.kind, content, draft.source_filename, season=draft.season
+            )
         except AIImportError:
             raise
         except Exception as exc:

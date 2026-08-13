@@ -27,12 +27,15 @@ from school_menu.ai.errors import (
     UpstreamError,
 )
 from school_menu.ai.extraction import extract_menu
-from school_menu.models import MenuImportDraft
+from school_menu.models import Meal, MenuImportDraft
 from tests.school_menu import ai_fakes
 
 SIMPLE = MenuImportDraft.Kinds.SIMPLE
 DETAILED = MenuImportDraft.Kinds.DETAILED
 ANNUAL = MenuImportDraft.Kinds.ANNUAL
+
+INVERNALE = Meal.Seasons.INVERNALE
+ESTIVO = Meal.Seasons.ESTIVO
 
 FAKES = "tests.school_menu.ai_fakes."
 
@@ -132,15 +135,22 @@ class TestSchemas:
             assert row["properties"][column]["maxLength"] == max_length
 
     def test_numbers_and_nulls_are_accepted(self):
-        payload = schemas.parse(SIMPLE, ai_fakes.SIMPLE_PAYLOAD)
+        parsed = schemas.parse(SIMPLE, ai_fakes.SIMPLE_PAYLOAD)
 
-        assert payload[0]["settimana"] == "1"
-        assert payload[1]["spuntino"] == ""
+        assert parsed.rows[0]["settimana"] == "1"
+        assert parsed.rows[1]["spuntino"] == ""
 
     def test_absent_optional_columns_default_to_empty(self):
-        payload = schemas.parse(SIMPLE, '{"righe": [{"giorno": "Lunedì"}]}')
+        parsed = schemas.parse(SIMPLE, '{"righe": [{"giorno": "Lunedì"}]}')
 
-        assert payload[0]["pranzo"] == ""
+        assert parsed.rows[0]["pranzo"] == ""
+
+    def test_an_absent_season_parses_as_empty(self):
+        assert schemas.parse(SIMPLE, '{"righe": []}').season == ""
+
+    def test_the_annual_shape_has_no_season(self):
+        """An annual menu is tied to dates, so there is no season to report."""
+        assert "stagione" not in schemas.json_schema(ANNUAL)["properties"]
 
     def test_wrong_top_level_shape_is_rejected(self):
         with pytest.raises(ValidationError):
@@ -161,6 +171,91 @@ class TestPrompts:
 
     def test_annual_instruction_states_the_date_format(self):
         assert "GG/MM/AAAA" in prompts.build_system_instruction(ANNUAL)
+
+    @pytest.mark.parametrize(
+        "season,wanted,other",
+        [
+            (INVERNALE, "invernale", "primaverile-estivo"),
+            (ESTIVO, "primaverile-estivo", "invernale"),
+        ],
+    )
+    def test_the_requested_season_is_named_in_the_instruction(
+        self, season, wanted, other
+    ):
+        """Schools publish both seasons in one file; the model has to know which to take."""
+        instruction = prompts.build_system_instruction(SIMPLE, season=season)
+
+        assert wanted in instruction
+        assert other in instruction  # named too, so it can be told apart and skipped
+
+    def test_without_a_season_the_instruction_is_unchanged(self):
+        assert prompts.build_system_instruction(SIMPLE, season=None) == (
+            prompts.build_system_instruction(SIMPLE)
+        )
+
+    def test_the_annual_instruction_ignores_the_season(self):
+        """An annual menu is tied to dates: seasons do not apply."""
+        assert prompts.build_system_instruction(ANNUAL, season=INVERNALE) == (
+            prompts.build_system_instruction(ANNUAL)
+        )
+
+
+class TestSeasonMismatch:
+    """A file holding both seasons must not import the wrong one in silence."""
+
+    def payload(self, season):
+        return (
+            '{"stagione": "%s", "righe": [{"giorno": "Lunedì", "settimana": "1", '
+            '"pranzo": "Pasta", "spuntino": "Mela", "merenda": "Yogurt"}]}' % season
+        )
+
+    def test_a_diverging_season_is_reported(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("primaverile-estivo")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert result.rows, "the rows stay editable: the user decides what to do"
+        assert any(
+            "primaverile-estivo" in w and "invernale" in w for w in result.warnings
+        )
+
+    def test_the_matching_season_says_nothing(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("invernale")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert not result.warnings
+
+    def test_an_unstated_season_says_nothing(self):
+        """Most documents do not name the season at all."""
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert not result.warnings
+
+    def test_no_usable_row_blames_the_season_rather_than_the_file(self):
+        """
+        Otherwise the user reads "could not read the menu" and has no idea why.
+
+        This is the case that costs a quota slot with nothing to show for it, so the
+        message has to point at the one thing the user can act on.
+        """
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = (
+                '{"stagione": "primaverile-estivo", "righe": []}'
+            )
+            with pytest.raises(EmptyResult) as raised:
+                extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert "primaverile-estivo" in raised.value.user_message
+
+    def test_no_usable_row_without_a_season_keeps_the_generic_message(self):
+        with use("EmptyClient"):
+            with pytest.raises(EmptyResult) as raised:
+                extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert raised.value.user_message == EmptyResult().user_message
 
 
 class TestExtraction:

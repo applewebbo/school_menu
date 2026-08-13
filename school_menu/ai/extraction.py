@@ -26,7 +26,7 @@ from school_menu.ai.errors import (
     UpstreamError,
 )
 from school_menu.ai.normalise import normalise_rows
-from school_menu.models import Meal
+from school_menu.models import Meal, MenuImportDraft
 
 PDF_EXTENSIONS = {".pdf"}
 TEXT_EXTENSIONS = {".csv", ".txt"}
@@ -127,6 +127,55 @@ def _ask(contents, system_instruction, schema):
                 raise
 
 
+KIND_LABELS = {
+    MenuImportDraft.Kinds.ANNUAL: "annuale",
+    MenuImportDraft.Kinds.DETAILED: "settimanale dettagliato",
+    MenuImportDraft.Kinds.SIMPLE: "settimanale semplice",
+}
+
+
+def _detected_kind(value):
+    """Map what the model wrote onto a Kinds value, or None when it has no opinion."""
+    text = str(value or "").strip().lower()
+    if "annual" in text:
+        return MenuImportDraft.Kinds.ANNUAL
+    if "dettagliat" in text:
+        return MenuImportDraft.Kinds.DETAILED
+    if "semplice" in text:
+        return MenuImportDraft.Kinds.SIMPLE
+    return None
+
+
+def _kind_mismatch(requested, detected):
+    """
+    Return the sentence to show when the document is not the kind the school expects.
+
+    Not every divergence is worth saying something about. A detailed document imported
+    into a simple school is collapsed into a single `pranzo` field, which is exactly what
+    the simple menu is for — warning there would be noise. What costs the user something
+    is the weekly/annual axis, where the columns do not exist at all, and a simple
+    document in a detailed school, where five columns have to be guessed out of one.
+    """
+    found = _detected_kind(detected)
+    if found is None or found == requested:
+        return None
+
+    annual = MenuImportDraft.Kinds.ANNUAL
+    if annual in (found, requested):
+        return (
+            f"Il documento sembra un menu {KIND_LABELS[found]}, mentre la scuola è "
+            f"configurata per un menu {KIND_LABELS[requested]}. Cambia il tipo di menu "
+            "nelle impostazioni della scuola e ricarica il file."
+        )
+    if requested == MenuImportDraft.Kinds.DETAILED:
+        return (
+            "Il documento sembra un menu semplice, con un unico testo per il pranzo, "
+            "mentre la scuola è configurata per un menu dettagliato: alcune colonne "
+            "potrebbero risultare vuote o divise male."
+        )
+    return None
+
+
 def _detected_season(value):
     """
     Map whatever the model wrote onto one of the two labels, or "" if neither.
@@ -187,16 +236,25 @@ def extract_menu(kind, content, filename, season=None):
     except ValidationError as exc:
         raise InvalidResponse(str(exc)) from exc
 
-    mismatch = _season_mismatch(season, parsed.season)
+    # The kind comes first: it is about how the school is configured, while the season is
+    # a choice made in the upload modal and cheaper to correct.
+    mismatches = [
+        message
+        for message in (
+            _kind_mismatch(kind, parsed.kind),
+            _season_mismatch(season, parsed.season),
+        )
+        if message is not None
+    ]
     try:
         rows, warnings = normalise_rows(kind, parsed.rows)
     except EmptyResult:
-        # Nothing survived and the document was about the other season: that is the one
+        # Nothing survived and the document was about something else: that is the one
         # thing the user can act on, so say it instead of "could not read the menu".
-        if mismatch is None:
+        if not mismatches:
             raise
-        raise EmptyResult(user_message=mismatch) from None
+        raise EmptyResult(user_message=mismatches[0]) from None
 
-    if mismatch is not None:
-        warnings.insert(0, mismatch)
-    return ExtractionResult(rows=rows, warnings=warnings, usage=response.usage)
+    return ExtractionResult(
+        rows=rows, warnings=mismatches + warnings, usage=response.usage
+    )

@@ -25,8 +25,8 @@ from school_menu.models import MenuImportDraft
 # they are matched against the weekday list, the 1-4 range and the date format. The caps
 # only have to be wide enough for what those parsers accept.
 KEY_MAX_LENGTHS = {"giorno": 20, "settimana": 4, "data": 10}
-# Wide enough for "primaverile-estivo", the longer of the two labels we ask for.
-SEASON_MAX_LENGTH = 30
+# Wide enough for the longest label we ask for: "settimanale_dettagliato".
+TOP_LEVEL_MAX_LENGTHS = {"tipo": 30, "stagione": 30}
 
 
 def _as_text(value):
@@ -64,19 +64,31 @@ class AnnualRow(BaseModel):
     altro: Text = ""
 
 
-class SimpleMenu(BaseModel):
+class Menu(BaseModel):
+    """
+    What every answer carries besides the rows.
+
+    The kind is decided by the school, never by the file, so a document of the wrong kind
+    cannot fail on its own: asking the model what it is looking at is the only way to
+    notice. Empty or unrecognised means "no opinion", and nothing is said to the user.
+    """
+
+    tipo: Text = ""
+
+
+class SimpleMenu(Menu):
     righe: list[SimpleRow]
     # Which season the model actually read, so a file holding both does not silently
     # import the wrong one. Empty when the document does not say.
     stagione: Text = ""
 
 
-class DetailedMenu(BaseModel):
+class DetailedMenu(Menu):
     righe: list[DetailedRow]
     stagione: Text = ""
 
 
-class AnnualMenu(BaseModel):
+class AnnualMenu(Menu):
     righe: list[AnnualRow]
 
 
@@ -98,6 +110,7 @@ class ParsedMenu:
 
     rows: list = field(default_factory=list)
     season: str = ""
+    kind: str = ""
 
 
 def row_model(kind):
@@ -140,12 +153,10 @@ def json_schema(kind):
         },
         "required": ["righe"],
     }
-    if "stagione" in MENUS[kind].model_fields:
-        schema["properties"]["stagione"] = {
-            "type": "string",
-            "maxLength": SEASON_MAX_LENGTH,
-        }
-        schema["required"].append("stagione")
+    for name, max_length in TOP_LEVEL_MAX_LENGTHS.items():
+        if name in MENUS[kind].model_fields:
+            schema["properties"][name] = {"type": "string", "maxLength": max_length}
+            schema["required"].append(name)
     return schema
 
 
@@ -164,4 +175,5 @@ def parse(kind, text):
     return ParsedMenu(
         rows=[row.model_dump() for row in payload.righe],
         season=getattr(payload, "stagione", ""),
+        kind=payload.tipo,
     )

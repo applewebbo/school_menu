@@ -14,6 +14,10 @@ from school_menu.utils import (
     validate_annual_dataset,
     validate_dataset,
 )
+from school_menu.utils.csv_import import (
+    SIMPLE_COLUMN_FIELDS,
+    validate_column_lengths,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -365,3 +369,28 @@ class TestValidateDatasetWithColumnFiltering(TestCase):
         assert (
             "colonne richieste" in message.lower() or "intestazioni" in message.lower()
         )
+
+
+class TestValidateColumnLengths:
+    def test_a_column_that_is_not_in_the_file_is_skipped(self):
+        """
+        The mapping covers every importable column, but a file need not carry them all.
+
+        `spuntino` and `merenda` are optional in a simple menu: their absence must not
+        raise, it simply leaves nothing to measure.
+        """
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo"]
+        dataset.append(["Lunedì", 1, "Pasta"])
+
+        assert validate_column_lengths(dataset, SIMPLE_COLUMN_FIELDS) is None
+
+    def test_an_over_long_cell_is_reported_with_its_row(self):
+        dataset = Dataset()
+        dataset.headers = ["giorno", "settimana", "pranzo"]
+        dataset.append(["Lunedì", 1, "a" * 1000])
+
+        message = validate_column_lengths(dataset, SIMPLE_COLUMN_FIELDS)
+
+        assert "pranzo" in message
+        assert "riga 2" in message

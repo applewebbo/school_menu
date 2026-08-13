@@ -69,6 +69,15 @@ documento. Non includere sabato e domenica.
 """
 
 
+KIND = """
+Nel campo "tipo" scrivi che genere di menu hai riconosciuto nel documento, indipendentemente
+da come ti ho chiesto di estrarlo, usando esattamente uno di questi valori:
+- "annuale" se le voci sono legate a date precise del calendario;
+- "settimanale_dettagliato" se ogni giorno ha piatti distinti (primo, secondo, contorno);
+- "settimanale_semplice" se ogni giorno ha un unico testo per il pranzo.
+Se non riesci a stabilirlo, lascia il campo vuoto.
+"""
+
 SEASON = """
 Il documento potrebbe contenere sia il menu invernale sia quello primaverile-estivo.
 Estrai soltanto il menu {wanted} e ignora completamente le tabelle dell'altra stagione.
@@ -105,4 +114,4 @@ def build_system_instruction(kind, season=None):
             specific = (
                 f"{specific.strip()}\n{SEASON.format(wanted=SEASON_LABELS[season])}"
             )
-    return f"{BASE.strip()}\n{specific.strip()}"
+    return f"{BASE.strip()}\n{specific.strip()}\n{KIND.strip()}"

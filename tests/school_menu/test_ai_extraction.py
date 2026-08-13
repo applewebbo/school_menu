@@ -258,6 +258,102 @@ class TestSeasonMismatch:
         assert raised.value.user_message == EmptyResult().user_message
 
 
+class TestKindMismatch:
+    """
+    The kind comes from the school, never from the file, so a mismatch cannot fail loudly.
+
+    Only the divergences that actually cost the user anything are worth a warning. A
+    detailed document imported into a simple school is collapsed into `pranzo` by design,
+    so that one stays silent.
+    """
+
+    WEEKLY_ROW = (
+        '{"giorno": "Lunedì", "settimana": "1", "pranzo": "Pasta", '
+        '"spuntino": "Mela", "merenda": "Yogurt"}'
+    )
+
+    def payload(self, tipo, rows=None):
+        return '{{"tipo": "{}", "stagione": "", "righe": [{}]}}'.format(
+            tipo,
+            self.WEEKLY_ROW if rows is None else rows,
+        )
+
+    def test_an_annual_document_in_a_weekly_school_is_reported(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("annuale")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv")
+
+        assert result.rows, "the rows stay editable"
+        assert "annuale" in result.warnings[0]
+
+    def test_a_weekly_document_in_an_annual_school_is_reported(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = (
+                '{"tipo": "settimanale_semplice", "righe": '
+                '[{"data": "01/09/2026", "primo": "Pasta", "secondo": "", '
+                '"contorno": "", "frutta": "", "altro": ""}]}'
+            )
+            result = extract_menu(ANNUAL, b"contenuto", "menu.csv")
+
+        assert "settimanale" in result.warnings[0]
+
+    def test_a_simple_document_in_a_detailed_school_is_reported(self):
+        """The model has to split one blob into five columns: some will come back empty."""
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload(
+                "settimanale_semplice",
+                '{"giorno": "Lunedì", "settimana": "1", "primo": "Pasta", '
+                '"secondo": "", "contorno": "", "frutta": "", "spuntino": ""}',
+            )
+            result = extract_menu(DETAILED, b"contenuto", "menu.csv")
+
+        assert result.warnings
+
+    def test_a_detailed_document_in_a_simple_school_says_nothing(self):
+        """Collapsing the courses into `pranzo` is what the simple menu is meant to do."""
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("settimanale_dettagliato")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv")
+
+        assert not result.warnings
+
+    def test_the_matching_kind_says_nothing(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("settimanale_semplice")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv")
+
+        assert not result.warnings
+
+    def test_an_unknown_kind_says_nothing(self):
+        """An older model that does not return the field must not break the import."""
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("qualcos'altro")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv")
+
+        assert result.rows
+        assert not result.warnings
+
+    def test_no_usable_row_blames_the_kind_rather_than_the_file(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("annuale", rows="")
+            with pytest.raises(EmptyResult) as raised:
+                extract_menu(SIMPLE, b"contenuto", "menu.csv")
+
+        assert "annuale" in raised.value.user_message
+
+    def test_the_kind_outranks_the_season_when_both_diverge(self):
+        """Reconfiguring the school comes first: the season is picked at upload time."""
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = (
+                '{"tipo": "annuale", "stagione": "primaverile-estivo", "righe": [%s]}'
+                % self.WEEKLY_ROW
+            )
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert "annuale" in result.warnings[0]
+        assert len(result.warnings) == 2
+
+
 class TestExtraction:
     def test_simple_rows_are_normalised(self):
         with use("RecordingClient"):

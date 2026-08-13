@@ -17,6 +17,10 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from google import genai
 from google.genai._gaos.errors import GenAiError, NoResponseError
+from google.genai._gaos.lib.compat_errors import (
+    APITimeoutError,
+    GeminiNextGenAPIClientError,
+)
 from google.genai.errors import APIError
 
 from school_menu.ai.errors import AIDisabled, ExtractionTimeout, UpstreamError
@@ -49,9 +53,18 @@ class GeminiClient:
     def extract(self, *, system_instruction, contents, schema):
         try:
             interaction = self._call(system_instruction, contents, schema)
-        except (httpx.TimeoutException, NoResponseError) as exc:
+        # The SDK raises from three unrelated hierarchies: httpx, google.genai.errors and
+        # its own compat layer (rooted at GeminiNextGenAPIClientError, which descends from
+        # plain Exception). Missing one means the failure escapes as UNKNOWN: not
+        # refundable, and not retried.
+        except (httpx.TimeoutException, NoResponseError, APITimeoutError) as exc:
             raise ExtractionTimeout(str(exc)) from exc
-        except (GenAiError, APIError, httpx.HTTPError) as exc:
+        except (
+            GenAiError,
+            APIError,
+            GeminiNextGenAPIClientError,
+            httpx.HTTPError,
+        ) as exc:
             raise UpstreamError(str(exc)) from exc
         return ExtractionResponse(
             text=interaction.output_text or "",

@@ -8,6 +8,8 @@ import httpx
 import pytest
 from django.test import override_settings
 from google.genai._gaos.errors import GenAiError, NoResponseError
+from google.genai._gaos.lib.compat_errors import APIConnectionError, APITimeoutError
+from google.genai._gaos.lib.compat_errors import APIError as CompatAPIError
 from google.genai._gaos.types.interactions.documentcontent import DocumentContent
 from google.genai._gaos.types.interactions.usage import Usage
 from google.genai.errors import APIError
@@ -33,6 +35,9 @@ DETAILED = MenuImportDraft.Kinds.DETAILED
 ANNUAL = MenuImportDraft.Kinds.ANNUAL
 
 FAKES = "tests.school_menu.ai_fakes."
+
+# The SDK's own error classes all carry the request that failed.
+REQUEST = httpx.Request("POST", "https://example.invalid/")
 
 
 def use(client_class, **extra):
@@ -355,7 +360,14 @@ class TestGeminiClient:
 
     @pytest.mark.parametrize(
         "raised",
-        [httpx.ConnectTimeout("lenta"), NoResponseError("nessuna risposta")],
+        [
+            httpx.ConnectTimeout("lenta"),
+            NoResponseError("nessuna risposta"),
+            # The SDK wraps transport failures in its own hierarchy, unrelated to httpx
+            # and to google.genai.errors: uncaught, these escape as UNKNOWN, which is not
+            # refundable and is not retried.
+            APITimeoutError(REQUEST),
+        ],
     )
     def test_no_answer_in_time_is_a_timeout(self, raised):
         with pytest.raises(ExtractionTimeout):
@@ -367,6 +379,8 @@ class TestGeminiClient:
             GenAiError("errore", httpx.Response(500)),
             APIError(503, {"message": "non disponibile"}),
             httpx.ConnectError("rete assente"),
+            CompatAPIError("errore dell'sdk", REQUEST, body=None),
+            APIConnectionError(message="connessione caduta", request=REQUEST),
         ],
     )
     def test_a_transport_failure_is_an_upstream_error(self, raised):

@@ -280,7 +280,7 @@ INTERNAL_IPS = [
 
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
-APP_VERSION = "2026.1.9"
+APP_VERSION = "2026.2"
 
 # AI MENU IMPORT (#234)
 # The Gemini key belongs to the site, not to the user: quotas below are what keeps a

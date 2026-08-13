@@ -150,9 +150,30 @@ def _truncate_annual_menu(row, index, warnings):
     return row
 
 
+def _merge(existing, row, columns, index, label, warnings):
+    """
+    Fold a second row for the same day into the first, field by field.
+
+    The model does split one day across two partial objects, and discarding the second
+    would silently drop whatever only it carried — a menu that imports the snack and
+    loses the lunch. Only a genuine disagreement is worth a warning.
+    """
+    for column in columns:
+        new_value = row[column]
+        if not new_value or new_value == existing[column]:
+            continue
+        if not existing[column]:
+            existing[column] = new_value
+            continue
+        warnings.append(
+            f'Riga {index}: {label} era già presente con un altro "{column}", '
+            "il primo valore è stato tenuto."
+        )
+
+
 def _normalise_weekly(kind, rows, warnings):
     columns = COLUMNS[kind]
-    seen = set()
+    seen = {}
     cleaned = []
     for index, raw_row in enumerate(rows, start=1):
         row = dict(raw_row)
@@ -160,19 +181,21 @@ def _normalise_weekly(kind, rows, warnings):
         week = _normalise_week(row, index, warnings)
         if day is None or week is None:
             continue
-        if (day, week) in seen:
-            warnings.append(
-                f"Riga {index}: {day} della settimana {week} era già presente, "
-                "riga ignorata."
+        row = _truncate_columns(row, index, columns, warnings)
+        existing = seen.get((day, week))
+        if existing is not None:
+            _merge(
+                existing,
+                row,
+                columns,
+                index,
+                f"{day} della settimana {week}",
+                warnings,
             )
             continue
-        seen.add((day, week))
-        row = _truncate_columns(row, index, columns, warnings)
-        row["giorno"] = day
-        row["settimana"] = week
-        cleaned.append(
-            {"giorno": day, "settimana": week, **{c: row[c] for c in columns}}
-        )
+        row = {"giorno": day, "settimana": week, **{c: row[c] for c in columns}}
+        seen[(day, week)] = row
+        cleaned.append(row)
 
     cleaned.sort(key=lambda r: (r["settimana"], WEEKDAYS.index(r["giorno"])))
     return cleaned
@@ -180,7 +203,7 @@ def _normalise_weekly(kind, rows, warnings):
 
 def _normalise_annual(rows, warnings):
     columns = COLUMNS[MenuImportDraft.Kinds.ANNUAL]
-    seen = set()
+    seen = {}
     cleaned = []
     for index, raw_row in enumerate(rows, start=1):
         row = dict(raw_row)
@@ -188,17 +211,18 @@ def _normalise_annual(rows, warnings):
         if parsed is None:
             continue
         display, sort_key = parsed
-        if sort_key in seen:
-            warnings.append(
-                f"Riga {index}: la data {display} era già presente, riga ignorata."
-            )
-            continue
-        seen.add(sort_key)
         row = _truncate_columns(row, index, columns, warnings)
+        existing = seen.get(sort_key)
+        if existing is not None:
+            _merge(existing, row, columns, index, f"la data {display}", warnings)
+            # The merged columns share one 600 char field, so the joined total has to be
+            # capped again now that it has grown.
+            _truncate_annual_menu(existing, index, warnings)
+            continue
         row = _truncate_annual_menu(row, index, warnings)
-        cleaned.append(
-            {"data": display, **{c: row[c] for c in columns}, "_sort": sort_key}
-        )
+        row = {"data": display, **{c: row[c] for c in columns}, "_sort": sort_key}
+        seen[sort_key] = row
+        cleaned.append(row)
 
     cleaned.sort(key=lambda r: r["_sort"])
     for row in cleaned:

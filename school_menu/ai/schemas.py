@@ -17,7 +17,13 @@ from typing import Annotated
 
 from pydantic import BaseModel, BeforeValidator
 
+from school_menu.ai.normalise import COLUMNS
 from school_menu.models import MenuImportDraft
+
+# The columns that identify a row are not in COLUMNS: they are not stored as they arrive,
+# they are matched against the weekday list, the 1-4 range and the date format. The caps
+# only have to be wide enough for what those parsers accept.
+KEY_MAX_LENGTHS = {"giorno": 20, "settimana": 4, "data": 10}
 
 
 def _as_text(value):
@@ -85,8 +91,40 @@ def row_model(kind):
 
 
 def json_schema(kind):
-    """The JSON schema handed to the model as the required response format."""
-    return MENUS[kind].model_json_schema()
+    """
+    The JSON schema handed to the model as the required response format.
+
+    Built by hand rather than taken from `model_json_schema()`, because what the model
+    needs and what pydantic emits differ in three ways that all cost data:
+
+    - pydantic marks nothing required (every field has a default), which lets the model
+      split one day across two partial objects;
+    - it puts the row behind a `$ref`, and Gemini's handling of references in structured
+      output is not dependable;
+    - it carries no upper bound, so nothing stops a generation that starts repeating.
+
+    The local `parse()` stays deliberately permissive: a partial answer should be cleaned
+    up by `normalise`, never rejected wholesale after the tokens have been spent.
+    """
+    row_columns = COLUMNS[kind]
+    properties = {}
+    for name in row_model(kind).model_fields:
+        max_length = row_columns.get(name) or KEY_MAX_LENGTHS[name]
+        properties[name] = {"type": "string", "maxLength": max_length}
+    return {
+        "type": "object",
+        "properties": {
+            "righe": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": properties,
+                    "required": list(properties),
+                },
+            }
+        },
+        "required": ["righe"],
+    }
 
 
 def parse(kind, text):

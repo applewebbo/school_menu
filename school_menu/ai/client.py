@@ -85,6 +85,9 @@ class GeminiClient:
                 "mime_type": "application/json",
                 "schema": schema,
             },
+            generation_config={
+                "max_output_tokens": settings.AI_MENU_IMPORT_MAX_OUTPUT_TOKENS
+            },
             timeout=settings.AI_MENU_IMPORT_HTTP_TIMEOUT,
         )
 

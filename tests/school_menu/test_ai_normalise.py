@@ -83,7 +83,7 @@ class TestWeekNormalisation:
 
 
 class TestDeduplication:
-    def test_same_day_and_week_keeps_the_first(self):
+    def test_conflicting_values_keep_the_first_and_warn(self):
         rows, warnings = normalise_rows(
             SIMPLE,
             [simple_row(pranzo="Pasta"), simple_row(pranzo="Riso")],
@@ -91,7 +91,47 @@ class TestDeduplication:
 
         assert len(rows) == 1
         assert rows[0]["pranzo"] == "Pasta"
-        assert warnings
+        assert "pranzo" in warnings[0]
+
+    def test_a_day_split_across_two_rows_is_merged(self):
+        """
+        Seen live: the model returned one day as two objects, each carrying a few fields.
+
+        Dropping the second would have imported the snack and silently lost the lunch, so
+        the non-empty fields are merged instead.
+        """
+        rows, warnings = normalise_rows(
+            SIMPLE,
+            [
+                simple_row(pranzo="", merenda="", spuntino="Frutta fresca"),
+                simple_row(spuntino="", pranzo="Pasta al pomodoro", merenda="Yogurt"),
+            ],
+        )
+
+        assert len(rows) == 1
+        assert rows[0] == {
+            "giorno": "Lunedì",
+            "settimana": 1,
+            "pranzo": "Pasta al pomodoro",
+            "spuntino": "Frutta fresca",
+            "merenda": "Yogurt",
+        }
+        assert not warnings
+
+    def test_merging_does_not_disturb_the_ordering(self):
+        rows, _ = normalise_rows(
+            SIMPLE,
+            [
+                simple_row(giorno="Martedì", settimana=2, pranzo="Riso"),
+                simple_row(giorno="Lunedì", settimana=1, pranzo=""),
+                simple_row(giorno="Lunedì", settimana=1, pranzo="Pasta"),
+            ],
+        )
+
+        assert [(r["settimana"], r["giorno"], r["pranzo"]) for r in rows] == [
+            (1, "Lunedì", "Pasta"),
+            (2, "Martedì", "Riso"),
+        ]
 
     def test_same_day_on_a_different_week_is_kept(self):
         rows, _ = normalise_rows(
@@ -229,7 +269,7 @@ class TestAnnualKind:
 
         assert [r["primo"] for r in rows] == ["A", "B", "C"]
 
-    def test_duplicate_dates_keep_the_first(self):
+    def test_conflicting_dates_keep_the_first_and_warn(self):
         rows, warnings = normalise_rows(
             ANNUAL,
             [
@@ -240,7 +280,24 @@ class TestAnnualKind:
 
         assert len(rows) == 1
         assert rows[0]["primo"] == "A"
-        assert warnings
+        assert "primo" in warnings[0]
+
+    def test_a_date_split_across_two_rows_is_merged(self):
+        rows, warnings = normalise_rows(
+            ANNUAL,
+            [
+                {"data": "01/09/2026", "primo": "Pasta"},
+                {"data": "01/09/2026", "secondo": "Frittata", "frutta": "Mela"},
+            ],
+        )
+
+        assert len(rows) == 1
+        assert (rows[0]["primo"], rows[0]["secondo"], rows[0]["frutta"]) == (
+            "Pasta",
+            "Frittata",
+            "Mela",
+        )
+        assert not warnings
 
     def test_joined_menu_over_the_limit_is_truncated(self):
         """The annual columns end up in a single 600 char field, so the sum is capped."""

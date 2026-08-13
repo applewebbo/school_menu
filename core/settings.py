@@ -317,6 +317,12 @@ AI_MENU_IMPORT_MAX_FILE_SIZE = env.int(
 )
 AI_MENU_IMPORT_MAX_TEXT_CHARS = env.int("AI_MENU_IMPORT_MAX_TEXT_CHARS", default=40000)
 AI_MENU_IMPORT_HTTP_TIMEOUT = env.int("AI_MENU_IMPORT_HTTP_TIMEOUT", default=60)
+# A spend guard against a generation that starts repeating itself, not a size limit:
+# a truncated answer is invalid JSON, which fails without a refund. Kept well above what
+# a full annual menu needs (a 45-day file measured ~5000 output tokens).
+AI_MENU_IMPORT_MAX_OUTPUT_TOKENS = env.int(
+    "AI_MENU_IMPORT_MAX_OUTPUT_TOKENS", default=16384
+)
 AI_MENU_IMPORT_MAX_RETRIES = env.int("AI_MENU_IMPORT_MAX_RETRIES", default=1)
 # Must stay below Q_CLUSTER["retry"], otherwise the broker redelivers a task that is
 # still running and the same file gets billed to Gemini twice.

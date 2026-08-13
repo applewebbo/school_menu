@@ -16,7 +16,7 @@ from google.genai.errors import APIError
 from openpyxl import Workbook
 from pydantic import ValidationError
 
-from school_menu.ai import prompts, schemas
+from school_menu.ai import normalise, prompts, schemas
 from school_menu.ai.client import ExtractionResponse, GeminiClient, get_client
 from school_menu.ai.errors import (
     AIDisabled,
@@ -93,10 +93,43 @@ class TestSchemas:
 
     def test_json_schema_is_a_flat_object_of_strings(self):
         """anyOf and integers are what structured output most often gets wrong."""
-        schema = schemas.json_schema(SIMPLE)
-        row = schema["$defs"]["SimpleRow"]["properties"]
+        row = schemas.json_schema(SIMPLE)["properties"]["righe"]["items"]
 
-        assert all(field["type"] == "string" for field in row.values())
+        assert all(field["type"] == "string" for field in row["properties"].values())
+
+    @pytest.mark.parametrize("kind", [SIMPLE, DETAILED, ANNUAL])
+    def test_every_row_field_is_required(self, kind):
+        """
+        A partial row is how one day ends up split across two objects.
+
+        Seen live: the model returned the same day twice, once with only `spuntino` and
+        once with only `pranzo`. Requiring every field makes a row complete or invalid.
+        """
+        row = schemas.json_schema(kind)["properties"]["righe"]["items"]
+
+        assert set(row["required"]) == set(row["properties"])
+
+    @pytest.mark.parametrize("kind", [SIMPLE, DETAILED, ANNUAL])
+    def test_the_row_shape_is_inlined(self, kind):
+        """Gemini's handling of $ref in structured output is not dependable."""
+        schema = schemas.json_schema(kind)
+
+        assert "$defs" not in schema
+        assert "$ref" not in str(schema)
+
+    @pytest.mark.parametrize("kind", [SIMPLE, DETAILED, ANNUAL])
+    def test_every_field_is_length_capped(self, kind):
+        """
+        Without an upper bound nothing stops a runaway generation.
+
+        Seen live: one row whose `spuntino` was thousands of repeated zeroes, three times
+        the output tokens of a good answer.
+        """
+        row = schemas.json_schema(kind)["properties"]["righe"]["items"]
+
+        assert all("maxLength" in field for field in row["properties"].values())
+        for column, max_length in normalise.COLUMNS[kind].items():
+            assert row["properties"][column]["maxLength"] == max_length
 
     def test_numbers_and_nulls_are_accepted(self):
         payload = schemas.parse(SIMPLE, ai_fakes.SIMPLE_PAYLOAD)

@@ -1,5 +1,6 @@
 """Tests for the AI extraction pipeline: schemas, prompts and orchestration (#234)."""
 
+import base64
 import io
 from types import SimpleNamespace
 
@@ -7,6 +8,7 @@ import httpx
 import pytest
 from django.test import override_settings
 from google.genai._gaos.errors import GenAiError, NoResponseError
+from google.genai._gaos.types.interactions.documentcontent import DocumentContent
 from google.genai._gaos.types.interactions.usage import Usage
 from google.genai.errors import APIError
 from openpyxl import Workbook
@@ -165,7 +167,23 @@ class TestFilePreparation:
         content = ai_fakes.RecordingClient.calls[0]["contents"][0]
         assert content["type"] == "document"
         assert content["mime_type"] == "application/pdf"
-        assert content["data"] == b"%PDF-1.4 finto"
+        assert base64.b64decode(content["data"]) == b"%PDF-1.4 finto"
+
+    def test_the_document_payload_is_what_the_sdk_accepts(self):
+        """
+        Validate our payload against the SDK's own type, not against our idea of it.
+
+        `data` is a `Base64EncodedString`: raw bytes pass straight through its validator
+        and pydantic then tries to decode them as UTF-8, which no real PDF survives. That
+        only surfaced against the live API, so the contract is pinned here.
+        """
+        with use("RecordingClient"):
+            extract_menu(SIMPLE, b"%PDF-1.4 \x93\xff binario", "menu.pdf")
+
+        content = ai_fakes.RecordingClient.calls[0]["contents"][0]
+        DocumentContent.model_validate(content).model_dump(
+            by_alias=True, mode="json", exclude_none=True
+        )
 
     def test_csv_is_sent_as_text(self):
         with use("RecordingClient"):

@@ -7,6 +7,7 @@ token. After the call the answer is re-validated locally and cleaned determinist
 so a bad answer becomes an error the user can act on, never a bad row in the database.
 """
 
+import base64
 import csv
 import io
 from dataclasses import dataclass
@@ -86,10 +87,16 @@ def _build_contents(content, filename):
     """Prepare what gets sent upstream, or refuse the file before spending anything."""
     extension = _extension(filename)
     if extension in PDF_EXTENSIONS:
-        # Inline bytes rather than the Files API: nothing is retained by Google beyond
-        # the request itself, which is what the privacy policy promises.
+        # Inline rather than the Files API: nothing is retained by Google beyond the
+        # request itself, which is what the privacy policy promises. The payload has to
+        # be base64 already — `data` is a Base64EncodedString, and raw bytes pass
+        # through its validator untouched only to fail later as invalid UTF-8.
         return [
-            {"type": "document", "mime_type": "application/pdf", "data": content},
+            {
+                "type": "document",
+                "mime_type": "application/pdf",
+                "data": base64.b64encode(content).decode("ascii"),
+            },
         ]
     if extension in TEXT_EXTENSIONS:
         text = _decode(content)

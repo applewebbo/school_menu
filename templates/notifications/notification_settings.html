@@ -32,7 +32,7 @@
                                  <!-- NOTIFICATION SETTINGS START -->
                                 {% partialdef buttons inline %}
                                 <div id="notifications-buttons"
-                                     hx-get="{% url 'notifications:notifications_buttons' notification.pk %}"
+                                     hx-get="{% url 'notifications:notifications_buttons' %}"
                                      hx-swap="outerHTML"
                                      hx-trigger="notificationChanged from:body">
                                     <ul class="text-base/10" id="notifications-settings">
@@ -43,7 +43,7 @@
                                                 <p class="text-sm/4 text-gray-500 italic">Clicca su modifica per cambiare la scuola da cui ricevere la notifica giornaliera del menu e l'orario in cui vuoi riceverla.</p>
                                             </div>
                                             <button class="btn btn-sm btn-primary btn-outline mt-3 flex items-center gap-2"
-                                                    hx-get="{% url 'notifications:change_school' notification.pk %}"
+                                                    hx-get="{% url 'notifications:change_school' %}"
                                                     hx-target="#school">
                                                 Modifica
                                                 {% heroicon_outline 'cog-8-tooth' class="size-4" %}

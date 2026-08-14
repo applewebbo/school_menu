@@ -1,5 +1,5 @@
 {% load crispy_forms_tags %}
-<form hx-post="{% url 'notifications:change_school' notification.pk %}"
+<form hx-post="{% url 'notifications:change_school' %}"
       hx-target="#test-notification-result"
       hx-swap="innerHTML">
     {% csrf_token %}

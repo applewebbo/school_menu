@@ -231,13 +231,20 @@ def test_test_notification_generic_exception(mock_send, client, school_factory):
 
 
 def test_notification_settings_with_invalid_session(client):
-    """Testa la vista delle impostazioni con un pk non valido in sessione."""
+    """
+    A stale pk in the session means the subscription was deleted elsewhere.
+
+    That used to render a 404 page at a visitor who did nothing wrong; now the stale key
+    is dropped and the subscribe form is offered instead, which is the way out (#247).
+    """
     session = client.session
     session["anon_notification_pk"] = 999  # pk non esistente
     session.save()
     url = reverse("notifications:notification_settings")
     response = client.get(url)
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert "notification" not in response.context
+    assert client.session.get("anon_notification_pk") is None
 
 
 def test_notifications_buttons(client, school_factory):
@@ -246,7 +253,10 @@ def test_notifications_buttons(client, school_factory):
     notification = AnonymousMenuNotification.objects.create(
         school=school, subscription_info="test"
     )
-    url = reverse("notifications:notifications_buttons", kwargs={"pk": notification.pk})
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:notifications_buttons")
     response = client.get(url)
     assert response.status_code == 200
     assert b"Disabilita" in response.content
@@ -285,7 +295,10 @@ def test_change_school_get(client, school_factory):
     notification = AnonymousMenuNotification.objects.create(
         school=school, subscription_info="test"
     )
-    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:change_school")
     response = client.get(url)
     assert response.status_code == 200
 
@@ -297,7 +310,10 @@ def test_change_school_post_valid(client, school_factory):
     notification = AnonymousMenuNotification.objects.create(
         school=school1, subscription_info="test"
     )
-    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:change_school")
     data = {
         "school": school2.pk,
         "subscription_info": '{"endpoint": "test"}',
@@ -315,7 +331,10 @@ def test_change_school_post_invalid(client, school_factory):
     notification = AnonymousMenuNotification.objects.create(
         school=school, subscription_info="test"
     )
-    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:change_school")
     response = client.post(url)
     assert response.status_code == 200
 
@@ -606,7 +625,10 @@ def test_change_school_form_hides_meal_type_when_no_alt_menus(client, school_fac
     notification = AnonymousMenuNotification.objects.create(
         school=school, subscription_info="test"
     )
-    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:change_school")
     response = client.get(url)
     assert response.status_code == 200
     form = response.context["form"]
@@ -623,7 +645,10 @@ def test_change_school_form_shows_meal_type_choices_with_alt_menus(
     notification = AnonymousMenuNotification.objects.create(
         school=school, subscription_info="test"
     )
-    url = reverse("notifications:change_school", kwargs={"pk": notification.pk})
+    session = client.session
+    session["anon_notification_pk"] = notification.pk
+    session.save()
+    url = reverse("notifications:change_school")
     response = client.get(url)
     assert response.status_code == 200
     form = response.context["form"]
@@ -657,3 +682,90 @@ def test_test_notification_unexpected_exception(
     assert (
         "Errore durante l'invio della notifica di prova." in response.content.decode()
     )
+
+
+class TestSubscriptionIsResolvedFromTheCaller:
+    """
+    The subscription must never be taken from the URL (#247).
+
+    Anonymous subscriptions are anonymous on purpose — nothing here belongs behind a
+    login. But the feature already identifies a subscriber, by session and by the
+    unguessable `subscription_endpoint` cookie, and these two views used to ignore both
+    and trust a sequential pk in the URL instead.
+    """
+
+    def subscription(self, school_factory, endpoint):
+        return AnonymousMenuNotification.objects.create(
+            school=school_factory(),
+            subscription_info={
+                "endpoint": endpoint,
+                "keys": {"p256dh": "a", "auth": "b"},
+            },
+        )
+
+    def test_a_stranger_cannot_read_a_subscription(self, client, school_factory):
+        self.subscription(school_factory, "https://example.com/push/victim")
+
+        response = client.get(reverse("notifications:notifications_buttons"))
+
+        assert response.status_code == 404
+
+    def test_a_stranger_cannot_change_a_subscription(self, client, school_factory):
+        victim = self.subscription(school_factory, "https://example.com/push/victim")
+        other_school = school_factory()
+
+        response = client.post(
+            reverse("notifications:change_school"),
+            {
+                "school": other_school.pk,
+                "subscription_info": '{"endpoint": "test"}',
+                "notification_time": victim.notification_time,
+            },
+        )
+
+        assert response.status_code == 404
+        victim.refresh_from_db()
+        assert victim.school != other_school
+
+    def test_a_subscriber_only_ever_touches_their_own(self, client, school_factory):
+        """The decisive case: holding one cookie must not reach another subscription."""
+        victim = self.subscription(school_factory, "https://example.com/push/victim")
+        mine = self.subscription(school_factory, "https://example.com/push/mine")
+        target = school_factory()
+        client.cookies["subscription_endpoint"] = mine.subscription_endpoint
+
+        response = client.post(
+            reverse("notifications:change_school"),
+            {
+                "school": target.pk,
+                "subscription_info": '{"endpoint": "test"}',
+                "notification_time": mine.notification_time,
+            },
+        )
+
+        assert response.status_code == 200
+        mine.refresh_from_db()
+        victim.refresh_from_db()
+        assert mine.school == target
+        assert victim.school != target
+
+    def test_the_recovery_cookie_expiry_rolls_forward_on_every_visit(
+        self, client, school_factory
+    ):
+        """
+        It is only ever set at subscription time, so its one year window ran down while
+        the subscriber was happily receiving notifications — and once it lapsed they
+        could no longer manage the subscription at all (#247).
+        """
+        notification = self.subscription(
+            school_factory, "https://example.com/push/mine"
+        )
+        client.cookies["subscription_endpoint"] = notification.subscription_endpoint
+
+        response = client.get(reverse("notifications:notification_settings"))
+
+        assert response.status_code == 200
+        refreshed = response.cookies.get("subscription_endpoint")
+        assert refreshed is not None, "the visit must renew the cookie"
+        assert refreshed.value == notification.subscription_endpoint
+        assert refreshed["max-age"] > 0

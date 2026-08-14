@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
@@ -11,29 +11,70 @@ from notifications.forms import AnonymousMenuNotificationForm
 from notifications.models import AnonymousMenuNotification
 from notifications.utils import build_menu_notification_payload
 
+# One year, matching the cookie set on subscription.
+SUBSCRIPTION_COOKIE_MAX_AGE = 365 * 24 * 60 * 60
+
+
+def set_subscription_cookie(request, response, endpoint_hash):
+    """
+    Write the recovery cookie, rolling its expiry forward.
+
+    Called on every successful resolution, not only at subscription time: the window used
+    to run down silently while notifications kept arriving, and once it lapsed the
+    subscriber could no longer manage the subscription at all (#247).
+    """
+    response.set_cookie(
+        "subscription_endpoint",
+        endpoint_hash,
+        max_age=SUBSCRIPTION_COOKIE_MAX_AGE,
+        httponly=True,
+        secure=request.is_secure(),
+        samesite="Lax",
+    )
+    return response
+
+
+def resolve_subscription(request):
+    """
+    Find the caller's own subscription, or None.
+
+    The session comes first and the cookie is the fallback for when it has expired. This
+    is the only way a subscription may be identified: taking it from a pk in the URL let
+    anyone walk the (sequential) id range and repoint someone else's notifications (#247).
+    """
+    pk = request.session.get("anon_notification_pk")
+    if pk:
+        notification = AnonymousMenuNotification.objects.filter(pk=pk).first()
+        if notification:
+            return notification
+        # The subscription is gone (deleted elsewhere): drop the stale key and fall
+        # through to the cookie rather than showing an error page.
+        del request.session["anon_notification_pk"]
+
+    endpoint_hash = request.COOKIES.get("subscription_endpoint")
+    if not endpoint_hash:
+        return None
+    notification = AnonymousMenuNotification.objects.filter(
+        subscription_endpoint=endpoint_hash
+    ).first()
+    if notification:
+        request.session["anon_notification_pk"] = notification.pk
+        request.session.save()
+    return notification
+
+
+def require_subscription(request):
+    """Same as resolve_subscription, but 404 rather than None for the htmx endpoints."""
+    notification = resolve_subscription(request)
+    if notification is None:
+        raise Http404("Nessuna sottoscrizione per questo browser.")
+    return notification
+
 
 def notification_settings(request):
-    pk = request.session.get("anon_notification_pk")
     context = {}
-
-    # Try to recover subscription from persistent cookie if session is missing
-    if not pk:
-        endpoint_hash = request.COOKIES.get("subscription_endpoint")
-        if endpoint_hash:
-            try:
-                notification = AnonymousMenuNotification.objects.get(
-                    subscription_endpoint=endpoint_hash
-                )
-                # Restore session
-                request.session["anon_notification_pk"] = notification.pk
-                request.session.save()
-                pk = notification.pk
-            except AnonymousMenuNotification.DoesNotExist:
-                # Cookie exists but subscription doesn't - clear the cookie
-                pass
-
-    if pk:
-        notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+    notification = resolve_subscription(request)
+    if notification:
         context["notification"] = notification
 
     context["form"] = AnonymousMenuNotificationForm()
@@ -43,15 +84,18 @@ def notification_settings(request):
     context["vapid_public_key"] = settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"]
     response = render(request, "notifications/notification_settings.html", context)
 
-    # Clear invalid cookie if subscription wasn't found
-    if not pk and request.COOKIES.get("subscription_endpoint"):
+    if notification:
+        return set_subscription_cookie(
+            request, response, notification.subscription_endpoint
+        )
+    # Cookie pointing at a subscription that no longer exists: drop it.
+    if request.COOKIES.get("subscription_endpoint"):
         response.delete_cookie("subscription_endpoint")
-
     return response
 
 
-def notifications_buttons(request, pk):
-    notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+def notifications_buttons(request):
+    notification = require_subscription(request)
     context = {"notification": notification}
     return render(request, "notifications/notification_settings.html#buttons", context)
 
@@ -95,14 +139,7 @@ def save_subscription(request):
 
         # Store endpoint hash in persistent cookie (1 year expiry) for recovery
         response = HttpResponse(status=204, headers={"HX-Refresh": "true"})
-        response.set_cookie(
-            "subscription_endpoint",
-            endpoint_hash,
-            max_age=365 * 24 * 60 * 60,  # 1 year
-            httponly=True,
-            secure=request.is_secure(),
-            samesite="Lax",
-        )
+        set_subscription_cookie(request, response, endpoint_hash)
 
         if created:
             messages.add_message(
@@ -232,8 +269,8 @@ def toggle_daily_notification(request):
     return response
 
 
-def change_school(request, pk):
-    notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
+def change_school(request):
+    notification = require_subscription(request)
     if request.method == "POST":
         form = AnonymousMenuNotificationForm(request.POST, instance=notification)
         if form.is_valid():

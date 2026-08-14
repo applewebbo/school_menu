@@ -192,7 +192,7 @@ src/intellisense.css
 .overmind.sock
 
 # CLAUDE
-.claude/plans/
+.claude/
 .playwright-mcp/
 
 # TESTS

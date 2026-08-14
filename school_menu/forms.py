@@ -52,6 +52,33 @@ def validate_menu_upload(file):
     return file
 
 
+class DaisyErrorClassMixin:
+    """
+    Mark the offending control itself, not just the message under it.
+
+    daisyUI signals an invalid field with an `*-error` class, which has to sit on the
+    widget. The widget cannot know until the form has been cleaned, so the class is added
+    here rather than in `__init__` — `self.fields` is deep-copied per instance, so this
+    never leaks into another form (#239).
+    """
+
+    ERROR_CLASSES = {
+        forms.Textarea: "textarea-error",
+        forms.Select: "select-error",
+    }
+
+    def full_clean(self):
+        super().full_clean()
+        for name, field in self.fields.items():
+            if name not in self.errors:
+                continue
+            widget = field.widget
+            error_class = self.ERROR_CLASSES.get(type(widget), "input-error")
+            widget.attrs["class"] = (
+                f"{widget.attrs.get('class', '')} {error_class}".strip()
+            )
+
+
 class SchoolForm(forms.ModelForm):
     start_date = forms.DateField(
         label="Inizio",
@@ -279,7 +306,7 @@ class UploadAnnualMenuForm(forms.Form):
         )
 
 
-class SimpleMealForm(forms.ModelForm):
+class SimpleMealForm(DaisyErrorClassMixin, forms.ModelForm):
     class Meta:
         model = SimpleMeal
         fields = ["menu", "morning_snack", "afternoon_snack"]
@@ -289,9 +316,15 @@ class SimpleMealForm(forms.ModelForm):
             "afternoon_snack": "Merenda pomeriggio",
         }
         widgets = {
-            "menu": forms.Textarea(),
-            "morning_snack": forms.TextInput(),
-            "afternoon_snack": forms.TextInput(),
+            # Rendered field by field in create-weekly-menu.html rather than by crispy, so
+            # the page matches the AI preview: the classes have to live here (#239).
+            "menu": forms.Textarea(
+                attrs={"class": "textarea textarea-sm w-full", "rows": 3}
+            ),
+            "morning_snack": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "afternoon_snack": forms.TextInput(
+                attrs={"class": "input input-sm w-full"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -305,7 +338,7 @@ class SimpleMealForm(forms.ModelForm):
         )
 
 
-class DetailedMealForm(forms.ModelForm):
+class DetailedMealForm(DaisyErrorClassMixin, forms.ModelForm):
     class Meta:
         model = DetailedMeal
         fields = ["first_course", "second_course", "side_dish", "fruit", "snack"]
@@ -317,11 +350,11 @@ class DetailedMealForm(forms.ModelForm):
             "snack": "Spuntino",
         }
         widgets = {
-            "first_course": forms.TextInput(),
-            "second_course": forms.TextInput(),
-            "side_dish": forms.TextInput(),
-            "fruit": forms.TextInput(),
-            "snack": forms.TextInput(),
+            "first_course": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "second_course": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "side_dish": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "fruit": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "snack": forms.TextInput(attrs={"class": "input input-sm w-full"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -356,14 +389,14 @@ def _row_field(max_length, widget=None):
     )
 
 
-class AiWeeklyRowForm(forms.Form):
+class AiWeeklyRowForm(DaisyErrorClassMixin, forms.Form):
     giorno = forms.ChoiceField(
         choices=[(day, day) for day in WEEKDAYS],
-        widget=forms.Select(attrs={"class": "select select-sm"}),
+        widget=forms.Select(attrs={"class": "select select-sm w-full"}),
     )
     settimana = forms.ChoiceField(
         choices=[(week, week) for week in range(MIN_WEEK, MAX_WEEK + 1)],
-        widget=forms.Select(attrs={"class": "select select-sm"}),
+        widget=forms.Select(attrs={"class": "select select-sm w-full"}),
     )
 
 
@@ -386,10 +419,10 @@ class AiDetailedRowForm(AiWeeklyRowForm):
     spuntino = _row_field(COURSE_MAX_LENGTH)
 
 
-class AiAnnualRowForm(forms.Form):
+class AiAnnualRowForm(DaisyErrorClassMixin, forms.Form):
     data = forms.DateField(
         input_formats=[DATE_FORMAT],
-        widget=forms.TextInput(attrs={"class": "input input-sm w-28"}),
+        widget=forms.TextInput(attrs={"class": "input input-sm w-full"}),
     )
     primo = _row_field(ANNUAL_MENU_MAX_LENGTH)
     secondo = _row_field(ANNUAL_MENU_MAX_LENGTH)
@@ -409,6 +442,31 @@ AI_ROW_FORMS = {
 }
 
 
+class AiKeepRowMixin(forms.Form):
+    """
+    Rows are kept unless the user says otherwise.
+
+    Deliberately not the formset's own `can_delete`: that renders an unticked "remove"
+    box, so the safe state of the control is the one nobody wants, and a stray click
+    silently drops a row. A ticked "include" states what will happen to the row, and is
+    not mistakeable for a per-row action button the way an imperative would be (#239).
+    """
+
+    includi = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Includi",
+        widget=forms.CheckboxInput(
+            attrs={"class": "checkbox checkbox-sm checkbox-primary"}
+        ),
+    )
+
+
 def ai_row_formset(kind):
     """The formset used to review and correct the rows the AI produced."""
-    return forms.formset_factory(AI_ROW_FORMS[kind], extra=0, can_delete=True)
+    form = type(
+        f"AiKeep{AI_ROW_FORMS[kind].__name__}",
+        (AiKeepRowMixin, AI_ROW_FORMS[kind]),
+        {},
+    )
+    return forms.formset_factory(form, extra=0)

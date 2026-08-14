@@ -113,20 +113,54 @@ def _initial_rows(draft):
     return [{column: row.get(column, "") for column in columns} for row in draft.rows]
 
 
+# The short fields that say which row this is, as opposed to the menu text itself.
+KEY_COLUMNS = {"giorno", "settimana", "data"}
+
+
+def _row_title(form, kind, index):
+    """
+    Name the card so the user can find the row they want to fix.
+
+    Built from the values currently in the form, not from the draft, so it still reads
+    correctly after a failed confirm re-renders the submitted data.
+    """
+    if kind == MenuImportDraft.Kinds.ANNUAL:
+        return form["data"].value() or f"Riga {index}"
+    day = form["giorno"].value() or f"Riga {index}"
+    week = form["settimana"].value()
+    return f"{day} · Settimana {week}" if week else day
+
+
 def _preview_context(draft, formset):
     """
-    Pair every form with its fields in column order.
+    Pair every form with its labelled fields, in column order.
 
-    Done here rather than in the template: the table is one column per CSV header, and
-    looking a field up by name from a template needs a filter that adds nothing.
+    Done here rather than in the template: looking a field up by name from a template
+    needs a filter that adds nothing. Each field appears exactly once — a second copy for
+    a different breakpoint would post twice and quietly overwrite the first (#239).
     """
     columns = COLUMNS[draft.kind]
     return {
         "draft": draft,
         "formset": formset,
-        "columns": columns,
         "preview_rows": [
-            (form, [form[column] for column in columns]) for form in formset
+            {
+                "form": form,
+                "title": _row_title(form, draft.kind, index),
+                # Split so the short identifying fields can sit side by side in the card
+                # and the menu text gets the full width it needs.
+                "key_fields": [
+                    (column.capitalize(), form[column])
+                    for column in columns
+                    if column in KEY_COLUMNS
+                ],
+                "menu_fields": [
+                    (column.capitalize(), form[column])
+                    for column in columns
+                    if column not in KEY_COLUMNS
+                ],
+            }
+            for index, form in enumerate(formset, start=1)
         ],
         "school": draft.school,
     }
@@ -145,7 +179,7 @@ def _dataset_from(formset, columns):
     dataset = Dataset()
     dataset.headers = columns
     for form in formset.forms:
-        if form in formset.deleted_forms:
+        if not form.cleaned_data.get("includi"):
             continue
         dataset.append([str(form.cleaned_data.get(column, "")) for column in columns])
     return dataset

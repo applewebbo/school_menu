@@ -309,8 +309,9 @@ class TestPreviewAndConfirm(TestPlusTestCase):
         for index, row in enumerate(rows):
             for key, value in row.items():
                 data[f"form-{index}-{key}"] = value
-            if index in deleted:
-                data[f"form-{index}-DELETE"] = "on"
+            # "includi" is ticked by default in the browser; an unticked box posts nothing.
+            if index not in deleted:
+                data[f"form-{index}-includi"] = "on"
         return data
 
     def confirm(self, draft, data):
@@ -536,6 +537,7 @@ class TestAnnualPreview(TestPlusTestCase):
                     "form-0-contorno": "Insalata",
                     "form-0-frutta": "Mela",
                     "form-0-altro": "",
+                    "form-0-includi": "on",
                 },
             )
 

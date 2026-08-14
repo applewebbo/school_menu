@@ -1,16 +1,35 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
+    {% comment %}
+    Same card shell as ai-import-preview.html: both pages are "review and correct a week of
+    meals", so they should not look like two different applications (#239). Fields are
+    rendered one by one rather than through crispy so the labels match the preview's.
+    {% endcomment %}
     <section class="mx-auto max-w-screen-lg px-4 py-8">
         <h1 class="my-4 text-center text-2xl font-bold tracking-tight md:my-6 md:text-left">Modifica il menu settimanale</h1>
         <form method="post">
+            {# Explicit: it used to come from {% crispy form %}, which no longer renders here. #}
+            {% csrf_token %}
             {{ formset.management_form|crispy }}
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                 {% for form in formset %}
-                    <div>
-                        <h2 class="mb-3 text-center text-xl font-bold md:text-left">{{ form.instance.get_day_display }}</h2>
+                    <div class="border-base-300 bg-base-100 rounded-lg border p-4">
+                        <div class="border-base-300 mb-3 border-b pb-2">
+                            <h2 class="text-base font-bold">{{ form.instance.get_day_display }}</h2>
+                        </div>
                         {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
-                        {% crispy form %}
+                        <div class="space-y-3">
+                            {% for field in form.visible_fields %}
+                                <label class="block">
+                                    <span class="mb-1 block text-xs font-semibold tracking-wide uppercase opacity-70">{{ field.label }}</span>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <p class="text-error mt-1 text-xs font-medium">{{ error }}</p>
+                                    {% endfor %}
+                                </label>
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endfor %}
                 <div class="col-span-1 flex flex-col gap-4 md:col-span-2 md:block md:text-right">

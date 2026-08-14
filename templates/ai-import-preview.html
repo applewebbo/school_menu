@@ -1,13 +1,18 @@
 {% extends 'base.html' %}
 {% load heroicons %}
 {% block content %}
-    <section class="mx-auto max-w-screen-xl px-4 py-8">
+    {% comment %}
+    One card per row rather than a table: five inputs across do not fit a phone, where the
+    menu column collapsed to a couple of characters. Every field is rendered once — a
+    second copy for another breakpoint would post twice and overwrite the first (#239).
+    {% endcomment %}
+    <section class="mx-auto max-w-screen-lg px-4 py-8">
         <h1 class="my-4 text-center text-2xl font-bold tracking-tight md:my-6 md:text-left">Controlla il menu letto dall'assistente</h1>
         <p class="mb-4 text-sm italic">
-            Correggi quello che non torna e togli le righe che non servono. Nulla viene salvato finché non confermi.
+            Correggi quello che non torna e deseleziona le righe che non servono. Nulla viene salvato finché non confermi.
         </p>
         {% if draft.warnings %}
-            <div class="alert alert-warning mb-6 block">
+            <div class="alert alert-warning alert-soft mb-6 block">
                 <p class="mb-2 font-semibold">Alcune righe non sono state lette correttamente:</p>
                 <ul class="list-disc ps-6 text-sm">
                     {% for warning in draft.warnings %}<li>{{ warning }}</li>{% endfor %}
@@ -24,36 +29,49 @@
             {% csrf_token %}
             {{ formset.management_form }}
             {{ formset.non_form_errors }}
-            <div class="overflow-x-auto">
-                <table class="table-pin-rows table-sm table">
-                    <thead>
-                        <tr>
-                            {% for column in columns %}<th class="capitalize">{{ column }}</th>{% endfor %}
-                            <th>Togli</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for form, fields in preview_rows %}
-                            <tr>
-                                {% for field in fields %}
-                                    <td>
-                                        {{ field }}
-                                        {{ field.errors }}
-                                    </td>
-                                {% endfor %}
-                                <td>{{ form.DELETE }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-6 flex flex-col gap-4 md:block md:text-right">
-                <a href="{% url 'school_menu:settings' %}"
-                   class="btn btn-error w-full md:me-2 md:w-auto">Annulla</a>
-                <button type="submit" class="btn btn-primary w-full md:w-auto">
-                    {% heroicon_solid 'check' class="size-4 me-2" %}
-                    Salva il menu
-                </button>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+                {% for row in preview_rows %}
+                    <div class="border-base-300 bg-base-100 rounded-lg border p-4">
+                        <div class="border-base-300 mb-3 flex items-center justify-between gap-3 border-b pb-2">
+                            <h2 class="text-base font-bold">{{ row.title }}</h2>
+                            <label class="flex cursor-pointer items-center gap-2 text-sm">
+                                {{ row.form.includi }}
+                                <span>Includi</span>
+                            </label>
+                        </div>
+                        {% for hidden in row.form.hidden_fields %}{{ hidden }}{% endfor %}
+                        <div class="mb-3 grid grid-cols-2 gap-3">
+                            {% for label, field in row.key_fields %}
+                                <label class="block">
+                                    <span class="mb-1 block text-xs font-semibold tracking-wide uppercase opacity-70">{{ label }}</span>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <p class="text-error mt-1 text-xs font-medium">{{ error }}</p>
+                                    {% endfor %}
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="space-y-3">
+                            {% for label, field in row.menu_fields %}
+                                <label class="block">
+                                    <span class="mb-1 block text-xs font-semibold tracking-wide uppercase opacity-70">{{ label }}</span>
+                                    {{ field }}
+                                    {% for error in field.errors %}
+                                        <p class="text-error mt-1 text-xs font-medium">{{ error }}</p>
+                                    {% endfor %}
+                                </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+                <div class="col-span-1 flex flex-col gap-4 md:col-span-2 md:block md:text-right">
+                    <a href="{% url 'school_menu:settings' %}"
+                       class="btn btn-error w-full md:me-2 md:w-auto">Annulla</a>
+                    <button type="submit" class="btn btn-primary w-full md:w-auto">
+                        {% heroicon_solid 'check' class="size-4 me-2" %}
+                        Salva il menu
+                    </button>
+                </div>
             </div>
         </form>
     </section>

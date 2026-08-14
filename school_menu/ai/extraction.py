@@ -49,6 +49,21 @@ class ExtractionResult:
     usage: dict
 
 
+@dataclass(frozen=True)
+class Mismatch:
+    """
+    What to say when the document is not what the upload asked for.
+
+    Two sentences, not one: the same divergence reads differently depending on whether it
+    ends up above a populated preview or as the only thing the user sees. Telling someone
+    to "check the rows below" when the extraction returned none sends them looking for
+    something that is not there (#244).
+    """
+
+    warning: str
+    error: str
+
+
 def _extension(filename):
     _, _, extension = filename.lower().rpartition(".")
     return f".{extension}" if extension else ""
@@ -162,16 +177,28 @@ def _kind_mismatch(requested, detected):
 
     annual = MenuImportDraft.Kinds.ANNUAL
     if annual in (found, requested):
-        return (
+        divergence = (
             f"Il documento sembra un menu {KIND_LABELS[found]}, mentre la scuola è "
-            f"configurata per un menu {KIND_LABELS[requested]}. Cambia il tipo di menu "
-            "nelle impostazioni della scuola e ricarica il file."
+            f"configurata per un menu {KIND_LABELS[requested]}."
+        )
+        fix = (
+            "Cambia il tipo di menu nelle impostazioni della scuola e ricarica il file."
+        )
+        return Mismatch(
+            warning=f"{divergence} {fix}",
+            error=f"Non ho trovato nessuna riga utilizzabile. {divergence} {fix}",
         )
     if requested == MenuImportDraft.Kinds.DETAILED:
-        return (
+        divergence = (
             "Il documento sembra un menu semplice, con un unico testo per il pranzo, "
-            "mentre la scuola è configurata per un menu dettagliato: alcune colonne "
-            "potrebbero risultare vuote o divise male."
+            "mentre la scuola è configurata per un menu dettagliato"
+        )
+        return Mismatch(
+            warning=f"{divergence}: alcune colonne potrebbero risultare vuote o divise male.",
+            error=(
+                f"Non ho trovato nessuna riga utilizzabile. {divergence}. Controlla il "
+                "file, oppure cambia il tipo di menu nelle impostazioni della scuola."
+            ),
         )
     return None
 
@@ -202,10 +229,19 @@ def _season_mismatch(requested, detected):
     found = _detected_season(detected)
     if not wanted or not found or found == wanted:
         return None
-    return (
+    divergence = (
         f"Il documento sembra contenere il menu {found}, mentre hai scelto di caricare "
-        f"il menu {wanted}. Controlla le righe qui sotto, oppure annulla e ricarica il "
-        "file scegliendo l'altra stagionalità."
+        f"il menu {wanted}."
+    )
+    return Mismatch(
+        warning=(
+            f"{divergence} Controlla le righe qui sotto, oppure annulla e ricarica il "
+            "file scegliendo l'altra stagionalità."
+        ),
+        error=(
+            f"Non ho trovato nessuna riga per il menu {wanted}: il documento sembra "
+            f"contenere il menu {found}. Ricarica il file scegliendo l'altra stagionalità."
+        ),
     )
 
 
@@ -239,12 +275,12 @@ def extract_menu(kind, content, filename, season=None):
     # The kind comes first: it is about how the school is configured, while the season is
     # a choice made in the upload modal and cheaper to correct.
     mismatches = [
-        message
-        for message in (
+        mismatch
+        for mismatch in (
             _kind_mismatch(kind, parsed.kind),
             _season_mismatch(season, parsed.season),
         )
-        if message is not None
+        if mismatch is not None
     ]
     try:
         rows, warnings = normalise_rows(kind, parsed.rows)
@@ -253,8 +289,10 @@ def extract_menu(kind, content, filename, season=None):
         # thing the user can act on, so say it instead of "could not read the menu".
         if not mismatches:
             raise
-        raise EmptyResult(user_message=mismatches[0]) from None
+        raise EmptyResult(user_message=mismatches[0].error) from None
 
     return ExtractionResult(
-        rows=rows, warnings=mismatches + warnings, usage=response.usage
+        rows=rows,
+        warnings=[mismatch.warning for mismatch in mismatches] + warnings,
+        usage=response.usage,
     )

@@ -250,6 +250,30 @@ class TestSeasonMismatch:
 
         assert "primaverile-estivo" in raised.value.user_message
 
+    def test_no_usable_row_never_points_at_rows_that_do_not_exist(self):
+        """
+        The warning is written for the preview, where the rows are listed underneath.
+        On the empty path there is no preview and no row, so reusing it verbatim sends
+        the user to inspect something that is not there (#244).
+        """
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = (
+                '{"stagione": "primaverile-estivo", "righe": []}'
+            )
+            with pytest.raises(EmptyResult) as raised:
+                extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        message = raised.value.user_message
+        assert "qui sotto" not in message
+        assert "invernale" in message and "primaverile-estivo" in message
+
+    def test_the_warning_still_points_at_the_rows_when_there_are_some(self):
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload("primaverile-estivo")
+            result = extract_menu(SIMPLE, b"contenuto", "menu.csv", season=INVERNALE)
+
+        assert any("qui sotto" in warning for warning in result.warnings)
+
     def test_no_usable_row_without_a_season_keeps_the_generic_message(self):
         with use("EmptyClient"):
             with pytest.raises(EmptyResult) as raised:
@@ -340,6 +364,19 @@ class TestKindMismatch:
                 extract_menu(SIMPLE, b"contenuto", "menu.csv")
 
         assert "annuale" in raised.value.user_message
+
+    def test_no_usable_row_never_points_at_rows_that_do_not_exist(self):
+        """Same defect as the season message, on the kind axis (#244)."""
+        with use("RecordingClient"):
+            ai_fakes.RecordingClient.text = self.payload(
+                "settimanale_semplice", rows=""
+            )
+            with pytest.raises(EmptyResult) as raised:
+                extract_menu(DETAILED, b"contenuto", "menu.csv")
+
+        message = raised.value.user_message
+        assert "vuote o divise male" not in message
+        assert "dettagliato" in message
 
     def test_the_kind_outranks_the_season_when_both_diverge(self):
         """Reconfiguring the school comes first: the season is picked at upload time."""

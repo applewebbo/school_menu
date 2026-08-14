@@ -458,6 +458,15 @@ elif ENVIRONMENT == "prod":
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_SSL_REDIRECT = True
+
+    # STATIC FILES
+    # Hashed filenames + manifest, so whitenoise can serve them immutable and a browser can
+    # never pair a cached stylesheet with newer HTML after a deploy (#242). Production only:
+    # the manifest is written by collectstatic, and dev/test never run it, so requiring it
+    # everywhere would break {% static %} outside the container.
+    STORAGES["staticfiles"] = {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    }
     # Verified in production with a 1 hour max-age before raising it to a year (#230).
     SECURE_HSTS_SECONDS = 31536000
     # SECURE_HSTS_INCLUDE_SUBDOMAINS stays off on purpose: mail.menuscolastico.it (Aruba

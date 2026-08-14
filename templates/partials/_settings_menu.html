@@ -1,7 +1,7 @@
 {% load filters heroicons %}
 <section class="container mx-auto max-w-screen-lg"
          id="menu"
-         hx-get="{% url 'school_menu:menu_settings' user.pk %}"
+         hx-get="{% url 'school_menu:menu_settings' %}"
          hx-trigger="menuModified from:body"
          hx-target="#menu"
          hx-swap="outerHTML">
@@ -96,7 +96,7 @@
                                         <select class="select select-bordered select-sm"
                                                 id="alt_menu_select"
                                                 name="active_menu"
-                                                hx-get="{% url 'school_menu:menu_settings' user.pk %}"
+                                                hx-get="{% url 'school_menu:menu_settings' %}"
                                                 {% comment %}
                                                 hx-trigger="change"
                                                 {% endcomment %}

@@ -7,7 +7,7 @@ app_name = "school_menu"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("settings/<int:pk>/", views.settings_view, name="settings"),
+    path("settings/", views.settings_view, name="settings"),
     path("school_list", views.school_list, name="school_list"),
     path(
         "get-menu/<int:school_id>/<int:week>/<int:day>/<str:meal_type>/",
@@ -55,7 +55,7 @@ htmx_urlpatterns = [
         views.upload_annual_menu,
         name="upload_annual_menu",
     ),
-    path("settings/<int:pk>/menu/", views.menu_settings_partial, name="menu_settings"),
+    path("settings/menu/", views.menu_settings_partial, name="menu_settings"),
     path("settings/school/", views.school_settings_partial, name="school_settings"),
     path("search-schools/", views.search_schools, name="search_schools"),
     path(

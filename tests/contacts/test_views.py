@@ -121,7 +121,9 @@ class ReportDeleteView(TestCase):
         with self.login(user2):
             response = self.post("contacts:report_delete", report_id=report.pk)
 
-        self.response_200(response)
+        # 404 rather than a silent no-op 200: the report is not theirs to address at all,
+        # and the same answer as a missing id gives nothing away (#246).
+        self.response_404(response)
         assert MenuReport.objects.count() == 1
 
 
@@ -150,6 +152,37 @@ class ReportFeedbackView(TestCase):
         self.response_302(response)
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == "Risposta inviata con successo"
+
+    def test_a_stranger_cannot_answer_someone_elses_report(self):
+        """
+        The report is fetched by id alone, so any logged-in user could POST here and make
+        the site send an arbitrary message to the address on somebody else's report (#246).
+        """
+        from django.core import mail
+
+        owner = self.make_user("owner@test.com")
+        report = MenuReportFactory(receiver=owner, email="vittima@example.com")
+        intruder = self.make_user("intruder@test.com")
+
+        with self.login(intruder):
+            response = self.post(
+                "contacts:report_feedback",
+                report_id=report.pk,
+                data={"message": "messaggio non autorizzato"},
+            )
+
+        self.response_404(response)
+        assert mail.outbox == []
+
+    def test_a_stranger_cannot_open_the_feedback_form(self):
+        owner = self.make_user("owner@test.com")
+        report = MenuReportFactory(receiver=owner)
+        intruder = self.make_user("intruder@test.com")
+
+        with self.login(intruder):
+            response = self.get("contacts:report_feedback", report_id=report.pk)
+
+        self.response_404(response)
 
     def test_post_with_empty_message(self):
         user = self.make_user()

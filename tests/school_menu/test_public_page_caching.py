@@ -104,8 +104,10 @@ class TestSchoolListCaching:
         assert response_auth.status_code == 200
         content_auth = response_auth.content.decode()
         assert "Esci" in content_auth  # Logout button appears
-        # Verify settings link uses user.id in URL
-        assert f"/settings/{user.id}/" in content_auth
+        # The settings link carries no account id: the page is always the caller's own,
+        # and an id in that URL is what let anyone read someone else's settings (#245).
+        assert "/settings/" in content_auth
+        assert f"/settings/{user.id}/" not in content_auth
 
 
 class TestSchoolsJsonListCaching:

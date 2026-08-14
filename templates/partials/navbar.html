@@ -44,7 +44,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li>
-                            <a href="{% url 'school_menu:settings' user.id %}"
+                            <a href="{% url 'school_menu:settings' %}"
                                class="lg_menu_item {% active_link 'school_menu:settings' css_class='lg_menu_active' strict=True %}">Impostazioni</a>
                         </li>
                         <li>
@@ -84,7 +84,7 @@
                 </li>
                 {% if user.is_authenticated %}
                     <li>
-                        <a href="{% url 'school_menu:settings' user.id %}"
+                        <a href="{% url 'school_menu:settings' %}"
                            class="mob_menu_item {% active_link 'school_menu:settings' css_class='mob_menu_active' strict=True %}">Impostazioni</a>
                     </li>
                     <li>

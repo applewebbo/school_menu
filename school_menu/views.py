@@ -229,7 +229,7 @@ def index(request: HttpRequest) -> HttpResponse:
         try:
             school = School.objects.get(user=request.user)
         except School.DoesNotExist:
-            return redirect(reverse("school_menu:settings", args=[request.user.pk]))
+            return redirect(reverse("school_menu:settings"))
         if not _is_school_in_session(school, datetime.now()):
             context = {
                 "not_in_session": True,
@@ -360,9 +360,15 @@ def get_school_json_menu(request: HttpRequest, slug: str) -> JsonResponse:
 
 
 @login_required
-def settings_view(request: HttpRequest, pk: int) -> HttpResponse:
-    """Get the settings page"""
-    user, alt_menu = get_user(pk)
+def settings_view(request: HttpRequest) -> HttpResponse:
+    """
+    Get the settings page of the caller.
+
+    The account is never taken from the URL: an identifier that must always equal the
+    session user is an invitation to read someone else's page, which is exactly what
+    happened here (#245).
+    """
+    user, alt_menu = get_user(request.user.pk)
     active_menu = request.session.get("active_menu", "S")
     menu_label_dict = dict(Meal.Types.choices)
     menu_label = menu_label_dict.get(active_menu)
@@ -392,9 +398,9 @@ def menu_report_count(request: HttpRequest) -> HttpResponse:
 
 
 @login_required
-def menu_settings_partial(request: HttpRequest, pk: int) -> HttpResponse:
-    """ " Get the menu partial of the settings page when reloaded after a change via htmx"""
-    user, alt_menu = get_user(pk)
+def menu_settings_partial(request: HttpRequest) -> HttpResponse:
+    """Get the menu partial of the settings page when reloaded after a change via htmx"""
+    user, alt_menu = get_user(request.user.pk)
     active_menu = request.GET.get("active_menu", "S")
     request.session["active_menu"] = active_menu
     menu_label_dict = dict(Meal.Types.choices)
@@ -686,7 +692,7 @@ def create_weekly_menu(
             messages.add_message(
                 request, messages.SUCCESS, "Menu settimanale salvato con successo"
             )
-            return redirect("school_menu:settings", pk=school.user.pk)
+            return redirect("school_menu:settings")
         context = {"formset": formset, "school": school, "week": week, "season": season}
         return render(request, "create-weekly-menu.html", context)
     else:

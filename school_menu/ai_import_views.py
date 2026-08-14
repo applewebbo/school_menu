@@ -200,7 +200,5 @@ def ai_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
     messages.add_message(request, messages.SUCCESS, "Menu importato con successo")
     return HttpResponse(
         status=204,
-        headers={
-            "HX-Redirect": reverse("school_menu:settings", args=[request.user.pk])
-        },
+        headers={"HX-Redirect": reverse("school_menu:settings")},
     )

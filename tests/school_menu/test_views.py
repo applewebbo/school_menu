@@ -96,7 +96,7 @@ class IndexView(TestCase):
 
     def test_get_with_authenticated_user_and_no_school(self):
         user = self.make_user()
-        redirect_url = self.reverse("school_menu:settings", pk=user.pk)
+        redirect_url = self.reverse("school_menu:settings")
 
         with self.login(user):
             response = self.get("school_menu:index")
@@ -331,30 +331,58 @@ class SettingView(TestCase):
         SchoolFactory(user=user)
 
         with self.login(user):
-            response = self.get("school_menu:settings", pk=user.pk)
+            response = self.get("school_menu:settings")
 
         self.response_200(response)
         assertTemplateUsed(response, "settings.html")
         assert response.context["user"] == user
+
+    def test_the_page_always_belongs_to_the_caller(self):
+        """
+        It used to take the account from the URL and trust @login_required, which only
+        proves someone is logged in — so any user could read any other user's school
+        configuration, publication flag included (#245).
+        """
+        owner = self.make_user("owner@test.com")
+        SchoolFactory(user=owner, name="Scuola Riservata")
+        intruder = self.make_user("intruder@test.com")
+        SchoolFactory(user=intruder)
+
+        with self.login(intruder):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        assert response.context["user"] == intruder
+        self.assertNotContains(response, "Scuola Riservata")
 
     def test_partial_reload(self):
         user = self.make_user()
         SchoolFactory(user=user)
 
         with self.login(user):
-            response = self.get("school_menu:menu_settings", pk=user.pk)
+            response = self.get("school_menu:menu_settings")
 
         self.response_200(response)
         assert response.context["user"] == user
+
+    def test_the_menu_partial_always_belongs_to_the_caller(self):
+        owner = self.make_user("owner@test.com")
+        SchoolFactory(user=owner, name="Scuola Riservata")
+        intruder = self.make_user("intruder@test.com")
+        SchoolFactory(user=intruder)
+
+        with self.login(intruder):
+            response = self.get("school_menu:menu_settings")
+
+        self.response_200(response)
+        assert response.context["user"] == intruder
 
     def test_partial_reload_with_alt_menu(self):
         user = self.make_user()
         SchoolFactory(user=user)
 
         with self.login(user):
-            response = self.get(
-                "school_menu:menu_settings", pk=user.pk, data={"active_menu": "G"}
-            )
+            response = self.get("school_menu:menu_settings", data={"active_menu": "G"})
 
         self.response_200(response)
         assert response.context["user"] == user
@@ -1136,7 +1164,7 @@ class CreateWeeklyMenuView(TestCase):
             )
 
         self.response_302(response)
-        assert response.url == self.reverse("school_menu:settings", school.user.pk)
+        assert response.url == self.reverse("school_menu:settings")
 
     def test_post_with_invalid_data(self):
         user = self.make_user()

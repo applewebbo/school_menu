@@ -79,7 +79,9 @@ def report_detail(request, report_id):
 
 @login_required
 def report_feedback(request, report_id):
-    report = get_object_or_404(MenuReport, id=report_id)
+    # Scoped to the receiver: without it any logged-in account could make the site send an
+    # arbitrary message, from our own address, to the email on somebody else's report (#246).
+    report = get_object_or_404(MenuReport, id=report_id, receiver=request.user)
     form = ReportFeedbackForm(request.POST or None)
     if form.is_valid():
         message = form.cleaned_data["message"]
@@ -94,7 +96,7 @@ def report_feedback(request, report_id):
             messages.SUCCESS,
             "Risposta inviata con successo",
         )
-        return redirect(reverse("school_menu:settings", args=[request.user.pk]))
+        return redirect(reverse("school_menu:settings"))
     context = {"form": form, "report": report}
     return render(request, "contacts/report-feedback.html", context)
 
@@ -102,9 +104,10 @@ def report_feedback(request, report_id):
 @login_required
 @require_http_methods(["POST"])
 def report_delete(request, report_id):
-    report = get_object_or_404(MenuReport, id=report_id)
-    if report.receiver == request.user:
-        report.delete()
+    # Ownership in the query rather than in an `if`, like the other two views: the same
+    # shape everywhere is what makes a missing check visible on sight (#246).
+    report = get_object_or_404(MenuReport, id=report_id, receiver=request.user)
+    report.delete()
 
     reports = MenuReport.objects.filter(receiver=request.user)
     context = {"reports": reports}

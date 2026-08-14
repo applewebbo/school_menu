@@ -238,17 +238,14 @@ class UploadMenuForm(forms.Form):
         self.helper.form_tag = False
         self.helper.layout = Layout(
             "season",
-            Div(
-                Field(
-                    "file",
-                    css_class="file-input file-input-sm file-input-bordered mb-2",
-                    accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
-                ),
-                Div(
-                    css_id="spinner",
-                    css_class="loading loading-bars loading-md ms-6 mt-2 text-primary htmx-indicator",
-                ),
-                css_class="flex flex-row gap-2",
+            # The submit indicator is not part of the layout: htmx-indicator only toggles
+            # opacity, so a spinner sitting beside the field keeps its width reserved and
+            # leaves the field visibly narrower than the ones above it. It lives next to the
+            # Salva button in upload-menu.html instead (#241).
+            Field(
+                "file",
+                css_class="file-input file-input-sm file-input-bordered w-full",
+                accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
             ),
         )
 
@@ -267,14 +264,17 @@ class UploadAnnualMenuForm(forms.Form):
             Div(
                 Field(
                     "file",
-                    css_class="file-input file-input-sm file-input-bordered mb-2",
+                    # w-full + a growing wrapper, or the flex row shrinks the field to its
+                    # content and it no longer lines up with the fields above it (#241).
+                    css_class="file-input file-input-sm file-input-bordered w-full",
+                    wrapper_class="grow",
                     accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
                 ),
                 Div(
                     css_id="spinner",
-                    css_class="loading loading-bars loading-md ms-6 mt-2 text-primary htmx-indicator",
+                    css_class="loading loading-bars loading-md text-primary htmx-indicator shrink-0",
                 ),
-                css_class="flex flex-row gap-2",
+                css_class="flex w-full flex-row items-center gap-2",
             )
         )
 

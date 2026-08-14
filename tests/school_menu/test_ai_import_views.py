@@ -139,6 +139,15 @@ class TestFallbackOffer(TestPlusTestCase):
         assert not MenuImportDraft.objects.exists()
         self.assertContains(response, "Il file CSV non è valido")
 
+    def test_the_form_does_not_lend_its_progress_ui_to_the_assistant(self):
+        """htmx inherits hx-indicator/hx-disabled-elt down the DOM, and the offer and the
+        status polling both render inside the upload form. Without disinheritance every
+        poll disables the Salva button and flashes the form's own spinner (#241)."""
+        with ai_settings(), self.login(self.user):
+            response = self.post(self.school, "menu.pdf", b"%PDF-1.4")
+
+        self.assertContains(response, 'hx-disinherit="hx-indicator hx-disabled-elt"')
+
     def test_an_oversized_file_is_refused_by_the_form(self):
         with (
             ai_settings(AI_MENU_IMPORT_MAX_FILE_SIZE=10),

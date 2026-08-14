@@ -39,7 +39,9 @@
                     class="btn btn-secondary btn-sm"
                     hx-post="{% url 'school_menu:ai_import_start' draft.pk %}"
                     hx-target="#ai-import-status"
-                    hx-swap="outerHTML">
+                    hx-swap="outerHTML"
+                    {# Its own feedback, now that the form no longer lends it one (#241). #}
+                    hx-disabled-elt="this">
                 {% heroicon_solid 'sparkles' class="size-4 me-2" %}
                 Interpreta con l'assistente
             </button>

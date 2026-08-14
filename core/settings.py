@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "crispy_forms",
     "dbbackup",
-    "debug_toolbar",
     "django_browser_reload",
     "django_q",
     "django_social_share",
@@ -74,7 +73,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.middleware.AuditLogMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
@@ -273,11 +271,6 @@ filterwarnings(
     "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."
 )
 
-# DJANGO-DEBUG-TOOLBAR
-INTERNAL_IPS = [
-    "127.0.0.1",
-]
-
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
 APP_VERSION = "2026.2"
@@ -396,6 +389,11 @@ if ENVIRONMENT == "dev":
 
     # DJANGO CRAWL - Site crawler for broken links / runtime errors (dev only)
     INSTALLED_APPS += ["django_crawl"]
+
+    # DJANGO-DEVBAR - replaces django-debug-toolbar (#243). Wired here rather than in the
+    # base config so nothing debugging-related ships in the production image.
+    _security_idx = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
+    MIDDLEWARE.insert(_security_idx + 1, "django_devbar.DevBarMiddleware")
 
     # DJANGO SILK - Performance profiler (dev only)
     INSTALLED_APPS += ["silk"]

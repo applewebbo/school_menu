@@ -125,7 +125,7 @@ This project uses [just](https://github.com/casey/just) for task management. Ava
 - **factory-boy** - Test data generation
 - **Ruff** - Linting and formatting
 - **pre-commit** - Git hooks for code quality
-- **django-debug-toolbar** - Development debugging (dev only)
+- **django-devbar** - Development debugging (dev only)
 - **Locust** - Performance testing
 - **pytest-benchmark** - Performance benchmarking
 

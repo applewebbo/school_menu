@@ -275,7 +275,7 @@ Pre-commit hooks run automatically via `.pre-commit-config.yaml`:
 - **django-cookiebanner** - GDPR cookie consent
 - **django-social-share** - Social sharing functionality
 - **Whitenoise** - Static file serving
-- **django-debug-toolbar** - Development debugging (only in dev mode)
+- **django-devbar** - Development debugging (middleware wired in the dev block only)
 
 ## Important Settings
 

@@ -18,7 +18,8 @@ dev = [
   "memory-profiler>=0.61.0",
   "pytest-monitor>=1.6.6",
   "django-stubs[compatible-mypy]>=5.2.9",
-  "django-crawl>=1.1.0"
+  "django-crawl>=1.1.0",
+  "django-devbar>=0.7.0"
 ]
 
 [project]
@@ -32,7 +33,6 @@ dependencies = [
   "django-crispy-forms>=2.3",
   "django-csp>=3.8",
   "django-dbbackup>=4.2.1",
-  "django-debug-toolbar>=4.4.6",
   "django-environ>=0.11.2",
   "django-import-export>=4.2.0",
   "django-htmx>=1.21.0",

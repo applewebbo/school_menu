@@ -1,10 +1,10 @@
 requires-python = ">=3.14"
 resolution-markers = [
   "python_full_version >= '3.15' and sys_platform == 'win32'",
-  "python_full_version < '3.15' and sys_platform == 'win32'",
   "python_full_version >= '3.15' and sys_platform == 'emscripten'",
-  "python_full_version < '3.15' and sys_platform == 'emscripten'",
   "python_full_version >= '3.15' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+  "python_full_version < '3.15' and sys_platform == 'win32'",
+  "python_full_version < '3.15' and sys_platform == 'emscripten'",
   "python_full_version < '3.15' and sys_platform != 'emscripten' and sys_platform != 'win32'"
 ]
 revision = 3
@@ -787,15 +787,14 @@ wheels = [
 
 [[package]]
 dependencies = [
-  {name = "django"},
-  {name = "sqlparse"}
+  {name = "django"}
 ]
-name = "django-debug-toolbar"
-sdist = {url = "https://files.pythonhosted.org/packages/f9/53/ed6f028efe4044931d86cf7fdadb52d1a0addd8314ed35b5761e5fb597e7/django_debug_toolbar-7.1.0.tar.gz", hash = "sha256:d9c64faaaf171c1fb485bd0ef855e31809c21ddf032202545efd255701e29782", size = 363278, upload-time = "2026-08-10T15:22:42.227Z"}
+name = "django-devbar"
+sdist = {url = "https://files.pythonhosted.org/packages/0c/ec/63ecc60a34f30381f9ce0e2fa7745250c8ea5118ea1568f498d8d6da69dc/django_devbar-0.7.0.tar.gz", hash = "sha256:6abd24023bd145f5abf97339913399b8c1dbef2fced0be06916c35286659f68d", size = 9360, upload-time = "2026-02-16T18:28:32.573Z"}
 source = {registry = "https://pypi.org/simple"}
-version = "7.1.0"
+version = "0.7.0"
 wheels = [
-  {url = "https://files.pythonhosted.org/packages/2d/35/5f22dafc8f0c44c215872cd06c9daef5c856674b6e1c7e582de49c19a796/django_debug_toolbar-7.1.0-py3-none-any.whl", hash = "sha256:814be55805f77b04b1a94395049c80fb7e08f95c6e8d070256c9ed8fd0295084", size = 304247, upload-time = "2026-08-10T15:22:40.842Z"}
+  {url = "https://files.pythonhosted.org/packages/a5/71/a41c3e41a04ea3d49fa7f3d81a00dfb9878fc3a17a6d7e9212abdb5f82be/django_devbar-0.7.0-py3-none-any.whl", hash = "sha256:3c9f43a03aab79af747c37f2b34c16cd2d0306c97dd7277bf2839833240eadd4", size = 11681, upload-time = "2026-02-16T18:28:31.164Z"}
 ]
 
 [[package]]
@@ -2597,7 +2596,6 @@ dependencies = [
   {name = "django-crispy-forms"},
   {name = "django-csp"},
   {name = "django-dbbackup"},
-  {name = "django-debug-toolbar"},
   {name = "django-environ"},
   {name = "django-htmx"},
   {name = "django-import-export"},
@@ -2629,6 +2627,7 @@ version = "2026.2"
 dev = [
   {name = "coverage"},
   {name = "django-crawl"},
+  {name = "django-devbar"},
   {name = "django-silk"},
   {name = "django-stubs", extra = ["compatible-mypy"]},
   {name = "django-test-plus"},
@@ -2662,7 +2661,6 @@ requires-dist = [
   {name = "django-crispy-forms", specifier = ">=2.3"},
   {name = "django-csp", specifier = ">=3.8"},
   {name = "django-dbbackup", specifier = ">=4.2.1"},
-  {name = "django-debug-toolbar", specifier = ">=4.4.6"},
   {name = "django-environ", specifier = ">=0.11.2"},
   {name = "django-htmx", specifier = ">=1.21.0"},
   {name = "django-import-export", specifier = ">=4.2.0"},
@@ -2691,6 +2689,7 @@ requires-dist = [
 dev = [
   {name = "coverage", specifier = ">=7.6.4"},
   {name = "django-crawl", specifier = ">=1.1.0"},
+  {name = "django-devbar", specifier = ">=0.7.0"},
   {name = "django-silk", specifier = ">=5.1.0"},
   {name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.2.9"},
   {name = "django-test-plus", specifier = ">=2.2.4"},

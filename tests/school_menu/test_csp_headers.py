@@ -50,15 +50,20 @@ class TestCSPHeaders:
         # Should not contain hardcoded nonce
         assert 'nonce="6qSLf5Dz"' not in content
 
-    def test_facebook_sdk_has_nonce_placeholder(self):
-        """Test Facebook SDK script has nonce placeholder in template."""
+    def test_the_facebook_sdk_is_not_loaded(self, client):
+        """
+        django-social-share renders a plain <a href> to the sharer, so the SDK was never
+        needed. Loading it on every page bought a console error and a third-party request
+        firing before the cookie banner had asked anything (#240).
+        """
         from pathlib import Path
 
         base_template = Path("templates/base.html").read_text()
+        content = client.get("/").content.decode("utf-8")
 
-        # Check Facebook SDK has dynamic nonce
-        assert 'nonce="{{ request.csp_nonce }}"' in base_template
-        assert 'src="https://connect.facebook.net/it_IT/sdk.js' in base_template
+        assert "connect.facebook.net" not in base_template
+        assert 'id="fb-root"' not in base_template
+        assert "connect.facebook.net" not in content
 
     def test_alpine_script_has_nonce_placeholder(self):
         """Test Alpine.js script has nonce placeholder in template."""
@@ -99,5 +104,11 @@ class TestCSPConfiguration:
 
         assert hasattr(settings, "CSP_SCRIPT_SRC")
         assert "'self'" in settings.CSP_SCRIPT_SRC
-        assert "https://connect.facebook.net" in settings.CSP_SCRIPT_SRC
         assert "'nonce-{nonce}'" in settings.CSP_SCRIPT_SRC
+
+    def test_no_facebook_origin_is_allowed(self):
+        """Nothing loads from Facebook any more: the allowances went with the SDK (#240)."""
+        from django.conf import settings
+
+        assert "https://connect.facebook.net" not in settings.CSP_SCRIPT_SRC
+        assert "https://www.facebook.com" not in settings.CSP_FRAME_SRC

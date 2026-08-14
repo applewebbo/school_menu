@@ -21,12 +21,6 @@
     </head>
     <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         {% cookiebanner_modal 'bottom_banner' %}
-        <div id="fb-root"></div>
-        <script async
-                defer
-                crossorigin="anonymous"
-                src="https://connect.facebook.net/it_IT/sdk.js#xfbml=1&version=v20.0"
-                nonce="{{ request.csp_nonce }}"></script>
         {% include 'partials/navbar.html' %}
         {% block content %}
         {% endblock content %}

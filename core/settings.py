@@ -361,14 +361,15 @@ REST_FRAMEWORK = {
 CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
     "'self'",
-    "https://connect.facebook.net",
     "'nonce-{nonce}'",
 )
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # Tailwind requires unsafe-inline
 CSP_IMG_SRC = ("'self'", "data:", "https:")
 CSP_FONT_SRC = ("'self'", "data:")
 CSP_CONNECT_SRC = ("'self'",)
-CSP_FRAME_SRC = ("https://www.facebook.com",)
+# Nothing is framed: the share button is a plain link opened in a new tab, and the
+# Facebook SDK that used to need these allowances is gone (#240).
+CSP_FRAME_SRC = ("'none'",)
 
 # Report-only mode initially to avoid breaking existing functionality
 CSP_REPORT_ONLY = True

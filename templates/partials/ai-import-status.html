@@ -1,8 +1,20 @@
 {% load heroicons %}
+{% partialdef cancel-button %}
+    {% comment %}
+    The way back to the upload form, which is hidden while a draft is on screen. It drops
+    the draft (and the uploaded file) and swaps the plain modal back in (#239).
+    {% endcomment %}
+    <button type="button"
+            class="btn btn-danger-outline btn-sm"
+            hx-post="{% url 'school_menu:ai_import_cancel' draft.pk %}"
+            hx-target="#dialog"
+            hx-swap="innerHTML">Annulla</button>
+{% endpartialdef cancel-button %}
 <div id="ai-import-status" class="mt-4">
     {% if quota_message %}
         <div class="rounded-lg bg-amber-100 px-6 py-3 text-center text-amber-800">
-            <p class="text-sm italic">{{ quota_message }}</p>
+            <p class="mb-3 text-sm italic">{{ quota_message }}</p>
+            {% partial cancel-button %}
         </div>
     {% elif draft.status == "PENDING" %}
         {# Polling stops on its own: the next status that is not PENDING renders without hx-get. #}
@@ -19,15 +31,19 @@
             <p class="mb-3 text-sm italic">
                 Ho letto {{ draft.rows|length }} righe. Controllale prima di salvare.
             </p>
-            <a href="{% url 'school_menu:ai_import_preview' draft.pk %}"
-               class="btn btn-primary btn-sm">
-                Rivedi il menu
-                {% heroicon_solid 'arrow-right' class="size-4 ms-2" %}
-            </a>
+            <div class="flex items-center justify-center gap-2">
+                <a href="{% url 'school_menu:ai_import_preview' draft.pk %}"
+                   class="btn btn-primary btn-sm">
+                    Rivedi il menu
+                    {% heroicon_solid 'arrow-right' class="size-4 ms-2" %}
+                </a>
+                {% partial cancel-button %}
+            </div>
         </div>
     {% elif draft.status == "FAILED" %}
         <div class="rounded-lg bg-red-100 px-6 py-3 text-center text-red-700">
-            <p class="text-sm italic">{{ draft.error_message }}</p>
+            <p class="mb-3 text-sm italic">{{ draft.error_message }}</p>
+            {% partial cancel-button %}
         </div>
     {% else %}
         <div class="text-center">
@@ -35,16 +51,19 @@
                 Non riesco a leggere questo file. Posso provare a interpretarlo con l'assistente:
                 controllerai il risultato prima di salvarlo.
             </p>
-            <button type="button"
-                    class="btn btn-secondary btn-sm"
-                    hx-post="{% url 'school_menu:ai_import_start' draft.pk %}"
-                    hx-target="#ai-import-status"
-                    hx-swap="outerHTML"
-                    {# Its own feedback, now that the form no longer lends it one (#241). #}
-                    hx-disabled-elt="this">
-                {% heroicon_solid 'sparkles' class="size-4 me-2" %}
-                Interpreta con l'assistente
-            </button>
+            <div class="flex items-center justify-center gap-2">
+                <button type="button"
+                        class="btn btn-primary btn-sm"
+                        hx-post="{% url 'school_menu:ai_import_start' draft.pk %}"
+                        hx-target="#ai-import-status"
+                        hx-swap="outerHTML"
+                        {# Its own feedback, now that the form no longer lends it one (#241). #}
+                        hx-disabled-elt="this">
+                    {% heroicon_solid 'sparkles' class="size-4 me-2" %}
+                    Interpreta con l'assistente
+                </button>
+                {% partial cancel-button %}
+            </div>
             <p class="mt-2 text-xs italic opacity-70">Ti restano {{ remaining }} tentativi oggi</p>
         </div>
     {% endif %}

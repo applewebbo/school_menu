@@ -24,8 +24,13 @@
             <span class="sr-only">Close modal</span>
         </button>
     </div>
+    {% comment %}
+    While the assistant is in play the upload form is out of the way: with a draft on
+    screen there is nothing Salva could save, and pressing it did nothing visible at all.
+    The way back to these fields is the Annulla inside the status partial (#239).
+    {% endcomment %}
     <div class="mt-3 px-5 py-3 md:px-6 md:py-4">
-        {% crispy form %}
+        {% if not ai_draft %}{% crispy form %}{% endif %}
         {% if error_message %}
             <div class="rounded-lg bg-red-100 px-6 py-2 text-center text-red-700">
                 <p class="text-sm italic">{{ error_message }}</p>
@@ -35,14 +40,16 @@
             {% include "partials/ai-import-status.html" with draft=ai_draft remaining=ai_remaining %}
         {% endif %}
     </div>
-    <div class="flex items-center justify-end gap-3 px-5 pb-3 md:px-6 md:pb-4">
-        <div id="spinner"
-             class="loading loading-bars loading-md text-primary htmx-indicator"></div>
-        <button type="submit" id="form-submit" class="btn btn-primary">Salva</button>
-        <button type="button"
-                class="btn btn-danger-outline"
-                x-on:click="openModal = false">Annulla</button>
-    </div>
+    {% if not ai_draft %}
+        <div class="flex items-center justify-end gap-3 px-5 pb-3 md:px-6 md:pb-4">
+            <div id="spinner"
+                 class="loading loading-bars loading-md text-primary htmx-indicator"></div>
+            <button type="submit" id="form-submit" class="btn btn-primary">Salva</button>
+            <button type="button"
+                    class="btn btn-danger-outline"
+                    x-on:click="openModal = false">Annulla</button>
+        </div>
+    {% endif %}
 </form>
 {% if school.annual_menu %}
     <div class="m-12 mb-4">

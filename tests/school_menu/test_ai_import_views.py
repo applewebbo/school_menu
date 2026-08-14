@@ -263,6 +263,7 @@ class TestStartAndStatus(TestPlusTestCase):
         assert response.status_code == 404
 
     def test_cancelling_drops_the_draft_and_its_file(self):
+        """Cancelling hands back the plain upload modal, so another file can be tried."""
         with ai_settings(), self.login(self.user):
             draft = self.make_offer()
             path = draft.source_file.path
@@ -270,9 +271,10 @@ class TestStartAndStatus(TestPlusTestCase):
                 reverse("school_menu:ai_import_cancel", args=[draft.pk])
             )
 
-        assert response.status_code == 204
+        assert response.status_code == 200
         assert not MenuImportDraft.objects.exists()
         assert not __import__("os").path.exists(path)
+        assert response.context["ai_draft"] is None
 
 
 class TestPreviewAndConfirm(TestPlusTestCase):

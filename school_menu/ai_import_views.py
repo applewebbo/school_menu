@@ -19,7 +19,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 
-from school_menu.forms import ai_row_formset
+from school_menu.forms import UploadAnnualMenuForm, UploadMenuForm, ai_row_formset
 from school_menu.models import MenuImportDraft
 from school_menu.services import ai_quota
 from school_menu.services.menu_import import (
@@ -102,10 +102,26 @@ def ai_import_status(request: HttpRequest, draft_id: int) -> HttpResponse:
 @login_required
 @require_http_methods(["POST"])
 def ai_import_cancel(request: HttpRequest, draft_id: int) -> HttpResponse:
-    """Give up on the draft and drop the uploaded file with it."""
+    """
+    Give up on the draft and hand back the plain upload modal.
+
+    Not a page refresh: while the assistant is on offer the upload form is hidden, so this
+    is the way back to it — the user gets the fields again and can try another file. The
+    draft goes, and the uploaded file with it.
+    """
     draft = _get_draft(request, draft_id)
+    school, meal_type = draft.school, draft.meal_type
     draft.delete()
-    return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+    return TemplateResponse(
+        request,
+        "upload-menu.html",
+        {
+            "form": UploadAnnualMenuForm() if school.annual_menu else UploadMenuForm(),
+            "school": school,
+            "active_menu": meal_type,
+            "ai_draft": None,
+        },
+    )
 
 
 def _initial_rows(draft):

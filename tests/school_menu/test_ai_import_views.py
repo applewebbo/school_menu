@@ -359,7 +359,11 @@ class TestPreviewAndConfirm(TestPlusTestCase):
             )
 
         draft.refresh_from_db()
-        assert response.status_code == 204
+        # A plain form post: the browser must be sent to the settings page, otherwise the
+        # import silently succeeds and a second click 404s on the CONFIRMED draft (#250).
+        self.assertRedirects(
+            response, reverse("school_menu:settings"), fetch_redirect_response=False
+        )
         assert draft.status == CONFIRMED
         assert SimpleMeal.objects.filter(school=self.school, menu="Pasta").exists()
 
@@ -543,5 +547,5 @@ class TestAnnualPreview(TestPlusTestCase):
                 },
             )
 
-        assert response.status_code == 204
+        assert response.status_code == 302
         assert AnnualMeal.objects.filter(school=self.school).exists()

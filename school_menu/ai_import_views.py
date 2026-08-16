@@ -13,9 +13,8 @@ is a 404 rather than a leak: uploaded menus can carry third-party data.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 
@@ -248,7 +247,7 @@ def ai_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
     draft.save(update_fields=["status", "updated_at"])
     request.session["active_menu"] = draft.meal_type
     messages.add_message(request, messages.SUCCESS, "Menu importato con successo")
-    return HttpResponse(
-        status=204,
-        headers={"HX-Redirect": reverse("school_menu:settings")},
-    )
+    # The preview is a full page posting a plain form, so it needs a real redirect: an
+    # HX-Redirect header would be ignored and the user would sit on a stale page whose
+    # draft is already CONFIRMED, making the next click a 404 (#250).
+    return redirect("school_menu:settings")

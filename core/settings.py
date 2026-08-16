@@ -232,6 +232,10 @@ COOKIEBANNER = {
 # DJANGO-TAILWIND-CLI
 TAILWIND_CLI_SRC_CSS = "src/source.css"
 TAILWIND_CLI_USE_DAISY_UI = True
+# The image sets this to the CLI version it baked in, so the runtime looks for that exact
+# file instead of asking GitHub for `latest` and downloading ~120MB at start (#248).
+# Unset in development, where following the latest release is what we want.
+TAILWIND_CLI_VERSION = env("TAILWIND_CLI_VERSION", default="latest")
 
 # DJANGO-PWA
 PWA_APP_NAME = "Menu Scolastico"

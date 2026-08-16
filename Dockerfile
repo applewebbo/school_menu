@@ -47,6 +47,26 @@ RUN uv venv && \
 # Activate virtual env for subsequent commands
 ENV PATH="/app/.venv/bin:$PATH"
 
+# Pre-download the Tailwind CSS CLI to avoid the ~120MB runtime download on every start
+# (entrypoint.sh runs `tailwind build --force`).
+# IMPORTANT: keep TAILWIND_VERSION aligned with the version django-tailwind-cli expects
+# (the release skill verifies this on every release). The filename must match what
+# django-tailwind-cli resolves, otherwise it silently downloads the binary again.
+ARG TAILWIND_VERSION=2.10.11
+# Pin the runtime to the version baked above: left on the default `latest`, the app would
+# ask GitHub which version to look for and miss the file as soon as upstream moves on.
+ENV TAILWIND_CLI_VERSION=${TAILWIND_VERSION}
+RUN mkdir -p /app/.django_tailwind_cli \
+  && ARCH="$(dpkg --print-architecture)" \
+  && case "$ARCH" in \
+       amd64)  TW_ARCH="x64" ;; \
+       arm64)  TW_ARCH="arm64" ;; \
+       *) echo "Unsupported arch: $ARCH" >&2; exit 1 ;; \
+     esac \
+  && curl -fsSL "https://github.com/dobicinaitis/tailwind-cli-extra/releases/download/v${TAILWIND_VERSION}/tailwindcss-extra-linux-${TW_ARCH}" \
+     -o "/app/.django_tailwind_cli/tailwindcss-extra-linux-${TW_ARCH}-${TAILWIND_VERSION}" \
+  && chmod +x "/app/.django_tailwind_cli/tailwindcss-extra-linux-${TW_ARCH}-${TAILWIND_VERSION}"
+
 # Copy the rest of the application code
 COPY . .
 

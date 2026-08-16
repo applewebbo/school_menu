@@ -5,3 +5,5 @@ node_modules
 ruff_cache
 pytest_cache
 html_cov
+# local Tailwind CLI binaries: macOS builds, useless in the image and ~80MB each
+.django_tailwind_cli

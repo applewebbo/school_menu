@@ -10,7 +10,6 @@ Every draft is looked up with `user=request.user`, so a draft belonging to someb
 is a 404 rather than a leak: uploaded menus can carry third-party data.
 """
 
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -246,7 +245,8 @@ def ai_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
     draft.status = MenuImportDraft.Status.CONFIRMED
     draft.save(update_fields=["status", "updated_at"])
     request.session["active_menu"] = draft.meal_type
-    messages.add_message(request, messages.SUCCESS, "Menu importato con successo")
+    # No success message here: the import service already added one, exactly as it does
+    # for a CSV upload, and a second one showed up twice on the settings page (#252).
     # The preview is a full page posting a plain form, so it needs a real redirect: an
     # HX-Redirect header would be ignored and the user would sit on a stale page whose
     # draft is already CONFIRMED, making the next click a 404 (#250).

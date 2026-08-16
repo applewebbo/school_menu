@@ -247,7 +247,9 @@ def ai_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
     draft.status = MenuImportDraft.Status.CONFIRMED
     draft.save(update_fields=["status", "updated_at"])
     request.session["active_menu"] = draft.meal_type
-    messages.add_message(request, messages.SUCCESS, "Menu importato con successo")
+    # Success message is already emitted by import_weekly_dataset / import_annual_dataset
+    # (services/menu_import.py), matching the CSV upload path. Adding another here causes a
+    # duplicate on the settings page (issue #252).
     return HttpResponse(
         status=204,
         headers={"HX-Redirect": reverse("school_menu:settings")},

@@ -765,8 +765,8 @@ class TestUploadMenuView(TestCase):
                 "school_menu:upload_menu",
                 kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
             )
-            # This content will raise an exception when decoding
-            csv_content = b"\x80"
+            # Undefined in both UTF-8 and cp1252, so no fallback encoding can read it.
+            csv_content = b"\x81"
             data = {
                 "file": SimpleUploadedFile(
                     "simple_menu.csv",
@@ -779,7 +779,7 @@ class TestUploadMenuView(TestCase):
 
         # The error is now rendered in the modal, alongside the AI import offer
         assert response.status_code == 200
-        self.assertContains(response, "Errore")
+        self.assertContains(response, "caratteri del file")
 
     def test_upload_menu_post_detailed_success(self):
         user = self.make_user()
@@ -1003,8 +1003,8 @@ class TestUploadAnnualMenuView(TestCase):
                 "school_menu:upload_annual_menu",
                 kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
             )
-            # This content will raise an exception when decoding
-            csv_content = b"\x80"
+            # Undefined in both UTF-8 and cp1252, so no fallback encoding can read it.
+            csv_content = b"\x81"
             data = {
                 "file": SimpleUploadedFile(
                     "annual_menu.csv", csv_content, content_type="text/csv"
@@ -1014,7 +1014,7 @@ class TestUploadAnnualMenuView(TestCase):
 
         # The error is now rendered in the modal, alongside the AI import offer
         assert response.status_code == 200
-        self.assertContains(response, "Errore")
+        self.assertContains(response, "caratteri del file")
         assert AnnualMeal.objects.filter(school=school).count() == 0
 
     def test_upload_annual_menu_post_semicolon_delimiter(self):

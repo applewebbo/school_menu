@@ -21,6 +21,7 @@ from school_menu.utils.calendar import (
 # Import CSV import and validation utilities from dedicated module
 from school_menu.utils.csv_import import (
     ChoicesWidget,
+    decode_csv_bytes,
     detect_csv_format,
     detect_menu_type,
     filter_dataset_columns,
@@ -43,6 +44,7 @@ from school_menu.utils.notifications import get_notifications_status
 
 __all__ = [
     # CSV import and validation
+    "decode_csv_bytes",
     "detect_csv_format",
     "detect_menu_type",
     "filter_dataset_columns",

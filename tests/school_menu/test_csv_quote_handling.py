@@ -346,6 +346,8 @@ Lunedi,1,Pasta,Yogurt,Mela
 
         assert response.status_code == 200
         self.assertContains(response, "Il file CSV non è valido")
+        self.assertContains(response, "ERR-")
+        self.assertNotContains(response, "Some other parsing error")
 
     def test_upload_csv_with_generic_exception(self):
         """Test that generic exceptions are handled gracefully"""
@@ -376,6 +378,9 @@ Lunedi,1,Pasta,Yogurt,Mela
 
         assert response.status_code == 200
         self.assertContains(response, "Errore durante la lettura")
+        # The technical detail belongs in the logs, behind a code support can grep for.
+        self.assertContains(response, "ERR-")
+        self.assertNotContains(response, "Unexpected error")
 
     def test_upload_annual_csv_with_invalid_dimensions(self):
         """Test InvalidDimensions handling for annual menu upload"""
@@ -466,6 +471,8 @@ Lunedi,1,Pasta,Yogurt,Mela
 
         assert response.status_code == 200
         self.assertContains(response, "Il file CSV non è valido")
+        self.assertContains(response, "ERR-")
+        self.assertNotContains(response, "Some other parsing error")
 
     def test_upload_annual_csv_with_generic_exception(self):
         """Test generic exception handling for annual menu upload"""
@@ -495,6 +502,48 @@ Lunedi,1,Pasta,Yogurt,Mela
 
         assert response.status_code == 200
         self.assertContains(response, "Errore durante la lettura")
+        # The technical detail belongs in the logs, behind a code support can grep for.
+        self.assertContains(response, "ERR-")
+        self.assertNotContains(response, "Unexpected error")
+
+
+class TestCSVEncoding(TestPlusTestCase):
+    """A CSV saved by Excel on Windows is not UTF-8, and that must not be the user's problem."""
+
+    def upload(self, content: bytes):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        with self.login(user):
+            return school, self.post(
+                reverse(
+                    "school_menu:upload_menu",
+                    kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
+                ),
+                data={
+                    "file": SimpleUploadedFile(
+                        "menu.csv", content, content_type="text/csv"
+                    ),
+                    "season": School.Seasons.INVERNALE,
+                },
+            )
+
+    def test_a_latin_1_file_is_imported_with_its_accents_intact(self):
+        csv_content = "giorno,settimana,pranzo,spuntino,merenda\nLunedì,1,Purè di patate,Yogurt,Mela\n"
+        school, _ = self.upload(csv_content.encode("latin-1"))
+
+        assert SimpleMeal.objects.get(school=school, week=1, day=1).menu == (
+            "Purè di patate"
+        )
+
+    def test_bytes_no_encoding_can_read_get_a_plain_message(self):
+        # 0x81 is undefined in cp1252, so no fallback can rescue this file.
+        school, response = self.upload(
+            b"giorno,settimana,pranzo,spuntino,merenda\nLuned\x81,1,Pasta,,\n"
+        )
+
+        self.assertContains(response, "caratteri")
+        self.assertNotContains(response, "codec")
+        assert not SimpleMeal.objects.filter(school=school).exists()
 
 
 class TestCSVAnnualMenuQuoteHandling(TestPlusTestCase):

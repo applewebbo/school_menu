@@ -19,6 +19,7 @@ from school_menu.ai.errors import AIImportError
 from school_menu.ai.extraction import extract_menu
 from school_menu.models import MenuImportDraft
 from school_menu.services import ai_quota
+from school_menu.utils.support import log_unexpected, support_hint
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +63,15 @@ def process_menu_import_draft(draft_id):
             raise
         except Exception as exc:
             # Never let something unforeseen leave the draft PENDING: the user would be
-            # left polling a preview that never arrives.
-            logger.exception("Menu import draft %s failed unexpectedly", draft_id)
-            raise AIImportError(str(exc)) from exc
+            # left polling a preview that never arrives. The detail stays in the log,
+            # reachable through the code the user is shown (#251).
+            code = log_unexpected(
+                logger, "Menu import draft %s failed unexpectedly", draft_id
+            )
+            raise AIImportError(
+                str(exc),
+                user_message=(f"{AIImportError.user_message} {support_hint(code)}"),
+            ) from exc
     except AIImportError as error:
         if error.refundable:
             ai_quota.refund(draft.user)

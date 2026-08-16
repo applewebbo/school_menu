@@ -61,6 +61,7 @@ from school_menu.services.menu_import import (
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
+    decode_csv_bytes,
     detect_csv_format,
     get_adjusted_year,
     get_alt_menu,
@@ -73,6 +74,7 @@ from school_menu.utils import (
     validate_annual_dataset,
     validate_dataset,
 )
+from school_menu.utils.support import log_unexpected, support_hint
 
 logger = logging.getLogger(__name__)
 
@@ -95,17 +97,23 @@ def load_csv_dataset(file: UploadedFile) -> tuple[Dataset | None, str | None]:
     """
     dataset = Dataset()
     try:
-        # Read and detect CSV format (supports both comma and semicolon delimiters)
-        # This allows importing CSVs exported from Numbers, Excel, and other tools
-        content = file.read().decode("utf-8")
+        content = decode_csv_bytes(file.read())
+        # Detect CSV format (supports both comma and semicolon delimiters), so files
+        # exported from Numbers, Excel and other tools all load.
         delimiter, quotechar = detect_csv_format(content)
-        # Load with detected delimiter and quote character
         dataset.load(content, format="csv", delimiter=delimiter, quotechar=quotechar)
         return dataset, None
-    except InvalidDimensions as e:
+    except UnicodeDecodeError:
+        # Nothing technical to say here: the user just needs to re-save the file.
+        return None, (
+            "Non è stato possibile leggere i caratteri del file. Salvalo di nuovo dal "
+            "tuo foglio di calcolo scegliendo il formato CSV UTF-8."
+        )
+    except InvalidDimensions:
         return None, (
             "Il file CSV non è valido. Impossibile riconoscere il formato "
-            f"(virgola o punto e virgola). Errore: {str(e)}"
+            "(virgola o punto e virgola). Verifica che tutte le righe abbiano lo "
+            "stesso numero di colonne."
         )
     except ValueError as e:
         # ValueError often indicates quote-related parsing errors
@@ -113,13 +121,15 @@ def load_csv_dataset(file: UploadedFile) -> tuple[Dataset | None, str | None]:
         if "quote" in error_str or "delimiter" in error_str:
             return None, (
                 "Il file CSV contiene virgolette o delimitatori non validi. Verifica "
-                f"che tutte le virgolette siano chiuse correttamente. Errore: {str(e)}"
+                "che tutte le virgolette siano chiuse correttamente."
             )
-        return None, f"Il file CSV non è valido. Errore: {str(e)}"
-    except Exception as e:
+        code = log_unexpected(logger, "CSV upload could not be parsed")
+        return None, f"Il file CSV non è valido. {support_hint(code)}"
+    except Exception:
+        code = log_unexpected(logger, "CSV upload failed unexpectedly")
         return None, (
             "Errore durante la lettura del file CSV. Verifica il formato del file. "
-            f"Errore: {str(e)}"
+            f"{support_hint(code)}"
         )
 
 

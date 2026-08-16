@@ -180,6 +180,8 @@ class TestFailures(TestCase):
         draft.refresh_from_db()
         assert draft.status == FAILED
         assert draft.error_code == "UNKNOWN"
+        # Nothing the user can act on, so they get a code support can find in the logs.
+        assert "ERR-" in draft.error_message
 
     def test_an_infrastructure_failure_gives_the_quota_slot_back(self):
         """Nothing was produced upstream, so the user should not pay for it."""

@@ -62,6 +62,29 @@ def validate_column_lengths(
     return None
 
 
+# Tried in order. `utf-8-sig` also reads plain UTF-8 and strips the BOM Excel writes;
+# `cp1252` covers the Windows/Excel exports that are the usual reason a menu is not UTF-8.
+# Deliberately not `latin-1`, which decodes any byte sequence and would turn a broken file
+# into silent mojibake instead of an error the user can act on.
+CSV_ENCODINGS = ("utf-8-sig", "cp1252")
+
+
+def decode_csv_bytes(raw: bytes) -> str:
+    """
+    Decode an uploaded CSV, tolerating the encodings spreadsheets actually produce.
+
+    Raises:
+        UnicodeDecodeError: no candidate encoding could read the file.
+    """
+    for encoding in CSV_ENCODINGS[:-1]:
+        try:
+            return raw.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+    # The last candidate is not guarded: its failure is the one the caller reports.
+    return raw.decode(CSV_ENCODINGS[-1])
+
+
 def detect_csv_format(content: str) -> tuple[str, str]:
     """
     Detect CSV delimiter and quote character.

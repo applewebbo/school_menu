@@ -1,9 +1,9 @@
-{% load settings_tags static %}
+{% load django_htmx settings_tags static %}
 <!-- Tooltip -->
 <script src="{% static 'js/popper.min.js' %}"></script>
 <script src="{% static 'js/tippy-bundle.umd.min.js' %}"></script>
 <!-- HTMX -->
-<script defer src="{% static 'js/htmx.min.js' %}"></script>
+{% htmx_script %}
 <!-- Alpine.js -->
 <script defer src="{% static 'js/alpine-focus.min.js' %}"></script>
 <script defer src="{% static 'js/alpine-collapse.min.js' %}"></script>

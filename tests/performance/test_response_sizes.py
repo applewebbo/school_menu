@@ -16,6 +16,7 @@ from pathlib import Path
 
 import pytest
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from django.urls import reverse
 
 pytestmark = [pytest.mark.django_db, pytest.mark.performance]
@@ -242,10 +243,10 @@ class TestStaticFileSizes:
 
         HTMX is already minified, but compression can still help.
         """
-        static_dir = Path(settings.BASE_DIR) / "static"
-        js_file = static_dir / "js" / "htmx.min.js"
+        found = finders.find("django_htmx/htmx-2.min.js")
 
-        assert js_file.exists(), f"htmx.min.js not found at {js_file}"
+        assert found, "htmx.min.js not found among the static files"
+        js_file = Path(found)
 
         # Read file content
         content = js_file.read_bytes()

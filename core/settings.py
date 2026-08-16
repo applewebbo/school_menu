@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "crispy_forms",
     "dbbackup",
     "django_browser_reload",
+    "django_htmx",
     "django_q",
     "django_social_share",
     "django_tailwind_cli",

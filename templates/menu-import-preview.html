@@ -1,12 +1,58 @@
 {% extends 'base.html' %}
 {% load heroicons %}
+{% partialdef pager %}
+    {% if pages %}
+        <nav class="my-4 flex flex-wrap items-center justify-between gap-3"
+             aria-label="Pagine del menu">
+            <p class="text-sm opacity-70">
+                Righe <span x-text="(page - 1) * pageSize + 1"></span>–<span x-text="Math.min(page * pageSize, total)"></span> di {{ total_rows }}
+            </p>
+            <div class="join">
+                <button type="button"
+                        class="btn join-item btn-sm"
+                        aria-label="Pagina precedente"
+                        :disabled="page === 1"
+                        @click="go(page - 1)">{% heroicon_solid 'chevron-left' class="size-4" %}</button>
+                {% for item in pages %}
+                    <button type="button"
+                            class="btn join-item btn-sm"
+                            :class="page === {{ item.number }} && 'btn-active'"
+                            :aria-current="page === {{ item.number }} && 'page'"
+                            @click="go({{ item.number }})">
+                        {{ item.number }}
+                        {% if item.errors %}
+                            <span class="text-error font-bold" title="Questa pagina contiene errori">!</span>
+                        {% endif %}
+                    </button>
+                {% endfor %}
+                <button type="button"
+                        class="btn join-item btn-sm"
+                        aria-label="Pagina successiva"
+                        :disabled="page === pageCount"
+                        @click="go(page + 1)">{% heroicon_solid 'chevron-right' class="size-4" %}</button>
+            </div>
+        </nav>
+    {% endif %}
+{% endpartialdef pager %}
 {% block content %}
     {% comment %}
     One card per row rather than a table: five inputs across do not fit a phone, where the
     menu column collapsed to a couple of characters. Every field is rendered once — a
     second copy for another breakpoint would post twice and overwrite the first (#239).
     {% endcomment %}
-    <section class="mx-auto max-w-screen-lg px-4 py-8">
+    {% comment %}
+    Paging is presentation only: every card stays in the DOM and posts with the single form,
+    so changing page cannot lose an edit and there is no partial-save state (#255).
+    {% endcomment %}
+    <section class="mx-auto max-w-screen-lg px-4 py-8"
+             x-data="{ page: {{ current_page }},
+                       pageSize: {{ page_size }},
+                       total: {{ total_rows }},
+                       pageCount: {{ pages|length }},
+                       go(number) {
+                           this.page = Math.min(Math.max(number, 1), this.pageCount);
+                           window.scrollTo({ top: 0, behavior: 'smooth' });
+                       } }">
         <h1 class="my-4 text-center text-2xl font-bold tracking-tight md:my-6 md:text-left">
             {% if draft.source == "ai" %}
                 Controlla il menu letto dall'assistente
@@ -35,9 +81,12 @@
             {% csrf_token %}
             {{ formset.management_form }}
             {{ formset.non_form_errors }}
+            {% partial pager %}
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
                 {% for row in preview_rows %}
-                    <div class="border-base-300 bg-base-100 rounded-lg border p-4">
+                    <div class="border-base-300 bg-base-100 rounded-lg border p-4"
+                         x-show="page === {{ row.page }}"
+                         {% if row.page != current_page %}style="display: none"{% endif %}>
                         <div class="border-base-300 mb-3 flex items-center justify-between gap-3 border-b pb-2">
                             <h2 class="text-base font-bold">{{ row.title }}</h2>
                             <label class="flex cursor-pointer items-center gap-2 text-sm">
@@ -70,6 +119,7 @@
                         </div>
                     </div>
                 {% endfor %}
+                <div class="col-span-1 md:col-span-2">{% partial pager %}</div>
                 <div class="col-span-1 flex flex-col gap-4 md:col-span-2 md:block md:text-right">
                     <a href="{% url 'school_menu:settings' %}"
                        class="btn btn-error w-full md:me-2 md:w-auto">Annulla</a>

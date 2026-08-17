@@ -12,6 +12,8 @@ Every draft is looked up with `user=request.user`, so a draft belonging to someb
 is a 404 rather than a leak: uploaded menus can carry third-party data.
 """
 
+from math import ceil
+
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -32,6 +34,10 @@ from school_menu.utils import validate_annual_dataset, validate_dataset
 
 STATUS_TEMPLATE = "partials/ai-import-status.html"
 PREVIEW_TEMPLATE = "menu-import-preview.html"
+
+# Cards shown at once on the review page. A weekly menu is at most 4 weeks × 5 days, so
+# only an annual import (~200 rows) ever gets a pager (#255).
+PAGE_SIZE = 20
 
 # Column order per kind, and the order the preview table renders them in.
 COLUMNS = {
@@ -188,37 +194,74 @@ def _row_title(form, kind, index):
     return f"{day} · Settimana {week}" if week else day
 
 
+def _pages(preview_rows):
+    """
+    Describe the pager, or nothing at all when every row fits on one page.
+
+    Empty is the answer for a weekly menu, which cannot exceed `PAGE_SIZE`: the pager is
+    there for the ~200 rows of an annual import and must leave the weekly flow untouched.
+    """
+    total = len(preview_rows)
+    if total <= PAGE_SIZE:
+        return []
+    return [
+        {
+            "number": number,
+            "first": (number - 1) * PAGE_SIZE + 1,
+            "last": min(number * PAGE_SIZE, total),
+            # Marked in the pager: a page whose errors are hidden is a dead end, the user
+            # is told to fix something with nothing visibly wrong.
+            "errors": any(
+                row["form"].errors for row in preview_rows if row["page"] == number
+            ),
+        }
+        for number in range(1, ceil(total / PAGE_SIZE) + 1)
+    ]
+
+
 def _preview_context(draft, formset):
     """
-    Pair every form with its labelled fields, in column order.
+    Pair every form with its labelled fields, in column order, and page the result.
 
     Done here rather than in the template: looking a field up by name from a template
     needs a filter that adds nothing. Each field appears exactly once — a second copy for
     a different breakpoint would post twice and quietly overwrite the first (#239).
+
+    Paging is what the page shows, not what it posts: every row is rendered and every row
+    is submitted, so switching page cannot lose an edit (#255).
     """
     columns = COLUMNS[draft.kind]
+    preview_rows = [
+        {
+            "form": form,
+            "title": _row_title(form, draft.kind, index),
+            "page": (index - 1) // PAGE_SIZE + 1,
+            # Split so the short identifying fields can sit side by side in the card
+            # and the menu text gets the full width it needs.
+            "key_fields": [
+                (column.capitalize(), form[column])
+                for column in columns
+                if column in KEY_COLUMNS
+            ],
+            "menu_fields": [
+                (column.capitalize(), form[column])
+                for column in columns
+                if column not in KEY_COLUMNS
+            ],
+        }
+        for index, form in enumerate(formset, start=1)
+    ]
+    pages = _pages(preview_rows)
+    # Open on the first page that needs attention, so a failed confirm shows its errors.
+    with_errors = [page["number"] for page in pages if page["errors"]]
     return {
         "draft": draft,
         "formset": formset,
-        "preview_rows": [
-            {
-                "form": form,
-                "title": _row_title(form, draft.kind, index),
-                # Split so the short identifying fields can sit side by side in the card
-                # and the menu text gets the full width it needs.
-                "key_fields": [
-                    (column.capitalize(), form[column])
-                    for column in columns
-                    if column in KEY_COLUMNS
-                ],
-                "menu_fields": [
-                    (column.capitalize(), form[column])
-                    for column in columns
-                    if column not in KEY_COLUMNS
-                ],
-            }
-            for index, form in enumerate(formset, start=1)
-        ],
+        "preview_rows": preview_rows,
+        "pages": pages,
+        "current_page": with_errors[0] if with_errors else 1,
+        "total_rows": len(preview_rows),
+        "page_size": PAGE_SIZE,
         "school": draft.school,
     }
 

@@ -1,4 +1,4 @@
-"""Tests for the AI import fallback, polling and editable preview (#234).
+"""Tests for the AI import fallback, polling and the shared review page (#234, #254).
 
 `Q_CLUSTER["sync"] = True` in test settings, so posting to the start view runs the whole
 chain — quota, task, extraction — with only the network call replaced by a fake client.
@@ -14,6 +14,7 @@ from test_plus.test import TestCase as TestPlusTestCase
 
 from school_menu.models import (
     AnnualMeal,
+    AuditLog,
     Meal,
     MenuImportDraft,
     MenuImportQuota,
@@ -80,13 +81,15 @@ class TestFallbackOffer(TestPlusTestCase):
         self.user = self.make_user("owner@test.com")
         self.school = SchoolFactory(user=self.user, menu_type=School.Types.SIMPLE)
 
-    def test_a_valid_csv_never_creates_a_draft(self):
-        """The classic path must stay free: no draft, no call, no quota."""
+    def test_a_valid_csv_never_reaches_the_assistant(self):
+        """The classic path must stay free: no call, no quota, no offer (#254)."""
         with ai_settings(), self.login(self.user):
             response = self.post(self.school, "menu.csv", VALID_CSV)
 
         assert response.status_code == 204
-        assert not MenuImportDraft.objects.exists()
+        draft = MenuImportDraft.objects.get()
+        assert draft.source == MenuImportDraft.Sources.CSV
+        assert draft.status == READY
         assert ai_fakes.RecordingClient.calls == []
 
     def test_an_unreadable_csv_offers_the_assistant_with_the_file_kept(self):
@@ -318,14 +321,14 @@ class TestPreviewAndConfirm(TestPlusTestCase):
 
     def confirm(self, draft, data):
         return self.client.post(
-            reverse("school_menu:ai_import_confirm", args=[draft.pk]), data=data
+            reverse("school_menu:menu_import_confirm", args=[draft.pk]), data=data
         )
 
     def test_the_preview_shows_the_rows_and_the_warnings(self):
         with self.login(self.user):
             draft = self.make_ready(warnings=["Riga 3: giorno non riconosciuto"])
             response = self.client.get(
-                reverse("school_menu:ai_import_preview", args=[draft.pk])
+                reverse("school_menu:menu_import_preview", args=[draft.pk])
             )
 
         self.assertContains(response, "Pasta")
@@ -335,7 +338,7 @@ class TestPreviewAndConfirm(TestPlusTestCase):
         with self.login(self.user):
             draft = MenuImportDraftFactory(school=self.school, status=PENDING)
             response = self.client.get(
-                reverse("school_menu:ai_import_preview", args=[draft.pk])
+                reverse("school_menu:menu_import_preview", args=[draft.pk])
             )
 
         assert response.status_code == 404
@@ -366,6 +369,28 @@ class TestPreviewAndConfirm(TestPlusTestCase):
         )
         assert draft.status == CONFIRMED
         assert SimpleMeal.objects.filter(school=self.school, menu="Pasta").exists()
+
+    def test_the_audit_log_tells_the_ai_import_apart_from_a_csv_one(self):
+        """The source now travels on the draft, so it has to survive the round trip (#254)."""
+        with self.login(self.user):
+            draft = self.make_ready()
+            self.confirm(
+                draft,
+                self.payload(
+                    [
+                        {
+                            "giorno": "Lunedì",
+                            "settimana": "1",
+                            "pranzo": "Pasta",
+                            "spuntino": "Mela",
+                            "merenda": "Yogurt",
+                        }
+                    ]
+                ),
+            )
+
+        audit = AuditLog.objects.get(action=AuditLog.Actions.MENU_UPLOAD)
+        assert audit.changes["source"] == MenuImportDraft.Sources.AI
 
     def test_a_correction_made_by_the_user_is_what_gets_saved(self):
         """The whole point of the preview: the AI proposes, the user decides."""
@@ -531,7 +556,7 @@ class TestAnnualPreview(TestPlusTestCase):
                 ],
             )
             response = self.client.post(
-                reverse("school_menu:ai_import_confirm", args=[draft.pk]),
+                reverse("school_menu:menu_import_confirm", args=[draft.pk]),
                 data={
                     "form-TOTAL_FORMS": "1",
                     "form-INITIAL_FORMS": "1",

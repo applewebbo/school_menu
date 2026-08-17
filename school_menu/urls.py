@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import TemplateView
 
-from . import ai_import_views, views
+from . import menu_import_views, views
 
 app_name = "school_menu"
 
@@ -66,27 +66,27 @@ htmx_urlpatterns = [
     path("report-count/", views.menu_report_count, name="menu_report_count"),
     path(
         "ai-import/<int:draft_id>/start/",
-        ai_import_views.ai_import_start,
+        menu_import_views.ai_import_start,
         name="ai_import_start",
     ),
     path(
         "ai-import/<int:draft_id>/status/",
-        ai_import_views.ai_import_status,
+        menu_import_views.ai_import_status,
         name="ai_import_status",
     ),
     path(
-        "ai-import/<int:draft_id>/preview/",
-        ai_import_views.ai_import_preview,
-        name="ai_import_preview",
+        "menu-import/<int:draft_id>/preview/",
+        menu_import_views.menu_import_preview,
+        name="menu_import_preview",
     ),
     path(
-        "ai-import/<int:draft_id>/confirm/",
-        ai_import_views.ai_import_confirm,
-        name="ai_import_confirm",
+        "menu-import/<int:draft_id>/confirm/",
+        menu_import_views.menu_import_confirm,
+        name="menu_import_confirm",
     ),
     path(
         "ai-import/<int:draft_id>/cancel/",
-        ai_import_views.ai_import_cancel,
+        menu_import_views.ai_import_cancel,
         name="ai_import_cancel",
     ),
 ]

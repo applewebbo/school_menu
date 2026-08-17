@@ -256,7 +256,8 @@ def menu_import_upload_to(instance, filename):
 
 
 class MenuImportDraft(models.Model):
-    """A menu file handed to the AI, and the rows it produced, pending user review."""
+    """An uploaded menu and the rows read out of it — by the AI or by the CSV parser —
+    pending user review."""
 
     class Status(models.TextChoices):
         OFFERED = "OFFERED", _("Proposto")
@@ -270,6 +271,10 @@ class MenuImportDraft(models.Model):
         DETAILED = "D", _("Dettagliato")
         ANNUAL = "A", _("Annuale")
 
+    class Sources(models.TextChoices):
+        CSV = "csv", _("CSV")
+        AI = "ai", _("Assistente")
+
     school = models.ForeignKey(
         "School", on_delete=models.CASCADE, related_name="menu_import_drafts"
     )
@@ -282,6 +287,11 @@ class MenuImportDraft(models.Model):
         max_length=10, choices=Status.choices, default=Status.OFFERED
     )
     kind = models.CharField(max_length=1, choices=Kinds.choices)
+    # Where the rows came from: a CSV upload stages them here too (#254), so the review
+    # page is shared and the audit log keeps reporting the real source.
+    source = models.CharField(
+        max_length=3, choices=Sources.choices, default=Sources.CSV
+    )
     meal_type = models.CharField(
         max_length=1, choices=Meal.Types.choices, default=Meal.Types.STANDARD
     )
@@ -319,13 +329,18 @@ class MenuImportDraft(models.Model):
         return f"{self.school.name} - {self.get_status_display()} ({self.created_at:%d/%m/%Y %H:%M})"
 
     @staticmethod
+    def weekly_kind(menu_type):
+        """The kind of a weekly import, whatever the school's annual flag says."""
+        if menu_type == School.Types.SIMPLE:
+            return MenuImportDraft.Kinds.SIMPLE
+        return MenuImportDraft.Kinds.DETAILED
+
+    @staticmethod
     def kind_from_school(school):
         """An annual school always imports annual rows, whatever its menu_type says."""
         if school.annual_menu:
             return MenuImportDraft.Kinds.ANNUAL
-        if school.menu_type == School.Types.SIMPLE:
-            return MenuImportDraft.Kinds.SIMPLE
-        return MenuImportDraft.Kinds.DETAILED
+        return MenuImportDraft.weekly_kind(school.menu_type)
 
     @property
     def is_annual(self):

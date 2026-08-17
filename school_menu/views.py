@@ -34,6 +34,7 @@ from school_menu.forms import (
     UploadAnnualMenuForm,
     UploadMenuForm,
 )
+from school_menu.menu_import_views import stage_csv_rows
 from school_menu.models import (
     AnnualMeal,
     DetailedMeal,
@@ -54,10 +55,6 @@ from school_menu.serializers import (
     SimpleMealSerializer,
 )
 from school_menu.services import ai_quota
-from school_menu.services.menu_import import (
-    import_annual_dataset,
-    import_weekly_dataset,
-)
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
@@ -165,6 +162,7 @@ def offer_ai_import(
         draft = MenuImportDraft.objects.create(
             school=school,
             user=request.user,
+            source=MenuImportDraft.Sources.AI,
             kind=MenuImportDraft.kind_from_school(school),
             meal_type=active_menu,
             season=season or None,
@@ -591,9 +589,16 @@ def upload_menu(request: HttpRequest, school_id: int, meal_type: str) -> HttpRes
             validates, message, filtered_dataset = validate_dataset(dataset, menu_type)
             if not validates:
                 return offer(error_message=message)
-            import_weekly_dataset(request, school, filtered_dataset, season, meal_type)
-            request.session["active_menu"] = active_menu
-            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+            # Nothing is written yet: the user checks and corrects the rows first (#254).
+            return stage_csv_rows(
+                request,
+                school,
+                file,
+                filtered_dataset,
+                kind=MenuImportDraft.weekly_kind(menu_type),
+                meal_type=meal_type,
+                season=season,
+            )
         context = {"form": form, "school": school, "active_menu": active_menu}
         return TemplateResponse(request, "upload-menu.html", context)
     else:
@@ -634,9 +639,15 @@ def upload_annual_menu(
             validates, message, filtered_dataset = validate_annual_dataset(dataset)
             if not validates:
                 return offer(error_message=message)
-            import_annual_dataset(request, school, filtered_dataset, meal_type)
-            request.session["active_menu"] = active_menu
-            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+            # Nothing is written yet: the user checks and corrects the rows first (#254).
+            return stage_csv_rows(
+                request,
+                school,
+                file,
+                filtered_dataset,
+                kind=MenuImportDraft.Kinds.ANNUAL,
+                meal_type=meal_type,
+            )
         context = {"form": form, "school": school, "active_menu": active_menu}
         return TemplateResponse(request, "upload-menu.html", context)
     else:

@@ -161,5 +161,7 @@ class MenuImportDraftFactory(factory.django.DjangoModelFactory):
     school = factory.SubFactory(SchoolFactory)
     user = factory.SelfAttribute("school.user")
     kind = MenuImportDraft.Kinds.SIMPLE
+    # The factory stands in for the AI route; a CSV draft is built by the upload itself.
+    source = MenuImportDraft.Sources.AI
     source_filename = "menu.pdf"
     source_size = 1024

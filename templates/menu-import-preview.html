@@ -7,7 +7,13 @@
     second copy for another breakpoint would post twice and overwrite the first (#239).
     {% endcomment %}
     <section class="mx-auto max-w-screen-lg px-4 py-8">
-        <h1 class="my-4 text-center text-2xl font-bold tracking-tight md:my-6 md:text-left">Controlla il menu letto dall'assistente</h1>
+        <h1 class="my-4 text-center text-2xl font-bold tracking-tight md:my-6 md:text-left">
+            {% if draft.source == "ai" %}
+                Controlla il menu letto dall'assistente
+            {% else %}
+                Controlla il menu prima di salvarlo
+            {% endif %}
+        </h1>
         <p class="mb-4 text-sm italic">
             Correggi quello che non torna e deseleziona le righe che non servono. Nulla viene salvato finché non confermi.
         </p>
@@ -25,7 +31,7 @@
             </div>
         {% endif %}
         <form method="post"
-              action="{% url 'school_menu:ai_import_confirm' draft.pk %}">
+              action="{% url 'school_menu:menu_import_confirm' draft.pk %}">
             {% csrf_token %}
             {{ formset.management_form }}
             {{ formset.non_form_errors }}

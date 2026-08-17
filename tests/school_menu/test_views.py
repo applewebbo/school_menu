@@ -23,6 +23,7 @@ from tests.school_menu.factories import (
     SchoolFactory,
     SimpleMealFactory,
 )
+from tests.school_menu.import_review import confirm_import
 from tests.users.factories import UserFactory
 
 
@@ -655,9 +656,11 @@ class TestUploadMenuView(TestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert SimpleMeal.objects.filter(school=school).count() == 1
 
     def test_upload_menu_post_over_long_cell_is_rejected(self):
@@ -800,9 +803,11 @@ class TestUploadMenuView(TestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert DetailedMeal.objects.filter(school=school).count() == 1
 
     def test_upload_menu_post_with_extra_unnamed_columns(self):
@@ -826,9 +831,11 @@ class TestUploadMenuView(TestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert SimpleMeal.objects.filter(school=school).count() == 1
 
     def test_upload_menu_post_with_extra_named_columns(self):
@@ -852,9 +859,11 @@ class TestUploadMenuView(TestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert SimpleMeal.objects.filter(school=school).count() == 1
 
     def test_upload_menu_post_with_quoted_fields(self):
@@ -878,9 +887,11 @@ class TestUploadMenuView(TestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert SimpleMeal.objects.filter(school=school).count() == 1
         # Verify the quoted content was preserved
         meal = SimpleMeal.objects.get(school=school)
@@ -922,9 +933,11 @@ class TestUploadAnnualMenuView(TestCase):
                 ),
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert AnnualMeal.objects.filter(school=school).count() == 1
 
     def test_upload_annual_menu_is_audit_logged(self):
@@ -945,6 +958,8 @@ class TestUploadAnnualMenuView(TestCase):
                 ),
             }
             self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         audit = AuditLog.objects.get(action=AuditLog.Actions.MENU_UPLOAD)
         assert audit.user == user
@@ -1036,9 +1051,11 @@ class TestUploadAnnualMenuView(TestCase):
                 ),
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert AnnualMeal.objects.filter(school=school).count() == 1
 
     def test_upload_annual_menu_post_with_extra_columns(self):
@@ -1061,9 +1078,11 @@ class TestUploadAnnualMenuView(TestCase):
                 ),
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert AnnualMeal.objects.filter(school=school).count() == 1
 
     def test_upload_annual_menu_post_with_quoted_fields(self):
@@ -1086,9 +1105,11 @@ class TestUploadAnnualMenuView(TestCase):
                 ),
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
-        assert "HX-Refresh" in response.headers
+        assert "HX-Redirect" in response.headers
         assert AnnualMeal.objects.filter(school=school).count() == 1
         # Verify quoted content was preserved
         meal = AnnualMeal.objects.get(school=school)

@@ -32,7 +32,7 @@
                 Ho letto {{ draft.rows|length }} righe. Controllale prima di salvare.
             </p>
             <div class="flex items-center justify-center gap-2">
-                <a href="{% url 'school_menu:ai_import_preview' draft.pk %}"
+                <a href="{% url 'school_menu:menu_import_preview' draft.pk %}"
                    class="btn btn-primary btn-sm">
                     Rivedi il menu
                     {% heroicon_solid 'arrow-right' class="size-4 ms-2" %}

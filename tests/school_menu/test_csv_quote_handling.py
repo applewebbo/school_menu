@@ -10,6 +10,7 @@ from test_plus import TestCase as TestPlusTestCase
 
 from school_menu.models import DetailedMeal, Meal, School, SimpleMeal
 from tests.school_menu.factories import SchoolFactory
+from tests.school_menu.import_review import confirm_import
 
 pytestmark = pytest.mark.django_db
 
@@ -39,6 +40,8 @@ class TestCSVQuoteHandling(TestPlusTestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         assert SimpleMeal.objects.filter(school=school).count() == 2
@@ -65,6 +68,8 @@ class TestCSVQuoteHandling(TestPlusTestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         meals = SimpleMeal.objects.filter(school=school).order_by("day")
@@ -95,6 +100,8 @@ class TestCSVQuoteHandling(TestPlusTestCase):
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         meals = SimpleMeal.objects.filter(school=school).order_by("day")
@@ -126,6 +133,8 @@ con basilico fresco","Yogurt","Mela"
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         meals = SimpleMeal.objects.filter(school=school).order_by("day")
@@ -156,6 +165,8 @@ Lunedì,1,"Pasta al pomodoro","Yogurt",Mela
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         assert SimpleMeal.objects.filter(school=school).count() == 2
@@ -183,6 +194,8 @@ Lunedì,1,"Pasta al pomodoro","Yogurt",Mela
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         meals = SimpleMeal.objects.filter(school=school).order_by("day")
@@ -212,6 +225,8 @@ Lunedì,1,"Pasta al pomodoro","Yogurt",Mela
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         meals = DetailedMeal.objects.filter(school=school).order_by("day")
@@ -241,6 +256,8 @@ Lunedì,1,"Pasta al pomodoro","Yogurt",Mela
                 "season": School.Seasons.INVERNALE,
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         meals = SimpleMeal.objects.filter(school=school).order_by("day")
@@ -510,11 +527,11 @@ Lunedi,1,Pasta,Yogurt,Mela
 class TestCSVEncoding(TestPlusTestCase):
     """A CSV saved by Excel on Windows is not UTF-8, and that must not be the user's problem."""
 
-    def upload(self, content: bytes):
+    def upload(self, content: bytes, *, confirm: bool = False):
         user = self.make_user()
         school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
         with self.login(user):
-            return school, self.post(
+            response = self.post(
                 reverse(
                     "school_menu:upload_menu",
                     kwargs={"school_id": school.id, "meal_type": Meal.Types.STANDARD},
@@ -526,10 +543,14 @@ class TestCSVEncoding(TestPlusTestCase):
                     "season": School.Seasons.INVERNALE,
                 },
             )
+            # The rows only reach the database once the review page is confirmed (#254).
+            if confirm:
+                confirm_import(self.client, school)
+            return school, response
 
     def test_a_latin_1_file_is_imported_with_its_accents_intact(self):
         csv_content = "giorno,settimana,pranzo,spuntino,merenda\nLunedì,1,Purè di patate,Yogurt,Mela\n"
-        school, _ = self.upload(csv_content.encode("latin-1"))
+        school, _ = self.upload(csv_content.encode("latin-1"), confirm=True)
 
         assert SimpleMeal.objects.get(school=school, week=1, day=1).menu == (
             "Purè di patate"
@@ -572,6 +593,8 @@ class TestCSVAnnualMenuQuoteHandling(TestPlusTestCase):
                 ),
             }
             response = self.post(url, data=data)
+            # The rows only reach the database once the review page is confirmed (#254).
+            confirm_import(self.client, school)
 
         assert response.status_code == 204
         from school_menu.models import AnnualMeal

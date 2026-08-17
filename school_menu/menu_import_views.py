@@ -1,10 +1,12 @@
 """
-Views driving the AI menu import (#234).
+Views driving the menu import review (#234, #254).
 
-The flow is: the upload modal offers a draft (`OFFERED`), `start` charges the quota and
-queues it (`PENDING`), `status` is polled until the draft is `READY` or `FAILED`, the
-preview lets the user fix what the AI got wrong, and `confirm` sends the corrected rows
-through the very same import path a CSV upload uses.
+Every import ends on the same review page. The AI route gets there the long way: the
+upload modal offers a draft (`OFFERED`), `start` charges the quota and queues it
+(`PENDING`), `status` is polled until the draft is `READY` or `FAILED`. A valid CSV
+upload stages its parsed rows straight as `READY` (see `stage_csv_rows`). From there both
+routes share `preview`, which lets the user fix what the rows say, and `confirm`, which
+runs them through the same validation and resources a CSV upload always used.
 
 Every draft is looked up with `user=request.user`, so a draft belonging to somebody else
 is a 404 rather than a leak: uploaded menus can carry third-party data.
@@ -14,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
 
@@ -28,7 +31,7 @@ from school_menu.tasks import queue_menu_import
 from school_menu.utils import validate_annual_dataset, validate_dataset
 
 STATUS_TEMPLATE = "partials/ai-import-status.html"
-PREVIEW_TEMPLATE = "ai-import-preview.html"
+PREVIEW_TEMPLATE = "menu-import-preview.html"
 
 # Column order per kind, and the order the preview table renders them in.
 COLUMNS = {
@@ -57,6 +60,46 @@ COLUMNS = {
         "altro",
     ],
 }
+
+
+def stage_csv_rows(request, school, file, dataset, *, kind, meal_type, season=None):
+    """
+    Park a validated CSV on a draft and send the browser to the review page (#254).
+
+    `kind` comes from the upload route rather than from the school: the annual and the
+    weekly upload each import their own shape, and the review page has to offer the same
+    columns the import will use.
+
+    The file itself is not kept: it has already been parsed, and `rows` is everything the
+    confirm step needs. Any draft already waiting for review is dropped first, so a second
+    upload cannot leave the user reviewing the previous file's rows.
+    """
+    MenuImportDraft.objects.filter(
+        school=school,
+        status=MenuImportDraft.Status.READY,
+        source=MenuImportDraft.Sources.CSV,
+    ).delete()
+    draft = MenuImportDraft.objects.create(
+        school=school,
+        user=request.user,
+        status=MenuImportDraft.Status.READY,
+        source=MenuImportDraft.Sources.CSV,
+        kind=kind,
+        meal_type=meal_type,
+        season=season or None,
+        source_filename=file.name,
+        source_size=file.size,
+        rows=dataset.dict,
+    )
+    request.session["active_menu"] = meal_type
+    # The upload form lives in an htmx modal, so a plain redirect would only swap the
+    # modal's own target: the review page needs the whole window.
+    return HttpResponse(
+        status=204,
+        headers={
+            "HX-Redirect": reverse("school_menu:menu_import_preview", args=[draft.pk])
+        },
+    )
 
 
 def _get_draft(request, draft_id, **filters):
@@ -181,8 +224,8 @@ def _preview_context(draft, formset):
 
 
 @login_required
-def ai_import_preview(request: HttpRequest, draft_id: int) -> HttpResponse:
-    """Show what the AI read, so the user can correct it before anything is saved."""
+def menu_import_preview(request: HttpRequest, draft_id: int) -> HttpResponse:
+    """Show the rows that were read, so the user can correct them before anything is saved."""
     draft = _get_draft(request, draft_id, status=MenuImportDraft.Status.READY)
     formset = ai_row_formset(draft.kind)(initial=_initial_rows(draft))
     return TemplateResponse(request, PREVIEW_TEMPLATE, _preview_context(draft, formset))
@@ -201,12 +244,12 @@ def _dataset_from(formset, columns):
 
 @login_required
 @require_http_methods(["POST"])
-def ai_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
+def menu_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
     """
     Import the corrected rows.
 
-    They go through `validate_dataset` and the same resources as a CSV upload: the AI
-    path must not be able to write anything a CSV upload could not.
+    They go through `validate_dataset` and the same resources the CSV upload always used:
+    what the review page can write is exactly what a CSV could.
     """
     draft = _get_draft(request, draft_id, status=MenuImportDraft.Status.READY)
     columns = COLUMNS[draft.kind]
@@ -230,11 +273,16 @@ def ai_import_confirm(request: HttpRequest, draft_id: int) -> HttpResponse:
 
     if draft.is_annual:
         imported = import_annual_dataset(
-            request, draft.school, filtered, draft.meal_type, source="ai"
+            request, draft.school, filtered, draft.meal_type, source=draft.source
         )
     else:
         imported = import_weekly_dataset(
-            request, draft.school, filtered, draft.season, draft.meal_type, source="ai"
+            request,
+            draft.school,
+            filtered,
+            draft.season,
+            draft.meal_type,
+            source=draft.source,
         )
     if not imported:  # pragma: no cover
         # Same reason as menu_import._log_failure: django-import-export only reports row

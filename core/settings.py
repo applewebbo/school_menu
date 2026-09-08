@@ -579,6 +579,85 @@ elif ENVIRONMENT == "prod":
         "EMAIL_SUBJECT_PREFIX": "[Menu App Backup]",
     }
 
+    # LOGGING
+    # The container captures stdout/stderr, so every handler is the console. Without this
+    # block a 500 is swallowed: Django's default config sends django.request only to
+    # mail_admins, and ADMINS was never set, so the traceback went nowhere (#258).
+    # ADMINS also feeds SCHEDULED_BACKUPS' failure email and the mail_admins handler below.
+    ADMINS = [("Admin", ADMIN_EMAIL)]
+    SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+    # An email per 500 helps until a crash loop floods the inbox: AdminEmailHandler has no
+    # rate limiting, so it stays opt-in behind MAIL_ADMINS_ON_ERROR.
+    _request_handlers = ["console"]
+    if env.bool("MAIL_ADMINS_ON_ERROR", default=False):
+        _request_handlers.append("mail_admins")
+
+    LOGGING = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "filters": {
+            "require_debug_false": {"()": "django.utils.log.RequireDebugFalse"},
+        },
+        "formatters": {
+            "verbose": {
+                "format": "{levelname} {asctime} {name} {message}",
+                "style": "{",
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "verbose",
+            },
+            "mail_admins": {
+                "class": "django.utils.log.AdminEmailHandler",
+                "level": "ERROR",
+                "filters": ["require_debug_false"],
+            },
+        },
+        "root": {"handlers": ["console"], "level": "INFO"},
+        "loggers": {
+            "django": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "django.request": {
+                "handlers": _request_handlers,
+                "level": "ERROR",
+                "propagate": False,
+            },
+            # Bots hitting the bare IP or a wrong Host produce a steady trickle of these:
+            # log them, but never email.
+            "django.security.DisallowedHost": {
+                "handlers": ["console"],
+                "level": "ERROR",
+                "propagate": False,
+            },
+            "school_menu": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "notifications": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "anymail": {
+                "handlers": ["console"],
+                "level": "WARNING",
+                "propagate": False,
+            },
+            "django_q": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+        },
+    }
+
 # TESTING SPECIFIC SETTINGS
 elif ENVIRONMENT == "test":
     import logging

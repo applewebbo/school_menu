@@ -10,6 +10,7 @@ without these tests the failure surfaces for the first time in the container (#2
 import re
 
 from django.conf import settings
+from django.contrib.staticfiles import finders
 
 # Matches both the standard "//# sourceMappingURL=..." and the older "//@"/"// " spellings
 # that some vendored bundles still carry.
@@ -23,6 +24,11 @@ CSS_URL = re.compile(r"url\((.*?)\)")
 SKIPPED_PREFIXES = ("data:", "http:", "https:", "//", "#")
 
 STATIC_SOURCE = settings.BASE_DIR / "static"
+TEMPLATE_SOURCE = settings.BASE_DIR / "templates"
+
+# {% static 'path' %} / {% static "path" %}. A {% static some_var %} with a variable
+# argument is left alone: there is no path to resolve at import time.
+TEMPLATE_STATIC_REF = re.compile(r"""\{%\s*static\s+['"]([^'"]+)['"]""")
 
 
 def _sources(suffix):
@@ -55,3 +61,22 @@ def test_no_css_references_a_missing_file():
                 missing.append(f"{path.relative_to(STATIC_SOURCE)} -> {reference}")
 
     assert not missing, "url() references with no file on disk: " + ", ".join(missing)
+
+
+def test_no_template_references_a_missing_static_file():
+    """A {% static %} path that was never collected is a 500 at render time in prod.
+
+    ManifestStaticFilesStorage.url() raises ValueError for any path missing from the
+    manifest, so a stale reference takes down the page. Dev and test use the plain
+    storage and render the broken URL without complaint, hiding it until the
+    container (#242, #257).
+    """
+    missing = []
+    for path in sorted(TEMPLATE_SOURCE.rglob("*.html")):
+        for reference in TEMPLATE_STATIC_REF.findall(path.read_text(errors="replace")):
+            if finders.find(reference) is None:
+                missing.append(f"{path.relative_to(TEMPLATE_SOURCE)} -> {reference}")
+
+    assert not missing, "{% static %} references with no file on disk: " + ", ".join(
+        missing
+    )

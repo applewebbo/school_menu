@@ -1,3 +1,4 @@
+import json
 from datetime import date
 from unittest.mock import MagicMock, patch
 
@@ -614,7 +615,7 @@ class TestDeliveryResilience:
     def test_permanently_gone_subscription_is_pruned_and_batch_continues(
         self, mock_webpush, school_in_session
     ):
-        """A 403 (dead endpoint) deletes just that subscription and the run keeps
+        """A 410 (dead endpoint) deletes just that subscription and the run keeps
         going for the others."""
         create_simple_meals_for_all_seasons_and_weeks(
             school_in_session, date.today().weekday() + 1
@@ -628,7 +629,7 @@ class TestDeliveryResilience:
             )
 
         gone = MagicMock()
-        gone.status_code = 403
+        gone.status_code = 410
         gone.text = "Unregistered"
         mock_webpush.side_effect = [
             WebPushException("gone", response=gone),
@@ -639,6 +640,59 @@ class TestDeliveryResilience:
 
         assert mock_webpush.call_count == 2
         assert AnonymousMenuNotification.objects.count() == 1
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_auth_rejection_does_not_prune_subscriptions(
+        self, mock_webpush, school_in_session
+    ):
+        """A 403 / 401 is a VAPID / clock problem on our side, not a dead endpoint
+        (Apple returns 403 ExpiredProviderToken). The subscription must be kept so a
+        transient auth issue cannot wipe the whole table (#269)."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        for i in range(2):
+            AnonymousMenuNotificationFactory(
+                school=school_in_session,
+                daily_notification=True,
+                notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+                subscription_info={"endpoint": f"https://web.push.apple.com/{i}"},
+            )
+
+        rejected = MagicMock()
+        rejected.status_code = 403
+        rejected.text = "ExpiredProviderToken"
+        mock_webpush.side_effect = [
+            WebPushException("auth", response=rejected),
+            None,
+        ]
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        assert mock_webpush.call_count == 2
+        assert AnonymousMenuNotification.objects.count() == 2
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_daily_push_carries_a_coalescing_tag(self, mock_webpush, school_in_session):
+        """The payload gets a per-school, per-day tag so a redelivered batch
+        replaces the notification instead of stacking a duplicate (#269)."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        AnonymousMenuNotificationFactory(
+            school=school_in_session,
+            daily_notification=True,
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+            subscription_info={"endpoint": "https://web.push.apple.com/x"},
+        )
+        mock_webpush.return_value = None
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        sent_payload = json.loads(mock_webpush.call_args.kwargs["data"])
+        assert sent_payload["tag"] == f"menu-{school_in_session.id}-2025-08-18"
 
     @patch("notifications.tasks.webpush")
     def test_send_passes_ttl_timeout_and_urgency(self, mock_webpush):

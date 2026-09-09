@@ -14,10 +14,14 @@ from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
 
 logger = logging.getLogger(__name__)
 
-# Push endpoint is permanently gone: prune the row instead of retrying it forever.
-# 404/410 is the documented "expired", 401/403 is a VAPID mismatch that will never
-# recover for this subscription (#265).
-GONE_STATUS_CODES = frozenset({401, 403, 404, 410})
+# Push endpoint is permanently gone (RFC 8030): prune the row. Deliberately NOT
+# 401/403 — Apple returns 403 ExpiredProviderToken and FCM 401/403 for an auth /
+# clock problem on our side, and pruning on those would wipe the whole table on a
+# transient config issue (#269).
+GONE_STATUS_CODES = frozenset({404, 410})
+# Push service rejected our VAPID auth: our keys or server clock, never the
+# subscription. Log loudly, keep the row (#269).
+AUTH_REJECTED_STATUS_CODES = frozenset({401, 403})
 
 
 def send_test_notification(
@@ -67,6 +71,12 @@ def send_test_notification(
                 subscription_info=subscription_info
             ).delete()
             return "pruned"
+        if status_code in AUTH_REJECTED_STATUS_CODES:
+            logger.error(
+                f"Push auth rejected ({status_code}): check VAPID keys and server "
+                f"clock. Subscription kept. {e}"
+            )
+            raise
         logger.error(f"Errore durante l'invio della notifica: {e}")
         raise
     except Exception as e:
@@ -217,6 +227,9 @@ def _send_menu_notifications(notification_time: str) -> None:
 
         payload["icon"] = "/static/img/notification-bell.png"
         payload["url"] = school.get_absolute_url()
+        # Per-school, per-day tag: a redelivered batch replaces the notification
+        # instead of stacking a duplicate (matters most on iOS) (#269).
+        payload["tag"] = f"menu-{school.id}-{target_date.isoformat()}"
         results[_deliver(subscription, payload)] += 1
 
     logger.info(

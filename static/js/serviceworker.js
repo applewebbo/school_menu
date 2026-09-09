@@ -68,12 +68,19 @@ self.addEventListener("push", function(event) {
   } catch (e) {
     data = { head: "Notifica", body: "Hai una nuova notifica." };
   }
+  const options = {
+    body: data.body,
+    icon: data.icon || "/static/img/notification-bell.png",
+    data: { url: data.url || "/" }
+  };
+  // A tag coalesces a redelivered push into one notification instead of stacking
+  // duplicates (mainly an iOS issue); renotify still alerts on a genuine new push.
+  if (data.tag) {
+    options.tag = data.tag;
+    options.renotify = true;
+  }
   event.waitUntil(
-    self.registration.showNotification(data.head, {
-      body: data.body,
-      icon: data.icon || "/static/img/notification-bell.png",
-      data: { url: data.url || "/" }
-    })
+    self.registration.showNotification(data.head, options)
   );
 });
 

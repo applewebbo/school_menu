@@ -1,7 +1,28 @@
 from django.contrib import admin
 from django_q.tasks import async_task
 
-from notifications.models import BroadcastNotification
+from notifications.models import BroadcastNotification, DailyNotification
+
+
+@admin.register(DailyNotification)
+class DailyNotificationAdmin(admin.ModelAdmin):
+    """Read-only audit log of notification runs (#268)."""
+
+    list_display = [
+        "notification_time",
+        "created_at",
+        "sent_count",
+        "failed_count",
+        "pruned_count",
+    ]
+    list_filter = ["notification_time", "created_at"]
+    readonly_fields = [field.name for field in DailyNotification._meta.fields]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(BroadcastNotification)

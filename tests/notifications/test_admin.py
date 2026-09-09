@@ -192,3 +192,15 @@ class TestBroadcastNotificationAdmin:
         mock_async_task.assert_called_with(
             "notifications.tasks.send_broadcast_notification", broadcast2.pk
         )
+
+
+class TestDailyNotificationAdmin:
+    def test_is_read_only(self, admin_site, admin_request):
+        """The audit log is written by the task only — no add / change in the admin."""
+        from notifications.admin import DailyNotificationAdmin
+        from notifications.models import DailyNotification
+
+        admin_obj = DailyNotificationAdmin(DailyNotification, admin_site)
+
+        assert admin_obj.has_add_permission(admin_request) is False
+        assert admin_obj.has_change_permission(admin_request) is False

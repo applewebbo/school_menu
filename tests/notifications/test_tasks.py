@@ -8,7 +8,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from pywebpush import WebPushException
 
-from notifications.models import AnonymousMenuNotification, BroadcastNotification
+from notifications.models import (
+    AnonymousMenuNotification,
+    BroadcastNotification,
+    DailyNotification,
+)
 from notifications.tasks import (
     _has_menu_for_date,
     _is_school_in_session,
@@ -693,6 +697,30 @@ class TestDeliveryResilience:
 
         sent_payload = json.loads(mock_webpush.call_args.kwargs["data"])
         assert sent_payload["tag"] == f"menu-{school_in_session.id}-2025-08-18"
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_run_writes_a_dailynotification_audit_row(
+        self, mock_webpush, school_in_session
+    ):
+        """Each run leaves one DailyNotification row with its tallies, the only
+        proof a slot fired when catch_up is off (#268)."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        AnonymousMenuNotificationFactory(
+            school=school_in_session,
+            daily_notification=True,
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+            subscription_info={"endpoint": "https://web.push.apple.com/x"},
+        )
+        mock_webpush.return_value = None
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        row = DailyNotification.objects.get()
+        assert row.notification_time == AnonymousMenuNotification.SAME_DAY_9AM
+        assert (row.sent_count, row.failed_count, row.pruned_count) == (1, 0, 0)
 
     @patch("notifications.tasks.webpush")
     def test_send_passes_ttl_timeout_and_urgency(self, mock_webpush):

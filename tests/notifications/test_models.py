@@ -166,14 +166,17 @@ class TestAnonymousMenuNotificationModel:
 
 
 class TestDailyNotificationModel:
-    def test_create_and_str(self, school_factory):
-        """
-        Test creazione e __str__ di DailyNotification.
-        """
-        school = school_factory(name="Test School")
-        notification = DailyNotification.objects.create(school=school)
-        created_at = notification.created_at
-        expected_str = f"Daily notification for {school} at {created_at}"
+    def test_create_and_str(self):
+        """Test creation and __str__ of the per-run audit row."""
+        notification = DailyNotification.objects.create(
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+            sent_count=5,
+            failed_count=1,
+            pruned_count=2,
+        )
+        expected_str = (
+            f"alle 9:00 run at {notification.created_at}: 5 sent, 1 failed, 2 pruned"
+        )
         assert str(notification) == expected_str
 
 

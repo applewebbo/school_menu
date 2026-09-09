@@ -8,7 +8,11 @@ from django.conf import settings
 from django.utils import timezone
 from pywebpush import WebPushException, webpush
 
-from notifications.models import AnonymousMenuNotification, BroadcastNotification
+from notifications.models import (
+    AnonymousMenuNotification,
+    BroadcastNotification,
+    DailyNotification,
+)
 from notifications.utils import build_menu_notification_payload
 from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
 
@@ -236,6 +240,13 @@ def _send_menu_notifications(notification_time: str) -> None:
         f"[Notification] Slot {notification_time}: "
         f"{results['sent']} sent, {results['failed']} failed, "
         f"{results['pruned']} pruned."
+    )
+    # Audit row: with Q_CLUSTER catch_up off, this is the only proof the slot ran (#268).
+    DailyNotification.objects.create(
+        notification_time=notification_time,
+        sent_count=results["sent"],
+        failed_count=results["failed"],
+        pruned_count=results["pruned"],
     )
     logger.info(f"Notifiche per l'orario {notification_time} inviate.")
 

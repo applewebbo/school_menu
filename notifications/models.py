@@ -81,9 +81,21 @@ class AnonymousMenuNotification(models.Model):
 
 
 class DailyNotification(models.Model):
-    school = models.ForeignKey(
-        School, on_delete=models.CASCADE, related_name="daily_notifications"
+    """
+    One row per menu-notification run: an audit trail that a given time slot actually
+    fired on a given day, and with what outcome (#268). With Q_CLUSTER catch_up off, a
+    worker/redis outage over a slot leaves no other trace.
+    """
+
+    notification_time = models.CharField(
+        max_length=20,
+        choices=AnonymousMenuNotification.NOTIFICATION_TIME_CHOICES,
+        default=AnonymousMenuNotification.SAME_DAY_12PM,
+        verbose_name="Orario di notifica",
     )
+    sent_count = models.PositiveIntegerField(default=0)
+    failed_count = models.PositiveIntegerField(default=0)
+    pruned_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -92,7 +104,11 @@ class DailyNotification(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"Daily notification for {self.school} at {self.created_at}"
+        return (
+            f"{self.get_notification_time_display()} run at {self.created_at}: "
+            f"{self.sent_count} sent, {self.failed_count} failed, "
+            f"{self.pruned_count} pruned"
+        )
 
 
 class BroadcastNotification(models.Model):

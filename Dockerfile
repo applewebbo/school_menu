@@ -52,7 +52,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 # IMPORTANT: keep TAILWIND_VERSION aligned with the version django-tailwind-cli expects
 # (the release skill verifies this on every release). The filename must match what
 # django-tailwind-cli resolves, otherwise it silently downloads the binary again.
-ARG TAILWIND_VERSION=2.10.11
+ARG TAILWIND_VERSION=2.10.21
 # Pin the runtime to the version baked above: left on the default `latest`, the app would
 # ask GitHub which version to look for and miss the file as soon as upstream moves on.
 ENV TAILWIND_CLI_VERSION=${TAILWIND_VERSION}

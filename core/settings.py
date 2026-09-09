@@ -351,6 +351,17 @@ AI_MENU_IMPORT_PURGE_SCHEDULE = env(
     "AI_MENU_IMPORT_PURGE_SCHEDULE", default="30 3 * * *"
 )
 
+# Cron for each daily menu-notification slot, applied by
+# `manage.py setup_notification_schedules` (run from entrypoint.sh on every deploy).
+# Times are in the server timezone. The slots are self-describing — override only to
+# shift the hour (#267).
+NOTIFICATION_SCHEDULE_CRONS = {
+    "previous_day_6pm": env("NOTIFICATION_CRON_PREVIOUS_DAY_6PM", default="0 18 * * *"),
+    "same_day_9am": env("NOTIFICATION_CRON_SAME_DAY_9AM", default="0 9 * * *"),
+    "same_day_12pm": env("NOTIFICATION_CRON_SAME_DAY_12PM", default="0 12 * * *"),
+    "same_day_6pm": env("NOTIFICATION_CRON_SAME_DAY_6PM", default="0 18 * * *"),
+}
+
 # DJANGO REST FRAMEWORK
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [

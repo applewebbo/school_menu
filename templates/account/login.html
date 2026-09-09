@@ -9,6 +9,11 @@
               method="post"
               action="{% url 'account_login' %}">
             {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="alert alert-error text-sm" role="alert">
+                    {% for error in form.non_field_errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
             <div>
                 <label for="{{ form.login.id_for_label }}"
                        class="text-base-content/90 mb-2 block text-sm font-bold">{{ form.login.label }}</label>

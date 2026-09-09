@@ -351,6 +351,12 @@ AI_MENU_IMPORT_PURGE_SCHEDULE = env(
     "AI_MENU_IMPORT_PURGE_SCHEDULE", default="30 3 * * *"
 )
 
+# The scheduled slot fires a thin wrapper that re-queues the real fan-out as an
+# async_task with this timeout, so the per-subscriber loop runs on its own budget
+# instead of the cluster's default 60s (#266). Must stay below Q_CLUSTER["retry"]
+# (300s) or the broker redelivers a run that is still sending.
+NOTIFICATION_TASK_TIMEOUT = env.int("NOTIFICATION_TASK_TIMEOUT", default=240)
+
 # Cron for each daily menu-notification slot, applied by
 # `manage.py setup_notification_schedules` (run from entrypoint.sh on every deploy).
 # Times are in the server timezone. The slots are self-describing — override only to

@@ -112,28 +112,25 @@ def test_send_menu_notifications_sends_to_correct_time(
     assert args[0] == subscription_9am.subscription_info
 
 
-@patch("notifications.tasks._send_menu_notifications")
-def test_specific_time_tasks_call_helper(mock_send_menu_notifications):
-    """Test that specific time tasks call the main helper function."""
-    send_previous_day_6pm_menu_notification()
-    mock_send_menu_notifications.assert_called_with(
-        AnonymousMenuNotification.PREVIOUS_DAY_6PM
-    )
-
-    send_same_day_9am_menu_notification()
-    mock_send_menu_notifications.assert_called_with(
-        AnonymousMenuNotification.SAME_DAY_9AM
-    )
-
-    send_same_day_12pm_menu_notification()
-    mock_send_menu_notifications.assert_called_with(
-        AnonymousMenuNotification.SAME_DAY_12PM
-    )
-
-    send_same_day_6pm_menu_notification()
-    mock_send_menu_notifications.assert_called_with(
-        AnonymousMenuNotification.SAME_DAY_6PM
-    )
+@patch("notifications.tasks.async_task")
+def test_specific_time_tasks_queue_the_fan_out(mock_async_task):
+    """Each scheduled wrapper re-queues the fan-out as its own async_task with the
+    longer notification timeout, not the cluster default (#266)."""
+    for wrapper, slot in [
+        (
+            send_previous_day_6pm_menu_notification,
+            AnonymousMenuNotification.PREVIOUS_DAY_6PM,
+        ),
+        (send_same_day_9am_menu_notification, AnonymousMenuNotification.SAME_DAY_9AM),
+        (send_same_day_12pm_menu_notification, AnonymousMenuNotification.SAME_DAY_12PM),
+        (send_same_day_6pm_menu_notification, AnonymousMenuNotification.SAME_DAY_6PM),
+    ]:
+        wrapper()
+        mock_async_task.assert_called_with(
+            "notifications.tasks._send_menu_notifications",
+            slot,
+            timeout=settings.NOTIFICATION_TASK_TIMEOUT,
+        )
 
 
 @time_machine.travel("2025-08-18")  # A Monday

@@ -6,6 +6,7 @@ from typing import Any
 
 from django.conf import settings
 from django.utils import timezone
+from django_q.tasks import async_task
 from pywebpush import WebPushException, webpush
 
 from notifications.models import (
@@ -251,40 +252,40 @@ def _send_menu_notifications(notification_time: str) -> None:
     logger.info(f"Notifiche per l'orario {notification_time} inviate.")
 
 
-def send_previous_day_6pm_menu_notification() -> None:
+def _queue_menu_notifications(notification_time: str) -> None:
     """
-    Send menu notifications for the next day at 6 PM.
+    Re-queue the fan-out as its own async_task with a longer timeout (#266).
 
-    Scheduled task for Django-Q2 to send tomorrow's menu notifications.
+    The Django-Q2 Schedule fires one of the thin wrappers below; each does nothing but
+    enqueue this, so the per-subscriber loop in ``_send_menu_notifications`` runs on
+    ``NOTIFICATION_TASK_TIMEOUT`` instead of the cluster's 60s default and cannot be
+    killed and redelivered mid-batch.
     """
-    _send_menu_notifications(AnonymousMenuNotification.PREVIOUS_DAY_6PM)
+    async_task(
+        "notifications.tasks._send_menu_notifications",
+        notification_time,
+        timeout=settings.NOTIFICATION_TASK_TIMEOUT,
+    )
+
+
+def send_previous_day_6pm_menu_notification() -> None:
+    """Scheduled task: queue tomorrow's 6 PM menu notifications."""
+    _queue_menu_notifications(AnonymousMenuNotification.PREVIOUS_DAY_6PM)
 
 
 def send_same_day_9am_menu_notification() -> None:
-    """
-    Send menu notifications for the current day at 9 AM.
-
-    Scheduled task for Django-Q2 to send today's menu notifications.
-    """
-    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+    """Scheduled task: queue today's 9 AM menu notifications."""
+    _queue_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 
 
 def send_same_day_12pm_menu_notification() -> None:
-    """
-    Send menu notifications for the current day at 12 PM.
-
-    Scheduled task for Django-Q2 to send today's menu notifications.
-    """
-    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_12PM)
+    """Scheduled task: queue today's 12 PM menu notifications."""
+    _queue_menu_notifications(AnonymousMenuNotification.SAME_DAY_12PM)
 
 
 def send_same_day_6pm_menu_notification() -> None:
-    """
-    Send menu notifications for the current day at 6 PM.
-
-    Scheduled task for Django-Q2 to send today's menu notifications.
-    """
-    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_6PM)
+    """Scheduled task: queue today's 6 PM menu notifications."""
+    _queue_menu_notifications(AnonymousMenuNotification.SAME_DAY_6PM)
 
 
 def send_broadcast_notification(broadcast_pk: int) -> None:

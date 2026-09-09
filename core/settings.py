@@ -276,6 +276,13 @@ filterwarnings(
     "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."
 )
 
+# The menu import review page posts every staged row as form fields (7 per row for an
+# annual menu, plus the formset management fields). A real annual menu is a whole school
+# year, so the POST easily clears Django's default 1000-field cap and every confirm 400s
+# with TooManyFieldsSent (#259). Raised, not removed: still a DoS guard, just one sized
+# for the largest form this app legitimately submits.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
 APP_VERSION = "2026.2.3"

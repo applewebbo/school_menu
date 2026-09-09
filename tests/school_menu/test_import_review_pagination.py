@@ -198,3 +198,31 @@ class TestWeeklyPagerIsUnaffected(TestPlusTestCase):
             )
 
         assert SimpleMeal.objects.filter(school=school).count() == 5
+
+
+class TestFullYearAnnualConfirm(TestPlusTestCase):
+    def test_confirming_a_whole_school_year_does_not_hit_the_field_limit(self):
+        """A year's worth of rows posts more than 1000 form fields (#259).
+
+        The review page submits every row, seven fields each, so Django's default
+        DATA_UPLOAD_MAX_NUMBER_FIELDS of 1000 rejects the confirm with a 400 well before
+        the view runs. Real annual menus always cross that line.
+        """
+        user = self.make_user("owner@test.com")
+        school = SchoolFactory(user=user, annual_menu=True)
+        draft = MenuImportDraftFactory(
+            school=school,
+            status=READY,
+            kind=MenuImportDraft.Kinds.ANNUAL,
+            meal_type=Meal.Types.STANDARD,
+            rows=annual_rows(200),
+        )
+
+        with self.login(user):
+            response = self.client.post(
+                reverse("school_menu:menu_import_confirm", args=[draft.pk]),
+                data=confirm_payload(draft),
+            )
+
+        assert response.status_code == 302
+        assert AnnualMeal.objects.filter(school=school, is_active=True).count() == 200

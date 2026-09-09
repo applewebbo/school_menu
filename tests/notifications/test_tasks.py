@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import time_machine
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from pywebpush import WebPushException
 
@@ -573,3 +574,112 @@ class TestSendBroadcastNotification:
         """Test task handles gracefully when broadcast doesn't exist."""
         send_broadcast_notification(99999)
         # Should not raise exception, just log error and return
+
+
+class TestDeliveryResilience:
+    """Regression cover for the Android inconsistency causes (#265)."""
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_transient_failure_on_one_subscription_does_not_abort_the_batch(
+        self, mock_webpush, school_in_session
+    ):
+        """A 5xx / network blip on one subscription must not stop the remaining
+        subscriptions in the same run from being notified."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        for i in range(3):
+            AnonymousMenuNotificationFactory(
+                school=school_in_session,
+                daily_notification=True,
+                notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+                subscription_info={"endpoint": f"https://fcm.example/{i}"},
+            )
+
+        transient = MagicMock()
+        transient.status_code = 503
+        mock_webpush.side_effect = [
+            WebPushException("temporarily unavailable", response=transient),
+            None,
+            None,
+        ]
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        assert mock_webpush.call_count == 3
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_permanently_gone_subscription_is_pruned_and_batch_continues(
+        self, mock_webpush, school_in_session
+    ):
+        """A 403 (dead endpoint) deletes just that subscription and the run keeps
+        going for the others."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        for i in range(2):
+            AnonymousMenuNotificationFactory(
+                school=school_in_session,
+                daily_notification=True,
+                notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+                subscription_info={"endpoint": f"https://fcm.example/{i}"},
+            )
+
+        gone = MagicMock()
+        gone.status_code = 403
+        gone.text = "Unregistered"
+        mock_webpush.side_effect = [
+            WebPushException("gone", response=gone),
+            None,
+        ]
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        assert mock_webpush.call_count == 2
+        assert AnonymousMenuNotification.objects.count() == 1
+
+    @patch("notifications.tasks.webpush")
+    def test_send_passes_ttl_timeout_and_urgency(self, mock_webpush):
+        """The push must carry a TTL, a request timeout and Urgency: high so FCM
+        holds it for a dozing Android device instead of dropping it."""
+        send_test_notification(
+            {"endpoint": "https://fcm.example/x"}, {"head": "h", "body": "b"}
+        )
+
+        _, kwargs = mock_webpush.call_args
+        assert kwargs["ttl"] == settings.WEBPUSH_TTL_SECONDS
+        assert kwargs["timeout"] == settings.WEBPUSH_REQUEST_TIMEOUT
+        assert kwargs["headers"]["Urgency"] == "high"
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.logger")
+    @patch("notifications.tasks.webpush")
+    def test_run_logs_a_delivery_summary(
+        self, mock_webpush, mock_logger, school_in_session
+    ):
+        """Each run logs one line with the sent / failed / pruned tally so a
+        partial run is visible after the fact."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        for i in range(2):
+            AnonymousMenuNotificationFactory(
+                school=school_in_session,
+                daily_notification=True,
+                notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+                subscription_info={"endpoint": f"https://fcm.example/{i}"},
+            )
+        mock_webpush.return_value = None
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        summary_lines = [
+            call.args[0]
+            for call in mock_logger.info.call_args_list
+            if call.args
+            and "2 sent" in str(call.args[0])
+            and "0 failed" in str(call.args[0])
+        ]
+        assert summary_lines

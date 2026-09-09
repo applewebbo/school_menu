@@ -271,6 +271,16 @@ WEBPUSH_SETTINGS = {
 }
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, "static/js/serviceworker.js")
 
+# pywebpush defaults to ttl=0, which lets the push service (FCM for Android) drop the
+# message the instant the device is in Doze / offline instead of holding it — the main
+# reason Android subscribers get the daily menu push only intermittently (#265). Give the
+# message a lifetime that spans the useful window of a "today's / tomorrow's menu" send.
+WEBPUSH_TTL_SECONDS = env.int("WEBPUSH_TTL_SECONDS", default=12 * 60 * 60)
+# (connect, read) timeout for the push POST. Without it a single slow FCM endpoint blocks
+# the whole batch task until Q_CLUSTER["timeout"] kills and redelivers it, which then
+# double-sends to everyone already notified in that run (#265).
+WEBPUSH_REQUEST_TIMEOUT = (5, 10)
+
 # SET transitional setting for FORMS_URLFIELD_ASSUME_HTTPS and ignore deprecation warning
 filterwarnings(
     "ignore", "The FORMS_URLFIELD_ASSUME_HTTPS transitional setting is deprecated."

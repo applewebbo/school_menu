@@ -1,5 +1,6 @@
 import json
 import logging
+from collections import Counter
 from datetime import date, timedelta
 from typing import Any
 
@@ -13,23 +14,34 @@ from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
 
 logger = logging.getLogger(__name__)
 
+# Push endpoint is permanently gone: prune the row instead of retrying it forever.
+# 404/410 is the documented "expired", 401/403 is a VAPID mismatch that will never
+# recover for this subscription (#265).
+GONE_STATUS_CODES = frozenset({401, 403, 404, 410})
+
 
 def send_test_notification(
     subscription_info: dict[str, Any], payload: dict[str, Any]
-) -> None:
+) -> str:
     """
-    Send a test push notification asynchronously.
+    Send a single push notification.
 
     Args:
         subscription_info: Web push subscription information (endpoint, keys)
         payload: Notification payload with title, body, icon, etc.
 
+    Returns:
+        "sent" on success, "pruned" if the subscription was permanently gone and
+        has been deleted.
+
     Raises:
-        WebPushException: If the push notification fails to send
-        Exception: For any unexpected errors
+        WebPushException: on a transient push failure (5xx, rate limit, network)
+        Exception: for any unexpected error
 
     Note:
-        Automatically deletes expired or invalid subscriptions (404/410 responses)
+        - A TTL, request timeout and ``Urgency: high`` header are sent so the push
+          service holds the message for a dozing device instead of dropping it (#265).
+        - Permanently invalid subscriptions (see ``GONE_STATUS_CODES``) are deleted.
     """
     try:
         webpush(
@@ -39,24 +51,47 @@ def send_test_notification(
             vapid_claims={
                 "sub": f"mailto:{settings.WEBPUSH_SETTINGS['VAPID_ADMIN_EMAIL']}"
             },
+            ttl=settings.WEBPUSH_TTL_SECONDS,
+            timeout=settings.WEBPUSH_REQUEST_TIMEOUT,
+            headers={"Urgency": "high"},
         )
         logger.info("Notifica di prova inviata con successo.")
     except WebPushException as e:
-        # If a subscription is expired or invalid, it should be deleted
-        if e.response.status_code in [404, 410]:
+        status_code = getattr(e.response, "status_code", None)
+        if status_code in GONE_STATUS_CODES:
+            response_text = getattr(e.response, "text", "")
             logger.info(
-                f"Subscription expired or invalid: {e.response.text}. Deleting..."
+                f"Subscription gone ({status_code}): {response_text}. Deleting..."
             )
             AnonymousMenuNotification.objects.filter(
                 subscription_info=subscription_info
             ).delete()
-        else:
-            logger.error(f"Errore durante l'invio della notifica: {e}")
-            raise
+            return "pruned"
+        logger.error(f"Errore durante l'invio della notifica: {e}")
+        raise
     except Exception as e:
         logger.error(f"Errore inatteso durante l'invio della notifica: {e}")
         raise
     logger.info("notifica di prova inviata")
+    return "sent"
+
+
+def _deliver(subscription: AnonymousMenuNotification, payload: dict[str, Any]) -> str:
+    """
+    Send one menu notification, swallowing every error.
+
+    A single failing or hanging endpoint must never abort the rest of the batch
+    (#265), so this returns a status string and never raises:
+    "sent", "pruned" (subscription deleted) or "failed" (transient error, logged).
+    """
+    try:
+        return send_test_notification(subscription.subscription_info, payload)
+    except Exception as e:
+        logger.error(
+            f"[Notification] Delivery failed for subscription {subscription.pk} "
+            f"(school '{subscription.school.name}'): {e}"
+        )
+        return "failed"
 
 
 def _has_menu_for_date(school: School, target_date: date) -> bool:
@@ -148,6 +183,8 @@ def _send_menu_notifications(notification_time: str) -> None:
         f"is_previous_day={is_previous_day}, total_subscriptions={subscriptions.count()}"
     )
 
+    results: Counter[str] = Counter()
+
     for subscription in subscriptions:
         school = subscription.school
         target_date = today + timedelta(days=1) if is_previous_day else today
@@ -180,7 +217,13 @@ def _send_menu_notifications(notification_time: str) -> None:
 
         payload["icon"] = "/static/img/notification-bell.png"
         payload["url"] = school.get_absolute_url()
-        send_test_notification(subscription.subscription_info, payload)
+        results[_deliver(subscription, payload)] += 1
+
+    logger.info(
+        f"[Notification] Slot {notification_time}: "
+        f"{results['sent']} sent, {results['failed']} failed, "
+        f"{results['pruned']} pruned."
+    )
     logger.info(f"Notifiche per l'orario {notification_time} inviate.")
 
 

@@ -65,3 +65,50 @@ def test_a_dry_run_removal_changes_nothing():
     call_command("setup_notification_schedules", "--remove", "--dry-run")
 
     assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == 4
+
+
+def test_a_hand_made_schedule_for_the_same_task_is_removed():
+    """A pre-existing row firing one of our tasks under another name would double
+    every send once our rows are added — the command deletes it."""
+    task_path = SCHEDULES["Menu Notification - Same Day 9AM"][0]
+    Schedule.objects.create(
+        name="old hand-made 9am",
+        func=task_path,
+        schedule_type=Schedule.CRON,
+        cron="0 9 * * *",
+        repeats=-1,
+    )
+
+    call_command("setup_notification_schedules", verbosity=0)
+
+    assert not Schedule.objects.filter(name="old hand-made 9am").exists()
+    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == 4
+
+
+def test_unrelated_schedules_are_left_alone():
+    Schedule.objects.create(
+        name="AI Menu Import Purge",
+        func="school_menu.tasks.purge_menu_import_drafts",
+        schedule_type=Schedule.CRON,
+        cron="30 3 * * *",
+        repeats=-1,
+    )
+
+    call_command("setup_notification_schedules", verbosity=0)
+
+    assert Schedule.objects.filter(name="AI Menu Import Purge").exists()
+
+
+def test_a_dry_run_does_not_remove_strays():
+    task_path = SCHEDULES["Menu Notification - Same Day 9AM"][0]
+    Schedule.objects.create(
+        name="old hand-made 9am",
+        func=task_path,
+        schedule_type=Schedule.CRON,
+        cron="0 9 * * *",
+        repeats=-1,
+    )
+
+    call_command("setup_notification_schedules", "--dry-run")
+
+    assert Schedule.objects.filter(name="old hand-made 9am").exists()

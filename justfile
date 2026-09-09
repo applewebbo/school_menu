@@ -18,7 +18,7 @@ github_repo := "applewebbo/school_menu"
 [group('setup')]
 @update_all: lock
     uv sync --all-extras --upgrade
-    uvx --with pre-commit-uv prek auto-update
+    uvx --with pre-commit-uv prek update
 
 # Update a specific package
 [group('setup')]

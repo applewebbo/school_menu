@@ -19,7 +19,7 @@ A reusable Django app for scheduling database and media backups with email notif
 - django-dbbackup >= 4.0
 - django-q2 >= 1.0 (or Celery)
 - croniter >= 6.0
-- Storage backend configured (e.g., Dropbox, S3, etc.)
+- Storage backend configured (e.g. S3-compatible, filesystem, etc.)
 
 ## Installation
 
@@ -235,7 +235,7 @@ Database backup completed successfully.
 Timestamp: 2025-10-26 02:00:00
 Duration: 45 seconds
 Environment: prod
-Storage Backend: storages.backends.dropbox.DropBoxStorage
+Storage Backend: storages.backends.s3boto3.S3Boto3Storage
 
 This is an automated message from the Django Scheduled Backups system.
 ```
@@ -369,7 +369,7 @@ backup()
 Run the test suite:
 
 ```bash
-pytest django_scheduled_backups/tests/
+just ftest tests/django_scheduled_backups/
 ```
 
 ## License
@@ -378,7 +378,7 @@ This app is part of the School Menu project.
 
 ## Related Issue
 
-This app was created to address [Issue #159](https://github.com/your-repo/issues/159) - Move DB backup from cron to Django-Q2.
+This app was created to address [Issue #159](https://github.com/applewebbo/school_menu/issues/159) - Move DB backup from cron to Django-Q2.
 
 ## Version
 

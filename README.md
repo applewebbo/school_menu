@@ -114,7 +114,7 @@ This project uses [just](https://github.com/casey/just) for task management. Ava
 - **django-import-export** - CSV/Excel import/export for menus
 - **django-pwa** - Progressive Web App support
 - **django-webpush** - Browser push notifications
-- **django-dbbackup** - Database backups to Dropbox
+- **django-dbbackup** - Weekly database backups to OVH Object Storage (S3-compatible)
 - **django-cookiebanner** - GDPR cookie consent
 - **django-social-share** - Social sharing functionality
 - **Whitenoise** - Static file serving

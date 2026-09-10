@@ -271,7 +271,7 @@ Pre-commit hooks run automatically via `.pre-commit-config.yaml`:
 
 - **django-environ** - Manages environment variables from .env file
 - **django-anymail** with Mailgun - Email backend
-- **django-dbbackup** - Database backups to Dropbox
+- **django-dbbackup** - Weekly database backups to OVH Object Storage (S3-compatible, bucket `django-db-backup`, region `eu-south-mil`)
 - **django-cookiebanner** - GDPR cookie consent
 - **django-social-share** - Social sharing functionality
 - **Whitenoise** - Static file serving

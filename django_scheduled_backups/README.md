@@ -155,12 +155,72 @@ aws --endpoint-url "$OVH_S3_ENDPOINT_URL" s3api get-bucket-lifecycle-configurati
     --bucket django-db-backup
 ```
 
-In the OVH Control Panel the equivalent lives under **Public Cloud → Object
-Storage → `django-db-backup` container → lifecycle / retention rule**, but the
-console does not always expose a prefix filter, so the S3 API call above is the
-reference method. Deletion is asynchronous (OVH sweeps roughly daily), not
-exact-to-the-second. If `DBBACKUP_CLEANUP_KEEP` is ever set, keep it well below
-84 days of dumps so the two mechanisms do not fight.
+The same rule can be created in the OVH Control Panel under **Public Cloud →
+Object Storage → `django-db-backup` container → Create a lifecycle rule**: set
+*Rule scope* to **Limit the application of this rule** with prefix
+`MenuAppCloud-`, and under *Lifecycle operations* tick **Expire the current
+version of objects** after 84 days (ticking **Delete incomplete multipart
+uploads** after ~7 days is good hygiene too). Deletion is asynchronous (OVH
+sweeps roughly daily), not exact-to-the-second. If `DBBACKUP_CLEANUP_KEEP` is
+ever set, keep it well below 84 days of dumps so the two mechanisms do not fight.
+
+## Restoring a backup (disaster-recovery drill)
+
+An untested backup is a hypothesis. Run this locally every so often — **never in
+production**: `dbrestore` overwrites whatever `DATABASES` points at, and
+`ENVIRONMENT` defaults to `prod`.
+
+### Step A — verify the dump file itself (no Django)
+
+```bash
+# download the latest dump (needs OVH_S3_* in .env)
+ENVIRONMENT=dev uv run python -c "
+from dbbackup.storage import get_storage
+s = get_storage()
+name = 'MenuAppCloud-2026-08-16-000012.psql.bin'  # pick the newest from listbackups
+open(name, 'wb').write(s.read_file(name).read())
+"
+
+# the local pg_restore must be >= the server version that produced the dump
+pg_restore -l MenuAppCloud-2026-08-16-000012.psql.bin | grep -i "database version"
+
+# restore into a throwaway database, never the real school_menu one
+createdb menu_restore_test
+pg_restore --no-owner --no-privileges -d menu_restore_test MenuAppCloud-2026-08-16-000012.psql.bin
+
+psql -d menu_restore_test -c "select count(*) from school_menu_school;
+select count(*) from school_menu_annualmeal;
+select count(*) from users_user;"
+
+dropdb menu_restore_test
+```
+
+The downloaded dump contains personal data — delete it afterwards. The
+`MenuAppCloud-*.psql.bin` pattern is git-ignored.
+
+### Step B — exercise `dbrestore` itself
+
+Step A validates the file, not dbbackup's storage-download + Postgres-connector
+chain. Testing that needs a Postgres config, and loading prod env vars to get one
+is exactly the mistake that overwrites production. Use the dedicated
+`ENVIRONMENT=restore` block instead: it hard-codes the database to a local
+`menu_restore_test` and never reads `DB_HOST` / `DB_NAME`, so the restore cannot
+be aimed anywhere else.
+
+```bash
+createdb menu_restore_test
+ENVIRONMENT=restore uv run python manage.py dbrestore --noinput
+ENVIRONMENT=restore uv run python manage.py dbshell -- -c "select count(*) from users_user;"
+dropdb menu_restore_test
+```
+
+Set `RESTORE_DB_USER` / `RESTORE_DB_PASSWORD` in `.env` only if your local
+Postgres needs credentials (they default to `$USER` and empty).
+
+### Step C — write down the outcome
+
+Record in the project README what was restored, when, from which dump, and the
+row counts observed, so the next drill has a baseline to compare against.
 
 ## Email Notifications
 

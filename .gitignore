@@ -197,3 +197,8 @@ src/intellisense.css
 
 # TESTS
 tests/performance/
+
+# DB RESTORE DRILL (#256) - downloaded production dumps contain personal data
+MenuAppCloud-*.psql.bin
+MenuAppCloud-*.sql
+lifecycle.json

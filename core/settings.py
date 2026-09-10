@@ -746,3 +746,35 @@ elif ENVIRONMENT == "test":
     }
 
     logging.disable()
+
+# RESTORE-DRILL SPECIFIC SETTINGS
+# A throwaway environment whose only job is to exercise `dbrestore` against a real
+# Postgres. NAME and HOST are hard-coded constants, never read from DB_NAME /
+# DB_HOST, so `ENVIRONMENT=restore ./manage.py dbrestore` can only ever overwrite
+# the local `menu_restore_test` database - aiming it at production is structurally
+# impossible. See django_scheduled_backups/README.md for the full drill. (#256)
+elif ENVIRONMENT == "restore":
+    DEBUG = False
+    SECRET_KEY = "restore-drill-not-a-real-secret"  # nosec B105
+    ALLOWED_HOSTS = ["localhost"]
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": "menu_restore_test",  # fixed on purpose - do not parameterise
+            "USER": env("RESTORE_DB_USER", default=env("USER", default="postgres")),
+            "PASSWORD": env("RESTORE_DB_PASSWORD", default=""),
+            "HOST": "localhost",  # fixed on purpose - do not parameterise
+            "PORT": "5432",
+        }
+    }
+
+    # The dbbackup storage (STORAGES["dbbackup"] at module scope) already reads the
+    # OVH_S3_* vars from .env, so the download path exercised here is the real one.
+    DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
+
+    # Everything else minimal: no Redis, no Mailgun, no HSTS.
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    MAILERS = {"default": {"BACKEND": "django.core.mail.backends.console.EmailBackend"}}
+    Q_CLUSTER = {"name": "school_menu", "sync": True}
+    SCHEDULED_BACKUPS = {"ENABLED": False}

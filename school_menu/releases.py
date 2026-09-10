@@ -10,6 +10,15 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.2.6",
+        "date": date(2026, 9, 10),
+        "notes": [
+            "Nuova pagina “Novità e aggiornamenti” con il riepilogo di ogni versione in parole semplici (è quella che stai leggendo).",
+            "Gli avvisi via email in caso di problemi con il backup del database ora arrivano davvero al destinatario corretto.",
+            "Migliorata la gestione dello spazio occupato dai backup e verificata la procedura di ripristino.",
+        ],
+    },
+    {
         "version": "2026.2.5",
         "date": date(2026, 9, 9),
         "notes": [

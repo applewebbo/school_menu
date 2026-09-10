@@ -43,6 +43,7 @@ from school_menu.models import (
     School,
     SimpleMeal,
 )
+from school_menu.releases import RELEASES
 from school_menu.resources import (
     AnnualMenuExportResource,
     DetailedMealExportResource,
@@ -249,6 +250,11 @@ def index(request: HttpRequest) -> HttpResponse:
 
         context = get_school_menu_context(school, meal_type="S")
     return render(request, "index.html", context)
+
+
+def releases(request: HttpRequest) -> HttpResponse:
+    """Plain-language changelog for non-technical users, newest release first."""
+    return render(request, "pages/releases.html", {"releases": RELEASES})
 
 
 def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpResponse:

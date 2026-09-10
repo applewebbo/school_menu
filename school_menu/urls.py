@@ -21,6 +21,7 @@ urlpatterns = [
         name="privacy",
     ),
     path("help", TemplateView.as_view(template_name="pages/help.html"), name="help"),
+    path("releases", views.releases, name="releases"),
     path("json/schools/", views.get_schools_json_list, name="get_schools_json_list"),
     path(
         "json/menu/<slug:slug>/",

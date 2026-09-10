@@ -61,7 +61,8 @@
         <div class="px-4 py-6 md:flex md:items-center md:justify-between">
             <aside>
                 <p class="text-base-content/60 text-sm">
-                    © WEBBOgrafico - v{{ APP_VERSION }}
+                    © WEBBOgrafico -
+                    <a href="{% url 'school_menu:releases' %}" class="link link-hover">v{{ APP_VERSION }}</a>
                 </p>
             </aside>
             <div class="mt-4 flex space-x-5 sm:justify-center md:mt-0 rtl:space-x-reverse">

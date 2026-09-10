@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block page_title %}
+    Novità
+{% endblock page_title %}
+
+{% block content %}
+    <div class="mx-auto max-w-screen-md px-4 pt-8 pb-12 lg:pt-16">
+        <header class="mb-10 space-y-4">
+            <h1 class="text-3xl font-bold tracking-tight">Novità e aggiornamenti</h1>
+            <p class="text-base-content/70 max-w-prose leading-relaxed">
+                Un riepilogo di cosa è cambiato a ogni aggiornamento del sito.
+                Per l'elenco tecnico completo puoi consultare
+                <a href="https://github.com/applewebbo/school_menu/releases"
+                   class="link link-primary"
+                   target="_blank"
+                   rel="noopener">Github</a>.
+            </p>
+        </header>
+        <ol class="border-base-300 relative ml-2 space-y-10 border-l">
+            {% for release in releases %}
+                <li class="ml-6">
+                    <span class="bg-primary ring-base-100 absolute -left-1.5 mt-2 size-3 rounded-full ring-4"
+                          aria-hidden="true"></span>
+                    <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <h2 class="text-xl font-semibold tracking-tight">v{{ release.version }}</h2>
+                        <time class="text-base-content/60 text-sm"
+                              datetime="{{ release.date|date:'Y-m-d' }}">{{ release.date|date:'j F Y' }}</time>
+                    </div>
+                    <ul class="text-base-content/80 mt-3 list-disc space-y-1.5 pl-5 leading-relaxed">
+                        {% for note in release.notes %}<li>{{ note }}</li>{% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ol>
+    </div>
+{% endblock content %}

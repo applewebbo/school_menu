@@ -249,3 +249,20 @@ Configured in `settings.CACHE_TIMEOUTS`:
 - Logs include cache key, operation type (HIT/MISS/SET), and TTL
 
 **Note:** The cache configuration follows the same pattern as Django Q_CLUSTER, using database backend for local development and Redis for production.
+
+## Database Backups
+
+Weekly `pg_dump` (custom format) to OVH Object Storage, bucket `django-db-backup`,
+region `eu-south-mil`, Sundays at `00:00` via a Django-Q schedule. Filename
+template `MenuAppCloud-{datetime}.psql.bin`. Failure sends mail to `ADMIN_EMAIL`
+(`EMAIL_ON_SUCCESS` is off). Retention is an OVH bucket lifecycle rule (prefix
+`MenuAppCloud-`, expire after 84 days), not `dbbackup --clean`. See
+`django_scheduled_backups/README.md` for the setup and the restore procedure.
+
+### Restore drill log
+
+Run the A/B/C drill from `django_scheduled_backups/README.md` periodically and add a row.
+
+| Drill date | Dump restored | Source PG | `school` | `annualmeal` | `user` | Notes |
+|---|---|---|---|---|---|---|
+| 2026-09-10 | `MenuAppCloud-2026-09-06-000028` | 16.13 | 12 | 207 | 513 | Step A (`pg_restore`) and Step B (`dbrestore`) both clean, no errors |

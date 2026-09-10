@@ -116,8 +116,10 @@ def scheduled_database_backup():
     logger.info(f"Starting database backup (run #{backup_run.id})")
 
     try:
-        # Perform the backup using django-dbbackup
-        management.call_command("dbbackup", "--clean")
+        # No --clean: it is a no-op with the current DBBACKUP_FILENAME_TEMPLATE
+        # (no {databasename}), so retention is enforced by an OVH bucket lifecycle
+        # rule instead (see core/settings.py and the app README) (#256).
+        management.call_command("dbbackup")
 
         # Mark as successful
         backup_run.status = "success"

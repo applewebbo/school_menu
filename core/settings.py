@@ -532,6 +532,13 @@ elif ENVIRONMENT == "prod":
         CSP_SCRIPT_SRC += (UMAMI_SCRIPT_URL,)
     # DBBACKUP
     DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
+    # Retention is NOT enforced by dbbackup: `--clean` filters candidates by a
+    # substring match on the DB alias, and this template carries no {databasename},
+    # so it never deletes anything. Instead an OVH Object Storage lifecycle rule on
+    # the `django-db-backup` bucket expires objects with prefix `MenuAppCloud-`
+    # after 84 days (~12 weekly dumps). See django_scheduled_backups/README.md for
+    # the rule and how to apply it. Keep any future DBBACKUP_CLEANUP_KEEP well
+    # below that window so the two mechanisms do not fight. (#256)
     # DJANGO-Q
     Q_CLUSTER = {
         "name": "school_menu",

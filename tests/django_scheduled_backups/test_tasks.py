@@ -41,7 +41,7 @@ class TestScheduledDatabaseBackup:
         result = scheduled_database_backup()
 
         # Assert
-        mock_call_command.assert_called_once_with("dbbackup", "--clean")
+        mock_call_command.assert_called_once_with("dbbackup")
         assert "successful" in result.lower()
 
         # Check database record
@@ -56,6 +56,25 @@ class TestScheduledDatabaseBackup:
         assert len(mail.outbox) == 1
         assert "[Backup] Database Backup Successful" in mail.outbox[0].subject
         assert "completed successfully" in mail.outbox[0].body
+
+    @patch("django_scheduled_backups.tasks.management.call_command")
+    @patch("django_scheduled_backups.tasks.get_setting")
+    def test_database_backup_does_not_request_cleanup(
+        self, mock_get_setting, mock_call_command
+    ):
+        """`dbbackup --clean` is a no-op with the current filename template, so it
+        only masked the real retention mechanism (an OVH bucket lifecycle rule).
+        The task must call dbbackup without it (#256)."""
+        mock_call_command.return_value = None
+        mock_get_setting.side_effect = lambda key, default=None: {
+            "EMAIL_ON_SUCCESS": False,
+            "EMAIL_ON_FAILURE": True,
+            "EMAIL_SUBJECT_PREFIX": "[Backup]",
+        }.get(key, default)
+
+        scheduled_database_backup()
+
+        mock_call_command.assert_called_once_with("dbbackup")
 
     @override_settings(ADMINS=["admin@example.com"])
     @patch("django_scheduled_backups.tasks.management.call_command")
@@ -76,7 +95,7 @@ class TestScheduledDatabaseBackup:
         with pytest.raises(Exception, match="Database connection failed"):
             scheduled_database_backup()
 
-        mock_call_command.assert_called_once_with("dbbackup", "--clean")
+        mock_call_command.assert_called_once_with("dbbackup")
 
         # Check database record
         backup_run = BackupRun.objects.filter(backup_type="database").first()

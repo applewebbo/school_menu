@@ -116,6 +116,52 @@ python manage.py setup_backup_schedules --dry-run
 python manage.py setup_backup_schedules --remove
 ```
 
+## Backup file retention (school_menu deployment)
+
+`dbbackup --clean` does **not** prune old dump files here: it filters deletion
+candidates by a substring match on the database alias, and
+`DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"` carries no
+`{databasename}`, so the candidate list is always empty. The scheduled task
+therefore runs plain `dbbackup` (no `--clean`).
+
+Retention is enforced on the storage side instead: an **OVH Object Storage
+lifecycle rule** on the `django-db-backup` bucket (region `eu-south-mil`) expires
+objects whose key starts with `MenuAppCloud-` after **84 days** (~12 weekly
+dumps; the weekly Sunday `0 0 * * 0` schedule keeps roughly 10 at any time). This
+also sweeps the pre-existing backlog, since every dump shares that prefix.
+
+Apply the rule with the S3 API (the `.env` `OVH_S3_*` credentials work with the
+AWS CLI):
+
+```bash
+cat > lifecycle.json <<'JSON'
+{
+  "Rules": [
+    {
+      "ID": "expire-weekly-db-dumps",
+      "Filter": { "Prefix": "MenuAppCloud-" },
+      "Status": "Enabled",
+      "Expiration": { "Days": 84 }
+    }
+  ]
+}
+JSON
+
+aws --endpoint-url "$OVH_S3_ENDPOINT_URL" s3api put-bucket-lifecycle-configuration \
+    --bucket django-db-backup --lifecycle-configuration file://lifecycle.json
+
+# verify
+aws --endpoint-url "$OVH_S3_ENDPOINT_URL" s3api get-bucket-lifecycle-configuration \
+    --bucket django-db-backup
+```
+
+In the OVH Control Panel the equivalent lives under **Public Cloud → Object
+Storage → `django-db-backup` container → lifecycle / retention rule**, but the
+console does not always expose a prefix filter, so the S3 API call above is the
+reference method. Deletion is asynchronous (OVH sweeps roughly daily), not
+exact-to-the-second. If `DBBACKUP_CLEANUP_KEEP` is ever set, keep it well below
+84 days of dumps so the two mechanisms do not fight.
+
 ## Email Notifications
 
 ### Success Email Format

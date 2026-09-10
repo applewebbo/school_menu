@@ -40,7 +40,10 @@ import django
 django.setup()
 from django.conf import settings
 
+from dbbackup.db.base import get_connector
+
 db = settings.DATABASES["default"]
+connector = get_connector()
 print(json.dumps({
     "engine": db["ENGINE"],
     "name": db["NAME"],
@@ -48,6 +51,7 @@ print(json.dumps({
     "backups_enabled": settings.SCHEDULED_BACKUPS["ENABLED"],
     "debug": settings.DEBUG,
     "dbbackup_storage": settings.STORAGES["dbbackup"]["BACKEND"],
+    "restore_suffix": connector.restore_suffix,
 }))
 """
 
@@ -88,3 +92,13 @@ def test_restore_env_uses_the_real_dbbackup_storage():
     data = _load_restore_settings()
 
     assert data["dbbackup_storage"] == "storages.backends.s3boto3.S3Boto3Storage"
+
+
+def test_restore_skips_ownership_and_privileges():
+    """pg_restore must not choke on OWNER TO / GRANT for a prod role the local
+    cluster does not have; with --single-transaction one such line would abort the
+    whole restore (#256)."""
+    data = _load_restore_settings()
+
+    assert "--no-owner" in data["restore_suffix"]
+    assert "--no-privileges" in data["restore_suffix"]

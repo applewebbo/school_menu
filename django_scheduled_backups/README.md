@@ -217,6 +217,12 @@ dropdb menu_restore_test
 Set `RESTORE_DB_USER` / `RESTORE_DB_PASSWORD` in `.env` only if your local
 Postgres needs credentials (they default to `$USER` and empty).
 
+The `restore` block sets a `DBBACKUP_CONNECTORS` entry with
+`RESTORE_SUFFIX = "--no-owner --no-privileges"`, so `pg_restore` skips the
+`OWNER TO` / `GRANT` lines the prod dump carries for the prod DB role. Without it,
+a local cluster lacking that role would abort the whole restore (dbbackup runs
+`pg_restore --single-transaction`).
+
 ### Step C — write down the outcome
 
 Record in the project README what was restored, when, from which dump, and the

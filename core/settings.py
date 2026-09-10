@@ -773,6 +773,18 @@ elif ENVIRONMENT == "restore":
     # OVH_S3_* vars from .env, so the download path exercised here is the real one.
     DBBACKUP_FILENAME_TEMPLATE = "MenuAppCloud-{datetime}.{extension}"
 
+    # The prod dump carries `OWNER TO` / `GRANT` statements for the prod DB role.
+    # A local cluster restoring into `menu_restore_test` usually has no such role,
+    # and dbbackup runs `pg_restore --single-transaction`, so one such line aborts
+    # the whole restore. Skip ownership/privileges - the drill only cares that the
+    # schema and rows come back. (#256)
+    DBBACKUP_CONNECTORS = {
+        "default": {
+            "CONNECTOR": "dbbackup.db.postgresql.PgDumpBinaryConnector",
+            "RESTORE_SUFFIX": "--no-owner --no-privileges",
+        }
+    }
+
     # Everything else minimal: no Redis, no Mailgun, no HSTS.
     CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
     MAILERS = {"default": {"BACKEND": "django.core.mail.backends.console.EmailBackend"}}

@@ -42,12 +42,16 @@ import django
 django.setup()
 from django.conf import settings
 
+from django_scheduled_backups.conf import get_notification_emails
+
 logging.config.dictConfig(settings.LOGGING)
 print(json.dumps({
     "loggers": sorted(settings.LOGGING["loggers"]),
     "request_handlers": settings.LOGGING["loggers"]["django.request"]["handlers"],
     "admins": settings.ADMINS,
     "server_email": settings.SERVER_EMAIL,
+    "scheduled_backups": settings.SCHEDULED_BACKUPS,
+    "backup_notification_emails": get_notification_emails(),
 }))
 """
 
@@ -81,6 +85,27 @@ def test_prod_logging_is_a_valid_dictconfig():
     } <= set(data["loggers"])
     assert data["admins"] == [["Admin", "admin@example.com"]]
     assert data["server_email"] == settings.DEFAULT_FROM_EMAIL
+
+
+def test_backup_notifications_have_a_deliverable_recipient():
+    """NOTIFICATION_EMAILS is an explicit list of address strings, so a failed backup
+    actually sends mail — the ADMINS fallback yields (name, address) tuples that
+    send_mail cannot use (#256)."""
+    data = _load_prod_settings()
+    backups = data["scheduled_backups"]
+
+    assert backups["NOTIFICATION_EMAILS"] == ["admin@example.com"]
+    assert data["backup_notification_emails"] == ["admin@example.com"]
+    assert all(isinstance(addr, str) for addr in data["backup_notification_emails"])
+
+
+def test_backup_email_is_failure_only():
+    """A weekly 'all good' mail trains the reader to ignore backup mail; the admin
+    history is the positive check instead (#256)."""
+    backups = _load_prod_settings()["scheduled_backups"]
+
+    assert backups["EMAIL_ON_SUCCESS"] is False
+    assert backups["EMAIL_ON_FAILURE"] is True
 
 
 def test_mail_admins_on_error_is_opt_in():

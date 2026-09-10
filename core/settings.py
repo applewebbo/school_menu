@@ -590,8 +590,10 @@ elif ENVIRONMENT == "prod":
     SCHEDULED_BACKUPS = {
         # Enable/disable the backup system
         "ENABLED": True,
-        # Email addresses to notify (falls back to ADMINS if not set)
-        "NOTIFICATION_EMAILS": None,  # Uses ADMINS by default
+        # Who gets backup mail. Set explicitly rather than falling back to ADMINS:
+        # the fallback yields (name, address) tuples that send_mail cannot deliver,
+        # so a failed backup would notify nobody (#256).
+        "NOTIFICATION_EMAILS": [ADMIN_EMAIL],
         # Database backup configuration
         "DATABASE_BACKUP": {
             "enabled": True,
@@ -603,8 +605,9 @@ elif ENVIRONMENT == "prod":
         },
         # How many days to keep backup history records
         "HISTORY_RETENTION_DAYS": 90,
-        # Send email on successful backup
-        "EMAIL_ON_SUCCESS": True,
+        # Failure-only: a weekly "all good" mail trains the reader to ignore backup
+        # mail. The admin history / `listbackups` is the positive check (#256).
+        "EMAIL_ON_SUCCESS": False,
         # Send email on failed backup
         "EMAIL_ON_FAILURE": True,
         # Task queue backend: 'django_q' or 'celery'

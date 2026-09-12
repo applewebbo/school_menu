@@ -1,0 +1,1 @@
+../../all/00000/00020-seo-271-canonical-link-tag-in-basehtml.md

@@ -1,0 +1,1 @@
+../../all/00000/00022-seo-271-json-ld-structured-data-on-school-menu-page.md

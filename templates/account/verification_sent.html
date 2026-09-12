@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load heroicons i18n static %}
+{% load heroicons static %}
 {% block page_title %}
-    {% translate "Verify Your Email Address" %}
+    Verifica il tuo indirizzo email
 {% endblock page_title %}
 
 {% block content %}
@@ -9,10 +9,13 @@
         <div class="card-body">
             <h2 class="card-title text-primary">
                 {% heroicon_solid 'envelope-open' class="size-6 me-1 text-primary" %}
-                {% translate "Verify Your Email Address" %}
+                Verifica il tuo indirizzo email
             </h2>
             <p>
-                {% blocktranslate %}We have sent an email to you for verification. Follow the link provided to finalize the signup process. If you do not see the verification email in your main inbox, check your spam folder. Please contact us if you do not receive the verification email within a few minutes.{% endblocktranslate %}
+                Ti abbiamo inviato un'email di verifica. Segui il link contenuto nel messaggio per completare la registrazione. Se non la trovi nella posta in arrivo, controlla anche nello spam.
+            </p>
+            <p class="text-warning mt-2 font-medium">
+                Attenzione: se l'account non viene verificato entro 7 giorni dalla registrazione, verrà eliminato automaticamente.
             </p>
         </div>
     </div>

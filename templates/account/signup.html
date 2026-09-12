@@ -1,13 +1,13 @@
 {% extends "base-simplified.html" %}
-{% load custom_form_tags i18n static %}
+{% load custom_form_tags %}
 {% block page_title %}
-    {% translate "Signup" %}
+    Registrati
 {% endblock page_title %}
 
 {% block content %}
     <div class="mx-auto my-8 max-w-sm">
         <h1 class="text-base-content text-center text-xl leading-tight font-bold tracking-tight md:text-2xl">
-            {% translate "Sign Up" %}
+            Registrati
         </h1>
         <form class="space-y-4 md:space-y-6"
               id="signup_form"
@@ -49,9 +49,9 @@
                        name="{{ redirect_field_name }}"
                        value="{{ redirect_field_value }}" />
             {% endif %}
-            <button class="btn btn-primary mt-2 w-full" type="submit">{% translate "Sign Up" %}</button>
-            <p class="text-sm font-light text-gray-500 dark:text-gray-400">
-                {% blocktranslate %}Hai già un account? Allora puoi <a href="{{ login_url }}" class="link link-primary">entrare qui</a>{% endblocktranslate %}
+            <button class="btn btn-primary mt-2 w-full" type="submit">Registrati</button>
+            <p class="text-base-content/70 text-sm font-light">
+                Hai già un account? Allora puoi <a href="{{ login_url }}" class="link link-primary">entrare qui</a>
             </p>
         </form>
     </div>

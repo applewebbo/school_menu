@@ -1,6 +1,6 @@
 {% load heroicons %}
 {% if messages %}
-    <div class="toast toast-center">
+    <div class="toast toast-top toast-center top-20">
         {% for message in messages %}
             <div class="alert {% if message.tags == 'info' %} alert-info {% elif message.tags == 'success' %} alert-success {% elif message.tags == 'error' %} alert-error {% elif message.tags == 'warning' %} alert-warning {% elif message.tags == 'debug' %} alert-neutral {% endif %}"
                  role="alert"

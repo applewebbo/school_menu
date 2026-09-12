@@ -1,0 +1,1 @@
+{% if not signup %}Email di conferma inviata a {{ email }}.{% endif %}

@@ -206,6 +206,21 @@ class SchoolMenuView(TestCase):
 
         self.response_200(response)
         assert response.context["not_published"]
+        assert "structured_data" not in response.context
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
+
+    def test_get_includes_json_ld_structured_data(self):
+        school = SchoolFactory(name="Scuola Rossi", city="Bologna")
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        structured_data = response.context["structured_data"]
+        assert '"@type": "EducationalOrganization"' in structured_data
+        assert '"name": "Scuola Rossi"' in structured_data
+        assert '"addressLocality": "Bologna"' in structured_data
+        self.assertContains(response, 'type="application/ld+json"')
 
     @time_machine.travel("2025-08-20")
     def test_get_when_school_not_in_session(self):

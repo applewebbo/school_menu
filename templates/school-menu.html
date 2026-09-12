@@ -48,6 +48,12 @@
     {% endif %}
 {% endblock twitter_description %}
 
+{% block structured_data %}
+    {% if structured_data %}
+        <script type="application/ld+json">{{ structured_data }}</script>
+    {% endif %}
+{% endblock structured_data %}
+
 {% block robots_meta %}
     {% if not_published %}
         <meta name="robots" content="noindex, nofollow">

@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import date, datetime
 from functools import partial
@@ -16,6 +17,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.views.decorators.cache import cache_page
 from django.views.decorators.http import require_http_methods
 from tablib import Dataset
@@ -257,6 +259,28 @@ def releases(request: HttpRequest) -> HttpResponse:
     return render(request, "pages/releases.html", {"releases": RELEASES})
 
 
+def build_school_structured_data(request: HttpRequest, school: School) -> str:
+    """
+    Build a JSON-LD EducationalOrganization block for the school menu page (#271).
+    Escaped like Django's json_script so it's safe to inline in a <script> tag.
+    """
+    data = {
+        "@context": "https://schema.org",
+        "@type": "EducationalOrganization",
+        "name": school.name,
+        "url": request.build_absolute_uri(school.get_absolute_url()),
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": school.city,
+            "addressCountry": "IT",
+        },
+    }
+    escaped = json.dumps(data, ensure_ascii=False).translate(
+        {ord(">"): "\\u003e", ord("<"): "\\u003c", ord("&"): "\\u0026"}
+    )
+    return mark_safe(escaped)  # nosec B308 B703
+
+
 def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpResponse:
     """Return school menu for the given school"""
     school = get_object_or_404(School.objects.select_related("user"), slug=slug)
@@ -270,10 +294,12 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
             "start_day": school.start_day,
             "start_month": school.start_month,
             "school": school,
+            "structured_data": build_school_structured_data(request, school),
         }
         return render(request, "school-menu.html", context)
     context = get_school_menu_context(school, meal_type)
     context["notifications_status"] = notifications_status
+    context["structured_data"] = build_school_structured_data(request, school)
     return render(request, "school-menu.html", context)
 
 

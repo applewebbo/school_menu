@@ -186,17 +186,27 @@ issue-reopen number:
 issue-label number *labels:
     gh issue edit -R {{github_repo}} {{number}} --add-label "{{labels}}"
 
-# Create a label if it doesn't exist (color optional, default blue)
+# Create a label if it doesn't exist yet. Color is randomized on first creation and
+# never touched again on later calls, so re-running this doesn't reset a label someone
+# recolored by hand in the GitHub UI.
 [group('github')]
-label-create name color="0075ca":
-    gh label create -R {{github_repo}} "{{name}}" --color "{{color}}" --force
-
-# Create a label if missing, then assign it to an issue: just issue-label-create <issue> <label> [color]
-[group('github')]
-issue-label-create number name color="0075ca":
+label-create name:
     #!/usr/bin/env bash
     set -euo pipefail
-    just label-create "{{name}}" "{{color}}"
+    if gh label list -R {{github_repo}} --search "{{name}}" --json name -q '.[].name' | grep -qxF "{{name}}"; then
+        echo "✓ Label {{name}} already exists"
+    else
+        color=$(openssl rand -hex 3)
+        gh label create -R {{github_repo}} "{{name}}" --color "$color"
+        echo "✓ Created label {{name}} (#$color)"
+    fi
+
+# Create a label if missing, then assign it to an issue: just issue-label-create <issue> <label>
+[group('github')]
+issue-label-create number name:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just label-create "{{name}}"
     gh issue edit -R {{github_repo}} {{number}} --add-label "{{name}}"
 
 # Create new issue

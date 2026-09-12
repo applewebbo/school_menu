@@ -188,3 +188,5 @@ User-agent: Mail.RU_Bot
 User-agent: SputnikBot
 User-agent: MegaIndex.ru
 Disallow: /
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

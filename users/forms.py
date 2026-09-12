@@ -12,6 +12,16 @@ class MyCustomSignupForm(SignupForm):
         widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-sm me-2"}),
         help_text='Seleziona questo campo per accettare i <a href="/terms-and-conditions/" class="link link-primary">termini e condizioni</a>.',
     )
+    # Honeypot (#272): hidden from real users via CSS in signup.html, but naive bots
+    # that fill every input on the page populate it, so a non-empty value here means
+    # the submission wasn't a human.
+    website = forms.CharField(
+        required=False,
+        label="",
+        widget=forms.TextInput(
+            attrs={"autocomplete": "off", "tabindex": "-1", "aria-hidden": "true"}
+        ),
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -22,6 +32,11 @@ class MyCustomSignupForm(SignupForm):
         self.fields["password1"].widget.attrs.update(
             {"placeholder": "Inserisci la tua password"}
         )
+
+    def clean_website(self):
+        if self.cleaned_data.get("website"):
+            raise forms.ValidationError("Registrazione non disponibile al momento.")
+        return self.cleaned_data.get("website")
 
     def save(self, request):
         # Ensure you call the parent class's save.

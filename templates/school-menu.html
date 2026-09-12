@@ -1,8 +1,58 @@
 {% extends 'base.html' %}
 
 {% block page_title %}
-    Menu Scolastico
+    {% if school %}
+        Menu mensa {{ school.name }} ({{ school.city }}) - Mensa Scolastica
+    {% else %}
+        Menu Scolastico
+    {% endif %}
 {% endblock page_title %}
+
+{% block meta_description %}
+    {% if school %}
+        Consulta il menu della mensa scolastica di {{ school.name }} a {{ school.city }}: cosa mangiano oggi i bambini, aggiornato settimanalmente dalla scuola.
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock meta_description %}
+
+{% block og_title %}
+    {% if school %}
+        Menu mensa {{ school.name }} ({{ school.city }})
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock og_title %}
+
+{% block og_description %}
+    {% if school %}
+        Consulta il menu della mensa scolastica di {{ school.name }} a {{ school.city }}: cosa mangiano oggi i bambini, aggiornato settimanalmente dalla scuola.
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock og_description %}
+
+{% block twitter_title %}
+    {% if school %}
+        Menu mensa {{ school.name }} ({{ school.city }})
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock twitter_title %}
+
+{% block twitter_description %}
+    {% if school %}
+        Consulta il menu della mensa scolastica di {{ school.name }} a {{ school.city }}: cosa mangiano oggi i bambini, aggiornato settimanalmente dalla scuola.
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock twitter_description %}
+
+{% block robots_meta %}
+    {% if not_published %}
+        <meta name="robots" content="noindex, nofollow">
+    {% endif %}
+{% endblock robots_meta %}
 
 {% block content %}
     <div class="mx-auto grid max-w-screen-xl px-4 pt-8 pb-4 lg:gap-8 lg:pt-16 lg:pb-8 xl:gap-0">

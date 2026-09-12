@@ -1,11 +1,13 @@
 {% load pwa static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="description" content="Mensa Scolastica">
         <meta name="keywords" content="menu scolastico mensa">
+        <!-- Account/error pages carry no unique content worth ranking; keep them out of the index. -->
+        <meta name="robots" content="noindex, nofollow">
         <title>
             {% block page_title %}
                 Mensa Scolastica

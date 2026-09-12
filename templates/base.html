@@ -4,13 +4,37 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="description" content="Mensa Scolastica">
+        <meta name="description"
+              content="{% block meta_description %}Menu della mensa scolastica sempre aggiornato: consulta online cosa mangiano i tuoi figli a scuola, giorno per giorno.{% endblock %}">
         <meta name="keywords" content="menu scolastico mensa">
         <title>
             {% block page_title %}
                 Mensa Scolastica
             {% endblock page_title %}
         </title>
+        {% block robots_meta %}
+        {% endblock robots_meta %}
+        <link rel="canonical"
+              href="{% block canonical_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
+        <!-- Open Graph -->
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="Mensa Scolastica">
+        <meta property="og:title"
+              content="{% block og_title %}Mensa Scolastica{% endblock %}">
+        <meta property="og:description"
+              content="{% block og_description %}Menu della mensa scolastica sempre aggiornato: consulta online cosa mangiano i tuoi figli a scuola, giorno per giorno.{% endblock %}">
+        <meta property="og:url"
+              content="{% block og_url %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}">
+        <meta property="og:image"
+              content="{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{% static 'img/android-chrome-512x512.png' %}{% endblock %}">
+        <!-- Twitter Card -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title"
+              content="{% block twitter_title %}Mensa Scolastica{% endblock %}">
+        <meta name="twitter:description"
+              content="{% block twitter_description %}Menu della mensa scolastica sempre aggiornato: consulta online cosa mangiano i tuoi figli a scuola, giorno per giorno.{% endblock %}">
+        {% block structured_data %}
+        {% endblock structured_data %}
         {% progressive_web_app_meta %}
         {% include 'partials/favicon.html' %}
         <!-- TailwindCSS -->

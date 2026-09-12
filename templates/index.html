@@ -1,8 +1,12 @@
 {% extends 'base.html' %}
 
 {% block page_title %}
-    Menu Scolastico
+    Mensa Scolastica - Menu della mensa online, scuola per scuola
 {% endblock page_title %}
+
+{% block meta_description %}
+    Trova la tua scuola e consulta il menu della mensa scolastica aggiornato: primi, secondi, contorni e menu alternativi per ogni giorno della settimana.
+{% endblock meta_description %}
 {% partialdef search-result %}
 <div id="school-list"
      class="{% if hidden %}hidden{% endif %} mt-6 p-2 bg-gray-50 border border-gray-100 rounded-md">

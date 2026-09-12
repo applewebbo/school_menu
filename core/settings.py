@@ -296,7 +296,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
-APP_VERSION = "2026.2.6"
+APP_VERSION = "2026.2.7"
 
 # AI MENU IMPORT (#234)
 # The Gemini key belongs to the site, not to the user: quotas below are what keeps a

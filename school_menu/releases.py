@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.2.7",
+        "date": date(2026, 9, 12),
+        "notes": [
+            "Le pagine di accesso, registrazione e recupero password sono state uniformate e sono ora completamente in italiano.",
+            "I messaggi di conferma (es. dopo la registrazione) appaiono ora in alto sullo schermo e sono più chiari.",
+            "Migliorata la visibilità delle pagine delle scuole sui motori di ricerca, per trovarle più facilmente cercando su Google.",
+            "Introdotta una pulizia automatica degli account creati ma mai confermati via email.",
+        ],
+    },
+    {
         "version": "2026.2.6",
         "date": date(2026, 9, 10),
         "notes": [

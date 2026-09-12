@@ -369,6 +369,19 @@ NOTIFICATION_SCHEDULE_CRONS = {
     "same_day_6pm": env("NOTIFICATION_CRON_SAME_DAY_6PM", default="0 18 * * *"),
 }
 
+# Accounts that never verify their email are mostly bots with invented addresses; they
+# can't log in (ACCOUNT_EMAIL_VERIFICATION = "mandatory") but the row still exists, so
+# purge them after this many days (#272). The window is also shown on the
+# verification-sent page, so it must stay in sync with that copy if changed.
+UNVERIFIED_ACCOUNT_RETENTION_DAYS = env.int(
+    "UNVERIFIED_ACCOUNT_RETENTION_DAYS", default=7
+)
+# Cron for the retention run, applied by `manage.py setup_unverified_account_purge_schedule`
+# (run from entrypoint.sh on every deploy).
+UNVERIFIED_ACCOUNT_PURGE_SCHEDULE = env(
+    "UNVERIFIED_ACCOUNT_PURGE_SCHEDULE", default="0 4 * * *"
+)
+
 # DJANGO REST FRAMEWORK
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [

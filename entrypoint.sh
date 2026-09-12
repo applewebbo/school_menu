@@ -17,6 +17,9 @@ echo "Registering notification schedules..."
 # never-created schedule can't silently drop a whole notification slot (#267).
 python manage.py setup_notification_schedules
 
+echo "Registering unverified account purge schedule..."
+python manage.py setup_unverified_account_purge_schedule
+
 echo "Building production css files..."
 # --force is required: plain `build` reports "up to date" and skips the rebuild, so a deploy
 # can ship a stylesheet missing the utility classes introduced in that very release (#242).

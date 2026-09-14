@@ -291,6 +291,11 @@ class UploadMenuForm(forms.Form):
                 "file",
                 css_class="file-input file-input-sm file-input-bordered w-full",
                 accept=allowed_upload_accept(),
+                # A failed submission re-swaps this form from scratch; without this the
+                # browser's own file input reset would silently drop the user's already
+                # chosen file on top of the validation error (htmx file-upload-input
+                # pattern, defense in depth for #273).
+                **{"hx-preserve": "true"},
             ),
         )
 
@@ -314,6 +319,8 @@ class UploadAnnualMenuForm(forms.Form):
                     css_class="file-input file-input-sm file-input-bordered w-full",
                     wrapper_class="grow",
                     accept=allowed_upload_accept(),
+                    # See UploadMenuForm above (#273).
+                    **{"hx-preserve": "true"},
                 ),
                 Div(
                     css_id="spinner",

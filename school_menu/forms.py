@@ -29,12 +29,30 @@ from school_menu.models import (
 CSV_EXTENSION = "csv"
 AI_EXTENSIONS = ["pdf", "xlsx"]
 
+# iOS Safari's <input accept> matching is unreliable once the list mixes more than one
+# extension (WebKit bug, still open as of iOS 18: rdar://36726477) — it can leave the
+# picker showing a filename while never actually attaching the file, so the field comes
+# back empty on submit. Pairing each extension with its MIME type is the documented
+# workaround: Safari falls back to the MIME match when the extension one misfires.
+EXTENSION_MIME_TYPES = {
+    CSV_EXTENSION: "text/csv",
+    "pdf": "application/pdf",
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+}
+
 
 def allowed_upload_extensions():
     """CSV always; the AI formats only while the import is actually available."""
     if settings.AI_MENU_IMPORT_ENABLED:
         return [CSV_EXTENSION, *AI_EXTENSIONS]
     return [CSV_EXTENSION]
+
+
+def allowed_upload_accept():
+    """Build the <input accept> value: every allowed extension plus its MIME type."""
+    extensions = allowed_upload_extensions()
+    mime_types = [EXTENSION_MIME_TYPES[ext] for ext in extensions]
+    return ",".join([*(f".{ext}" for ext in extensions), *mime_types])
 
 
 def validate_menu_upload(file):
@@ -272,7 +290,7 @@ class UploadMenuForm(forms.Form):
             Field(
                 "file",
                 css_class="file-input file-input-sm file-input-bordered w-full",
-                accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
+                accept=allowed_upload_accept(),
             ),
         )
 
@@ -295,7 +313,7 @@ class UploadAnnualMenuForm(forms.Form):
                     # content and it no longer lines up with the fields above it (#241).
                     css_class="file-input file-input-sm file-input-bordered w-full",
                     wrapper_class="grow",
-                    accept=",".join(f".{ext}" for ext in allowed_upload_extensions()),
+                    accept=allowed_upload_accept(),
                 ),
                 Div(
                     css_id="spinner",

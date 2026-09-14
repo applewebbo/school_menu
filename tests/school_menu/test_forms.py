@@ -9,6 +9,7 @@ from school_menu.forms import (
     SimpleMealForm,
     UploadAnnualMenuForm,
     UploadMenuForm,
+    allowed_upload_accept,
 )
 from school_menu.models import Meal, School
 
@@ -174,6 +175,27 @@ class TestUploadMenuForm:
         # Assert the form is invalid
         assert form.is_valid() is False
         assert form.errors == {"file": ["Questo campo è obbligatorio."]}
+
+
+class TestAllowedUploadAccept:
+    """iOS Safari mishandles <input accept> once it mixes more than one extension,
+    silently leaving the field empty on submit even though the picker shows a filename.
+    Pairing each extension with its MIME type is the documented workaround (#273)."""
+
+    def test_pairs_every_extension_with_its_mime_type(self, settings):
+        settings.AI_MENU_IMPORT_ENABLED = True
+
+        accept = allowed_upload_accept()
+
+        assert accept == (
+            ".csv,.pdf,.xlsx,text/csv,application/pdf,"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+    def test_csv_only_when_ai_import_disabled(self, settings):
+        settings.AI_MENU_IMPORT_ENABLED = False
+
+        assert allowed_upload_accept() == ".csv,text/csv"
 
 
 class TestSimpleMealForm:

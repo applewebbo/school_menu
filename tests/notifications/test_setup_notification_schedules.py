@@ -13,7 +13,7 @@ SLOT_NAMES = list(SCHEDULES)
 def test_creates_one_cron_schedule_per_slot():
     call_command("setup_notification_schedules", verbosity=0)
 
-    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == 4
+    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == len(SCHEDULES)
     for name, (task_path, _) in SCHEDULES.items():
         schedule = Schedule.objects.get(name=name)
         assert schedule.func == task_path
@@ -25,7 +25,7 @@ def test_running_it_twice_updates_instead_of_duplicating():
     call_command("setup_notification_schedules", verbosity=0)
     call_command("setup_notification_schedules", verbosity=0)
 
-    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == 4
+    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == len(SCHEDULES)
 
 
 @override_settings(
@@ -34,6 +34,7 @@ def test_running_it_twice_updates_instead_of_duplicating():
         "same_day_9am": "30 8 * * *",
         "same_day_12pm": "0 12 * * *",
         "same_day_6pm": "0 18 * * *",
+        "marker_purge": "30 3 * * 0",
     }
 )
 def test_cron_comes_from_settings():
@@ -64,7 +65,7 @@ def test_a_dry_run_removal_changes_nothing():
 
     call_command("setup_notification_schedules", "--remove", "--dry-run")
 
-    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == 4
+    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == len(SCHEDULES)
 
 
 def test_a_hand_made_schedule_for_the_same_task_is_removed():
@@ -82,7 +83,7 @@ def test_a_hand_made_schedule_for_the_same_task_is_removed():
     call_command("setup_notification_schedules", verbosity=0)
 
     assert not Schedule.objects.filter(name="old hand-made 9am").exists()
-    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == 4
+    assert Schedule.objects.filter(name__in=SLOT_NAMES).count() == len(SCHEDULES)
 
 
 def test_unrelated_schedules_are_left_alone():

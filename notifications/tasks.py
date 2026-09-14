@@ -5,6 +5,7 @@ from datetime import date, timedelta
 from typing import Any
 
 from django.conf import settings
+from django.core.cache import cache
 from django.utils import timezone
 from django_q.tasks import async_task
 from pywebpush import WebPushException, webpush
@@ -13,6 +14,7 @@ from notifications.models import (
     AnonymousMenuNotification,
     BroadcastNotification,
     DailyNotification,
+    NotificationDeliveryMarker,
 )
 from notifications.utils import build_menu_notification_payload
 from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
@@ -27,6 +29,71 @@ GONE_STATUS_CODES = frozenset({404, 410})
 # Push service rejected our VAPID auth: our keys or server clock, never the
 # subscription. Log loudly, keep the row (#269).
 AUTH_REJECTED_STATUS_CODES = frozenset({401, 403})
+
+# Comfortably longer than any plausible redelivery (bounded by Q_CLUSTER["retry"]), short
+# enough not to matter if it's stale: the durable table backs it up on a cache miss (#270).
+MARKER_CACHE_TTL_SECONDS = 60 * 60 * 24 * 2
+
+
+def _marker_cache_key(
+    subscription_endpoint: str, target_date: date, notification_time: str
+) -> str:
+    return f"notif-delivered:{subscription_endpoint}:{target_date.isoformat()}:{notification_time}"
+
+
+def _already_delivered(
+    subscription_endpoint: str, target_date: date, notification_time: str
+) -> bool:
+    """
+    True if this subscriber already got this slot on this date (#270).
+
+    Cache-first for speed (prod has Redis); falls back to the durable
+    ``NotificationDeliveryMarker`` table so a cache eviction can't reopen the
+    double-send window a redelivered task would otherwise exploit.
+    """
+    cache_key = _marker_cache_key(subscription_endpoint, target_date, notification_time)
+    if cache.get(cache_key):
+        return True
+    exists = NotificationDeliveryMarker.objects.filter(
+        subscription_endpoint=subscription_endpoint,
+        target_date=target_date,
+        notification_time=notification_time,
+    ).exists()
+    if exists:
+        cache.set(cache_key, True, MARKER_CACHE_TTL_SECONDS)
+    return exists
+
+
+def _record_delivery(
+    subscription_endpoint: str, target_date: date, notification_time: str
+) -> None:
+    """Mark a slot delivered so a redelivered run resumes instead of repeating it (#270)."""
+    cache.set(
+        _marker_cache_key(subscription_endpoint, target_date, notification_time),
+        True,
+        MARKER_CACHE_TTL_SECONDS,
+    )
+    NotificationDeliveryMarker.objects.get_or_create(
+        subscription_endpoint=subscription_endpoint,
+        target_date=target_date,
+        notification_time=notification_time,
+    )
+
+
+def purge_notification_markers() -> None:
+    """
+    Scheduled task: prune delivery markers past their retention window (#270).
+
+    Markers only matter for the few days a redelivery could plausibly land; kept
+    indefinitely they'd just grow the table for no benefit.
+    """
+    cutoff = date.today() - timedelta(days=settings.NOTIFICATION_MARKER_RETENTION_DAYS)
+    deleted, _ = NotificationDeliveryMarker.objects.filter(
+        target_date__lt=cutoff
+    ).delete()
+    logger.info(
+        f"[Notification] Pruned {deleted} delivery marker(s) older than {cutoff}."
+    )
 
 
 def send_test_notification(
@@ -203,6 +270,18 @@ def _send_menu_notifications(notification_time: str) -> None:
     for subscription in subscriptions:
         school = subscription.school
         target_date = today + timedelta(days=1) if is_previous_day else today
+        endpoint = subscription.subscription_endpoint
+
+        # Resume support (#270): a redelivered run reprocesses from the top, so skip
+        # anyone this slot already reached for this date. Subscriptions predating the
+        # endpoint hash (endpoint is nullable) can't be deduped and are always sent.
+        if endpoint and _already_delivered(endpoint, target_date, notification_time):
+            logger.info(
+                f"[Notification Debug] Skipping subscription {subscription.pk} "
+                f"for {school.name}: already delivered for {target_date} "
+                f"slot {notification_time} (redelivery)."
+            )
+            continue
 
         logger.info(
             f"[Notification Debug] Processing subscription for school '{school.name}' "
@@ -235,7 +314,12 @@ def _send_menu_notifications(notification_time: str) -> None:
         # Per-school, per-day tag: a redelivered batch replaces the notification
         # instead of stacking a duplicate (matters most on iOS) (#269).
         payload["tag"] = f"menu-{school.id}-{target_date.isoformat()}"
-        results[_deliver(subscription, payload)] += 1
+        status = _deliver(subscription, payload)
+        # Only a confirmed outcome earns the marker: a "failed" (transient) delivery
+        # must stay unmarked so the next run, or redelivery, retries that subscriber.
+        if endpoint and status in ("sent", "pruned"):
+            _record_delivery(endpoint, target_date, notification_time)
+        results[status] += 1
 
     logger.info(
         f"[Notification] Slot {notification_time}: "

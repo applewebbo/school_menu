@@ -6,6 +6,9 @@ by hand: delete one, or bring up a fresh environment, and that time slot silentl
 runs and its subscribers get nothing. This command is versioned and idempotent
 (``update_or_create``) and runs from ``entrypoint.sh`` on every deploy. Modelled on
 ``setup_ai_import_schedule``.
+
+Also carries the weekly purge of the delivery-marker table used to make redelivered
+runs resumable (#270) — one command, one place that can't drift out of sync.
 """
 
 from django.conf import settings
@@ -28,6 +31,10 @@ SCHEDULES = {
     "Menu Notification - Same Day 6PM": (
         "notifications.tasks.send_same_day_6pm_menu_notification",
         "same_day_6pm",
+    ),
+    "Notification Marker Purge": (
+        "notifications.tasks.purge_notification_markers",
+        "marker_purge",
     ),
 }
 

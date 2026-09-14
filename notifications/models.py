@@ -111,6 +111,41 @@ class DailyNotification(models.Model):
         )
 
 
+class NotificationDeliveryMarker(models.Model):
+    """
+    Proof that a subscriber already got a given slot on a given date (#270).
+
+    ``_send_menu_notifications`` checks this table (cache-first) before delivering, so
+    a task redelivered by the broker after a timeout resumes instead of reprocessing
+    subscribers already pushed in the first pass. Kept as a durable table, not just a
+    cache entry, so a cache eviction can't reopen the double-send window.
+    """
+
+    subscription_endpoint = models.CharField(max_length=64)
+    target_date = models.DateField()
+    notification_time = models.CharField(
+        max_length=20,
+        choices=AnonymousMenuNotification.NOTIFICATION_TIME_CHOICES,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Notification Delivery Marker"
+        verbose_name_plural = "Notification Delivery Markers"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["subscription_endpoint", "target_date", "notification_time"],
+                name="unique_notification_delivery_marker",
+            )
+        ]
+
+    def __str__(self):
+        return (
+            f"{self.subscription_endpoint} delivered {self.notification_time} "
+            f"on {self.target_date}"
+        )
+
+
 class BroadcastNotification(models.Model):
     """
     Admin-created broadcast notifications sent to multiple users

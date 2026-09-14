@@ -367,7 +367,17 @@ NOTIFICATION_SCHEDULE_CRONS = {
     "same_day_9am": env("NOTIFICATION_CRON_SAME_DAY_9AM", default="0 9 * * *"),
     "same_day_12pm": env("NOTIFICATION_CRON_SAME_DAY_12PM", default="0 12 * * *"),
     "same_day_6pm": env("NOTIFICATION_CRON_SAME_DAY_6PM", default="0 18 * * *"),
+    # Weekly, off-peak: the marker table is naturally scoped by date, so this just
+    # keeps it from growing forever (#270).
+    "marker_purge": env("NOTIFICATION_MARKER_PURGE_SCHEDULE", default="30 3 * * 0"),
 }
+
+# Delivery markers only need to survive a plausible redelivery window (well under
+# Q_CLUSTER["retry"]); kept a bit longer than the cache TTL in notifications/tasks.py
+# so the durable table remains the source of truth after the cache entry expires (#270).
+NOTIFICATION_MARKER_RETENTION_DAYS = env.int(
+    "NOTIFICATION_MARKER_RETENTION_DAYS", default=3
+)
 
 # Accounts that never verify their email are mostly bots with invented addresses; they
 # can't log in (ACCOUNT_EMAIL_VERIFICATION = "mandatory") but the row still exists, so

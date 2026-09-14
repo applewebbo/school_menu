@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,11 +12,14 @@ from notifications.models import (
     AnonymousMenuNotification,
     BroadcastNotification,
     DailyNotification,
+    NotificationDeliveryMarker,
 )
 from notifications.tasks import (
+    _already_delivered,
     _has_menu_for_date,
     _is_school_in_session,
     _send_menu_notifications,
+    purge_notification_markers,
     send_broadcast_notification,
     send_previous_day_6pm_menu_notification,
     send_same_day_6pm_menu_notification,
@@ -762,3 +765,127 @@ class TestDeliveryResilience:
             and "0 failed" in str(call.args[0])
         ]
         assert summary_lines
+
+
+class TestResumableDelivery:
+    """A task killed for exceeding NOTIFICATION_TASK_TIMEOUT gets redelivered by the
+    broker and reprocesses the slot from the top; these markers stop that redelivery
+    from double-sending (#270)."""
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_redelivered_run_skips_already_delivered_subscribers(
+        self, mock_webpush, school_in_session
+    ):
+        """Simulates a redelivery: the same slot runs twice, but each subscriber must
+        only be pushed once in total."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        for i in range(3):
+            AnonymousMenuNotificationFactory(
+                school=school_in_session,
+                daily_notification=True,
+                notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+                subscription_info={"endpoint": f"https://fcm.example/{i}"},
+            )
+        mock_webpush.return_value = None
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        assert mock_webpush.call_count == 3
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_transient_failure_is_not_marked_and_gets_retried(
+        self, mock_webpush, school_in_session
+    ):
+        """A "failed" outcome must not write a marker, or a genuine retry would never
+        reach that subscriber again."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        AnonymousMenuNotificationFactory(
+            school=school_in_session,
+            daily_notification=True,
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+            subscription_info={"endpoint": "https://fcm.example/flaky"},
+        )
+        transient = MagicMock()
+        transient.status_code = 503
+        mock_webpush.side_effect = [
+            WebPushException("temporarily unavailable", response=transient),
+            None,
+        ]
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        assert mock_webpush.call_count == 2
+
+    @time_machine.travel("2025-08-18")  # A Monday
+    @patch("notifications.tasks.webpush")
+    def test_pruned_subscription_is_marked_and_not_retried(
+        self, mock_webpush, school_in_session
+    ):
+        """A "pruned" outcome (dead endpoint) counts as delivered too — nothing is
+        left to retry once the subscription is gone."""
+        create_simple_meals_for_all_seasons_and_weeks(
+            school_in_session, date.today().weekday() + 1
+        )
+        AnonymousMenuNotificationFactory(
+            school=school_in_session,
+            daily_notification=True,
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+            subscription_info={"endpoint": "https://fcm.example/gone"},
+        )
+        gone = MagicMock()
+        gone.status_code = 410
+        gone.text = "Unregistered"
+        mock_webpush.side_effect = WebPushException("gone", response=gone)
+
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+        _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+        assert mock_webpush.call_count == 1
+        assert NotificationDeliveryMarker.objects.count() == 1
+
+    @patch("notifications.tasks.cache")
+    def test_already_delivered_short_circuits_on_a_cache_hit(self, mock_cache):
+        """A warm cache entry answers without touching the database."""
+        mock_cache.get.return_value = True
+
+        assert _already_delivered("endpoint", date(2025, 8, 18), "same_day_9am") is True
+
+    def test_marker_str(self):
+        marker = NotificationDeliveryMarker.objects.create(
+            subscription_endpoint="abc",
+            target_date=date(2025, 8, 18),
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+        )
+        assert str(marker) == "abc delivered same_day_9am on 2025-08-18"
+
+    def test_purge_removes_only_markers_past_retention(self):
+        cutoff_days = settings.NOTIFICATION_MARKER_RETENTION_DAYS
+        stale_date = date.today() - timedelta(days=cutoff_days + 1)
+        fresh_date = date.today() - timedelta(days=cutoff_days - 1)
+        NotificationDeliveryMarker.objects.create(
+            subscription_endpoint="stale",
+            target_date=stale_date,
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+        )
+        NotificationDeliveryMarker.objects.create(
+            subscription_endpoint="fresh",
+            target_date=fresh_date,
+            notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+        )
+
+        purge_notification_markers()
+
+        remaining = list(
+            NotificationDeliveryMarker.objects.values_list(
+                "subscription_endpoint", flat=True
+            )
+        )
+        assert remaining == ["fresh"]

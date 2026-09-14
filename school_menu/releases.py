@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.2.8",
+        "date": date(2026, 9, 14),
+        "notes": [
+            "Corretto il caricamento del menu su iPhone (Safari): in alcuni casi il file selezionato non veniva riconosciuto e il salvataggio falliva.",
+            "Sistemata la dimensione dell'icona di avviso nella schermata di caricamento menu su mobile.",
+            "Corretto l'ordine dei giorni (ora sempre Lunedì-Venerdì) nella modifica del menu settimanale.",
+            "Le notifiche giornaliere sono ora più robuste: in caso di rallentamenti non arrivano più in doppio agli utenti già avvisati.",
+        ],
+    },
+    {
         "version": "2026.2.7",
         "date": date(2026, 9, 12),
         "notes": [

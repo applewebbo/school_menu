@@ -49,6 +49,13 @@ self.addEventListener('activate', event => {
 
 // Serve from Cache
 self.addEventListener("fetch", event => {
+    // Never intercept anything but GET. Re-issuing event.request replays a body stream
+    // that has already been consumed; WebKit drops the multipart payload, so a menu
+    // upload reaches Django with an empty request.FILES and the form answers "campo
+    // obbligatorio" even though a file was picked (#273).
+    if (event.request.method !== "GET") {
+        return;
+    }
     event.respondWith(
         caches.match(event.request)
             .then(response => {

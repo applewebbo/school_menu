@@ -446,9 +446,12 @@ if ENVIRONMENT == "dev":
         }
     }
 
-    ALLOWED_HOSTS: list[str] = [
-        "localhost",
-    ]
+    # Service workers only register in a secure context, so reproducing a PWA bug on a
+    # real phone means reaching the dev server over HTTPS (e.g. `tailscale serve`) rather
+    # than over the LAN IP. Both lists stay empty unless that host is named explicitly.
+    _dev_hosts = env("DEV_ALLOWED_HOSTS", default=[])
+    ALLOWED_HOSTS: list[str] = ["localhost", *_dev_hosts]
+    CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in _dev_hosts]
 
     # DJANGO CRAWL - Site crawler for broken links / runtime errors (dev only)
     INSTALLED_APPS += ["django_crawl"]

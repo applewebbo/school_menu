@@ -57,6 +57,24 @@ fresh: clean install
     rm -f ./.overmind.sock
     uv run overmind start -r all -f ./Procfile.dev
 
+# Serve the dev site over HTTPS via Tailscale, to test on a real phone
+[group('development')]
+@phone:
+    #!/usr/bin/env bash
+    # Service workers only register in a secure context, so the LAN IP is no good for
+    # reproducing a PWA bug on a real device: it has to be HTTPS. Tailscale supplies a
+    # real certificate; DEV_ALLOWED_HOSTS is passed through rather than written to .env,
+    # and the tunnel is torn down on exit (#273).
+    set -euo pipefail
+    tailscale status >/dev/null 2>&1 || tailscale up
+    host="$(tailscale status --json | python3 -c 'import sys, json; print(json.load(sys.stdin)["Self"]["DNSName"].rstrip("."))')"
+    trap 'tailscale serve reset >/dev/null 2>&1 || true' EXIT
+    tailscale serve --bg http://127.0.0.1:8000 >/dev/null
+    echo "Open on the phone (Tailscale on, same account):"
+    echo "    https://${host}"
+    rm -f ./.overmind.sock
+    DEV_ALLOWED_HOSTS="${host}" uv run overmind start -r all -f ./Procfile.dev
+
 # Crawl the site for broken links / runtime errors (needs a populated dev DB)
 [group('development')]
 crawl *args:

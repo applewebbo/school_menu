@@ -1180,6 +1180,30 @@ class CreateWeeklyMenuView(TestCase):
         assert response.context["season"] == 1
         assert SimpleMeal.objects.filter(school=school).count() == 5
 
+    def test_formset_lists_days_monday_to_friday_regardless_of_creation_order(self):
+        """The formset must show Lunedì..Venerdì even when the rows were created in a
+        different order — nothing here should rely on insertion order (fix #275)."""
+        user = self.make_user()
+        school = SchoolFactory(
+            user=user,
+            menu_type=School.Types.SIMPLE,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
+        for day in [5, 3, 1, 4, 2]:
+            SimpleMealFactory(
+                school=school, week=1, season=1, day=day, type=Meal.Types.STANDARD
+            )
+
+        with self.login(user):
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")
+
+        self.response_200(response)
+        days = [form.instance.day for form in response.context["formset"].forms]
+        assert days == [1, 2, 3, 4, 5]
+
     def test_post_with_valid_data(self):
         user = self.make_user()
         school = SchoolFactory(menu_type=School.Types.SIMPLE, user=user)

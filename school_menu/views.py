@@ -727,7 +727,7 @@ def create_weekly_menu(
         )
         meals = SimpleMeal.objects.filter(
             week=week, season=season, school=school, type=meal_type
-        )
+        ).order_by("day")
     else:
         MealFormSet = modelformset_factory(
             DetailedMeal,  # type: ignore[arg-type]
@@ -737,7 +737,7 @@ def create_weekly_menu(
         )
         meals = DetailedMeal.objects.filter(  # type: ignore[assignment]
             week=week, season=season, school=school, type=meal_type
-        )
+        ).order_by("day")
     formset = MealFormSet(request.POST or None, queryset=meals)
     if request.method == "POST":
         if formset.is_valid():

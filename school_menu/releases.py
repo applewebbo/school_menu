@@ -10,6 +10,14 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.2.9",
+        "date": date(2026, 9, 14),
+        "notes": [
+            "Risolto il caricamento del menu da iPhone: il file selezionato ora viene sempre accettato.",
+            "Più affidabili anche i salvataggi di impostazioni e notifiche dallo stesso dispositivo.",
+        ],
+    },
+    {
         "version": "2026.2.8",
         "date": date(2026, 9, 14),
         "notes": [

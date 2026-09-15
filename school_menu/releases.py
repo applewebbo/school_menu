@@ -10,6 +10,14 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.2.10",
+        "date": date(2026, 9, 15),
+        "notes": [
+            "Corretto un problema per cui, con connessione instabile, alcune azioni mostravano per errore la pagina «sei offline» invece del messaggio giusto.",
+            "Le pagine si caricano ora un po' più velocemente grazie a una migliore compressione dei dati trasferiti.",
+        ],
+    },
+    {
         "version": "2026.2.9",
         "date": date(2026, 9, 14),
         "notes": [

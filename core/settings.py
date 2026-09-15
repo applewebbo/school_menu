@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     "crispy_tailwind",
     "crispy_forms",
     "dbbackup",
-    "django_browser_reload",
     "django_htmx",
     "django_q",
     "django_social_share",
@@ -65,6 +64,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Coolify's Traefik reverse proxy does not compress responses on its own (no
+    # compress middleware label in docker-compose.yml), so dynamic HTML/JSON went out
+    # uncompressed while whitenoise only handled static files (#278).
+    "django.middleware.gzip.GZipMiddleware",
     "csp.middleware.CSPMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -75,7 +78,6 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "core.middleware.AuditLogMiddleware",
     "allauth.account.middleware.AccountMiddleware",
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
 ROOT_URLCONF = "core.urls"
@@ -455,6 +457,12 @@ if ENVIRONMENT == "dev":
 
     # DJANGO CRAWL - Site crawler for broken links / runtime errors (dev only)
     INSTALLED_APPS += ["django_crawl"]
+
+    # DJANGO BROWSER RELOAD - auto-refreshes the page on template/static changes.
+    # Dev-only: the middleware injects a <script> tag into every HTML response and opens
+    # an SSE connection per tab, neither of which belongs in production (#277).
+    INSTALLED_APPS += ["django_browser_reload"]
+    MIDDLEWARE += ["django_browser_reload.middleware.BrowserReloadMiddleware"]
 
     # DJANGO-DEVBAR - replaces django-debug-toolbar (#243). Wired here rather than in the
     # base config so nothing debugging-related ships in the production image.

@@ -56,13 +56,22 @@ self.addEventListener("fetch", event => {
     if (event.request.method !== "GET") {
         return;
     }
+    // Only a top-level navigation may fall back to the offline page. htmx fetches its
+    // partials with the same GET method, so answering one of those with the whole
+    // /offline/ document made htmx swap that markup into its target — an offline page
+    // nested inside the upload modal. Re-throwing instead lets the request fail for real,
+    // so htmx fires htmx:sendError and the page stays untouched (#276).
+    const isNavigation = event.request.mode === "navigate";
     event.respondWith(
         caches.match(event.request)
             .then(response => {
                 return response || fetch(event.request);
             })
-            .catch(() => {
-                return caches.match('/offline/');
+            .catch(error => {
+                if (isNavigation) {
+                    return caches.match('/offline/');
+                }
+                throw error;
             })
     )
 });

@@ -202,3 +202,6 @@ tests/performance/
 MenuAppCloud-*.psql.bin
 MenuAppCloud-*.sql
 lifecycle.json
+
+# impeccable design hook local cache
+.impeccable/

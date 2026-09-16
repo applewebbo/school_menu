@@ -43,7 +43,7 @@
         {% block add_js %}
         {% endblock add_js %}
     </head>
-    <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <body class="bg-base-200" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         {% cookiebanner_modal 'bottom_banner' %}
         {% include 'partials/navbar.html' %}
         {% block content %}

@@ -1,16 +1,16 @@
 {% if meal.morning_snack %}
-<p class="mt-3 mb-2 text-xl font-medium">
-    <strong>Spuntino</strong>
-</p>
-<p class="mb-1">{{ meal.morning_snack }}</p>
+<div>
+    <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Spuntino</p>
+    <p>{{ meal.morning_snack }}</p>
+</div>
 {% endif %}
-<p class="mt-3 mb-2 text-xl font-medium">
-    <strong>Pranzo</strong>
-</p>
-<p class="mb-1">{{ meal.menu|linebreaks }}</p>
+<div>
+    <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Pranzo</p>
+    <p>{{ meal.menu|linebreaks }}</p>
+</div>
 {% if meal.afternoon_snack %}
-<p class="mt-3 mb-2 text-xl font-medium">
-    <strong>Merenda</strong>
-</p>
-<p class="mb-1">{{ meal.afternoon_snack }}</p>
+<div>
+    <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Merenda</p>
+    <p>{{ meal.afternoon_snack }}</p>
+</div>
 {% endif %}

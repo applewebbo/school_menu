@@ -73,6 +73,16 @@
   display: none !important;
 }
 
+/* Bricolage Grotesque reads heavier than Inter at the same numeric weight,
+   so body copy and buttons default lighter; headings/labels set their own weight. */
+body {
+  font-weight: 300;
+}
+
+.btn {
+  font-weight: 500;
+}
+
 #logo-credits {
   text-decoration: none;
 }

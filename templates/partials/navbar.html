@@ -7,7 +7,7 @@
                 <img src="{% static 'img/sm_logo.png' %}" class="h-8" alt="Logo Menu Scolastico colorato">
                 <span class="text-base-content self-center font-semibold tracking-tight whitespace-nowrap md:text-2xl">Menu Scolastico</span>
             </a>
-            <div class="flex items-end space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
+            <div class="flex items-center space-x-3 md:order-2 md:space-x-0 rtl:space-x-reverse">
                 {% if user.is_authenticated %}
                 {% else %}
                     <a href="{% url 'account_login' %}" class="btn btn-sm btn-primary">Entra</a>

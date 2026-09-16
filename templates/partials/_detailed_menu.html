@@ -1,19 +1,17 @@
-<p class="my-3 text-xl font-medium">
-    <strong>Pranzo</strong>
-</p>
-<ul class="menu-list list-unstyled">
-    <li>{{ meal.first_course }}</li>
-    <li>{{ meal.second_course }}</li>
-    <li>{{ meal.side_dish }}</li>
-    <li>{{ meal.fruit }}</li>
-</ul>
+<div>
+    <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Pranzo</p>
+    <ul class="menu-list list-unstyled">
+        <li>{{ meal.first_course }}</li>
+        <li>{{ meal.second_course }}</li>
+        <li>{{ meal.side_dish }}</li>
+        <li>{{ meal.fruit }}</li>
+    </ul>
+</div>
 {% if meal.snack %}
-<p class="my-3 text-xl font-medium">
-    <strong>Spuntino</strong>
-</p>
-<ul class="menu-list mb-4 list-unstyled">
-    <li>{{ meal.snack }}</li>
-</ul>
-{% else %}
-<div class="mb-4 py-3"></div>
+<div>
+    <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Spuntino</p>
+    <ul class="menu-list list-unstyled">
+        <li>{{ meal.snack }}</li>
+    </ul>
+</div>
 {% endif %}

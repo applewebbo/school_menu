@@ -581,7 +581,7 @@ def school_list(request: HttpRequest) -> HttpResponse:
     cache_key = "school_list_queryset"
 
     def get_schools():
-        return list(School.objects.exclude(is_published=False))
+        return list(School.objects.exclude(is_published=False).order_by("name"))
 
     schools = get_cached_or_query(cache_key, get_schools, timeout=86400)
     context = {"schools": schools}
@@ -759,8 +759,10 @@ def search_schools(request: HttpRequest) -> HttpResponse:
     """get the schools based on the search input via htmx"""
     context = {}
     query = request.GET.get("q")
-    schools = School.objects.exclude(is_published=False).filter(
-        Q(name__icontains=query) | Q(city__icontains=query)
+    schools = (
+        School.objects.exclude(is_published=False)
+        .filter(Q(name__icontains=query) | Q(city__icontains=query))
+        .order_by("name")
     )
     referrer = request.headers.get("referer", None)
     # get a different partial if the search comes from the index page

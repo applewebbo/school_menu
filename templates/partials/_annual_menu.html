@@ -1,12 +1,20 @@
 {% if meal.is_active %}
+{% if meal.menu %}
 <div>
     <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Pranzo</p>
-    <p>{{ meal.menu|default:"-"|linebreaks }}</p>
+    <ul class="menu-list list-unstyled">
+        {% for line in meal.menu.splitlines %}
+        <li class="sentence-case">{{ line }}</li>
+        {% endfor %}
+    </ul>
 </div>
+{% endif %}
+{% if meal.snack %}
 <div>
     <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Merenda</p>
-    <p>{{ meal.snack|default:"-" }}</p>
+    <p class="sentence-case">{{ meal.snack }}</p>
 </div>
+{% endif %}
 {% else %}
 <p class="p-12 text-xl font-medium text-gray-900">
     <em>Nessun menù caricato per il giorno selezionato</em>

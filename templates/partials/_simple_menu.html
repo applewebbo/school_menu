@@ -1,16 +1,20 @@
 {% if meal.morning_snack %}
 <div>
     <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Spuntino</p>
-    <p>{{ meal.morning_snack }}</p>
+    <p class="sentence-case">{{ meal.morning_snack }}</p>
 </div>
 {% endif %}
 <div>
     <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Pranzo</p>
-    <p>{{ meal.menu|linebreaks }}</p>
+    <ul class="menu-list list-unstyled">
+        {% for line in meal.menu.splitlines %}
+        <li class="sentence-case">{{ line }}</li>
+        {% endfor %}
+    </ul>
 </div>
 {% if meal.afternoon_snack %}
 <div>
     <p class="text-base-content/60 mb-1 text-sm font-semibold tracking-wide uppercase">Merenda</p>
-    <p>{{ meal.afternoon_snack }}</p>
+    <p class="sentence-case">{{ meal.afternoon_snack }}</p>
 </div>
 {% endif %}

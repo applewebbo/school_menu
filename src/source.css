@@ -95,6 +95,16 @@ body {
   font-size: 1.1rem;
 }
 
+/* Normalizes inconsistent casing from user-uploaded menus (all-caps, all-lowercase)
+   into sentence case, without touching the stored data. */
+.sentence-case {
+  text-transform: lowercase;
+}
+
+.sentence-case::first-letter {
+  text-transform: uppercase;
+}
+
 #alt_menu_select {
   line-height: 1rem;
 }

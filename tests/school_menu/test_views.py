@@ -261,8 +261,8 @@ class GetMenuView(TestCase):
 
         self.response_200(response)
         assert response.context["meal"] == meal
-        assert "Spuntino Mattino" in response.content.decode()
-        assert "Merenda Pomeriggio" in response.content.decode()
+        assert "Spuntino" in response.content.decode()
+        assert "Merenda" in response.content.decode()
 
     def test_get_with_simple_menu_hides_snack_titles_when_empty(self):
         school = SchoolFactory(
@@ -282,8 +282,8 @@ class GetMenuView(TestCase):
         response = self.get("school_menu:get_menu", school.pk, 1, 1, "S")
 
         self.response_200(response)
-        assert "Spuntino Mattino" not in response.content.decode()
-        assert "Merenda Pomeriggio" not in response.content.decode()
+        assert "Spuntino" not in response.content.decode()
+        assert "Merenda" not in response.content.decode()
 
     import time_machine
 

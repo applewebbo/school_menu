@@ -33,15 +33,18 @@
   prefersdark: false;
   --radius-field: 0.35rem;
   --radius-selector: 0.35rem;
-  --color-primary: oklch(0.627 0.194 149.214);
-  --color-secondary: oklch(71.45% 0.194 48.25);
-  --color-secondary-content: oklch(0.962 0.018 272.314);
+  --color-primary: oklch(0.54 0.17 139);
+  --color-primary-content: oklch(1 0 0);
+  --color-secondary: oklch(0.7145 0.185 56);
+  --color-secondary-content: oklch(0.14675 0.033 35.353);
 }
 @plugin "daisyui/theme" {
   name: "dim";
   prefersdark: true;
   --radius-field: 0.35rem;
   --radius-selector: 0.35rem;
+  --color-primary: oklch(0.68 0.17 139);
+  --color-secondary: oklch(0.75 0.18 56);
 }
 
 
@@ -75,7 +78,7 @@
 }
 
 .mob_menu_active {
-  @apply text-white bg-primary hover:bg-primary;
+  @apply text-primary-content bg-primary hover:bg-primary;
 }
 
 .lg_menu_item {

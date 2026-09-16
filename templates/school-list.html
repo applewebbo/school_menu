@@ -9,43 +9,17 @@
 {% endblock meta_description %}
 
 {% block content %}
-<div class="container mx-auto mb-8 max-w-screen-lg">
-    <div class="mx-auto grid max-w-screen-lg gap-6 px-4 pt-8 pb-4 lg:pt-16 lg:pb-8">
+<div class="container mx-auto mb-8 max-w-4xl">
+    <div class="mx-auto grid max-w-4xl gap-6 px-4 pt-8 pb-4 lg:pt-16 lg:pb-8">
         <div class="text-center">
             <h1 class="mb-2 text-2xl font-semibold tracking-tight">Scuole</h1>
             <p class="text-base-content/70 mx-auto max-w-prose">
                 Qui puoi vedere tutte le scuole e i relativi menu creati dai nostri utenti. Non siamo responsabili della correttezza dei menu pubblicati.
             </p>
         </div>
-        <div class="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
-            <!-- School List -->
-            {% partialdef search-result inline %}
-            <div id="school-list">
-                {% if no_schools %}
-                    <p class="text-error font-light italic">Nessuna scuola soddisfa i criteri di ricerca...</p>
-                {% else %}
-                    <ul class="flex flex-col gap-3">
-                        {% for school in schools %}
-                            <li>
-                                <a href="{{ school.get_absolute_url }}"
-                                   class="group flex items-center gap-2">
-                                    {% heroicon_outline 'academic-cap' class="text-primary size-4 shrink-0" %}
-                                    <span class="min-w-0 flex-1 truncate">
-                                        <span class="text-base-content group-hover:text-primary font-medium">{{ school.name }}</span>
-                                        <span class="text-base-content/60 font-light">{{ school.city }}</span>
-                                    </span>
-                                    {% if index %}
-                                        {% heroicon_solid 'arrow-right-circle' class="text-primary size-5 shrink-0" %}
-                                    {% endif %}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
-            </div>
-        {% endpartialdef search-result %}
+        <div class="flex flex-col items-center gap-6">
             <!-- School Search -->
-            <div id="search" class="flex justify-center sm:order-last sm:justify-start">
+            <div id="search" class="flex w-full justify-center">
                 <label for="simple-search" class="input relative w-full max-w-sm">
                     <span class="sr-only">Cerca scuola o città</span>
                     {% heroicon_outline 'magnifying-glass' class="w-5 h-5 text-primary" %}
@@ -66,6 +40,32 @@
                     </span>
                 </label>
             </div>
+            <!-- School List -->
+            {% partialdef search-result inline %}
+            <div id="school-list" class="w-full">
+                {% if no_schools %}
+                    <p class="text-error text-center font-light italic">Nessuna scuola soddisfa i criteri di ricerca...</p>
+                {% else %}
+                    <ul class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-x-8">
+                        {% for school in schools %}
+                            <li>
+                                <a href="{{ school.get_absolute_url }}"
+                                   class="group flex items-center gap-2">
+                                    {% heroicon_outline 'academic-cap' class="text-primary size-4 shrink-0" %}
+                                    <span class="min-w-0 flex-1 truncate">
+                                        <span class="text-base-content group-hover:text-primary font-medium">{{ school.name }}</span>
+                                        <span class="text-base-content/60 font-light">{{ school.city }}</span>
+                                    </span>
+                                    {% if index %}
+                                        {% heroicon_solid 'arrow-right-circle' class="text-primary size-5 shrink-0" %}
+                                    {% endif %}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endpartialdef search-result %}
         </div>
     </div>
 </div>

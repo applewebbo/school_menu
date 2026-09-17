@@ -43,11 +43,17 @@
             {% endif %}
         {% endif %}
     </div>
-    <div class="divider mt-14 mb-8">NOTIFICHE</div>
+    <div class="divider mt-14 mb-8 sm:hidden">NOTIFICHE</div>
+    <h2 class="text-base-content mt-16 mb-6 hidden text-center text-lg font-semibold tracking-tight sm:block">
+        Notifiche
+    </h2>
     <div id="notifications_status">
         {% include 'notifications/partials/school_notifications.html' %}
     </div>
-    <div class="divider mt-14 mb-8">CONDIVIDI</div>
+    <div class="divider mt-14 mb-8 sm:hidden">CONDIVIDI</div>
+    <h2 class="text-base-content mt-16 mb-6 hidden text-center text-lg font-semibold tracking-tight sm:block">
+        Condividi
+    </h2>
     <div id="share"
          class="mx-12 mt-4 mb-8 flex flex-col justify-center gap-3 md:mx-0 md:flex-row"
          x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">

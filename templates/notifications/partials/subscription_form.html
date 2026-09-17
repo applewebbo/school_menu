@@ -1,6 +1,7 @@
 {% load crispy_forms_tags %}
 
 <form id="school-select-form"
+      class="bg-base-200 flex flex-col gap-4 rounded-lg p-4"
       hx-post="{% url 'notifications:save_subscription' %}"
       hx-target="this"
       hx-swap="outerHTML"
@@ -9,6 +10,7 @@
       @change.capture="if ($event.target.id === 'id_school') selectedSchool = $event.target.value">
     {% csrf_token %}
     {{ form.subscription_info }}
+    <p class="text-base/5">Attiva notifiche</p>
     <div>
         <label for="{{ form.school.id_for_label }}" class="select w-full">
             <span class="label">{{ form.school.label }}</span>
@@ -18,7 +20,7 @@
             <p class="text-error text-xs italic">{{ error }}</p>
         {% endfor %}
     </div>
-    <div class="mt-4" x-show="schoolsWithAlt.includes(Number(selectedSchool))">
+    <div x-show="schoolsWithAlt.includes(Number(selectedSchool))">
         <label for="{{ form.meal_type.id_for_label }}" class="select w-full">
             <span class="label">{{ form.meal_type.label }}</span>
             {{ form.meal_type }}
@@ -27,7 +29,7 @@
             <p class="text-error text-xs italic">{{ error }}</p>
         {% endfor %}
     </div>
-    <div class="mt-4">
+    <div>
         <label for="{{ form.notification_time.id_for_label }}" class="select w-full">
             <span class="label">{{ form.notification_time.label }}</span>
             {{ form.notification_time }}
@@ -36,7 +38,7 @@
             <p class="text-error text-xs italic">{{ error }}</p>
         {% endfor %}
     </div>
-    <div class="mt-4 flex flex-col sm:flex-row sm:justify-end">
+    <div class="flex flex-col sm:flex-row sm:justify-end">
         <button type="button"
                 class="btn btn-primary btn-soft"
                 x-data="pushNotifications"

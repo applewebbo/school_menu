@@ -1,7 +1,7 @@
 {% load heroicons %}
-<div class="my-4">
+<div>
     <template x-if="!isStandalone">
-        <div class="flex flex-col items-center gap-4">
+        <div class="my-4 flex flex-col items-center gap-4">
             <template x-if="unsupportedMessage">
                 <div class="alert alert-warning my-4 text-center"
                      x-text="unsupportedMessage"></div>

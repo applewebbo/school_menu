@@ -53,6 +53,9 @@
   --color-primary-content: oklch(1 0 0);
   --color-secondary: oklch(0.7145 0.185 56);
   --color-secondary-content: oklch(0.14675 0.033 35.353);
+  --color-base-100: oklch(99% 0.0018 139);
+  --color-base-200: oklch(97% 0.0026 139);
+  --color-base-300: oklch(94% 0.0034 139);
 }
 @plugin "daisyui/theme" {
   name: "dim";

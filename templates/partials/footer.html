@@ -13,45 +13,45 @@
                 </p>
             </div>
             <div>
-                <h2 class="text-base-content mb-6 text-sm font-semibold uppercase">Navigazione</h2>
+                <h2 class="text-base-content mb-4 text-sm font-semibold uppercase">Navigazione</h2>
                 <ul class="text-base-content/90 font-medium">
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:index' %}" class="link link-hover">Home</a>
                     </li>
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:school_list' %}" class="link link-hover">Scuole</a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li class="mb-4">
+                        <li class="mb-2">
                             <a href="{% url 'school_menu:settings' %}"
                                class="link link-hover">Impostazioni</a>
                         </li>
                     {% endif %}
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:help' %}" class="link link-hover">Guida all'utilizzo</a>
                     </li>
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'contacts:contact' %}" class="link link-hover">Contatti</a>
                     </li>
                 </ul>
             </div>
             <div>
-                <h2 class="text-base-content mb-6 text-sm font-semibold uppercase">Altro</h2>
+                <h2 class="text-base-content mb-4 text-sm font-semibold uppercase">Altro</h2>
                 <ul class="text-base-content/90 font-medium">
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:info' %}" class="link link-hover">Progetto</a>
                     </li>
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:info' %}#disclaimer"
                            class="link link-hover">Disclaimer</a>
                     </li>
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:info' %}#credits" class="link link-hover">Crediti</a>
                     </li>
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <a href="{% url 'school_menu:privacy' %}" class="link link-hover">Privacy</a>
                     </li>
-                    <li class="mb-4">
+                    <li class="mb-2">
                         <button onclick="document.querySelector('#cookiebannerModal').classList.remove('hidden')"
                                 class="link link-hover">Cookies</button>
                     </li>

@@ -1,125 +1,123 @@
 {% load filters heroicons static %}
-<section class="container mx-auto max-w-4xl" id="school">
-    <div class="mt-8 px-4">
-        <div class="border-base-300 bg-base-200 mt-6 block rounded-lg border p-6 shadow">
-            <h3 class="text-base-content mb-2 grow text-center text-2xl font-bold tracking-tight md:text-left">
-                Scuola
-            </h3>
-            {% if user.school %}
-                <div class="text-base-content mb-4 grid grid-cols-1 font-normal md:grid-cols-2">
-                    <div>
-                        <ul class="leading-10 font-medium" id="school-settings">
-                            <li>
-                                <span class="primary_label">Nome</span> {{ user.school.name }}
-                            </li>
-                            <li>
-                                <span class="primary_label">Città</span> {{ user.school.city }}
-                            </li>
-                            <li>
-                                <span class="primary_label">Tipo di Menu</span> {{ user.school.get_menu_type_display }}
-                            </li>
-                            <li class="my-2 flex items-center">
-                                <span class="primary_label">Menu Pubblico</span>
-                                {% if user.school.is_published %}
-                                    {% heroicon_outline 'check-circle' class="text-success size-5" %}
-                                {% else %}
-                                    No
-                                {% endif %}
-                            </li>
-                            <li>
-                                <span class="primary_label">Inizio Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.start_day }}&nbsp;{{ user.school.start_month|month_name }}
-                            </li>
-                            <li>
-                                <span class="primary_label">Fine Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.end_day }}&nbsp;{{ user.school.end_month|month_name }}
-                            </li>
-                        </ul>
-                    </div>
-                    <div>
-                        <ul class="leading-10" id="meal-settings">
-                            {% if not user.school.annual_menu %}
-                            <li>
-                                <span class="primary_label">Stagione</span> {{ user.school.get_season_choice_display }}
-                            </li>
+<div class="mx-auto mb-6 max-w-3xl sm:px-4" id="school">
+    <div class="bg-base-300/50 border-base-300 sm:bg-base-100 sm:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 sm:border sm:p-6 sm:shadow-sm lg:p-12">
+        <h3 class="text-base-content mb-2 grow text-center text-2xl font-bold tracking-tight md:text-left">
+            Scuola
+        </h3>
+        {% if user.school %}
+            <div class="text-base-content mb-4 grid grid-cols-1 font-normal md:grid-cols-2">
+                <div>
+                    <ul class="leading-10 font-medium" id="school-settings">
+                        <li>
+                            <span class="primary_label">Nome</span> {{ user.school.name }}
+                        </li>
+                        <li>
+                            <span class="primary_label">Città</span> {{ user.school.city }}
+                        </li>
+                        <li>
+                            <span class="primary_label">Tipo di Menu</span> {{ user.school.get_menu_type_display }}
+                        </li>
+                        <li class="my-2 flex items-center">
+                            <span class="primary_label">Menu Pubblico</span>
+                            {% if user.school.is_published %}
+                                {% heroicon_outline 'check-circle' class="text-success size-5" %}
+                            {% else %}
+                                No
                             {% endif %}
-                            <li class="my-2 flex items-center">
-                                <span class="primary_label">Menu Annuale</span>
-                                {% if user.school.annual_menu %}
-                                    {% heroicon_solid 'check-circle' class="text-success size-5" %}
-                                {% else %}
-                                    {% heroicon_solid 'no-symbol' class="text-error size-5" %}
-                                {% endif %}
-                            </li>
-                            {% if not user.school.annual_menu %}
-                            <li>
-                                <span class="primary_label">Scarto Settimana</span> {{ user.school.week_bias }}
-                            </li>
-                            {% endif %}
-                        </ul>
-                        {% if alt_menu %}
-                            <ul class="leading-10" id="alternate-meal-settings">
-                                <li>
-                                    <p class="primary_label hidden">Menu Alternativi</p>
-                                    {% if user.school.no_gluten %}
-                                        <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
-                                            <span class="special-meal-label">No Glutine</span>
-                                            <img src="{% static 'img/no-gluten.png' %}"
-                                            alt="Icona menu senza glutine"
-                                            class="inline h-auto w-5 dark:invert">
-                                        </div>
-                                    {% endif %}
-                                    {% if user.school.no_lactose %}
-                                        <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
-                                            <span class="special-meal-label">No Lattosio</span>
-                                            <img src="{% static 'img/no-lactose.png' %}"
-                                                 alt="Icona menu senza lattosio"
-                                                 class="inline h-auto w-5 dark:invert">
-                                        </div>
-                                    {% endif %}
-                                    {% if user.school.vegetarian %}
-                                        <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
-                                            <span class="special-meal-label">Vegetariano</span>
-                                            <img src="{% static 'img/vegetarian.png' %}"
-                                                 alt="Icona menu vegetariano"
-                                                 class="inline h-auto w-5 dark:invert">
-                                        </div>
-                                    {% endif %}
-                                    {% if user.school.special %}
-                                        <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
-                                            <span class="special-meal-label">Speciale</span>
-                                            <img src="{% static 'img/special.png' %}"
-                                                 alt="Icona menu speciale"
-                                                 class="inline h-auto w-5 dark:invert">
-                                        </div>
-                                    {% endif %}
-                                </li>
-                            </ul>
+                        </li>
+                        <li>
+                            <span class="primary_label">Inizio Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.start_day }}&nbsp;{{ user.school.start_month|month_name }}
+                        </li>
+                        <li>
+                            <span class="primary_label">Fine Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.end_day }}&nbsp;{{ user.school.end_month|month_name }}
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <ul class="leading-10" id="meal-settings">
+                        {% if not user.school.annual_menu %}
+                        <li>
+                            <span class="primary_label">Stagione</span> {{ user.school.get_season_choice_display }}
+                        </li>
                         {% endif %}
-                    </div>
+                        <li class="my-2 flex items-center">
+                            <span class="primary_label">Menu Annuale</span>
+                            {% if user.school.annual_menu %}
+                                {% heroicon_solid 'check-circle' class="text-success size-5" %}
+                            {% else %}
+                                {% heroicon_solid 'no-symbol' class="text-error size-5" %}
+                            {% endif %}
+                        </li>
+                        {% if not user.school.annual_menu %}
+                        <li>
+                            <span class="primary_label">Scarto Settimana</span> {{ user.school.week_bias }}
+                        </li>
+                        {% endif %}
+                    </ul>
+                    {% if alt_menu %}
+                        <ul class="leading-10" id="alternate-meal-settings">
+                            <li>
+                                <p class="primary_label hidden">Menu Alternativi</p>
+                                {% if user.school.no_gluten %}
+                                    <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
+                                        <span class="special-meal-label">No Glutine</span>
+                                        <img src="{% static 'img/no-gluten.png' %}"
+                                        alt="Icona menu senza glutine"
+                                        class="inline h-auto w-5 dark:invert">
+                                    </div>
+                                {% endif %}
+                                {% if user.school.no_lactose %}
+                                    <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
+                                        <span class="special-meal-label">No Lattosio</span>
+                                        <img src="{% static 'img/no-lactose.png' %}"
+                                             alt="Icona menu senza lattosio"
+                                             class="inline h-auto w-5 dark:invert">
+                                    </div>
+                                {% endif %}
+                                {% if user.school.vegetarian %}
+                                    <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
+                                        <span class="special-meal-label">Vegetariano</span>
+                                        <img src="{% static 'img/vegetarian.png' %}"
+                                             alt="Icona menu vegetariano"
+                                             class="inline h-auto w-5 dark:invert">
+                                    </div>
+                                {% endif %}
+                                {% if user.school.special %}
+                                    <div class="me-2 inline-flex flex-row items-center gap-2 md:flex-col">
+                                        <span class="special-meal-label">Speciale</span>
+                                        <img src="{% static 'img/special.png' %}"
+                                             alt="Icona menu speciale"
+                                             class="inline h-auto w-5 dark:invert">
+                                    </div>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    {% endif %}
                 </div>
-                <div class="mt-2 flex flex-col gap-2 md:flex-row md:justify-end">
-                    <button class="btn btn-sm btn-error btn-outline dark:btn-soft inline-flex w-full items-center justify-center md:w-auto"
-                            hx-get="{% url 'school_menu:school_delete' %}"
-                            hx-target="#dialog"
-                            hx-swap="innerHTML"
-                            @click="$dispatch('open-modal')">
-                        Elimina
-                        {% heroicon_outline 'exclamation-triangle' class="hidden md:block size-4" %}
-                    </button>
-                    <button class="btn btn-sm btn-primary btn-outline dark:btn-soft inline-flex w-full items-center justify-center md:w-auto"
-                            hx-target="#school"
-                            hx-swap="outerHTML"
-                            hx-get="{% url 'school_menu:school_update' %}">
-                        Modifica
-                        {% heroicon_solid 'pencil' class="hidden md:block size-4" %}
-                    </button>
-                </div>
-            {% else %}
-                <p class="text-base-content font-normal italic">Nessuna scuola associata al tuo account</p>
-                <button class="btn btn-sm btn-primary btn-outline dark:btn-soft mt-2 w-full md:w-auto"
-                        hx-target="#school"
+            </div>
+            <div class="mt-2 flex flex-col gap-2 md:flex-row md:justify-end">
+                <button class="btn btn-sm btn-error btn-outline dark:btn-soft inline-flex w-full items-center justify-center md:w-auto"
+                        hx-get="{% url 'school_menu:school_delete' %}"
+                        hx-target="#dialog"
                         hx-swap="innerHTML"
-                        hx-get="{% url 'school_menu:school_create' %}">Crea</button>
-            {% endif %}
-        </div>
+                        @click="$dispatch('open-modal')">
+                    Elimina
+                    {% heroicon_outline 'exclamation-triangle' class="hidden md:block size-4" %}
+                </button>
+                <button class="btn btn-sm btn-primary btn-outline dark:btn-soft inline-flex w-full items-center justify-center md:w-auto"
+                        hx-target="#school"
+                        hx-swap="outerHTML"
+                        hx-get="{% url 'school_menu:school_update' %}">
+                    Modifica
+                    {% heroicon_solid 'pencil' class="hidden md:block size-4" %}
+                </button>
+            </div>
+        {% else %}
+            <p class="text-base-content font-normal italic">Nessuna scuola associata al tuo account</p>
+            <button class="btn btn-sm btn-primary btn-outline dark:btn-soft mt-2 w-full md:w-auto"
+                    hx-target="#school"
+                    hx-swap="innerHTML"
+                    hx-get="{% url 'school_menu:school_create' %}">Crea</button>
+        {% endif %}
     </div>
-</section>
+</div>

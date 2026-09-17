@@ -11,14 +11,14 @@
 {% endblock add_js %}
 
 {% block content %}
-<div class="container mx-auto mt-6 mb-8 max-w-xl px-4">
-    <div class="bg-base-100 border-base-300 rounded-box mx-auto grid gap-6 border p-6 shadow-sm lg:p-12">
+<div class="mx-auto mb-8 max-w-xl sm:mt-6 sm:px-4">
+    <div class="bg-base-300/50 border-base-300 sm:bg-base-100 sm:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 sm:border sm:p-6 sm:shadow-sm lg:p-12">
         <h1 class="text-center text-xl font-semibold tracking-tight text-pretty md:text-2xl">Impostazioni Notifiche Menù Giornaliero</h1>
         <div x-data="pwaInstallPrompt()"
              x-init="checkStandalone(); console.log('PWA Alpine state', {isStandalone, canPrompt, installMessage})">
             {% include 'notifications/partials/pwa_install.html' %}
             <template x-if="!isStandalone && !canPrompt && !unsupportedMessage">
-                <div class="alert x-cloak mt-4">
+                <div class="alert x-cloak bg-base-100 sm:bg-base-300 mt-4">
                     {% heroicon_solid 'information-circle' class="text-info size-7" %}
                     Hai già installato questo sito come web app? Aprila dal menu delle app, dal dock o dalla schermata home del tuo dispositivo.
                 </div>
@@ -34,7 +34,7 @@
                              hx-swap="outerHTML"
                              hx-trigger="notificationChanged from:body">
                             <ul class="flex flex-col gap-4" id="notifications-settings">
-                                <li id="school" class="bg-base-200 rounded-lg p-4">
+                                <li id="school" class="bg-base-100 sm:bg-base-300 rounded-lg p-4">
                                     <p class="text-base-content/50 mb-1 text-xs font-medium tracking-wide uppercase">Notifiche attive</p>
                                     <p class="mb-1 text-base font-semibold">{{ notification.school.name }}</p>
                                     <p class="text-base-content/70 mb-3 text-sm">Menu {{ notification.get_meal_type_display }} · ore {{ notification.get_notification_time_display|cut:"alle " }}</p>
@@ -46,7 +46,7 @@
                                         {% heroicon_outline 'cog-8-tooth' class="size-4" %}
                                     </button>
                                 </li>
-                                <li class="bg-base-200 rounded-lg p-4">
+                                <li class="bg-base-100 sm:bg-base-300 rounded-lg p-4">
                                     <p class="mb-3 text-base/5">Ricevi una notifica di prova</p>
                                     <p class="text-base-content/60 mb-3 text-sm/4 italic">Clicca su test per ricevere una notifica di prova verificando la corretta configurazione del tuo dispositivo</p>
                                     <button hx-post="{% url 'notifications:test_notification' %}"
@@ -58,7 +58,7 @@
                                                 {% heroicon_outline 'paper-airplane' class="size-4" %}
                                         </button>
                                 </li>
-                                <li class="bg-base-200 rounded-lg p-4">
+                                <li class="bg-base-100 sm:bg-base-300 rounded-lg p-4">
                                     <p class="mb-3 text-base/5">Notifiche abilitate</p>
                                     <p class="text-base-content/60 mb-3 text-sm/4 italic">Clicca su disabilita per disabilitare la ricezione delle notifiche sul tuo dispositivo</p>
                                     <button class="btn btn-sm btn-error btn-outline flex items-center gap-2"

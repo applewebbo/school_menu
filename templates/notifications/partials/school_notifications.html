@@ -1,6 +1,6 @@
 {% load heroicons %}
 {% if notifications_status %}
-<div class="alert alert-vertical sm:alert-horizontal" role="alert">
+<div class="alert alert-vertical sm:alert-horizontal bg-base-100 sm:bg-base-300" role="alert">
     {% heroicon_outline 'information-circle' class="text-info" %}
     <span>Stai ricevendo notifiche giornaliere sul menu di questa scuola</span>
     <a href="{% url 'notifications:notification_settings' %}"
@@ -9,7 +9,7 @@
 </a>
 </div>
 {% else %}
-<div class="alert alert-vertical sm:alert-horizontal" role="alert">
+<div class="alert alert-vertical sm:alert-horizontal bg-base-100 sm:bg-base-300" role="alert">
     {% heroicon_outline 'information-circle' class="text-info" %}
     <span>Puoi ricevere notifiche giornaliere sul menu di questa scuola senza bisogno di creare un account.</span>
     <a href="{% url 'notifications:notification_settings' %}"

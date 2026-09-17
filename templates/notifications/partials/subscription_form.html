@@ -1,7 +1,7 @@
 {% load crispy_forms_tags %}
 
 <form id="school-select-form"
-      class="bg-base-200 flex flex-col gap-4 rounded-lg p-4"
+      class="bg-base-100 sm:bg-base-300 flex flex-col gap-4 rounded-lg p-4"
       hx-post="{% url 'notifications:save_subscription' %}"
       hx-target="this"
       hx-swap="outerHTML"

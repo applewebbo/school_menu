@@ -521,6 +521,16 @@ if ENVIRONMENT == "dev":
         "ENABLED": False,
     }
 
+    # MAILPIT - overrides the top-level Mailgun MAILERS so dev never sends real email;
+    # `just serve` starts mailpit alongside the app (Procfile.dev), UI at
+    # http://localhost:8025 (#282).
+    MAILERS = {
+        "default": {
+            "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+            "OPTIONS": {"host": "localhost", "port": 1025},
+        },
+    }
+
 # PRODUCTION SPECIFIC SETTINGS
 elif ENVIRONMENT == "prod":
     DEBUG = env.bool("DEBUG", default=False)

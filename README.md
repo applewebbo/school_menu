@@ -74,7 +74,7 @@ This project uses [just](https://github.com/casey/just) for task management. Ava
 
 ### Development
 - `just local` - Run local development server with Tailwind
-- `just serve` - Run development server + workers using overmind
+- `just serve` - Run development server + workers using overmind (also starts Mailpit; inspect sent emails at http://localhost:8025)
 - `just makemigrations` - Create database migrations
 - `just migrate` - Run database migrations
 - `just compilemessages` - Compile translation files

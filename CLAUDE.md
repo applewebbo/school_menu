@@ -91,7 +91,7 @@ This project uses `just` (justfile) and `uv` for task management and dependency 
 ### Development Server
 - `just local` - Run local development server with Tailwind (single process)
 - `just serve` - Run development server + workers using overmind (requires overmind)
-  - Starts both web server and Django Q2 task worker
+  - Starts the web server, Django Q2 task worker, and Mailpit (dev email catcher, UI at http://localhost:8025)
   - Uses Procfile.dev configuration
 
 ### Database

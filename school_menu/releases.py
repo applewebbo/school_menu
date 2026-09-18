@@ -10,6 +10,15 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.3",
+        "date": date(2026, 9, 18),
+        "notes": [
+            "Nuovo look del sito: testi più leggibili, pagine più ariose e colori rivisti per essere più chiari sia di giorno che di notte.",
+            "La lista delle scuole è ora in ordine alfabetico e più facile da consultare.",
+            "Ogni mese chi gestisce il sito riceve un riepilogo delle attività (nuove scuole, segnalazioni, iscrizioni alle notifiche).",
+        ],
+    },
+    {
         "version": "2026.2.10",
         "date": date(2026, 9, 15),
         "notes": [

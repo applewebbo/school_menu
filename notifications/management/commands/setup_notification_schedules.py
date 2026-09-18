@@ -8,7 +8,8 @@ runs and its subscribers get nothing. This command is versioned and idempotent
 ``setup_ai_import_schedule``.
 
 Also carries the weekly purge of the delivery-marker table used to make redelivered
-runs resumable (#270) — one command, one place that can't drift out of sync.
+runs resumable (#270), and the monthly admin activity digest (#280) — one command,
+one place that can't drift out of sync.
 """
 
 from django.conf import settings
@@ -35,6 +36,10 @@ SCHEDULES = {
     "Notification Marker Purge": (
         "notifications.tasks.purge_notification_markers",
         "marker_purge",
+    ),
+    "Monthly Admin Digest": (
+        "notifications.tasks.send_monthly_admin_digest",
+        "monthly_digest",
     ),
 }
 

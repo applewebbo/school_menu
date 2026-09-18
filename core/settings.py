@@ -372,6 +372,9 @@ NOTIFICATION_SCHEDULE_CRONS = {
     # Weekly, off-peak: the marker table is naturally scoped by date, so this just
     # keeps it from growing forever (#270).
     "marker_purge": env("NOTIFICATION_MARKER_PURGE_SCHEDULE", default="30 3 * * 0"),
+    # First of the month, off-peak: builds and emails the previous month's admin
+    # activity digest (#280).
+    "monthly_digest": env("MONTHLY_DIGEST_CRON", default="0 6 1 * *"),
 }
 
 # Delivery markers only need to survive a plausible redelivery window (well under

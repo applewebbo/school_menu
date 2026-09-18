@@ -35,6 +35,7 @@ def test_running_it_twice_updates_instead_of_duplicating():
         "same_day_12pm": "0 12 * * *",
         "same_day_6pm": "0 18 * * *",
         "marker_purge": "30 3 * * 0",
+        "monthly_digest": "0 6 1 * *",
     }
 )
 def test_cron_comes_from_settings():

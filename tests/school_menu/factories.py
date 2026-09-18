@@ -3,6 +3,7 @@ from faker import Faker
 
 from school_menu.models import (
     AnnualMeal,
+    AuditLog,
     DetailedMeal,
     MenuImportDraft,
     School,
@@ -165,3 +166,12 @@ class MenuImportDraftFactory(factory.django.DjangoModelFactory):
     source = MenuImportDraft.Sources.AI
     source_filename = "menu.pdf"
     source_size = 1024
+
+
+class AuditLogFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = AuditLog
+
+    action = AuditLog.Actions.SCHOOL_CREATE
+    model_name = "School"
+    object_repr = factory.Sequence(lambda n: f"School {n}")

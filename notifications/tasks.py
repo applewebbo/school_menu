@@ -6,18 +6,22 @@ from typing import Any
 
 from django.conf import settings
 from django.core.cache import cache
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from django.utils import timezone
 from django_q.tasks import async_task
 from pywebpush import WebPushException, webpush
 
+from contacts.models import MenuReport
 from notifications.models import (
     AnonymousMenuNotification,
     BroadcastNotification,
     DailyNotification,
+    MonthlyDigest,
     NotificationDeliveryMarker,
 )
 from notifications.utils import build_menu_notification_payload
-from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
+from school_menu.models import AnnualMeal, AuditLog, DetailedMeal, School, SimpleMeal
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +98,83 @@ def purge_notification_markers() -> None:
     logger.info(
         f"[Notification] Pruned {deleted} delivery marker(s) older than {cutoff}."
     )
+
+
+def _previous_month_range(today: date) -> tuple[date, date]:
+    """Return (first day, last day) of the calendar month before ``today``."""
+    period_end = today.replace(day=1) - timedelta(days=1)
+    period_start = period_end.replace(day=1)
+    return period_start, period_end
+
+
+def send_monthly_admin_digest() -> None:
+    """
+    Scheduled task: email admins a summary of last month's site activity (#280).
+
+    Counts new schools (from AuditLog, since School has no creation timestamp),
+    menu reports received (plus send errors and feedback replies sent, tracked on
+    MenuReport since #280), and new anonymous notification subscriptions. Always
+    sends and records a MonthlyDigest row, even with all-zero counts, so a quiet
+    month is still visible proof the job ran.
+    """
+    period_start, period_end = _previous_month_range(date.today())
+
+    new_schools = AuditLog.objects.filter(
+        action=AuditLog.Actions.SCHOOL_CREATE,
+        timestamp__date__range=(period_start, period_end),
+    ).count()
+
+    reports = MenuReport.objects.filter(
+        created_at__date__range=(period_start, period_end)
+    )
+    menu_reports = reports.count()
+    report_errors = reports.exclude(notification_error="").count()
+    feedback_sent = reports.filter(feedback_sent_at__isnull=False).count()
+
+    new_subscriptions = AnonymousMenuNotification.objects.filter(
+        created_at__date__range=(period_start, period_end)
+    ).count()
+
+    # Plain-text fallback for clients that don't render HTML.
+    message = (
+        f"Riepilogo attivita' dal {period_start:%d/%m/%Y} al {period_end:%d/%m/%Y}\n\n"
+        f"Nuove scuole registrate: {new_schools}\n"
+        f"Segnalazioni ricevute: {menu_reports}\n"
+        f"Errori di invio segnalazioni: {report_errors}\n"
+        f"Risposte a segnalazioni inviate: {feedback_sent}\n"
+        f"Nuove iscrizioni alle notifiche: {new_subscriptions}\n"
+    )
+    html_message = render_to_string(
+        "notifications/emails/monthly_digest.html",
+        {
+            "period_start": period_start,
+            "period_end": period_end,
+            "new_schools": new_schools,
+            "menu_reports": menu_reports,
+            "report_errors": report_errors,
+            "feedback_sent": feedback_sent,
+            "new_subscriptions": new_subscriptions,
+        },
+    )
+    email = EmailMultiAlternatives(
+        subject=f"Riepilogo mensile attivita' - {period_start:%m/%Y}",
+        body=message,
+        from_email=None,
+        to=[settings.ADMIN_EMAIL],
+    )
+    email.attach_alternative(html_message, "text/html")
+    email.send()
+
+    MonthlyDigest.objects.create(
+        period_start=period_start,
+        period_end=period_end,
+        new_schools=new_schools,
+        menu_reports=menu_reports,
+        report_errors=report_errors,
+        feedback_sent=feedback_sent,
+        new_subscriptions=new_subscriptions,
+    )
+    logger.info(f"[MonthlyDigest] Sent digest for {period_start} - {period_end}.")
 
 
 def send_test_notification(

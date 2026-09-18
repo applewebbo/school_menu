@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.messages import get_messages
 from pytest_django.asserts import assertTemplateUsed
 
@@ -69,6 +71,41 @@ class MenuReportView(TestCase):
         response = self.post("contacts:menu_report", school_id=school.pk, data=data)
 
         self.response_302(response)
+
+    def test_post_records_notification_error_when_send_fails(self):
+        # The report itself is the primary action and must survive a mail-provider
+        # blip: the courtesy email to the receiver failing shouldn't lose the report
+        # or break the response, only be recorded for the digest (#280).
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        data = {
+            "name": "Test name",
+            "message": "Test message",
+            "get_notified": False,
+            "email": "",
+        }
+
+        with patch("contacts.views.send_mail", side_effect=Exception("boom")):
+            response = self.post("contacts:menu_report", school_id=school.pk, data=data)
+
+        self.response_302(response)
+        report = MenuReport.objects.get()
+        assert report.notification_error == "boom"
+
+    def test_post_with_success_has_no_notification_error(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        data = {
+            "name": "Test name",
+            "message": "Test message",
+            "get_notified": False,
+            "email": "",
+        }
+
+        self.post("contacts:menu_report", school_id=school.pk, data=data)
+
+        report = MenuReport.objects.get()
+        assert report.notification_error == ""
 
 
 class ReportListView(TestCase):
@@ -152,6 +189,26 @@ class ReportFeedbackView(TestCase):
         self.response_302(response)
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == "Risposta inviata con successo"
+        report.refresh_from_db()
+        assert report.feedback_sent_at is not None
+
+    def test_post_records_error_and_no_timestamp_when_send_fails(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        report = MenuReportFactory(receiver=school.user)
+        data = {"message": "Test message"}
+
+        with patch("contacts.views.send_mail", side_effect=Exception("boom")):
+            with self.login(user):
+                response = self.post(
+                    "contacts:report_feedback", report_id=report.pk, data=data
+                )
+
+        self.response_302(response)
+        message = list(get_messages(response.wsgi_request))[0].message
+        assert "boom" in str(message)
+        report.refresh_from_db()
+        assert report.feedback_sent_at is None
 
     def test_a_stranger_cannot_answer_someone_elses_report(self):
         """

@@ -1,13 +1,18 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from contacts.forms import ContactForm, MenuReportForm, ReportFeedbackForm
 from contacts.models import MenuReport
 from school_menu.models import School
+
+logger = logging.getLogger(__name__)
 
 
 def contact(request):
@@ -46,12 +51,20 @@ def menu_report(request, school_id):
             message = f"{report.message}\n\n{name} ha chiesto di poter ricevere una risposta alla sua segnalazione. Puoi farlo entro 30gg nella sezione Account/Visualizza segnalazioni del tuo profilo."
         else:
             message = f"{report.message}"
-        send_mail(
-            f"Segnalazione ricevuta da {name} su menuscolastico.it",
-            message,
-            None,
-            [email],
-        )
+        # The report is already saved: a mail-provider blip here must not lose it or
+        # break the response, only be recorded so the monthly admin digest can surface
+        # it (#280).
+        try:
+            send_mail(
+                f"Segnalazione ricevuta da {name} su menuscolastico.it",
+                message,
+                None,
+                [email],
+            )
+        except Exception as e:
+            logger.error(f"Failed to send menu report notification for {name}: {e}")
+            report.notification_error = str(e)
+            report.save(update_fields=["notification_error"])
         messages.add_message(
             request,
             messages.SUCCESS,
@@ -85,12 +98,19 @@ def report_feedback(request, report_id):
     form = ReportFeedbackForm(request.POST or None)
     if form.is_valid():
         message = form.cleaned_data["message"]
-        send_mail(
-            f"Risposta a segnalazione ricevuta da {report.name} su menuscolastico.it",
-            message,
-            None,
-            [report.email],
-        )
+        try:
+            send_mail(
+                f"Risposta a segnalazione ricevuta da {report.name} su menuscolastico.it",
+                message,
+                None,
+                [report.email],
+            )
+        except Exception as e:
+            logger.error(f"Failed to send feedback reply for report {report.pk}: {e}")
+            messages.error(request, f"Errore durante l'invio della risposta: {e}")
+            return redirect(reverse("school_menu:settings"))
+        report.feedback_sent_at = timezone.now()
+        report.save(update_fields=["feedback_sent_at"])
         messages.add_message(
             request,
             messages.SUCCESS,

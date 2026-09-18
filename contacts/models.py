@@ -9,6 +9,16 @@ class MenuReport(models.Model):
     email = models.EmailField(null=True, blank=True)
     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    notification_error = models.TextField(
+        blank=True,
+        default="",
+        help_text="Error message if the report-received email to the receiver failed to send (#280)",
+    )
+    feedback_sent_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When a feedback reply was successfully sent for this report (#280)",
+    )
 
     class Meta:
         verbose_name = "segnalazione"

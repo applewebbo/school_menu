@@ -111,6 +111,35 @@ class DailyNotification(models.Model):
         )
 
 
+class MonthlyDigest(models.Model):
+    """
+    One row per monthly admin digest run: an audit trail that the digest for a given
+    period was actually built and sent, and with what counts (#280). Mirrors
+    ``DailyNotification``'s role for the daily push slots.
+    """
+
+    period_start = models.DateField()
+    period_end = models.DateField()
+    new_schools = models.PositiveIntegerField(default=0)
+    menu_reports = models.PositiveIntegerField(default=0)
+    report_errors = models.PositiveIntegerField(default=0)
+    feedback_sent = models.PositiveIntegerField(default=0)
+    new_subscriptions = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Monthly Digest"
+        verbose_name_plural = "Monthly Digests"
+        ordering = ["-period_start"]
+
+    def __str__(self):
+        return (
+            f"Digest {self.period_start} - {self.period_end}: "
+            f"{self.new_schools} scuole, {self.menu_reports} segnalazioni, "
+            f"{self.new_subscriptions} iscrizioni"
+        )
+
+
 class NotificationDeliveryMarker(models.Model):
     """
     Proof that a subscriber already got a given slot on a given date (#270).

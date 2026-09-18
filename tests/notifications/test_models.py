@@ -1,9 +1,12 @@
+from datetime import date
+
 import pytest
 
 from notifications.models import (
     AnonymousMenuNotification,
     BroadcastNotification,
     DailyNotification,
+    MonthlyDigest,
 )
 from tests.notifications.factories import BroadcastNotificationFactory
 from tests.school_menu.factories import SchoolFactory
@@ -178,6 +181,42 @@ class TestDailyNotificationModel:
             f"alle 9:00 run at {notification.created_at}: 5 sent, 1 failed, 2 pruned"
         )
         assert str(notification) == expected_str
+
+
+class TestMonthlyDigestModel:
+    def test_create_and_str(self):
+        """Test creation and __str__ of the per-run audit row."""
+        digest = MonthlyDigest.objects.create(
+            period_start=date(2026, 8, 1),
+            period_end=date(2026, 8, 31),
+            new_schools=3,
+            menu_reports=5,
+            report_errors=1,
+            feedback_sent=2,
+            new_subscriptions=7,
+        )
+        expected_str = (
+            "Digest 2026-08-01 - 2026-08-31: 3 scuole, 5 segnalazioni, 7 iscrizioni"
+        )
+        assert str(digest) == expected_str
+
+    def test_default_counts_are_zero(self):
+        """Test that default counts are zero."""
+        digest = MonthlyDigest.objects.create(
+            period_start=date(2026, 8, 1), period_end=date(2026, 8, 31)
+        )
+        assert digest.new_schools == 0
+        assert digest.menu_reports == 0
+        assert digest.report_errors == 0
+        assert digest.feedback_sent == 0
+        assert digest.new_subscriptions == 0
+
+    def test_meta_options(self):
+        """Test Meta options of MonthlyDigest."""
+        meta = MonthlyDigest._meta
+        assert meta.verbose_name == "Monthly Digest"
+        assert meta.verbose_name_plural == "Monthly Digests"
+        assert meta.ordering == ["-period_start"]
 
 
 class TestBroadcastNotificationModel:

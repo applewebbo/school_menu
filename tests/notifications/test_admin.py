@@ -204,3 +204,15 @@ class TestDailyNotificationAdmin:
 
         assert admin_obj.has_add_permission(admin_request) is False
         assert admin_obj.has_change_permission(admin_request) is False
+
+
+class TestMonthlyDigestAdmin:
+    def test_is_read_only(self, admin_site, admin_request):
+        """The audit log is written by the task only — no add / change in the admin."""
+        from notifications.admin import MonthlyDigestAdmin
+        from notifications.models import MonthlyDigest
+
+        admin_obj = MonthlyDigestAdmin(MonthlyDigest, admin_site)
+
+        assert admin_obj.has_add_permission(admin_request) is False
+        assert admin_obj.has_change_permission(admin_request) is False

@@ -10,6 +10,14 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.3.1",
+        "date": date(2026, 9, 19),
+        "notes": [
+            "Corrette le notifiche del menu: non arrivano più nei giorni in cui la scuola è chiusa (es. sabato) ripetendo il menu del giorno precedente.",
+            "Risolto un piccolo errore nella finestra delle segnalazioni che poteva confondere chi usa uno screen reader.",
+        ],
+    },
+    {
         "version": "2026.3",
         "date": date(2026, 9, 18),
         "notes": [

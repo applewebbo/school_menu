@@ -1,7 +1,9 @@
 {% load filters heroicons %}
 <div class="modal-content">
     <div class="border-base-300 flex items-center justify-between rounded-t border-b p-3 pb-4 md:p-4">
-        <h3 class="text-base-content text-xl font-semibold">Segnalazione da {{ report.name }}</h3>
+        <h3 id="report-detail-title"
+            data-modal-title
+            class="text-base-content text-xl font-semibold">Segnalazione da {{ report.name }}</h3>
         <button type="button"
                 class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
                 x-on:click="openModal = false">

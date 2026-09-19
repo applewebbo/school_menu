@@ -52,5 +52,6 @@ repos:
   hooks:
   - id: pretty-format-toml
     args: [--autofix]
+    exclude: ^uv\.lock$
   - id: pretty-format-yaml
     args: [--autofix, --indent, '2']

@@ -237,13 +237,23 @@ class TestHasMenuForDate:
 def test_send_menu_notifications_skips_when_no_meals(
     mock_send_notification, school_in_session
 ):
-    """Test that notification is skipped when no meals exist (payload is None)."""
+    """
+    Test that notification is skipped when a menu exists for the date but not for
+    the subscribed meal type (payload is None).
+    """
+    from school_menu.models import Meal
+
     AnonymousMenuNotificationFactory(
         school=school_in_session,
         daily_notification=True,
         notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+        meal_type=Meal.Types.GLUTEN_FREE,
     )
-    # No meals created -> build_menu_notification_payload returns None
+    # A menu exists for the day (so _has_menu_for_date passes) but only for the
+    # Standard type -> build_menu_notification_payload filters it out and returns None.
+    create_simple_meals_for_all_seasons_and_weeks(
+        school_in_session, date.today().weekday() + 1
+    )
 
     _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
 

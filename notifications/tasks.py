@@ -380,6 +380,15 @@ def _send_menu_notifications(notification_time: str) -> None:
             )
             continue
 
+        # No menu is ever defined for a closed day (e.g. Saturday/Sunday), so skip it
+        # outright instead of falling through to a weekend-rollover substitute (#284).
+        if not _has_menu_for_date(school, target_date):
+            logger.info(
+                f"Skipping notification for {school.name} on {target_date.strftime('%A')} "
+                "as no menu is defined for this date."
+            )
+            continue
+
         payload = build_menu_notification_payload(
             school, is_previous_day, meal_type=subscription.meal_type
         )

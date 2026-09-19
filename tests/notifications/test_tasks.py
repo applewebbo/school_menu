@@ -250,6 +250,51 @@ def test_send_menu_notifications_skips_when_no_meals(
     mock_send_notification.assert_not_called()
 
 
+@time_machine.travel("2025-08-23")  # A Saturday
+@patch("notifications.tasks._has_menu_for_date")
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_skips_same_day_without_menu_for_date(
+    mock_send_notification, mock_has_menu_for_date, school_in_session
+):
+    """Test that a same-day notification is not sent when no menu exists for the target date."""
+    mock_has_menu_for_date.return_value = False
+    AnonymousMenuNotificationFactory(
+        school=school_in_session,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+    )
+    create_simple_meals_for_all_seasons_and_weeks(school_in_session, day=1)  # Monday
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    mock_has_menu_for_date.assert_called_once_with(school_in_session, date(2025, 8, 23))
+    mock_send_notification.assert_not_called()
+
+
+@time_machine.travel("2025-08-22")  # A Friday
+@patch("notifications.tasks._has_menu_for_date")
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_skips_previous_day_when_target_has_no_menu(
+    mock_send_notification, mock_has_menu_for_date, school_in_session
+):
+    """
+    Test that the previous-day (18:00) notification is not sent on Friday when
+    the target date (Saturday) has no menu.
+    """
+    mock_has_menu_for_date.return_value = False
+    AnonymousMenuNotificationFactory(
+        school=school_in_session,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.PREVIOUS_DAY_6PM,
+    )
+    create_simple_meals_for_all_seasons_and_weeks(school_in_session, day=1)  # Monday
+
+    _send_menu_notifications(AnonymousMenuNotification.PREVIOUS_DAY_6PM)
+
+    mock_has_menu_for_date.assert_called_once_with(school_in_session, date(2025, 8, 23))
+    mock_send_notification.assert_not_called()
+
+
 @time_machine.travel("2025-08-18")  # A Monday
 @patch("notifications.tasks.settings")
 @patch("notifications.tasks.send_test_notification")

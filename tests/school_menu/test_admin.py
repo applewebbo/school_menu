@@ -6,7 +6,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from school_menu.admin import CsvImportForm
-from school_menu.models import DetailedMeal, School, SimpleMeal
+from school_menu.models import AuditLog, DetailedMeal, School, SimpleMeal
 from tests.school_menu.factories import SchoolFactory, SimpleMealFactory
 from tests.users.factories import UserFactory
 
@@ -293,6 +293,32 @@ class TestImportCsvAction(TestCase):
             response = self._upload(school, bad_csv, season=SimpleMeal.Seasons.ESTIVO)
         assert response.status_code == 200
         assert SimpleMeal.objects.filter(school=school).count() == 0
+
+    def test_import_creates_audit_log_entry_for_acting_admin(self):
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
+        self._upload(school, SIMPLE_CSV, season=SimpleMeal.Seasons.ESTIVO)
+        entry = AuditLog.objects.get(action=AuditLog.Actions.MENU_UPLOAD)
+        assert entry.user == self.superuser
+        assert entry.object_id == school.id
+        assert entry.changes["source"] == "admin_csv"
+        assert entry.changes["rows_imported"] == 20
+
+    def test_dry_run_errors_do_not_create_audit_log_entry(self):
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            no_gluten=False,
+            no_lactose=False,
+            vegetarian=False,
+            special=False,
+        )
+        self._upload(school, DETAILED_CSV, season=SimpleMeal.Seasons.ESTIVO)
+        assert not AuditLog.objects.filter(action=AuditLog.Actions.MENU_UPLOAD).exists()
 
     def test_action_with_multiple_schools_shows_warning(self):
         schools = SchoolFactory.create_batch(2)

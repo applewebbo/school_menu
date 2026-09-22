@@ -178,6 +178,20 @@ class SchoolAdmin(admin.ModelAdmin):
                             season=season,
                             type=meal_type,
                         )
+                        season_name = "Estivo" if season == 1 else "Invernale"
+                        meal_type_name = dict(ModelClass.Types.choices).get(
+                            meal_type, meal_type
+                        )
+                        request.audit_log(
+                            action="MENU_UPLOAD",
+                            model_name=ModelClass.__name__,
+                            object_id=school.id,
+                            object_repr=f"{school.name} - {season_name} - {meal_type_name}",
+                            changes={
+                                "rows_imported": len(filtered_dataset),
+                                "source": "admin_csv",
+                            },
+                        )
                         self.message_user(
                             request,
                             f"Importati {len(filtered_dataset)} record per {school.name}.",

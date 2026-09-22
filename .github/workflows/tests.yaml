@@ -41,5 +41,8 @@ jobs:
     - name: Install Packages
       run: uv sync --all-extras
 
+    - name: Build Tailwind CSS
+      run: uv run python manage.py tailwind build
+
     - name: Test it
       run: uv run pytest -n 8 --reuse-db --dist loadscope --exitfirst -m "not performance" --cov=. --cov-report term:skip-covered --cov-fail-under 100

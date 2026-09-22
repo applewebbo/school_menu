@@ -10,6 +10,15 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.3.2",
+        "date": date(2026, 9, 22),
+        "notes": [
+            "Se usi un gestore di password (es. iCloud Keychain, Google Password Manager), ora ti porta direttamente alla pagina di cambio password del tuo account.",
+            "Migliorata la tracciabilità interna quando l'assistenza tecnica carica un menu per conto di una scuola.",
+            "Piccoli aggiornamenti tecnici ai componenti del sito.",
+        ],
+    },
+    {
         "version": "2026.3.1",
         "date": date(2026, 9, 19),
         "notes": [

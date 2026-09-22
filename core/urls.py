@@ -3,6 +3,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
+from django.views.generic import RedirectView
 from django.views.generic.base import TemplateView
 
 from school_menu.api import router as api_router
@@ -35,6 +36,11 @@ urlpatterns = [
         name="account_reset_password_from_key_done",
     ),
     path("accounts/", include("allauth.urls")),
+    # Lets password managers jump straight to the change-password page (RFC 8615, #288).
+    path(
+        ".well-known/change-password",
+        RedirectView.as_view(pattern_name="account_change_password"),
+    ),
     path("health/", health_check, name="health_check"),
     path("api/v1/", include(api_router.urls)),
     path(

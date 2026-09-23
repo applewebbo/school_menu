@@ -4,12 +4,12 @@
         hx-post="{% url 'school_menu:toggle_favorite_school' school.slug %}"
         hx-target="this"
         hx-swap="outerHTML"
-        class="btn btn-circle btn-ghost btn-sm transition-all duration-200 ease-in-out"
+        class="hover:bg-base-200 inline-flex items-center rounded-md p-1 transition-colors duration-200 ease-in-out"
         aria-pressed="{% if is_favorite %}true{% else %}false{% endif %}"
         aria-label="{% if is_favorite %}Rimuovi dai preferiti{% else %}Aggiungi ai preferiti{% endif %}">
     {% if is_favorite %}
-        {% heroicon_solid "heart" class="w-6 h-6 text-red-500" %}
+        {% heroicon_solid "heart" class="w-5 h-5 text-primary" %}
     {% else %}
-        {% heroicon_outline "heart" class="w-6 h-6 text-base-content/60" %}
+        {% heroicon_outline "heart" class="w-5 h-5 text-base-content/50" %}
     {% endif %}
 </button>

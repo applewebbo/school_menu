@@ -237,6 +237,21 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
     }
 
 
+def get_visitor_favorite_slug(request: HttpRequest) -> str | None:
+    """The current visitor's favorite school slug, DB-backed when authenticated, cookie otherwise."""
+    if request.user.is_authenticated:
+        favorite = request.user.favorite_school
+        return favorite.slug if favorite else None
+    return request.COOKIES.get(FAVORITE_SCHOOL_COOKIE)
+
+
+def get_own_school_id(request: HttpRequest) -> int | None:
+    """The authenticated visitor's own school id, or None (anonymous, or no school yet)."""
+    if request.user.is_authenticated and hasattr(request.user, "school"):
+        return request.user.school.id
+    return None
+
+
 def get_favorite_context(request: HttpRequest, school: School) -> dict[str, Any]:
     """
     Whether `school` can be favorited by the current visitor, and whether it already is.
@@ -734,7 +749,12 @@ def school_list(request: HttpRequest) -> HttpResponse:
         return list(School.objects.exclude(is_published=False).order_by("name"))
 
     schools = get_cached_or_query(cache_key, get_schools, timeout=86400)
-    context = {"schools": schools}
+    context = {
+        "schools": schools,
+        "show_favorites": True,
+        "favorite_slug": get_visitor_favorite_slug(request),
+        "own_school_id": get_own_school_id(request),
+    }
     return TemplateResponse(request, "school-list.html", context)
 
 

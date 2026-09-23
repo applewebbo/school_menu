@@ -6,24 +6,7 @@
             {% if can_favorite %}
                 {% include 'partials/_favorite_heart.html' %}
             {% endif %}
-            {% if show_switch %}
-                <button type="button"
-                        hx-get="{% url 'school_menu:switch_home_school' home_switch_target %}"
-                        hx-target="#day_menu"
-                        hx-swap="outerHTML"
-                        class="btn btn-outline btn-xs">
-                    {% if home_switch_target == "favorite" %}
-                        Vedi la preferita
-                    {% else %}
-                        Vedi la tua scuola
-                    {% endif %}
-                </button>
-            {% endif %}
         </div>
-        {% if home and not request.user.is_authenticated %}
-            <a href="{% url 'school_menu:school_list' %}"
-               class="link link-hover text-base-content/70 mb-4 inline-block text-sm">Cerca un'altra scuola</a>
-        {% endif %}
     {% endif %}
     {% include 'partials/_days_menu.html' %}
     <div id="current_menu" class="my-7 flex flex-col items-center gap-6 text-center">
@@ -68,6 +51,19 @@
             {% endif %}
         {% endif %}
     </div>
+    {% if show_switch %}
+        <button type="button"
+                hx-get="{% url 'school_menu:switch_home_school' home_switch_target %}"
+                hx-target="#day_menu"
+                hx-swap="outerHTML"
+                class="btn btn-outline btn-xs -mt-4 mb-4">
+            {% if home_switch_target == "favorite" %}
+                Vedi alternativa
+            {% else %}
+                Vedi principale
+            {% endif %}
+        </button>
+    {% endif %}
     <div class="divider mt-14 mb-8 sm:hidden">NOTIFICHE</div>
     <h2 class="text-base-content mt-16 mb-6 hidden text-center text-lg font-semibold tracking-tight sm:block">
         Notifiche

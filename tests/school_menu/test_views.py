@@ -634,6 +634,35 @@ class SchoolListView(TestCase):
         assertTemplateUsed(response, "school-list.html")
         assert school_not_published not in response.context["schools"]
 
+    def test_shows_heart_next_to_favorite_school(self):
+        from school_menu.views import FAVORITE_SCHOOL_COOKIE
+
+        favorite = SchoolFactory(name="Scuola Preferita")
+        SchoolFactory(name="Altra Scuola")
+        self.client.cookies[FAVORITE_SCHOOL_COOKIE] = favorite.slug
+
+        response = self.get("school_menu:school_list")
+
+        self.response_200(response)
+        assert response.context["favorite_slug"] == favorite.slug
+        content = response.content.decode()
+        # exactly one filled heart (the favorite), and a toggle URL for each school
+        assert content.count('aria-pressed="true"') == 1
+        assert (
+            self.reverse("school_menu:toggle_favorite_school", slug=favorite.slug)
+            in content
+        )
+
+    def test_authenticated_own_school_has_no_heart(self):
+        user = self.make_user()
+        own_school = SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:school_list")
+
+        self.response_200(response)
+        assert response.context["own_school_id"] == own_school.id
+
 
 class TestUploadMenuView(TestCase):
     def test_upload_menu_get(self):

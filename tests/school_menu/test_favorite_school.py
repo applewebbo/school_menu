@@ -1,3 +1,5 @@
+import time_machine
+
 from school_menu.test import TestCase
 from school_menu.views import FAVORITE_SCHOOL_COOKIE
 from tests.school_menu.factories import SchoolFactory
@@ -209,6 +211,17 @@ class IndexFavoriteContext(TestCase):
         self.response_200(response)
         assert "school" not in response.context
         assert response.cookies[FAVORITE_SCHOOL_COOKIE].value == ""
+
+    @time_machine.travel("2025-08-20")
+    def test_anonymous_with_favorite_not_in_session(self):
+        school = SchoolFactory(start_month=9, start_day=15, end_month=6, end_day=10)
+        self.client.cookies[FAVORITE_SCHOOL_COOKIE] = school.slug
+
+        response = self.get("school_menu:index")
+
+        self.response_200(response)
+        assert response.context["not_in_session"] is True
+        assert response.context["school"] == school
 
     def test_anonymous_with_unpublished_favorite_falls_back(self):
         school = SchoolFactory(is_published=False)

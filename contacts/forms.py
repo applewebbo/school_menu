@@ -5,7 +5,32 @@ from django import forms
 from contacts.models import MenuReport
 
 
-class ContactForm(forms.Form):
+class HoneypotMixin(forms.Form):
+    """
+    Hidden `website` field (#292): invisible to real visitors via CSS, but a bot that
+    blindly fills every `<input>` on the page populates it, so any value here means the
+    submission wasn't a human. Same technique already used on signup (#272).
+
+    Must inherit from `forms.Form` (not just `object`): Django's form metaclass only
+    collects declared fields from base classes that went through it themselves, so a
+    plain mixin's fields are silently dropped.
+    """
+
+    website = forms.CharField(
+        required=False,
+        label="",
+        widget=forms.TextInput(
+            attrs={"autocomplete": "off", "tabindex": "-1", "aria-hidden": "true"}
+        ),
+    )
+
+    def clean_website(self):
+        if self.cleaned_data.get("website"):
+            raise forms.ValidationError("Invio non disponibile al momento.")
+        return self.cleaned_data.get("website")
+
+
+class ContactForm(HoneypotMixin):
     name = forms.CharField(
         max_length=100,
         label="Nome",
@@ -29,11 +54,12 @@ class ContactForm(forms.Form):
                 "name",
                 "email",
                 "message",
+                Div("website", css_class="absolute -left-[9999px]"),
             ),
         )
 
 
-class MenuReportForm(forms.ModelForm):
+class MenuReportForm(HoneypotMixin, forms.ModelForm):
     name = forms.CharField(
         max_length=100,
         label="Nome",
@@ -81,6 +107,7 @@ class MenuReportForm(forms.ModelForm):
                 "message",
                 "get_notified",
                 "email",
+                Div("website", css_class="absolute -left-[9999px]"),
             ),
         )
 

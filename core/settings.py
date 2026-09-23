@@ -330,6 +330,13 @@ AI_MENU_IMPORT_USER_DAILY_LIMIT = env.int("AI_MENU_IMPORT_USER_DAILY_LIMIT", def
 AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT = env.int(
     "AI_MENU_IMPORT_GLOBAL_DAILY_LIMIT", default=250
 )
+# Bot hardening for the anonymous contact and menu-report forms (#292): a handful of
+# submissions per hour is plenty for a real visitor, but stops a script from flooding
+# the inbox. Keyed by IP, so it never blocks unrelated visitors sharing a NAT for long.
+CONTACT_RATE_LIMIT_MAX = env.int("CONTACT_RATE_LIMIT_MAX", default=5)
+CONTACT_RATE_LIMIT_WINDOW_SECONDS = env.int(
+    "CONTACT_RATE_LIMIT_WINDOW_SECONDS", default=3600
+)
 AI_MENU_IMPORT_MAX_FILE_SIZE = env.int(
     "AI_MENU_IMPORT_MAX_FILE_SIZE", default=10 * 1024 * 1024
 )

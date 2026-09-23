@@ -23,6 +23,19 @@ class TestContactForm:
             "message": ["Campo obbligatorio."],
         }
 
+    def test_form_with_honeypot_filled_is_rejected(self):
+        form = ContactForm(
+            data={
+                "name": "Test Name",
+                "email": "test@test.com",
+                "message": "Test Message",
+                "website": "https://spam.example",
+            }
+        )
+
+        assert form.is_valid() is False
+        assert form.errors == {"website": ["Invio non disponibile al momento."]}
+
 
 class TestMenuReportForm:
     def test_form(self):
@@ -49,6 +62,19 @@ class TestMenuReportForm:
         assert form.errors == {
             "email": ["Se vuoi essere ricontattato devi inserire un indirizzo email"],
         }
+
+    def test_form_with_honeypot_filled_is_rejected(self):
+        form = MenuReportForm(
+            data={
+                "name": "Test Name",
+                "message": "Test Message",
+                "get_notified": False,
+                "website": "https://spam.example",
+            }
+        )
+
+        assert form.is_valid() is False
+        assert form.errors == {"website": ["Invio non disponibile al momento."]}
 
 
 class TestReportFeedbackForm:

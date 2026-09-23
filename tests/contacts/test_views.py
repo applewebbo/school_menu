@@ -1,6 +1,8 @@
 from unittest.mock import patch
 
 from django.contrib.messages import get_messages
+from django.core.cache import cache
+from django.test import override_settings
 from pytest_django.asserts import assertTemplateUsed
 
 from contacts.models import MenuReport
@@ -8,8 +10,17 @@ from school_menu.test import TestCase
 from tests.contacts.factories import MenuReportFactory
 from tests.school_menu.factories import SchoolFactory
 
+# The test settings use DummyCache, which never stores anything, so a real backend is
+# needed to exercise the rate limit at all (#292).
+LOCMEM_CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+}
+
 
 class ContactView(TestCase):
+    def setup_method(self, method):
+        cache.clear()
+
     def test_get(self):
         response = self.get("contacts:contact")
 
@@ -33,8 +44,59 @@ class ContactView(TestCase):
 
         assert "form" in response.context
 
+    def test_honeypot_filled_is_rejected(self):
+        data = {
+            "name": "Test Name",
+            "email": "test@test.com",
+            "message": "Test Message",
+            "website": "https://spam.example",
+        }
+
+        response = self.post("contacts:contact", data=data)
+
+        self.response_200(response)
+        form = response.context["form"]
+        assert "Invio non disponibile al momento." in form.errors["website"]
+
+    @override_settings(CACHES=LOCMEM_CACHES, CONTACT_RATE_LIMIT_MAX=2)
+    def test_too_many_submissions_are_rate_limited(self):
+        data = {
+            "name": "Test Name",
+            "email": "test@test.com",
+            "message": "Test Message",
+        }
+
+        for _ in range(2):
+            self.post("contacts:contact", data=data)
+        response = self.post("contacts:contact", data=data)
+
+        self.response_200(response)
+        # [-1]: the two earlier POSTs redirected (302) without being followed, so their
+        # own success messages are still queued unread ahead of this one.
+        message = list(get_messages(response.wsgi_request))[-1].message
+        assert message == "Troppe richieste da questo indirizzo. Riprova più tardi."
+
+    @override_settings(CACHES=LOCMEM_CACHES, CONTACT_RATE_LIMIT_MAX=2)
+    def test_rate_limit_is_scoped_per_ip(self):
+        data = {
+            "name": "Test Name",
+            "email": "test@test.com",
+            "message": "Test Message",
+        }
+
+        for _ in range(2):
+            self.post("contacts:contact", data=data, extra={"REMOTE_ADDR": "10.0.0.1"})
+        response = self.post(
+            "contacts:contact", data=data, extra={"REMOTE_ADDR": "10.0.0.2"}
+        )
+
+        self.response_302(response)
+
 
 class MenuReportView(TestCase):
+    def setup_method(self, method):
+        cache.clear()
+
     def test_get(self):
         user = self.make_user()
         school = SchoolFactory(user=user)
@@ -106,6 +168,46 @@ class MenuReportView(TestCase):
 
         report = MenuReport.objects.get()
         assert report.notification_error == ""
+
+    def test_honeypot_filled_is_rejected(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        data = {
+            "name": "Test name",
+            "message": "Test message",
+            "get_notified": False,
+            "email": "",
+            "website": "https://spam.example",
+        }
+
+        response = self.post("contacts:menu_report", school_id=school.pk, data=data)
+
+        self.response_200(response)
+        form = response.context["form"]
+        assert "Invio non disponibile al momento." in form.errors["website"]
+        assert MenuReport.objects.count() == 0
+
+    @override_settings(CACHES=LOCMEM_CACHES, CONTACT_RATE_LIMIT_MAX=2)
+    def test_too_many_submissions_are_rate_limited(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        data = {
+            "name": "Test name",
+            "message": "Test message",
+            "get_notified": False,
+            "email": "",
+        }
+
+        for _ in range(2):
+            self.post("contacts:menu_report", school_id=school.pk, data=data)
+        response = self.post("contacts:menu_report", school_id=school.pk, data=data)
+
+        self.response_200(response)
+        # [-1]: the two earlier POSTs redirected (302) without being followed, so their
+        # own success messages are still queued unread ahead of this one.
+        message = list(get_messages(response.wsgi_request))[-1].message
+        assert message == "Troppe richieste da questo indirizzo. Riprova più tardi."
+        assert MenuReport.objects.count() == 2
 
 
 class ReportListView(TestCase):

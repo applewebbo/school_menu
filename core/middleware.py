@@ -3,6 +3,14 @@ from django.utils.deprecation import MiddlewareMixin
 from school_menu.models import AuditLog
 
 
+def get_client_ip(request):
+    """Extract client IP address from request, handling proxies."""
+    x_forwarded_for = request.headers.get("x-forwarded-for")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0].strip()
+    return request.META.get("REMOTE_ADDR")
+
+
 class AuditLogMiddleware(MiddlewareMixin):
     """Middleware that provides request.audit_log() helper for logging critical actions."""
 
@@ -20,7 +28,7 @@ class AuditLogMiddleware(MiddlewareMixin):
                 object_repr: String representation of the object
                 changes: Dict of changed fields (optional)
             """
-            ip = self.get_client_ip(request)
+            ip = get_client_ip(request)
             user_agent = request.headers.get("user-agent", "")[:500]
 
             AuditLog.objects.create(
@@ -39,10 +47,4 @@ class AuditLogMiddleware(MiddlewareMixin):
 
     @staticmethod
     def get_client_ip(request):
-        """Extract client IP address from request, handling proxies."""
-        x_forwarded_for = request.headers.get("x-forwarded-for")
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(",")[0].strip()
-        else:
-            ip = request.META.get("REMOTE_ADDR")
-        return ip
+        return get_client_ip(request)

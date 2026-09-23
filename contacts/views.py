@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
@@ -10,12 +11,33 @@ from django.views.decorators.http import require_http_methods
 
 from contacts.forms import ContactForm, MenuReportForm, ReportFeedbackForm
 from contacts.models import MenuReport
+from contacts.rate_limit import is_rate_limited
+from core.middleware import get_client_ip
 from school_menu.models import School
 
 logger = logging.getLogger(__name__)
 
+RATE_LIMITED_MESSAGE = "Troppe richieste da questo indirizzo. Riprova più tardi."
+
+
+def _too_many_submissions(request, action):
+    """
+    True once this IP has submitted `action` more than CONTACT_RATE_LIMIT_MAX times
+    within CONTACT_RATE_LIMIT_WINDOW_SECONDS (#292): the same defense on both anonymous
+    forms, since neither requires login and both are otherwise open to scripted spam.
+    """
+    key = f"contact-rate-limit:{action}:{get_client_ip(request)}"
+    return is_rate_limited(
+        key, settings.CONTACT_RATE_LIMIT_MAX, settings.CONTACT_RATE_LIMIT_WINDOW_SECONDS
+    )
+
 
 def contact(request):
+    if request.method == "POST" and _too_many_submissions(request, "contact"):
+        messages.error(request, RATE_LIMITED_MESSAGE)
+        context = {"form": ContactForm(), "create": True}
+        return render(request, "contacts/contact.html", context)
+
     form = ContactForm(request.POST or None)
     if form.is_valid():
         name = form.cleaned_data["name"]
@@ -40,6 +62,11 @@ def contact(request):
 
 def menu_report(request, school_id):
     school = get_object_or_404(School, id=school_id)
+    if request.method == "POST" and _too_many_submissions(request, "menu_report"):
+        messages.error(request, RATE_LIMITED_MESSAGE)
+        context = {"form": MenuReportForm(), "school": school}
+        return render(request, "contacts/menu-report.html", context)
+
     form = MenuReportForm(request.POST or None)
     if form.is_valid():
         report = form.save(commit=False)

@@ -13,7 +13,13 @@ from django.core.files.uploadedfile import UploadedFile
 from django.db import connection
 from django.db.models import Q
 from django.forms import modelformset_factory
-from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseNotFound,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -77,6 +83,9 @@ from school_menu.utils import (
 from school_menu.utils.support import log_unexpected, support_hint
 
 logger = logging.getLogger(__name__)
+
+FAVORITE_SCHOOL_COOKIE = "favorite_school"
+FAVORITE_SCHOOL_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 year (#287)
 
 
 def load_csv_dataset(file: UploadedFile) -> tuple[Dataset | None, str | None]:
@@ -228,12 +237,56 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
     }
 
 
+def get_favorite_context(request: HttpRequest, school: School) -> dict[str, Any]:
+    """
+    Whether `school` can be favorited by the current visitor, and whether it already is.
+
+    Authenticated users favorite in the DB (`user.favorite_school`) and can never favorite
+    their own school; anonymous visitors favorite via the `favorite_school` cookie (#287).
+    """
+    if request.user.is_authenticated:
+        if school.user_id == request.user.id:
+            return {"can_favorite": False}
+        return {
+            "can_favorite": True,
+            "is_favorite": request.user.favorite_school_id == school.id,
+        }
+    return {
+        "can_favorite": True,
+        "is_favorite": request.COOKIES.get(FAVORITE_SCHOOL_COOKIE) == school.slug,
+    }
+
+
+def apply_home_context(
+    request: HttpRequest, school: School, context: dict[str, Any]
+) -> None:
+    """
+    Attach the home "own ⇄ favorite" switch and heart flags to a menu context, in place.
+
+    Shared by the home page and the day/week swap endpoint (when reached from home), so the
+    header stays consistent while browsing (#287).
+    """
+    context.update(get_favorite_context(request, school))
+    context["home"] = True
+    context["show_switch"] = bool(
+        request.user.is_authenticated and request.user.favorite_school_id
+    )
+    context["home_switch_target"] = (
+        "favorite" if school.user_id == request.user.pk else "own"
+    )
+    context["show_school_header"] = (
+        context.get("can_favorite", False) or context["show_switch"]
+    )
+
+
 def index(request: HttpRequest) -> HttpResponse:
     """
-    Display homepage with authenticated user's school menu.
+    Display homepage with the visitor's school menu.
 
-    Redirects to settings if no school is configured.
-    Shows current day menu with weekly overview.
+    Authenticated users see their own school (redirected to settings if none is configured
+    yet), with a switch to their favorite school if one is set. Anonymous visitors see the
+    usual welcome/search block, unless a `favorite_school` cookie points to a published
+    school, in which case its menu is shown instead (#287).
     """
     context = {}
     if request.user.is_authenticated:
@@ -248,9 +301,29 @@ def index(request: HttpRequest) -> HttpResponse:
                 "start_month": school.start_month,
                 "school": school,
             }
-            return render(request, "index.html", context)
+        else:
+            context = get_school_menu_context(school, meal_type="S")
+        apply_home_context(request, school, context)
+        return render(request, "index.html", context)
 
-        context = get_school_menu_context(school, meal_type="S")
+    favorite_slug = request.COOKIES.get(FAVORITE_SCHOOL_COOKIE)
+    if favorite_slug:
+        school = School.objects.filter(slug=favorite_slug, is_published=True).first()
+        if school is None:
+            response = render(request, "index.html", context)
+            response.delete_cookie(FAVORITE_SCHOOL_COOKIE)
+            return response
+        if not _is_school_in_session(school, datetime.now()):
+            context = {
+                "not_in_session": True,
+                "start_day": school.start_day,
+                "start_month": school.start_month,
+                "school": school,
+            }
+        else:
+            context = get_school_menu_context(school, meal_type="S")
+        apply_home_context(request, school, context)
+
     return render(request, "index.html", context)
 
 
@@ -300,7 +373,79 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
     context = get_school_menu_context(school, meal_type)
     context["notifications_status"] = notifications_status
     context["structured_data"] = build_school_structured_data(request, school)
+    context.update(get_favorite_context(request, school))
+    context["show_school_header"] = context.get("can_favorite", False)
     return render(request, "school-menu.html", context)
+
+
+@require_http_methods(["POST"])
+def toggle_favorite_school(request: HttpRequest, slug: str) -> HttpResponse:
+    """
+    Toggle `slug` as the visitor's favorite school (DB for authenticated users, cookie for
+    anonymous ones). Selecting a new favorite replaces any previous one (#287).
+    """
+    school = get_object_or_404(School, slug=slug)
+
+    if request.user.is_authenticated:
+        if school.user_id == request.user.id:
+            return HttpResponseForbidden()
+        user = request.user
+        if user.favorite_school_id == school.pk:
+            user.favorite_school = None
+        else:
+            user.favorite_school = school
+        user.save(update_fields=["favorite_school"])
+        is_favorite = user.favorite_school_id == school.pk
+        return render(
+            request,
+            "partials/_favorite_heart.html",
+            {"school": school, "is_favorite": is_favorite},
+        )
+
+    is_favorite = request.COOKIES.get(FAVORITE_SCHOOL_COOKIE) != school.slug
+    response = render(
+        request,
+        "partials/_favorite_heart.html",
+        {"school": school, "is_favorite": is_favorite},
+    )
+    if is_favorite:
+        response.set_cookie(
+            FAVORITE_SCHOOL_COOKIE,
+            school.slug,
+            max_age=FAVORITE_SCHOOL_COOKIE_MAX_AGE,
+            samesite="Lax",
+            secure=settings.SESSION_COOKIE_SECURE,
+        )
+    else:
+        response.delete_cookie(FAVORITE_SCHOOL_COOKIE)
+    return response
+
+
+@login_required
+@require_http_methods(["GET"])
+def switch_home_school(request: HttpRequest, target: str) -> HttpResponse:
+    """
+    Swap the home page between the authenticated user's own school and their favorite.
+
+    404s if there is no own school, or if switching to a favorite that isn't set (deleting
+    a favorited school clears it via `on_delete=SET_NULL`, so this also guards against a
+    stale reference) (#287).
+    """
+    try:
+        own_school = School.objects.get(user=request.user)
+    except School.DoesNotExist:
+        return HttpResponseNotFound()
+
+    if target == "favorite":
+        school = request.user.favorite_school
+        if school is None:
+            return HttpResponseNotFound()
+    else:
+        school = own_school
+
+    context = get_school_menu_context(school, meal_type="S")
+    apply_home_context(request, school, context)
+    return render(request, "partials/_menu.html", context)
 
 
 def get_menu(
@@ -341,6 +486,11 @@ def get_menu(
         "types_menu": types_menu,
         "notifications_status": notifications_status,
     }
+    if request.GET.get("home") == "1":
+        apply_home_context(request, school, context)
+    else:
+        context.update(get_favorite_context(request, school))
+        context["show_school_header"] = context.get("can_favorite", False)
     return render(request, "partials/_menu.html", context)
 
 

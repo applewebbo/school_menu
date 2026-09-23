@@ -27,7 +27,7 @@
 {% block content %}
 <div class="mx-auto mb-8 max-w-4xl sm:mt-6 sm:px-4">
     <div class="bg-base-300/50 border-base-300 sm:bg-base-100 sm:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 sm:border sm:p-6 sm:shadow-sm lg:p-12">
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated or school %}
             <div class="mx-auto place-self-center">{% include 'partials/_menu.html' %}</div>
         {% else %}
             <div class="mx-auto place-self-center">{% include 'partials/_anon_index.html' %}</div>

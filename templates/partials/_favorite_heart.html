@@ -1,0 +1,15 @@
+{% load heroicons %}
+<button type="button"
+        id="favorite_heart"
+        hx-post="{% url 'school_menu:toggle_favorite_school' school.slug %}"
+        hx-target="this"
+        hx-swap="outerHTML"
+        class="btn btn-circle btn-ghost btn-sm transition-all duration-200 ease-in-out"
+        aria-pressed="{% if is_favorite %}true{% else %}false{% endif %}"
+        aria-label="{% if is_favorite %}Rimuovi dai preferiti{% else %}Aggiungi ai preferiti{% endif %}">
+    {% if is_favorite %}
+        {% heroicon_solid "heart" class="w-6 h-6 text-red-500" %}
+    {% else %}
+        {% heroicon_outline "heart" class="w-6 h-6 text-base-content/60" %}
+    {% endif %}
+</button>

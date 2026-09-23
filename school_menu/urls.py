@@ -30,6 +30,16 @@ urlpatterns = [
     ),
     path("menu/<slug:slug>/", views.school_menu, name="school_menu"),
     path(
+        "menu/<slug:slug>/favorite/",
+        views.toggle_favorite_school,
+        name="toggle_favorite_school",
+    ),
+    path(
+        "home/switch/<str:target>/",
+        views.switch_home_school,
+        name="switch_home_school",
+    ),
+    path(
         "menu/<int:school_id>/<int:week>/<int:season>/<str:meal_type>/",
         views.create_weekly_menu,
         name="create_weekly_menu",

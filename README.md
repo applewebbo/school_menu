@@ -75,18 +75,22 @@ This project uses [just](https://github.com/casey/just) for task management. Ava
 ### Development
 - `just local` - Run local development server with Tailwind
 - `just serve` - Run development server + workers using overmind (also starts Mailpit; inspect sent emails at http://localhost:8025)
+- `just phone` - Serve the dev site over HTTPS via Tailscale, to test on a real phone
 - `just makemigrations` - Create database migrations
 - `just migrate` - Run database migrations
 - `just compilemessages` - Compile translation files
 - `just makemessages` - Update translation files
 - `just tasks` - Run Django Q2 task worker
+- `just crawl` - Crawl the site for broken links / runtime errors (needs a populated dev DB)
 
 ### Testing & Quality
 - `just test [args]` - Run tests sequentially (useful for debugging with -s, -x flags)
-- `just ftest [args]` - Run tests in parallel using 8 workers (faster, for CI)
+- `just ftest [args]` - Run tests in parallel (TEST_WORKERS env var controls the worker count, default 4)
+- `just cov [args]` - Run tests in parallel with a coverage report (must reach 100%)
 - `just perftest [args]` - Run performance tests only
 - `just perfbaseline` - Run complete performance baseline suite
 - `just lint` - Run Ruff linting/formatting and pre-commit hooks
+- `just typecheck` - Run type checking with mypy
 - `just secure` - Check for unsecured dependencies
 
 ## Code Stack

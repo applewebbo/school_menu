@@ -21,6 +21,9 @@
                 <li>
                     <a class="link link-primary" href="#notifications">Notifiche</a>
                 </li>
+                <li>
+                    <a class="link link-primary" href="#favorite">Scuola preferita</a>
+                </li>
             </ol>
             <article id="school" class="max-w-none prose">
                 <h2>1. Gestione Scuola</h2>
@@ -172,6 +175,15 @@
                 </figure>
                 <p>
                     Su alcuni dispositivi le notifiche potrebbero non funzionare, per limiti del sistema. Se hai problemi, scrivici dalla pagina <a href="{% url 'contacts:contact' %}">contatti</a>, indicando quale dispositivo usi.
+                </p>
+            </article>
+            <article id="favorite" class="max-w-none prose">
+                <h2>5. Scuola preferita</h2>
+                <p>
+                    Se hai figli in scuole diverse, o vuoi semplicemente tenere d'occhio il menu di un'altra scuola oltre alla tua, puoi segnarla come preferita. Basta premere il cuoricino che trovi nella <a href="{% url 'school_menu:school_list' %}">lista delle scuole</a> o in cima al menu di una scuola: il cuore diventa colorato quando la scuola è la tua preferita. Ne puoi avere solo una alla volta: se ne scegli un'altra, sostituisce la precedente.
+                </p>
+                <p>
+                    Se hai un account e una tua scuola, sulla pagina principale trovi un tasto per passare dal menu della tua scuola a quello della preferita e viceversa. Se non hai un account, la scuola preferita resta salvata nel browser che stai usando: aprendo il sito da quel browser, la trovi già pronta in home.
                 </p>
             </article>
         </div>

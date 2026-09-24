@@ -2,7 +2,7 @@
 
 Do you want to know what your kid is eating at school. Sick of searching through a long excel file published on the school site or making complex operations to calculate what week are you in?
 
-So do I... so I created this little project to automate the process. You can create an account, a school, upload the menu in csv format or add it manually via a form. You can have simple, detailed or annual meals. You can share the menu with other parents and get feedback on the menu. I'm now working on push notifications for getting a daily reminder of what your kid will it in the current day if you subscribe to the service. You can check the instructions on the site at this link https://menuscolastico.it/help (only in italian, working on getting the site traslated in a future update). All the site is GPDR compliant and you can delete your account at any time.
+So do I... so I created this little project to automate the process. You can create an account, a school, upload the menu in csv format or add it manually via a form. You can have simple, detailed or annual meals. If the file you upload isn't a plain CSV (a PDF or a spreadsheet, say), an AI-assisted import reads it for you and lets you review and correct every row before saving. You can share the menu with other parents, mark a favorite school to jump straight to it from the home page, and get feedback on the menu. Parents can also subscribe to a daily push notification with a reminder of what their kid will eat that day, no account needed. You can check the instructions on the site at this link https://menuscolastico.it/help (only in italian, working on getting the site traslated in a future update). All the site is GPDR compliant and you can delete your account at any time.
 
 Feel free to use it for your kids
 
@@ -112,6 +112,7 @@ This project uses [just](https://github.com/casey/just) for task management. Ava
 
 ### Features & Utilities
 - **django-import-export** - CSV/Excel import/export for menus
+- **google-genai** - AI-assisted review of non-CSV menu uploads (PDF, spreadsheets) before import
 - **django-pwa** - Progressive Web App support
 - **django-webpush** - Browser push notifications
 - **django-dbbackup** - Weekly database backups to OVH Object Storage (S3-compatible)

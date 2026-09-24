@@ -7,6 +7,13 @@ from tests.users.factories import UserFactory
 pytestmark = pytest.mark.django_db
 
 
+class TestNewsletterOptIn:
+    def test_default_is_true(self):
+        """Existing users are grandfathered in as opted-in (#289)."""
+        user = UserFactory()
+        assert user.newsletter_opt_in is True
+
+
 class TestFavoriteSchool:
     def test_default_is_none(self):
         user = UserFactory()

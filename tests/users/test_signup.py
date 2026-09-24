@@ -44,6 +44,24 @@ def test_signup_with_honeypot_empty_succeeds():
     ).exists()
 
 
+def test_signup_defaults_newsletter_opt_in_to_false():
+    """A new signup hasn't seen the product yet, so opt-in is an active choice (#289),
+    unlike existing users who are grandfathered in as opted-in."""
+    Client().post(reverse("account_signup"), data=_signup_payload())
+
+    user = User.objects.get(email="newcomer@test.com")
+    assert user.newsletter_opt_in is False
+
+
+def test_signup_with_newsletter_opt_in_checked_is_persisted():
+    Client().post(
+        reverse("account_signup"), data=_signup_payload(newsletter_opt_in=True)
+    )
+
+    user = User.objects.get(email="newcomer@test.com")
+    assert user.newsletter_opt_in is True
+
+
 class _RefusingSignupForm(MyCustomSignupForm):
     """A signup form that fails on ``__all__`` instead of on a single field, so the
     test exercises the non-field-error branch of the template."""

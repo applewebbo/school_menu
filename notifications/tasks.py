@@ -5,10 +5,13 @@ from datetime import date, timedelta
 from typing import Any
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django_q.tasks import async_task
 from pywebpush import WebPushException, webpush
 
@@ -18,10 +21,12 @@ from notifications.models import (
     BroadcastNotification,
     DailyNotification,
     MonthlyDigest,
+    Newsletter,
     NotificationDeliveryMarker,
 )
 from notifications.utils import build_menu_notification_payload
 from school_menu.models import AnnualMeal, AuditLog, DetailedMeal, School, SimpleMeal
+from users.tokens import make_unsubscribe_token
 
 logger = logging.getLogger(__name__)
 
@@ -560,3 +565,83 @@ def send_broadcast_notification(broadcast_pk: int) -> None:
 
         # Re-raise so Django-Q can log it
         raise
+
+
+def _build_newsletter_email(
+    subject: str, body_html: str, to_email: str, unsubscribe_url: str
+):
+    html = (
+        f"{body_html}"
+        f'<hr><p><a href="{unsubscribe_url}">Annulla l\'iscrizione alla newsletter</a></p>'
+    )
+    email = EmailMultiAlternatives(
+        subject=subject, body=strip_tags(body_html), from_email=None, to=[to_email]
+    )
+    email.attach_alternative(html, "text/html")
+    return email
+
+
+def send_newsletter(newsletter_pk: int) -> None:
+    """
+    Send a saved Newsletter to its audience (#289).
+
+    The very first newsletter ever sent reaches every user regardless of
+    `newsletter_opt_in` (existing users are grandfathered in for it); every
+    subsequent one only reaches users who are still opted in. One recipient's
+    failure doesn't abort the batch — counts are tracked and the final status
+    reflects them, mirroring send_broadcast_notification.
+    """
+    try:
+        newsletter = Newsletter.objects.get(pk=newsletter_pk)
+    except Newsletter.DoesNotExist:
+        logger.error(f"Newsletter {newsletter_pk} not found")
+        return
+
+    User = get_user_model()
+    first_send = (
+        not Newsletter.objects.filter(status=Newsletter.Status.SENT)
+        .exclude(pk=newsletter_pk)
+        .exists()
+    )
+    recipients = (
+        User.objects.all()
+        if first_send
+        else User.objects.filter(newsletter_opt_in=True)
+    )
+
+    total_recipients = recipients.count()
+    success_count = 0
+    failure_count = 0
+
+    for user in recipients:
+        try:
+            unsubscribe_url = (
+                f"{settings.SITE_URL}"
+                f"{reverse('users:newsletter_unsubscribe', args=[make_unsubscribe_token(user.pk)])}"
+            )
+            email = _build_newsletter_email(
+                newsletter.subject, newsletter.body_html, user.email, unsubscribe_url
+            )
+            email.send()
+            success_count += 1
+        except Exception as e:
+            logger.error(
+                f"Failed to send newsletter {newsletter_pk} to {user.email}: {e}"
+            )
+            failure_count += 1
+
+    newsletter.sent_at = timezone.now()
+    newsletter.recipients_count = total_recipients
+    newsletter.success_count = success_count
+    newsletter.failure_count = failure_count
+    newsletter.status = (
+        Newsletter.Status.SENT
+        if failure_count <= success_count
+        else Newsletter.Status.FAILED
+    )
+    newsletter.save()
+
+    logger.info(
+        f"Newsletter '{newsletter.subject}' completed with status {newsletter.status}: "
+        f"{success_count} success, {failure_count} failures"
+    )

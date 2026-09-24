@@ -175,6 +175,45 @@ class NotificationDeliveryMarker(models.Model):
         )
 
 
+class Newsletter(models.Model):
+    """
+    Admin-authored one-off email announcement, saved as a draft and sent later (#289).
+    Mirrors BroadcastNotification's draft/send lifecycle, but for email instead of push.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SENDING = "sending", "Sending"
+        SENT = "sent", "Sent"
+        FAILED = "failed", "Failed"
+
+    subject = models.CharField(max_length=200)
+    body_html = models.TextField(
+        help_text="Raw HTML email body. The unsubscribe link is appended automatically."
+    )
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    recipients_count = models.IntegerField(default=0)
+    success_count = models.IntegerField(default=0)
+    failure_count = models.IntegerField(default=0)
+
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.DRAFT
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Newsletter"
+        verbose_name_plural = "Newsletters"
+
+    def __str__(self):
+        return self.subject
+
+
 class BroadcastNotification(models.Model):
     """
     Admin-created broadcast notifications sent to multiple users

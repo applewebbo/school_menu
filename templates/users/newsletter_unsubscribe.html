@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+    Disiscrizione newsletter
+{% endblock page_title %}
+
+{% block content %}
+<div class="mx-auto mb-8 max-w-2xl sm:mt-6 sm:px-4">
+    <div class="bg-base-300/50 border-base-300 sm:bg-base-100 sm:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 text-center sm:border sm:p-6 sm:shadow-sm lg:p-12">
+        {% if state == "done" %}
+            <h1 class="text-xl font-semibold tracking-tight text-pretty md:text-2xl">Disiscrizione confermata</h1>
+            <p class="text-base-content/80 text-base/6">
+                Non riceverai più email dalla newsletter. Puoi tornare a iscriverti in qualsiasi momento dalle impostazioni del tuo account.
+            </p>
+        {% elif state == "confirm" %}
+            <h1 class="text-xl font-semibold tracking-tight text-pretty md:text-2xl">Confermi la disiscrizione?</h1>
+            <p class="text-base-content/80 text-base/6">
+                Se confermi, non riceverai più email dalla newsletter.
+            </p>
+            <form method="post" class="mx-auto">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-error btn-sm">Confermo, disiscrivimi</button>
+            </form>
+        {% else %}
+            <h1 class="text-xl font-semibold tracking-tight text-pretty md:text-2xl">Link non valido</h1>
+            <p class="text-base-content/80 text-base/6">
+                Questo link di disiscrizione non è valido o è già stato utilizzato.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock content %}

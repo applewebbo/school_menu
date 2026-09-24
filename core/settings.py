@@ -169,6 +169,11 @@ MAILERS = {
 DEFAULT_FROM_EMAIL = "info@mg.webbografico.com"
 ADMIN_EMAIL = env("ADMIN_EMAIL")
 
+# Newsletter emails (#289) are built by a background task with no request in scope, so
+# the unsubscribe link needs an absolute base URL from settings rather than
+# request.build_absolute_uri().
+SITE_URL = env("SITE_URL", default="http://localhost:8000")
+
 ANYMAIL = {
     "MAILGUN_API_KEY": env("MAILGUN_API_KEY"),
     "MAILGUN_API_URL": env("MAILGUN_API_URL"),

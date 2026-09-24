@@ -7,8 +7,12 @@ from notifications.models import (
     BroadcastNotification,
     DailyNotification,
     MonthlyDigest,
+    Newsletter,
 )
-from tests.notifications.factories import BroadcastNotificationFactory
+from tests.notifications.factories import (
+    BroadcastNotificationFactory,
+    NewsletterFactory,
+)
 from tests.school_menu.factories import SchoolFactory
 from tests.users.factories import UserFactory
 
@@ -296,3 +300,45 @@ class TestBroadcastNotificationModel:
         user.delete()
         broadcast.refresh_from_db()
         assert broadcast.created_by is None
+
+
+class TestNewsletterModel:
+    def test_create_and_str(self):
+        newsletter = NewsletterFactory(subject="Nuove funzionalità")
+        assert str(newsletter) == "Nuove funzionalità"
+
+    def test_default_status(self):
+        newsletter = NewsletterFactory()
+        assert newsletter.status == Newsletter.Status.DRAFT
+
+    def test_status_choices(self):
+        assert Newsletter.Status.DRAFT == "draft"
+        assert Newsletter.Status.SENDING == "sending"
+        assert Newsletter.Status.SENT == "sent"
+        assert Newsletter.Status.FAILED == "failed"
+
+    def test_default_counts_are_zero(self):
+        newsletter = NewsletterFactory()
+        assert newsletter.recipients_count == 0
+        assert newsletter.success_count == 0
+        assert newsletter.failure_count == 0
+
+    def test_sent_at_null_by_default(self):
+        newsletter = NewsletterFactory()
+        assert newsletter.sent_at is None
+
+    def test_created_by_can_be_null(self):
+        """created_by can be null (SET_NULL on delete)."""
+        user = UserFactory()
+        newsletter = Newsletter.objects.create(
+            subject="Test", body_html="<p>Test</p>", created_by=user
+        )
+        user.delete()
+        newsletter.refresh_from_db()
+        assert newsletter.created_by is None
+
+    def test_meta_options(self):
+        meta = Newsletter._meta
+        assert meta.verbose_name == "Newsletter"
+        assert meta.verbose_name_plural == "Newsletters"
+        assert meta.ordering == ["-created_at"]

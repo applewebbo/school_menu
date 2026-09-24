@@ -37,6 +37,14 @@
                 {{ form.password1.errors }}
             </div>
             <div>
+                <label for="{{ form.newsletter_opt_in.id_for_label }}" class="label">
+                    {{ form.newsletter_opt_in|add_class:"checkbox" }}
+                    {{ form.newsletter_opt_in.label }}
+                </label>
+                <div class="text-base-content/70 mt-1 text-xs">{{ form.newsletter_opt_in.help_text }}</div>
+                {{ form.newsletter_opt_in.errors }}
+            </div>
+            <div>
                 <label for="{{ form.tc_agree.id_for_label }}" class="label">
                     {{ form.tc_agree|add_class:"checkbox" }}
                     {{ form.tc_agree.label }}

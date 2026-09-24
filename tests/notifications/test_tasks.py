@@ -12,6 +12,7 @@ from notifications.models import (
     AnonymousMenuNotification,
     BroadcastNotification,
     DailyNotification,
+    Newsletter,
     NotificationDeliveryMarker,
 )
 from notifications.tasks import (
@@ -21,6 +22,7 @@ from notifications.tasks import (
     _send_menu_notifications,
     purge_notification_markers,
     send_broadcast_notification,
+    send_newsletter,
     send_previous_day_6pm_menu_notification,
     send_same_day_6pm_menu_notification,
     send_same_day_9am_menu_notification,
@@ -31,6 +33,7 @@ from school_menu.models import School
 from tests.notifications.factories import (
     AnonymousMenuNotificationFactory,
     BroadcastNotificationFactory,
+    NewsletterFactory,
 )
 from tests.school_menu.factories import (
     AnnualMealFactory,
@@ -38,6 +41,7 @@ from tests.school_menu.factories import (
     SchoolFactory,
     SimpleMealFactory,
 )
+from tests.users.factories import UserFactory
 
 User = get_user_model()
 pytestmark = pytest.mark.django_db
@@ -944,3 +948,64 @@ class TestResumableDelivery:
             )
         )
         assert remaining == ["fresh"]
+
+
+class TestSendNewsletter:
+    def test_not_found_logs_and_returns(self):
+        send_newsletter(999999)  # no exception, no mail sent
+
+    def test_first_send_reaches_every_user_regardless_of_opt_in(self, mailoutbox):
+        UserFactory(newsletter_opt_in=True)
+        UserFactory(newsletter_opt_in=False)
+        newsletter = NewsletterFactory(created_by=None)
+
+        send_newsletter(newsletter.pk)
+
+        assert len(mailoutbox) == 2
+        newsletter.refresh_from_db()
+        assert newsletter.status == Newsletter.Status.SENT
+        assert newsletter.recipients_count == 2
+        assert newsletter.success_count == 2
+        assert newsletter.sent_at is not None
+
+    def test_subsequent_send_reaches_only_opted_in_users(self, mailoutbox):
+        # A prior SENT newsletter marks this as no longer the first send.
+        NewsletterFactory(status=Newsletter.Status.SENT, created_by=None)
+        UserFactory(newsletter_opt_in=True)
+        UserFactory(newsletter_opt_in=False)
+        newsletter = NewsletterFactory(created_by=None)
+
+        send_newsletter(newsletter.pk)
+
+        assert len(mailoutbox) == 1
+        newsletter.refresh_from_db()
+        assert newsletter.recipients_count == 1
+        assert newsletter.success_count == 1
+
+    def test_one_recipient_failure_does_not_abort_the_batch(self):
+        UserFactory(newsletter_opt_in=True)
+        UserFactory(newsletter_opt_in=True)
+        newsletter = NewsletterFactory(created_by=None)
+
+        with patch(
+            "notifications.tasks.EmailMultiAlternatives.send",
+            side_effect=[Exception("boom"), None],
+        ):
+            send_newsletter(newsletter.pk)
+
+        newsletter.refresh_from_db()
+        assert newsletter.recipients_count == 2
+        assert newsletter.success_count == 1
+        assert newsletter.failure_count == 1
+        assert newsletter.status == Newsletter.Status.SENT
+
+    def test_body_includes_unsubscribe_link(self, mailoutbox):
+        user = UserFactory(newsletter_opt_in=True)
+        newsletter = NewsletterFactory(body_html="<p>Ciao</p>", created_by=None)
+
+        send_newsletter(newsletter.pk)
+
+        message = mailoutbox[0]
+        html_body = message.alternatives[0][0]
+        assert "unsubscribe" in html_body
+        assert user.email in message.to

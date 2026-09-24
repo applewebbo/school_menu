@@ -1,7 +1,11 @@
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
+from django.core import signing
 from django.shortcuts import redirect, render
+
+from users.tokens import verify_unsubscribe_token
 
 
 def email_verification_sent(request):
@@ -40,6 +44,31 @@ def password_reset_from_key_done(request):
         "Password cambiata con successo. Accedi con la nuova password.",
     )
     return redirect("account_login")
+
+
+def newsletter_unsubscribe(request, token):
+    """
+    Signed-link unsubscribe, no login required (#289). GET only shows a confirmation
+    step; the flag is flipped on POST. This keeps a mail client or spam filter that
+    prefetches links in the email from unsubscribing someone who never clicked
+    anything themselves. A tampered or already-used (well-formed but pointing at a
+    deleted user) token just shows the invalid-link state either way.
+    """
+    User = get_user_model()
+    try:
+        user_id = verify_unsubscribe_token(token)
+        user = User.objects.get(pk=user_id)
+    except signing.BadSignature, User.DoesNotExist:
+        return render(
+            request, "users/newsletter_unsubscribe.html", {"state": "invalid"}
+        )
+
+    if request.method == "POST":
+        user.newsletter_opt_in = False
+        user.save(update_fields=["newsletter_opt_in"])
+        return render(request, "users/newsletter_unsubscribe.html", {"state": "done"})
+
+    return render(request, "users/newsletter_unsubscribe.html", {"state": "confirm"})
 
 
 @login_required

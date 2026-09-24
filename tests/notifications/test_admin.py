@@ -5,9 +5,12 @@ from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.test import RequestFactory
 
-from notifications.admin import BroadcastNotificationAdmin
-from notifications.models import BroadcastNotification
-from tests.notifications.factories import BroadcastNotificationFactory
+from notifications.admin import BroadcastNotificationAdmin, NewsletterAdmin
+from notifications.models import BroadcastNotification, Newsletter
+from tests.notifications.factories import (
+    BroadcastNotificationFactory,
+    NewsletterFactory,
+)
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -21,6 +24,11 @@ def admin_site():
 @pytest.fixture
 def broadcast_admin(admin_site):
     return BroadcastNotificationAdmin(BroadcastNotification, admin_site)
+
+
+@pytest.fixture
+def newsletter_admin(admin_site):
+    return NewsletterAdmin(Newsletter, admin_site)
 
 
 @pytest.fixture
@@ -192,6 +200,115 @@ class TestBroadcastNotificationAdmin:
         mock_async_task.assert_called_with(
             "notifications.tasks.send_broadcast_notification", broadcast2.pk
         )
+
+
+class TestNewsletterAdmin:
+    def test_save_model_new_object(self, newsletter_admin, admin_request):
+        newsletter = Newsletter(subject="Test", body_html="<p>Test</p>")
+        newsletter_admin.save_model(admin_request, newsletter, None, change=False)
+
+        assert newsletter.created_by == admin_request.user
+        assert newsletter.status == Newsletter.Status.DRAFT
+
+    def test_save_model_existing_object(self, newsletter_admin, admin_request):
+        original_user = UserFactory()
+        newsletter = NewsletterFactory(created_by=original_user)
+
+        newsletter_admin.save_model(admin_request, newsletter, None, change=True)
+
+        newsletter.refresh_from_db()
+        assert newsletter.created_by == original_user
+
+    def test_send_newsletter_action_exists(self, newsletter_admin):
+        assert "send_newsletter" in newsletter_admin.actions
+
+    @patch("notifications.admin.async_task")
+    def test_send_newsletter_action(
+        self, mock_async_task, newsletter_admin, admin_request
+    ):
+        newsletter1 = NewsletterFactory(status=Newsletter.Status.DRAFT)
+        newsletter2 = NewsletterFactory(status=Newsletter.Status.DRAFT)
+        queryset = Newsletter.objects.filter(pk__in=[newsletter1.pk, newsletter2.pk])
+
+        newsletter_admin.send_newsletter(admin_request, queryset)
+
+        assert mock_async_task.call_count == 2
+        newsletter1.refresh_from_db()
+        newsletter2.refresh_from_db()
+        assert newsletter1.status == Newsletter.Status.SENDING
+        assert newsletter2.status == Newsletter.Status.SENDING
+
+    @patch("notifications.admin.async_task")
+    def test_send_newsletter_action_skips_already_sent(
+        self, mock_async_task, newsletter_admin, admin_request
+    ):
+        newsletter1 = NewsletterFactory(status=Newsletter.Status.SENT)
+        newsletter2 = NewsletterFactory(status=Newsletter.Status.DRAFT)
+        queryset = Newsletter.objects.filter(pk__in=[newsletter1.pk, newsletter2.pk])
+
+        newsletter_admin.send_newsletter(admin_request, queryset)
+
+        assert mock_async_task.call_count == 1
+        mock_async_task.assert_called_with(
+            "notifications.tasks.send_newsletter", newsletter2.pk
+        )
+
+    @patch("notifications.admin.async_task")
+    def test_send_newsletter_action_all_already_sent(
+        self, mock_async_task, newsletter_admin, admin_request
+    ):
+        newsletter1 = NewsletterFactory(status=Newsletter.Status.SENT)
+        newsletter2 = NewsletterFactory(status=Newsletter.Status.SENDING)
+        queryset = Newsletter.objects.filter(pk__in=[newsletter1.pk, newsletter2.pk])
+
+        newsletter_admin.send_newsletter(admin_request, queryset)
+
+        mock_async_task.assert_not_called()
+
+    def test_send_newsletter_action_description(self, newsletter_admin):
+        action = newsletter_admin.send_newsletter
+        assert action.short_description == "Send selected newsletters"
+
+    def test_send_test_to_self_action_exists(self, newsletter_admin):
+        assert "send_test_to_self" in newsletter_admin.actions
+
+    def test_send_test_to_self_sends_to_admin_email(
+        self, newsletter_admin, admin_request, mailoutbox
+    ):
+        newsletter = NewsletterFactory(
+            subject="Anteprima", body_html="<p>Ciao</p>", status=Newsletter.Status.DRAFT
+        )
+        queryset = Newsletter.objects.filter(pk=newsletter.pk)
+
+        newsletter_admin.send_test_to_self(admin_request, queryset)
+
+        assert len(mailoutbox) == 1
+        assert mailoutbox[0].to == [admin_request.user.email]
+        assert mailoutbox[0].subject == "Anteprima"
+
+    def test_send_test_to_self_does_not_touch_status_or_counts(
+        self, newsletter_admin, admin_request, mailoutbox
+    ):
+        newsletter = NewsletterFactory(status=Newsletter.Status.DRAFT)
+        queryset = Newsletter.objects.filter(pk=newsletter.pk)
+
+        newsletter_admin.send_test_to_self(admin_request, queryset)
+
+        newsletter.refresh_from_db()
+        assert newsletter.status == Newsletter.Status.DRAFT
+        assert newsletter.recipients_count == 0
+        assert newsletter.sent_at is None
+
+    def test_send_test_to_self_uses_a_placeholder_unsubscribe_link(
+        self, newsletter_admin, admin_request, mailoutbox
+    ):
+        newsletter = NewsletterFactory(body_html="<p>Ciao</p>")
+        queryset = Newsletter.objects.filter(pk=newsletter.pk)
+
+        newsletter_admin.send_test_to_self(admin_request, queryset)
+
+        html_body = mailoutbox[0].alternatives[0][0]
+        assert "anteprima" in html_body
 
 
 class TestDailyNotificationAdmin:

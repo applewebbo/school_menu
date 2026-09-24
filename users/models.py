@@ -20,6 +20,13 @@ class User(AbstractUser):
         related_name="favorited_by",
         verbose_name=_("Scuola preferita"),
     )
+    # Existing users are grandfathered in as True by the migration default (#289):
+    # they've already seen the product, so opting them in silently (with an
+    # unsubscribe link on every send) is fine. New signups choose explicitly via the
+    # signup form, which defaults the checkbox to unchecked.
+    newsletter_opt_in = models.BooleanField(
+        default=True, verbose_name=_("Iscritto alla newsletter")
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []

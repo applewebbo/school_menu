@@ -43,11 +43,14 @@
         {% block add_js %}
         {% endblock add_js %}
     </head>
-    <body class="bg-base-200" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <body class="bg-base-200 flex min-h-screen flex-col"
+          hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         {% cookiebanner_modal 'bottom_banner' %}
         {% include 'partials/navbar.html' %}
-        {% block content %}
-        {% endblock content %}
+        <main class="flex-1">
+            {% block content %}
+            {% endblock content %}
+        </main>
         {% include 'partials/footer.html' %}
         <!-- Modal -->
         {% include 'partials/modal.html' %}

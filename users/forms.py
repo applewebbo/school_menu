@@ -3,6 +3,15 @@ from django import forms
 
 
 class MyCustomSignupForm(SignupForm):
+    # Unlike existing users (grandfathered in as opted-in, #289), a new signup hasn't
+    # seen the product yet, so this is an active opt-in rather than an inherited default.
+    newsletter_opt_in = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Newsletter",
+        widget=forms.CheckboxInput(attrs={"class": "checkbox checkbox-sm me-2"}),
+        help_text="Seleziona questo campo per ricevere occasionali email sulle novità del sito.",
+    )
     tc_agree = forms.BooleanField(
         required=True,
         error_messages={
@@ -45,6 +54,7 @@ class MyCustomSignupForm(SignupForm):
 
         # Add your own processing here.
         user.tc_agree = self.cleaned_data.get("tc_agree")
+        user.newsletter_opt_in = self.cleaned_data.get("newsletter_opt_in", False)
         user.save()
 
         # You must return the original result.

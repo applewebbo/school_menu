@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.4",
+        "date": date(2026, 9, 24),
+        "notes": [
+            "Se hai figli in scuole diverse, puoi segnare una scuola come preferita con il cuoricino nella lista scuole o nel menu, e passare dalla tua scuola a quella preferita direttamente in home.",
+            "Rafforzata la protezione contro registrazioni e messaggi automatici indesiderati (bot), senza aggiungere passaggi per le persone reali.",
+            "Chi gestisce il sito può ora inviare newsletter occasionali per annunciare le novità; puoi decidere di riceverle in fase di registrazione e disiscriverti in qualsiasi momento.",
+            "Aggiornata la guida del sito con le novità più recenti.",
+        ],
+    },
+    {
         "version": "2026.3.2",
         "date": date(2026, 9, 22),
         "notes": [

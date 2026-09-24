@@ -175,6 +175,27 @@ class NotificationDeliveryMarker(models.Model):
         )
 
 
+# Starting content for a new Newsletter's body_html (#289): inline-styled so it
+# stays mail-safe even if the admin sends it as-is, and shaped as the two
+# paragraphs + feature list the mail template is designed around.
+NEWSLETTER_BODY_PLACEHOLDER = """\
+<p style="margin:0 0 16px; font-size:15px; line-height:1.6; color:#1f2937;">
+  Primo paragrafo: scrivi qui l'introduzione della newsletter.
+</p>
+<p style="margin:0 0 16px; font-size:15px; line-height:1.6; color:#1f2937;">
+  Secondo paragrafo: scrivi qui ulteriori dettagli o contesto.
+</p>
+<p style="margin:0 0 8px; font-size:15px; line-height:1.6; color:#1f2937; font-weight:600;">
+  Novità di questo aggiornamento:
+</p>
+<ul style="margin:0 0 16px; padding-left:20px; font-size:15px; line-height:1.6; color:#1f2937;">
+  <li style="margin-bottom:6px;">Prima nuova funzionalità</li>
+  <li style="margin-bottom:6px;">Seconda nuova funzionalità</li>
+  <li style="margin-bottom:6px;">Terza nuova funzionalità</li>
+</ul>\
+"""
+
+
 class Newsletter(models.Model):
     """
     Admin-authored one-off email announcement, saved as a draft and sent later (#289).
@@ -189,7 +210,11 @@ class Newsletter(models.Model):
 
     subject = models.CharField(max_length=200)
     body_html = models.TextField(
-        help_text="Raw HTML email body. The unsubscribe link is appended automatically."
+        default=NEWSLETTER_BODY_PLACEHOLDER,
+        help_text=(
+            "Raw HTML for the content area only: the header bar and the "
+            "unsubscribe link are added automatically by the mail template."
+        ),
     )
 
     created_by = models.ForeignKey(

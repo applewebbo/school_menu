@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -570,9 +571,19 @@ def send_broadcast_notification(broadcast_pk: int) -> None:
 def _build_newsletter_email(
     subject: str, body_html: str, to_email: str, unsubscribe_url: str
 ):
-    html = (
-        f"{body_html}"
-        f'<hr><p><a href="{unsubscribe_url}">Annulla l\'iscrizione alla newsletter</a></p>'
+    """
+    Wrap the admin-authored content in the mail-safe newsletter template (#289):
+    header bar (logo + project name) and unsubscribe footer are added here, so
+    `body_html` only ever needs the content itself.
+    """
+    html = render_to_string(
+        "notifications/emails/newsletter.html",
+        {
+            "subject": subject,
+            "body_html": body_html,
+            "unsubscribe_url": unsubscribe_url,
+            "logo_url": f"{settings.SITE_URL}{static('img/sm_logo.png')}",
+        },
     )
     email = EmailMultiAlternatives(
         subject=subject, body=strip_tags(body_html), from_email=None, to=[to_email]

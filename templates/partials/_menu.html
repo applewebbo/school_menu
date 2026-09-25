@@ -2,7 +2,7 @@
 <div class="text-center" id="day_menu">
     {% if show_school_header %}
         <div class="mb-4 flex flex-wrap items-center justify-center gap-2">
-            <h2 class="text-base-content text-lg font-semibold tracking-tight">{{ school.name }}</h2>
+            <h2 class="text-base-content/60 text-sm font-semibold tracking-wide uppercase">{{ school.name }}</h2>
             {% if can_favorite %}
                 {% include 'partials/_favorite_heart.html' %}
             {% endif %}

@@ -168,7 +168,7 @@ class IndexFavoriteContext(TestCase):
 
         self.response_200(response)
         assert response.context["show_switch"] is False
-        assert response.context["show_school_header"] is False
+        assert response.context["show_school_header"] is True
 
     def test_authenticated_with_favorite_shows_switch_to_favorite(self):
         user = self.make_user()
@@ -258,6 +258,7 @@ class IndexFavoriteContext(TestCase):
         user.refresh_from_db()
         assert user.favorite_school is None
         assert response.context["show_switch"] is False
+        assert response.context["show_school_header"] is True
 
 
 class SchoolMenuFavoriteContext(TestCase):

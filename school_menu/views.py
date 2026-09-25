@@ -290,7 +290,9 @@ def apply_home_context(
         "favorite" if school.user_id == request.user.pk else "own"
     )
     context["show_school_header"] = (
-        context.get("can_favorite", False) or context["show_switch"]
+        request.user.is_authenticated
+        or context.get("can_favorite", False)
+        or context["show_switch"]
     )
 
 

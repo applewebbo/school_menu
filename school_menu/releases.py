@@ -10,6 +10,14 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.4.1",
+        "date": date(2026, 9, 25),
+        "notes": [
+            "Il nome della scuola ora appare sempre in home, anche se non hai impostato una scuola preferita.",
+            "Rinnovato l'aspetto della barra di navigazione su mobile: colore più morbido e logo più visibile.",
+        ],
+    },
+    {
         "version": "2026.4",
         "date": date(2026, 9, 24),
         "notes": [

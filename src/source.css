@@ -67,6 +67,11 @@
 }
 
 
+/* Pastel tint of --color-primary, washed into --color-base-100 (navbar surface). */
+.bg-navbar {
+  background-color: color-mix(in oklab, var(--color-primary) 18%, var(--color-base-100) 82%);
+}
+
 /* Custom CSS styles (from custom.css) */
 #anon-cta {
   background-color: var(--color-base-200);

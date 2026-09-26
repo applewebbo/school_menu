@@ -1,12 +1,12 @@
 {% load filters heroicons %}
-<div class="mx-auto mb-6 max-w-3xl sm:px-4"
+<div class="mx-auto mb-6 max-w-3xl md:px-4"
      id="menu"
      hx-get="{% url 'school_menu:menu_settings' %}"
      hx-trigger="menuModified from:body"
      hx-target="#menu"
      hx-swap="outerHTML">
     {% if user.school %}
-        <div class="bg-base-300/50 border-base-300 sm:bg-base-100 sm:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 sm:border sm:p-6 sm:shadow-sm lg:p-12">
+        <div class="bg-base-300/50 border-base-300 md:bg-base-100 md:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 md:border md:p-6 md:shadow-sm lg:p-12">
             <div class="mb-6 grid grid-cols-1 text-center md:grid-cols-4 md:text-left">
                 <h3 class="text-base-content col-span-1 mx-auto mb-2 flex items-start text-2xl font-bold tracking-tight md:mx-0">
                     Menu

@@ -1,6 +1,7 @@
 from datetime import date
 
 import pytest
+from django.apps import apps
 
 from notifications.models import (
     AnonymousMenuNotification,
@@ -17,6 +18,11 @@ from tests.school_menu.factories import SchoolFactory
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
+
+class TestAppConfig:
+    def test_verbose_name_is_italian(self):
+        assert apps.get_app_config("notifications").verbose_name == "Notifiche"
 
 
 @pytest.fixture

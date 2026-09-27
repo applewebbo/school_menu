@@ -1,10 +1,16 @@
 import pytest
+from django.apps import apps
 from django.core.exceptions import ValidationError
 
 from tests.school_menu.factories import SchoolFactory
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
+
+class TestAppConfig:
+    def test_verbose_name_is_italian(self):
+        assert apps.get_app_config("users").verbose_name == "Utenti"
 
 
 class TestNewsletterOptIn:

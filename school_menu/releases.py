@@ -10,6 +10,14 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.4.2",
+        "date": date(2026, 9, 27),
+        "notes": [
+            "Su tablet e computer la barra di navigazione ora ha lo stesso stile e la stessa larghezza del resto della pagina, con una card bianca più ordinata.",
+            "Piccole rifiniture grafiche alla barra di navigazione (spaziatura dei link e dimensione del titolo).",
+        ],
+    },
+    {
         "version": "2026.4.1",
         "date": date(2026, 9, 25),
         "notes": [

@@ -9,4 +9,4 @@ class DjangoScheduledBackupsConfig(AppConfig):
 
     default_auto_field = "django.db.models.BigAutoField"
     name = "django_scheduled_backups"
-    verbose_name = _("Scheduled Backups")
+    verbose_name = _("Backup pianificati")

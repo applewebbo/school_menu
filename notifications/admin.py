@@ -119,7 +119,7 @@ class NewsletterAdmin(admin.ModelAdmin):
 
     actions = ["send_newsletter", "send_test_to_self"]
 
-    @admin.action(description="Send test to my email")
+    @admin.action(description="Invia una prova alla mia email")
     def send_test_to_self(self, request, queryset):
         """
         Preview to the logged-in admin's own address (#289): same placeholder
@@ -141,7 +141,7 @@ class NewsletterAdmin(admin.ModelAdmin):
 
         self.message_user(request, f"Test email sent to {request.user.email}")
 
-    @admin.action(description="Send selected newsletters")
+    @admin.action(description="Invia le newsletter selezionate")
     def send_newsletter(self, request, queryset):
         sent_count = 0
         for newsletter in queryset:
@@ -223,7 +223,7 @@ class BroadcastNotificationAdmin(admin.ModelAdmin):
 
     actions = ["send_broadcast"]
 
-    @admin.action(description="Send selected broadcasts")
+    @admin.action(description="Invia le notifiche broadcast selezionate")
     def send_broadcast(self, request, queryset):
         """
         Admin action to send broadcast notifications

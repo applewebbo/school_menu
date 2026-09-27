@@ -13,44 +13,44 @@ class BackupRun(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ("running", _("Running")),
-        ("success", _("Success")),
-        ("failed", _("Failed")),
+        ("running", _("In corso")),
+        ("success", _("Completato")),
+        ("failed", _("Fallito")),
     ]
 
     backup_type = models.CharField(
         max_length=20,
         choices=BACKUP_TYPE_CHOICES,
-        verbose_name=_("Backup Type"),
+        verbose_name=_("Tipo di backup"),
     )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default="running",
-        verbose_name=_("Status"),
+        verbose_name=_("Stato"),
     )
     started_at = models.DateTimeField(
         auto_now_add=True,
-        verbose_name=_("Started At"),
+        verbose_name=_("Avviato il"),
     )
     completed_at = models.DateTimeField(
         null=True,
         blank=True,
-        verbose_name=_("Completed At"),
+        verbose_name=_("Completato il"),
     )
     error_message = models.TextField(
         blank=True,
-        verbose_name=_("Error Message"),
+        verbose_name=_("Messaggio di errore"),
     )
     duration_seconds = models.IntegerField(
         null=True,
         blank=True,
-        verbose_name=_("Duration (seconds)"),
+        verbose_name=_("Durata (secondi)"),
     )
 
     class Meta:
-        verbose_name = _("Backup Run")
-        verbose_name_plural = _("Backup Runs")
+        verbose_name = _("Esecuzione backup")
+        verbose_name_plural = _("Esecuzioni backup")
         ordering = ["-started_at"]
         indexes = [
             models.Index(fields=["-started_at"]),

@@ -158,7 +158,7 @@ class TestBroadcastNotificationAdmin:
         """Test send_broadcast action has correct description."""
         action = broadcast_admin.send_broadcast
         assert hasattr(action, "short_description")
-        assert action.short_description == "Send selected broadcasts"
+        assert action.short_description == "Invia le notifiche broadcast selezionate"
 
     @patch("notifications.admin.async_task")
     def test_send_broadcast_action_all_already_sent(
@@ -267,7 +267,7 @@ class TestNewsletterAdmin:
 
     def test_send_newsletter_action_description(self, newsletter_admin):
         action = newsletter_admin.send_newsletter
-        assert action.short_description == "Send selected newsletters"
+        assert action.short_description == "Invia le newsletter selezionate"
 
     def test_send_test_to_self_action_exists(self, newsletter_admin):
         assert "send_test_to_self" in newsletter_admin.actions

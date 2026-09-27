@@ -55,6 +55,8 @@ class DetailedMeal(Meal):
     snack = models.CharField(max_length=200, blank=True)
 
     class Meta:
+        verbose_name = "menu dettagliato"
+        verbose_name_plural = "menu dettagliati"
         indexes = [
             models.Index(
                 fields=["school", "week", "season"], name="detailed_sch_week_season"
@@ -84,6 +86,8 @@ class SimpleMeal(Meal):
     afternoon_snack = models.CharField(max_length=200, blank=True)
 
     class Meta:
+        verbose_name = "menu semplice"
+        verbose_name_plural = "menu semplici"
         indexes = [
             models.Index(
                 fields=["school", "week", "season"], name="simple_sch_week_season"
@@ -130,6 +134,8 @@ class AnnualMeal(Meal):
             invalidate_meal_cache(school_id)
 
     class Meta:
+        verbose_name = "menu annuale"
+        verbose_name_plural = "menu annuali"
         ordering = ["-date"]
         indexes = [
             models.Index(
@@ -237,8 +243,8 @@ class AuditLog(models.Model):
     user_agent = models.CharField(max_length=500, blank=True)
 
     class Meta:
-        verbose_name = "audit log"
-        verbose_name_plural = "audit logs"
+        verbose_name = "registro delle modifiche"
+        verbose_name_plural = "registri delle modifiche"
         ordering = ["-timestamp"]
         indexes = [
             models.Index(fields=["-timestamp"], name="audit_timestamp_idx"),

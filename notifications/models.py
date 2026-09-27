@@ -46,8 +46,8 @@ class AnonymousMenuNotification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Anonymous Menu Notification"
-        verbose_name_plural = "Anonymous Menu Notifications"
+        verbose_name = "Notifica anonima menu"
+        verbose_name_plural = "Notifiche anonime menu"
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -99,8 +99,8 @@ class DailyNotification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Daily Notification"
-        verbose_name_plural = "Daily Notifications"
+        verbose_name = "Notifica giornaliera"
+        verbose_name_plural = "Notifiche giornaliere"
         ordering = ["-created_at"]
 
     def __str__(self):
@@ -128,8 +128,8 @@ class MonthlyDigest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Monthly Digest"
-        verbose_name_plural = "Monthly Digests"
+        verbose_name = "Riepilogo mensile"
+        verbose_name_plural = "Riepiloghi mensili"
         ordering = ["-period_start"]
 
     def __str__(self):
@@ -159,8 +159,8 @@ class NotificationDeliveryMarker(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Notification Delivery Marker"
-        verbose_name_plural = "Notification Delivery Markers"
+        verbose_name = "Marcatore invio notifica"
+        verbose_name_plural = "Marcatori invio notifica"
         constraints = [
             models.UniqueConstraint(
                 fields=["subscription_endpoint", "target_date", "notification_time"],
@@ -233,7 +233,7 @@ class Newsletter(models.Model):
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Newsletter"
-        verbose_name_plural = "Newsletters"
+        verbose_name_plural = "Newsletter"
 
     def __str__(self):
         return self.subject
@@ -277,8 +277,8 @@ class BroadcastNotification(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Broadcast Notification"
-        verbose_name_plural = "Broadcast Notifications"
+        verbose_name = "Notifica broadcast"
+        verbose_name_plural = "Notifiche broadcast"
 
     def __str__(self):
         return f"{self.title} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"

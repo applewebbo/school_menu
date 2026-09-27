@@ -48,7 +48,7 @@ class BackupRunAdmin(admin.ModelAdmin):
         """Disable editing of backup runs."""
         return False
 
-    @admin.display(description=_("Status"))
+    @admin.display(description=_("Stato"))
     def status_badge(self, obj):
         """Display status as colored badge."""
         colors = {
@@ -64,7 +64,7 @@ class BackupRunAdmin(admin.ModelAdmin):
             obj.get_status_display(),
         )
 
-    @admin.display(description=_("Duration"))
+    @admin.display(description=_("Durata"))
     def duration_display(self, obj):
         """Display duration in human-readable format."""
         if obj.duration_seconds is None:
@@ -76,7 +76,7 @@ class BackupRunAdmin(admin.ModelAdmin):
 
     actions = ["trigger_database_backup", "trigger_media_backup", "cleanup_old_records"]
 
-    @admin.action(description=_("Trigger database backup now"))
+    @admin.action(description=_("Avvia subito il backup del database"))
     def trigger_database_backup(self, request, queryset):
         """Manually trigger a database backup."""
         try:
@@ -89,7 +89,7 @@ class BackupRunAdmin(admin.ModelAdmin):
                 request, f"Database backup failed: {str(e)}", level="error"
             )
 
-    @admin.action(description=_("Trigger media backup now"))
+    @admin.action(description=_("Avvia subito il backup dei media"))
     def trigger_media_backup(self, request, queryset):
         """Manually trigger a media backup."""
         try:
@@ -98,7 +98,7 @@ class BackupRunAdmin(admin.ModelAdmin):
         except Exception as e:
             self.message_user(request, f"Media backup failed: {str(e)}", level="error")
 
-    @admin.action(description=_("Cleanup old backup records"))
+    @admin.action(description=_("Elimina i vecchi record di backup"))
     def cleanup_old_records(self, request, queryset):
         """Delete old backup records based on retention policy."""
         from datetime import timedelta

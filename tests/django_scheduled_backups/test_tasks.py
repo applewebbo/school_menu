@@ -398,7 +398,7 @@ class TestBackupRunModel:
 
         str_repr = str(backup_run)
         assert "Database" in str_repr
-        assert "Success" in str_repr
+        assert "Completato" in str_repr
 
 
 class TestLegacyBackupFunction:

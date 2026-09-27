@@ -58,8 +58,8 @@ class TestAnonymousMenuNotificationModel:
         Test Meta options di AnonymousMenuNotification.
         """
         meta = AnonymousMenuNotification._meta
-        assert meta.verbose_name == "Anonymous Menu Notification"
-        assert meta.verbose_name_plural == "Anonymous Menu Notifications"
+        assert meta.verbose_name == "Notifica anonima menu"
+        assert meta.verbose_name_plural == "Notifiche anonime menu"
         assert meta.ordering == ["-created_at"]
 
     def test_hash_endpoint(self):
@@ -218,8 +218,8 @@ class TestMonthlyDigestModel:
     def test_meta_options(self):
         """Test Meta options of MonthlyDigest."""
         meta = MonthlyDigest._meta
-        assert meta.verbose_name == "Monthly Digest"
-        assert meta.verbose_name_plural == "Monthly Digests"
+        assert meta.verbose_name == "Riepilogo mensile"
+        assert meta.verbose_name_plural == "Riepiloghi mensili"
         assert meta.ordering == ["-period_start"]
 
 
@@ -275,8 +275,8 @@ class TestBroadcastNotificationModel:
     def test_meta_options(self):
         """Test Meta options of BroadcastNotification."""
         meta = BroadcastNotification._meta
-        assert meta.verbose_name == "Broadcast Notification"
-        assert meta.verbose_name_plural == "Broadcast Notifications"
+        assert meta.verbose_name == "Notifica broadcast"
+        assert meta.verbose_name_plural == "Notifiche broadcast"
         assert meta.ordering == ["-created_at"]
 
     def test_default_counts_are_zero(self):
@@ -340,5 +340,5 @@ class TestNewsletterModel:
     def test_meta_options(self):
         meta = Newsletter._meta
         assert meta.verbose_name == "Newsletter"
-        assert meta.verbose_name_plural == "Newsletters"
+        assert meta.verbose_name_plural == "Newsletter"
         assert meta.ordering == ["-created_at"]

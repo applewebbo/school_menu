@@ -84,6 +84,20 @@
     background-repeat: repeat;
     background-size: 220px 220px;
   }
+
+  /* --color-base-100 is dark in "dim", so the light theme's 25% overlay barely
+     dims the photo. Push the wash up so the pattern recedes the same way.
+     The "dim" theme has prefersdark: true and no in-app theme switcher, so it
+     applies via prefers-color-scheme rather than a [data-theme] attribute. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) .bg-navbar {
+      background-image: linear-gradient(
+          color-mix(in srgb, var(--color-base-100) 50%, transparent),
+          color-mix(in srgb, var(--color-base-100) 50%, transparent)
+        ),
+        url('../img/pattern-vegetables.jpg');
+    }
+  }
 }
 
 /* Custom CSS styles (from custom.css) */
@@ -96,6 +110,17 @@
     url('../img/pattern-vegetables.jpg');
   background-repeat: repeat;
   background-size: 220px 220px;
+}
+
+/* Same dark-theme wash as .bg-navbar (source.css:88-100) — see that comment. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) #anon-cta {
+    background-image: linear-gradient(
+        color-mix(in srgb, var(--color-base-100) 50%, transparent),
+        color-mix(in srgb, var(--color-base-100) 50%, transparent)
+      ),
+      url('../img/pattern-vegetables.jpg');
+  }
 }
 
 [x-cloak] {

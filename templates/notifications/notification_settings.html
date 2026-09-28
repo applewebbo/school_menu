@@ -1,11 +1,10 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags heroicons static webpush_notifications %}
+{% load crispy_forms_tags heroicons static %}
 {% block page_title %}
     Notifiche
 {% endblock page_title %}
 
 {% block add_js %}
-    {% webpush_header %}
     <script src="{% static 'js/custom-webpush.js' %}"></script>
     <script src="{% static 'js/pwa_install.js' %}"></script>
 {% endblock add_js %}

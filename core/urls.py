@@ -63,7 +63,6 @@ urlpatterns = [
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
     path("", include("pwa.urls")),
-    path("webpush/", include("webpush.urls")),
 ]
 
 if settings.DEBUG:

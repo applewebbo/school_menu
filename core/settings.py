@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     "neapolitan",
     "pwa",
     "rest_framework",
-    "webpush",
     # INTERNAL APPS
     "contacts",
     "django_scheduled_backups",

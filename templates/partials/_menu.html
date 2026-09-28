@@ -1,4 +1,4 @@
-{% load heroicons social_share static %}
+{% load heroicons static %}
 <div class="text-center" id="day_menu">
     {% if show_school_header %}
         <div class="mb-4 flex flex-wrap items-center justify-center gap-2">
@@ -75,18 +75,43 @@
     <h2 class="text-base-content mt-16 mb-6 hidden text-center text-lg font-semibold tracking-tight sm:block">
         Condividi
     </h2>
+    {% url 'school_menu:school_menu' school.slug as menu_path %}
     <div id="share"
          class="mx-12 mt-4 mb-8 flex flex-col justify-center gap-3 md:mx-0 md:flex-row"
-         x-data="{ address: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}' }">
+         x-data="{ address: '{{ request.META.HTTP_HOST }}{{ menu_path }}' }">
         <!--   https://www.alpinejs.dev/component/tooltip -->
-        <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}&subject=Condividi%20il%20Menu..."
+        <a href="mailto:?body=Puoi%20vedere%20il%20menu%20della%20scuola%20{{ school.name }}%20al%20seguente%20indirizzo:%0D%0A%0D%0A{{ request.META.HTTP_HOST }}{{ menu_path }}&subject=Condividi%20il%20Menu..."
            x-tooltip="Condividi via email"
            class="btn bg-base-100 sm:bg-base-300 inline-flex items-center">
             {% heroicon_solid "envelope" class="w-5 h-5 text-orange-600 me-1" %}
             Email
         </a>
-        {% post_to_facebook object_or_url "Facebook" "inline-flex items-center btn bg-base-100 sm:bg-base-300" %}
-        {% post_to_whatsapp object_or_url "Whatsapp" "inline-flex items-center btn bg-base-100 sm:bg-base-300" %}
+        <a x-data
+           x-tooltip="Condividi su Facebook"
+           href="https://www.facebook.com/sharer/sharer.php?u={{ request.scheme }}://{{ request.get_host }}{{ menu_path }}"
+           target="_blank"
+           rel="noopener"
+           class="btn bg-base-100 sm:bg-base-300 inline-flex items-center">
+            <svg class="me-1 h-5 w-5"
+                 aria-hidden="true"
+                 xmlns="http://www.w3.org/2000/svg"
+                 fill="currentColor"
+                 viewBox="0 0 8 19">
+                <path fill-rule="evenodd" d="M6.135 3H8V0H6.135a4.147 4.147 0 0 0-4.142 4.142V6H0v3h2v9.938h3V9h2.021l.592-3H5V3.591A.6.6 0 0 1 5.592 3h.543Z" clip-rule="evenodd" />
+            </svg>
+            Facebook
+        </a>
+        <a x-data
+           x-tooltip="Condividi su Whatsapp"
+           href="https://api.whatsapp.com/send?text={{ request.scheme }}://{{ request.get_host }}{{ menu_path }}"
+           target="_blank"
+           rel="noopener"
+           class="btn bg-base-100 sm:bg-base-300 inline-flex items-center">
+            <img src="{% static 'img/whatsapp.svg' %}"
+                 alt="Whatsapp Logo"
+                 class="me-1 h-5 w-5">
+            Whatsapp
+        </a>
         <button type="button"
                 x-data="{ input: '{{ request.META.HTTP_HOST }}{% url 'school_menu:school_menu' school.slug %}'}"
                 x-tooltip="Copia negli appunti"

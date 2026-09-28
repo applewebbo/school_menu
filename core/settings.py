@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "dbbackup",
     "django_htmx",
     "django_q",
-    "django_social_share",
     "django_tailwind_cli",
     "heroicons",
     "import_export",

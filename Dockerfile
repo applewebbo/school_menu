@@ -73,7 +73,7 @@ COPY . .
 # Create logs directory
 RUN mkdir -p /app/logs
 
-# Expose port for gunicorn
+# Expose port for granian
 EXPOSE 80
 
 # Run entrypoint.sh

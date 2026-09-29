@@ -45,6 +45,16 @@
                 </a>
             </div>
             <div class="flex items-center">
+                <h5 class="mr-8 grow font-medium">Iscrizione alla newsletter</h5>
+                <input type="checkbox"
+                       class="toggle toggle-primary"
+                       {% if user.newsletter_opt_in %}checked{% endif %}
+                       hx-post="{% url 'users:toggle_newsletter' %}"
+                       hx-trigger="change"
+                       hx-swap="none"
+                       aria-label="Iscrizione alla newsletter">
+            </div>
+            <div class="flex items-center">
                 <h5 class="mr-8 grow font-medium">Elimina <span class="hidden sm:inline-block">il tuo</span>  account</h5>
                 <button class="btn btn-sm btn-error btn-outline group dark:btn-soft inline-flex items-center"
                         hx-get="{% url 'users:user_delete' %}"

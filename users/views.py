@@ -72,6 +72,24 @@ def newsletter_unsubscribe(request, token):
 
 
 @login_required
+def toggle_newsletter(request):
+    """Toggle the caller's newsletter_opt_in flag from the account settings page (#298)."""
+    if request.method != "POST":
+        return redirect("school_menu:settings")
+
+    user = request.user
+    user.newsletter_opt_in = not user.newsletter_opt_in
+    user.save(update_fields=["newsletter_opt_in"])
+
+    if user.newsletter_opt_in:
+        message = "Iscrizione alla newsletter attivata."
+    else:
+        message = "Iscrizione alla newsletter disattivata."
+    messages.add_message(request, messages.SUCCESS, message)
+    return render(request, "partials/_toggle_messages_oob.html")
+
+
+@login_required
 def user_delete(request):
     user = request.user
     if request.method == "POST":

@@ -475,11 +475,14 @@ class SettingView(TestCase):
         with self.login(user):
             response = self.post("school_menu:school_update", data=data)
 
-        self.response_204(response)
+        self.response_200(response)
         school = School.objects.get(user=user)
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == f"<strong>{school.name}</strong> aggiornata con successo"
         assert school.city == "Milano"
+        assert b'id="school"' in response.content
+        assert school.city.encode() in response.content
+        assert b'hx-swap-oob="true"' in response.content
 
     def test_school_update_get_after_school_year_ends(self):
         user = self.make_user()

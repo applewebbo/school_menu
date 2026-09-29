@@ -267,6 +267,8 @@ def test_toggle_daily_notification_no_session(client):
     url = reverse("notifications:toggle_daily_notification")
     response = client.post(url)
     assert response.status_code == 400
+    assert "HX-Refresh" not in response
+    assert b"Nessuna sottoscrizione trovata" in response.content
 
 
 def test_toggle_daily_notification(client, school_factory):

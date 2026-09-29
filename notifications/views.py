@@ -248,8 +248,12 @@ def toggle_daily_notification(request):
     """
     pk = request.session.get("anon_notification_pk")
     if not pk:
-        messages.error(request, "Nessuna sottoscrizione trovata.")
-        return HttpResponse(status=400, headers={"HX-Refresh": "true"})
+        return TemplateResponse(
+            request,
+            "notifications/partials/test_notification_result.html",
+            {"success": False, "message": "Nessuna sottoscrizione trovata."},
+            status=400,
+        )
 
     notification = get_object_or_404(AnonymousMenuNotification, pk=pk)
     notification.daily_notification = not notification.daily_notification

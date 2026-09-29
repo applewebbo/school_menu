@@ -21,6 +21,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils.safestring import mark_safe
@@ -721,7 +722,13 @@ def school_update(request: HttpRequest) -> HttpResponse:
                 f"<strong>{school.name}</strong> aggiornata con successo",
             )
             request.session["active_menu"] = "S"
-            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+            school_html = render_to_string(
+                "settings.html#school", {"user": user}, request=request
+            )
+            messages_html = render_to_string(
+                "partials/_toggle_messages_oob.html", request=request
+            )
+            return HttpResponse(school_html + messages_html)
     else:
         today = date.today()
         if today.month < school.end_month or (

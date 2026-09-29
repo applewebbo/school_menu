@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.4.3",
+        "date": date(2026, 9, 29),
+        "notes": [
+            "Ora puoi attivare o disattivare la newsletter in qualsiasi momento dalle impostazioni del tuo account.",
+            "Corretta la posizione dell'avviso mostrato dopo l'invio di una notifica di prova, che ora compare in alto come tutti gli altri.",
+            "Sistemato lo spazio tra la barra in alto e il titolo della pagina Impostazioni su smartphone e tablet.",
+            "Diverse piccole rifiniture tecniche per rendere il sito più leggero e veloce.",
+        ],
+    },
+    {
         "version": "2026.4.2",
         "date": date(2026, 9, 27),
         "notes": [

@@ -67,6 +67,14 @@
 }
 
 
+/* Both themes set --radius-selector to the same squarish 0.35rem as --radius-field,
+   for checkboxes/radios/badges. The toggle switch shares that variable too, so its
+   knob and track stayed a rounded square at any size. Give it a fully round pill
+   instead without touching the other selector-radius components. */
+.toggle {
+  --radius-selector: 1rem;
+}
+
 /* Pastel tint of --color-primary, washed into --color-base-100 (navbar surface). */
 .bg-navbar {
   background-color: color-mix(in oklab, var(--color-primary) 18%, var(--color-base-100) 82%);

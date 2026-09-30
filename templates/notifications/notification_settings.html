@@ -58,6 +58,22 @@
                                         </button>
                                 </li>
                                 <li class="bg-base-100 sm:bg-base-300 rounded-lg p-4">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div>
+                                            <p class="mb-1 text-base/5">Notifiche giornaliere</p>
+                                            <p class="text-base-content/60 text-sm/4 italic">Sospendi temporaneamente l'invio senza eliminare l'iscrizione.</p>
+                                        </div>
+                                        <input type="checkbox"
+                                               class="toggle toggle-primary toggle-md"
+                                               {% if notification.daily_notification %}checked{% endif %}
+                                               hx-post="{% url 'notifications:toggle_daily_notification' %}"
+                                               hx-trigger="change"
+                                               hx-target="#test-notification-result"
+                                               hx-swap="innerHTML"
+                                               aria-label="Notifiche giornaliere">
+                                    </div>
+                                </li>
+                                <li class="bg-base-100 sm:bg-base-300 rounded-lg p-4">
                                     <p class="mb-3 text-base/5">Notifiche abilitate</p>
                                     <p class="text-base-content/60 mb-3 text-sm/4 italic">Clicca su disabilita per disabilitare la ricezione delle notifiche sul tuo dispositivo</p>
                                     <button class="btn btn-sm btn-error btn-outline flex items-center gap-2"

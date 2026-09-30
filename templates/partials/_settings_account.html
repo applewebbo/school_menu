@@ -47,7 +47,7 @@
             <div class="flex items-center">
                 <h5 class="mr-8 grow font-medium">Iscrizione alla newsletter</h5>
                 <input type="checkbox"
-                       class="toggle toggle-primary"
+                       class="toggle toggle-primary toggle-md"
                        {% if user.newsletter_opt_in %}checked{% endif %}
                        hx-post="{% url 'users:toggle_newsletter' %}"
                        hx-trigger="change"

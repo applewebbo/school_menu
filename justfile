@@ -204,9 +204,9 @@ issue-reopen number:
 issue-label number *labels:
     gh issue edit -R {{github_repo}} {{number}} --add-label "{{labels}}"
 
-# Create a label if it doesn't exist yet. Color is randomized on first creation and
-# never touched again on later calls, so re-running this doesn't reset a label someone
-# recolored by hand in the GitHub UI.
+# Create a label if it doesn't exist yet. Color is a random pastel, picked on first
+# creation and never touched again on later calls, so re-running this doesn't reset a
+# label someone recolored by hand in the GitHub UI.
 [group('github')]
 label-create name:
     #!/usr/bin/env bash
@@ -214,7 +214,11 @@ label-create name:
     if gh label list -R {{github_repo}} --search "{{name}}" --json name -q '.[].name' | grep -qxF "{{name}}"; then
         echo "✓ Label {{name}} already exists"
     else
-        color=$(openssl rand -hex 3)
+        color=$(python3 -c "
+    import colorsys, random
+    r, g, b = colorsys.hls_to_rgb(random.random(), random.uniform(0.75, 0.85), random.uniform(0.5, 0.7))
+    print('%02x%02x%02x' % (round(r * 255), round(g * 255), round(b * 255)))
+    ")
         gh label create -R {{github_repo}} "{{name}}" --color "$color"
         echo "✓ Created label {{name}} (#$color)"
     fi

@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
+from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.views.decorators.http import require_http_methods
 from django_q.tasks import async_task
@@ -137,10 +138,6 @@ def save_subscription(request):
         request.session["anon_notification_pk"] = notification.pk
         request.session.save()
 
-        # Store endpoint hash in persistent cookie (1 year expiry) for recovery
-        response = HttpResponse(status=204, headers={"HX-Refresh": "true"})
-        set_subscription_cookie(request, response, endpoint_hash)
-
         if created:
             messages.add_message(
                 request, messages.SUCCESS, "Notifiche abilitate con successo"
@@ -150,6 +147,19 @@ def save_subscription(request):
                 request, messages.SUCCESS, "Notifiche aggiornate con successo"
             )
 
+        active_subscription_html = render_to_string(
+            "notifications/notification_settings.html#active-subscription",
+            {"notification": notification},
+            request=request,
+        )
+        messages_html = render_to_string(
+            "partials/_toggle_messages_oob.html", request=request
+        )
+        response = HttpResponse(active_subscription_html + messages_html)
+        response["HX-Retarget"] = "#notification-content"
+        response["HX-Reswap"] = "innerHTML"
+        # Store endpoint hash in persistent cookie (1 year expiry) for recovery
+        set_subscription_cookie(request, response, endpoint_hash)
         return response
     else:
         return TemplateResponse(
@@ -168,26 +178,59 @@ def delete_subscription(request):
     if request.method == "POST":
         pk = request.session.get("anon_notification_pk")
         if not pk:
-            messages.error(request, "Nessuna sottoscrizione trovata.")
-            return HttpResponse(status=400, headers={"HX-Refresh": "true"})
+            return render(
+                request,
+                "notifications/partials/test_notification_result.html",
+                {"success": False, "message": "Nessuna sottoscrizione trovata."},
+            )
         try:
             notification = AnonymousMenuNotification.objects.get(pk=pk)
-            notification.delete()
-            del request.session["anon_notification_pk"]
-            messages.add_message(
-                request, messages.SUCCESS, "Notifiche disabilitate con successo"
-            )
-            # Clear the persistent cookie as well
-            response = HttpResponse(status=204, headers={"HX-Refresh": "true"})
-            response.delete_cookie("subscription_endpoint")
-            return response
         except AnonymousMenuNotification.DoesNotExist:
-            return HttpResponse(status=404)
+            del request.session["anon_notification_pk"]
+            return render(
+                request,
+                "notifications/partials/test_notification_result.html",
+                {"success": False, "message": "Sottoscrizione già rimossa."},
+            )
+        try:
+            notification.delete()
         except Exception as e:
-            messages.error(request, f"Errore durante la disabilitazione: {str(e)}")
-            return HttpResponse(status=400, headers={"HX-Refresh": "true"})
-    messages.error(request, "Richiesta non valida.")
-    return HttpResponse(status=405, headers={"HX-Refresh": "true"})
+            return render(
+                request,
+                "notifications/partials/test_notification_result.html",
+                {
+                    "success": False,
+                    "message": f"Errore durante la disabilitazione: {e}",
+                },
+            )
+        del request.session["anon_notification_pk"]
+        messages.add_message(
+            request, messages.SUCCESS, "Notifiche disabilitate con successo"
+        )
+        form_html = render_to_string(
+            "notifications/partials/subscription_form.html",
+            {
+                "form": AnonymousMenuNotificationForm(),
+                "vapid_public_key": settings.WEBPUSH_SETTINGS["VAPID_PUBLIC_KEY"],
+                "schools_with_alt_menus": AnonymousMenuNotificationForm.get_schools_with_alt_menus(),
+            },
+            request=request,
+        )
+        messages_html = render_to_string(
+            "partials/_toggle_messages_oob.html", request=request
+        )
+        response = HttpResponse(form_html + messages_html)
+        response["HX-Retarget"] = "#notification-content"
+        response["HX-Reswap"] = "innerHTML"
+        # Clear the persistent cookie as well
+        response.delete_cookie("subscription_endpoint")
+        return response
+    return render(
+        request,
+        "notifications/partials/test_notification_result.html",
+        {"success": False, "message": "Richiesta non valida."},
+        status=405,
+    )
 
 
 @require_http_methods(["POST"])

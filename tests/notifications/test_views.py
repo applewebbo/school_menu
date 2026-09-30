@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 import time_machine
 from django import forms as django_forms
-from django.contrib.messages import get_messages
 from django.urls import reverse
 from pywebpush import WebPushException
 
@@ -22,8 +21,9 @@ def test_save_subscription(client, school_factory):
         "notification_time": AnonymousMenuNotification.PREVIOUS_DAY_6PM,
     }
     response = client.post(url, data)
-    assert response.status_code == 204
-    assert response["HX-Refresh"] == "true"
+    assert response.status_code == 200
+    assert response["HX-Retarget"] == "#notification-content"
+    assert response["HX-Reswap"] == "innerHTML"
     assert AnonymousMenuNotification.objects.filter(school=school).exists()
 
 
@@ -97,8 +97,9 @@ def test_delete_subscription_success(client, school_factory):
     session.save()
     url = reverse("notifications:delete_subscription")
     response = client.post(url)
-    assert response.status_code == 204
-    assert response["HX-Refresh"] == "true"
+    assert response.status_code == 200
+    assert response["HX-Retarget"] == "#notification-content"
+    assert response["HX-Reswap"] == "innerHTML"
     assert not AnonymousMenuNotification.objects.filter(pk=notification.pk).exists()
     assert "anon_notification_pk" not in client.session
 
@@ -107,11 +108,9 @@ def test_delete_subscription_no_pk_in_session(client):
     """Test delete_subscription view when no pk is in session."""
     url = reverse("notifications:delete_subscription")
     response = client.post(url)
-    assert response.status_code == 400
-    assert response["HX-Refresh"] == "true"
-    messages = list(get_messages(response.wsgi_request))
-    assert len(messages) == 1
-    assert str(messages[0]) == "Nessuna sottoscrizione trovata."
+    assert response.status_code == 200
+    assert "HX-Refresh" not in response
+    assert b"Nessuna sottoscrizione trovata." in response.content
 
 
 def test_delete_subscription_invalid_pk(client):
@@ -121,7 +120,9 @@ def test_delete_subscription_invalid_pk(client):
     session.save()
     url = reverse("notifications:delete_subscription")
     response = client.post(url)
-    assert response.status_code == 404
+    assert response.status_code == 200
+    assert b"Sottoscrizione gi\xc3\xa0 rimossa." in response.content
+    assert "anon_notification_pk" not in client.session
 
 
 def test_delete_subscription_method_not_allowed(client):
@@ -129,10 +130,8 @@ def test_delete_subscription_method_not_allowed(client):
     url = reverse("notifications:delete_subscription")
     response = client.get(url)
     assert response.status_code == 405
-    assert response["HX-Refresh"] == "true"
-    messages = list(get_messages(response.wsgi_request))
-    assert len(messages) == 1
-    assert str(messages[0]) == "Richiesta non valida."
+    assert "HX-Refresh" not in response
+    assert b"Richiesta non valida." in response.content
 
 
 def test_delete_subscription_generic_exception(client, school_factory, monkeypatch):
@@ -151,8 +150,9 @@ def test_delete_subscription_generic_exception(client, school_factory, monkeypat
 
     monkeypatch.setattr(AnonymousMenuNotification, "delete", raise_exception)
     response = client.post(url)
-    assert response.status_code == 400
-    assert response["HX-Refresh"] == "true"
+    assert response.status_code == 200
+    assert "HX-Refresh" not in response
+    assert b"Errore durante la disabilitazione: Errore generico" in response.content
 
 
 def test_test_notification_no_pk_in_session(client):
@@ -434,7 +434,7 @@ def test_save_subscription_prevents_duplicates(client, school_factory):
         "notification_time": AnonymousMenuNotification.PREVIOUS_DAY_6PM,
     }
     response = client.post(url, data)
-    assert response.status_code == 204
+    assert response.status_code == 200
     assert AnonymousMenuNotification.objects.count() == 1
     first_notification = AnonymousMenuNotification.objects.first()
 
@@ -443,7 +443,7 @@ def test_save_subscription_prevents_duplicates(client, school_factory):
     data["school"] = school2.pk
     data["notification_time"] = AnonymousMenuNotification.SAME_DAY_12PM
     response = client.post(url, data)
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     # Should still have only 1 notification (updated, not created)
     assert AnonymousMenuNotification.objects.count() == 1
@@ -469,7 +469,7 @@ def test_save_subscription_sets_persistent_cookie(client, school_factory):
         "notification_time": AnonymousMenuNotification.SAME_DAY_12PM,
     }
     response = client.post(url, data)
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     # Check that cookie was set
     assert "subscription_endpoint" in response.cookies
@@ -504,7 +504,7 @@ def test_delete_subscription_clears_cookie(client, school_factory):
 
     url = reverse("notifications:delete_subscription")
     response = client.post(url)
-    assert response.status_code == 204
+    assert response.status_code == 200
 
     # Check that cookie was deleted
     assert response.cookies["subscription_endpoint"].value == ""
@@ -607,16 +607,12 @@ def test_save_subscription_shows_updated_message(client, school_factory):
         "notification_time": AnonymousMenuNotification.PREVIOUS_DAY_6PM,
     }
     response = client.post(url, data)
-    messages = list(get_messages(response.wsgi_request))
-    assert len(messages) == 1
-    assert "abilitate" in str(messages[0])
+    assert b"abilitate" in response.content
 
-    # Second subscription with same endpoint
+    # Second subscription with same endpoint: the toast is rendered (and thus
+    # consumed) in each response, so no message carries over from the first.
     response = client.post(url, data)
-    messages = list(get_messages(response.wsgi_request))
-    # Should have 2 messages total (1 from first, 1 from second)
-    assert len(messages) == 2
-    assert "aggiornate" in str(messages[1])
+    assert b"aggiornate" in response.content
 
 
 def test_change_school_form_hides_meal_type_when_no_alt_menus(client, school_factory):

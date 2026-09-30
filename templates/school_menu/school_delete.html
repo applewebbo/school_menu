@@ -16,7 +16,8 @@
             Sei sicuro di voler eliminare <strong>{{ school.name }}</strong>? Questa azione cancellerà anche tutti i menu associati.
         </p>
         <form hx-post="{% url 'school_menu:school_delete' %}"
-              hx-target="body">
+              hx-target="#school"
+              hx-swap="outerHTML">
             <button type="submit" class="btn btn-error btn-block mb-4">Elimina Scuola</button>
         </form>
         <div class="m-auto mb-4 flex items-center rounded border border-red-200 bg-red-50 px-6 py-2 text-red-800">

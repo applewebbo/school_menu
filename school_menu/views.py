@@ -666,7 +666,15 @@ def school_create(request: HttpRequest) -> HttpResponse:
                 messages.SUCCESS,
                 f"<strong>{school.name}</strong> creata con successo",
             )
-            return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+            school_html = render_to_string(
+                "settings.html#school", {"user": request.user}, request=request
+            )
+            messages_html = render_to_string(
+                "partials/_toggle_messages_oob.html", request=request
+            )
+            response = HttpResponse(school_html + messages_html)
+            response["HX-Trigger"] = "menuModified"
+            return response
     else:
         current_year = date.today().year
         initial_data = {
@@ -1107,5 +1115,13 @@ def school_delete(request: HttpRequest) -> HttpResponse:
             messages.SUCCESS,
             f"<strong>{school_name}</strong> eliminata con successo",
         )
-        return HttpResponse(status=204, headers={"HX-Refresh": "true"})
+        school_html = render_to_string(
+            "settings.html#school", {"user": user}, request=request
+        )
+        messages_html = render_to_string(
+            "partials/_toggle_messages_oob.html", request=request
+        )
+        response = HttpResponse(school_html + messages_html)
+        response["HX-Trigger"] = "menuModified, hide-modal"
+        return response
     return render(request, "school_menu/school_delete.html", context={"school": school})

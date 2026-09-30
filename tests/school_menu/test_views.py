@@ -430,7 +430,10 @@ class SettingView(TestCase):
             response = self.post("school_menu:school_create", data=data)
             school = School.objects.get(user=user)
 
-        self.response_204(response)
+        self.response_200(response)
+        assert response.headers["HX-Trigger"] == "menuModified"
+        assert b'id="school"' in response.content
+        assert b'hx-swap-oob="true"' in response.content
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == f"<strong>{school.name}</strong> creata con successo"
         assert School.objects.filter(user=user).count() == 1
@@ -560,7 +563,10 @@ class SettingView(TestCase):
         with self.login(user):
             response = self.post("school_menu:school_delete")
 
-        self.response_204(response)
+        self.response_200(response)
+        assert response.headers["HX-Trigger"] == "menuModified, hide-modal"
+        assert b'id="school"' in response.content
+        assert b'hx-swap-oob="true"' in response.content
         message = list(get_messages(response.wsgi_request))[0].message
         assert message == f"<strong>{school_name}</strong> eliminata con successo"
         assert School.objects.filter(id=school_id).count() == 0
@@ -576,7 +582,7 @@ class SettingView(TestCase):
         with self.login(user):
             response = self.post("school_menu:school_delete")
 
-        self.response_204(response)
+        self.response_200(response)
         assert School.objects.filter(user=user).count() == 0
         # Meals should be deleted via cascade
         assert DetailedMeal.objects.filter(school=school).count() == 0
@@ -613,7 +619,7 @@ class SettingView(TestCase):
                 # Verify cache invalidation was called with correct parameters
                 mock_invalidate.assert_called_once_with(school_id, school_slug)
 
-        self.response_204(response)
+        self.response_200(response)
 
 
 class SchoolListView(TestCase):

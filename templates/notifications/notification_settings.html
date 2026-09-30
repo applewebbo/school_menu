@@ -22,8 +22,9 @@
                     Hai già installato questo sito come web app? Aprila dal menu delle app, dal dock o dalla schermata home del tuo dispositivo.
                 </div>
             </template>
-            <div x-show="isStandalone">
+            <div x-show="isStandalone" id="notification-content">
                 {% if notification.school %}
+                    {% partialdef active-subscription inline %}
                     <div class="mx-auto max-w-lg">
                         <h2 class="text-base-content mb-6 text-center text-lg font-bold tracking-tight sm:mb-8 md:text-left md:text-xl">Gestisci le tue impostazioni</h2>
                          <!-- NOTIFICATION SETTINGS START -->
@@ -90,10 +91,11 @@
                         {% endpartialdef buttons %}
                     <!-- NOTIFICATIONS BUTTONS END -->
                     <div id="test-notification-result" class="mt-4"></div>
-                    {% else %}
-                        {% include "notifications/partials/subscription_form.html" %}
-                    {% endif %}
-                </div>
+                    </div>
+                    {% endpartialdef active-subscription %}
+                {% else %}
+                    {% include "notifications/partials/subscription_form.html" %}
+                {% endif %}
             </div>
         </div>
     </div>

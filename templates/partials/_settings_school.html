@@ -95,7 +95,7 @@
                     {% endif %}
                 </div>
             </div>
-            <div class="mt-2 flex flex-col gap-2 md:flex-row md:justify-end">
+            <div class="mt-2 flex flex-col gap-2 md:flex-row md:justify-end" x-data>
                 <button class="btn btn-sm btn-error btn-outline dark:btn-soft inline-flex w-full items-center justify-center md:w-auto"
                         hx-get="{% url 'school_menu:school_delete' %}"
                         hx-target="#dialog"

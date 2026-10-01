@@ -5,14 +5,14 @@
             data-modal-title
             class="text-base-content text-xl font-semibold">Segnalazioni</h3>
         <button type="button"
-                class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+                class="text-base-content/50 hover:bg-base-200 hover:text-base-content ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm"
                 x-on:click="openModal = false">
             {% heroicon_solid 'x-mark' class="size-7" %}
             <span class="sr-only">Close modal</span>
         </button>
     </div>
     {% if reports %}
-    <div class="m-4 overflow-x-auto">
+    <div class="overflow-x-auto px-5 py-3 md:px-6 md:py-4">
         <table class="table text-center">
             <!-- head -->
             <thead>
@@ -31,7 +31,7 @@
                         <td class="hidden md:block">{{ report.created_at|days }}</td>
                         <td>
                             <div class="flex justify-center gap-2" x-data>
-                                <button class="btn btn-xs btn-default flex items-center"
+                                <button class="btn btn-xs dark:btn-soft flex items-center"
                                         hx-get="{% url 'contacts:report_detail' report.pk %}"
                                         hx-target="#dialog"
                                         hx-swap="innerHTML"
@@ -46,7 +46,7 @@
         </table>
     </div>
     {% else %}
-    <div class="p-4 md:p-8">
+    <div class="px-5 py-3 md:px-6 md:py-4">
         <p class="text-base-content/60 text-center">Nessuna segnalazione ricevuta</p>
     </div>
     {% endif %}

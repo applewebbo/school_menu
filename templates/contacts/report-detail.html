@@ -5,28 +5,27 @@
             data-modal-title
             class="text-base-content text-xl font-semibold">Segnalazione da {{ report.name }}</h3>
         <button type="button"
-                class="ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm text-gray-400 hover:bg-gray-200 hover:text-gray-900 dark:hover:bg-gray-600 dark:hover:text-white"
+                class="text-base-content/50 hover:bg-base-200 hover:text-base-content ms-auto inline-flex h-8 w-8 items-center justify-center rounded-lg bg-transparent text-sm"
                 x-on:click="openModal = false">
             {% heroicon_solid 'x-mark' class="size-7" %}
             <span class="sr-only">Close modal</span>
         </button>
     </div>
-    <div class="m-4 overflow-x-auto">
-        <div class="my-4 flex items-center rounded-lg border border-blue-300 bg-blue-50 p-4 text-sm text-blue-800 md:my-8"
-             role="alert">
-            {% heroicon_solid 'envelope' class='inline flex-shrink-0 w-4 h-4 me-3' %}
+    <div class="px-5 py-3 md:px-6 md:py-4">
+        <div class="alert alert-info mb-4" role="alert">
+            {% heroicon_solid 'envelope' class='inline flex-shrink-0 w-4 h-4' %}
             <span class="sr-only">Messaggio Ricevuto</span>
             <div>{{ report.message }}</div>
         </div>
-        <div id="actions" class="mb-4 flex items-center justify-end gap-2">
-            <button class="btn btn-sm btn-default flex items-center"
+        <div id="actions" class="flex items-center justify-end gap-2">
+            <button class="btn btn-sm dark:btn-soft flex items-center"
                     hx-get="{% url 'contacts:report_list' %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"
                     @click="$dispatch('open-modal')">
                 {% heroicon_outline 'arrow-left' class='size-5' %}Indietro
             </button>
-            <button class="flex items-center btn btn-sm btn-default"
+            <button class="flex items-center btn btn-sm dark:btn-soft"
                     hx-get="{% url 'contacts:report_feedback' report.pk %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"

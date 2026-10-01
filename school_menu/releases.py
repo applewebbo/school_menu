@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.4.4",
+        "date": date(2026, 10, 1),
+        "notes": [
+            "Ora puoi sospendere temporaneamente le notifiche giornaliere senza disiscriverti, con un semplice interruttore nelle impostazioni.",
+            'Corretto un problema per cui il pulsante "Elimina" della scuola non apriva la finestra di conferma.',
+            "Diverse schermate (creazione/eliminazione scuola, notifiche) ora si aggiornano senza ricaricare l'intera pagina, per un'esperienza più fluida.",
+            "Uniformato l'aspetto delle finestre di conferma in tutto il sito e migliorata la spaziatura delle card su desktop.",
+        ],
+    },
+    {
         "version": "2026.4.3",
         "date": date(2026, 9, 29),
         "notes": [

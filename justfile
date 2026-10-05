@@ -1,8 +1,8 @@
 github_repo := "applewebbo/school_menu"
 
 # List all available commands.
-@_:
-    just --list
+default:
+    @just --list
 
 ##########################################################################
 # Setup
@@ -202,7 +202,12 @@ issue-reopen number:
 # Add labels to issue (space-separated, labels must already exist)
 [group('github')]
 issue-label number *labels:
-    gh issue edit -R {{github_repo}} {{number}} --add-label "{{labels}}"
+    #!/usr/bin/env bash
+    set -euo pipefail
+    for label in {{labels}}; do
+        gh issue edit {{number}} -R {{github_repo}} --add-label "$label"
+        echo "✓ Label '$label' added to issue #{{number}}"
+    done
 
 # Create a label if it doesn't exist yet. Color is a random pastel, picked on first
 # creation and never touched again on later calls, so re-running this doesn't reset a
@@ -236,6 +241,11 @@ issue-label-create number name:
 issue-create title body="":
     gh issue create -R {{github_repo}} --title {{ quote(title) }} --body {{ quote(body) }}
 
+# Edit issue body from file (usage: just issue-edit-body 249 /path/to/body.md)
+[group('github')]
+issue-edit-body number file:
+    gh issue edit {{number}} -R {{github_repo}} --body-file {{file}}
+
 ##########################################################################
 # GitHub Releases
 ##########################################################################
@@ -250,11 +260,16 @@ release-list:
 release-show tag:
     gh release view -R {{github_repo}} {{tag}}
 
-# Create a new release (creates + pushes tag, auto-generates notes from commits)
+# Create a new release (pushes main+tag, creates GitHub release via gh)
+# Pass notes_file to use custom rich notes; omit for an auto-generated categorized changelog
 [group('github')]
-release-create tag previous_tag="" prerelease="false":
+release-create tag previous_tag="" notes_file="" prerelease="false":
     #!/usr/bin/env bash
     set -euo pipefail
+
+    echo "📤 Pushing main to origin..."
+    git push origin main
+    echo "✓ main pushed to origin"
 
     if git rev-parse "{{tag}}" >/dev/null 2>&1; then
         echo "✓ Tag {{tag}} already exists locally"
@@ -264,16 +279,70 @@ release-create tag previous_tag="" prerelease="false":
     fi
 
     echo "📤 Pushing tag {{tag}} to origin..."
-    git push origin "{{tag}}" || echo "✓ Tag {{tag}} already on remote"
+    git push origin "refs/tags/{{tag}}" || echo "✓ Tag {{tag}} already on remote"
 
-    PRERELEASE_FLAG=""
-    if [ "{{prerelease}}" = "true" ]; then PRERELEASE_FLAG="--prerelease"; fi
+    if [ "{{notes_file}}" != "" ]; then
+        NOTES_FILE="{{notes_file}}"
+        echo "📄 Using provided notes file: ${NOTES_FILE}"
+    else
+        NOTES_FILE=$(mktemp /tmp/release-notes-XXXXXX.md)
 
-    NOTES_FLAG="--generate-notes"
-    if [ "{{previous_tag}}" != "" ]; then NOTES_FLAG="--notes-start-tag {{previous_tag}} --generate-notes"; fi
+        if [ "{{previous_tag}}" = "" ]; then
+            PREV_TAG=$(git tag --sort=-version:refname | grep -v "{{tag}}" | head -1)
+        else
+            PREV_TAG="{{previous_tag}}"
+        fi
+
+        echo "🔍 Generating release notes (comparing with ${PREV_TAG})..."
+        COMMITS=$(git log ${PREV_TAG}..{{tag}} --pretty=format:"- %s" --reverse 2>/dev/null || echo "- Initial release")
+
+        FEATURES=$(echo "$COMMITS" | grep -E "^- (✨|feat)" || true)
+        FIXES=$(echo "$COMMITS" | grep -E "^- (🐛|fix)" || true)
+        CHORES=$(echo "$COMMITS" | grep -E "^- (🔧|chore|📦|build|🎨)" || true)
+        TESTS=$(echo "$COMMITS" | grep -E "^- (🧪|test|✅)" || true)
+        DOCS=$(echo "$COMMITS" | grep -E "^- (📚|docs)" || true)
+
+        {
+            echo "## What's New in {{tag}}"
+            echo ""
+            if [ -n "$FEATURES" ]; then
+                echo "### 🚀 Features"
+                echo "$FEATURES"
+                echo ""
+            fi
+            if [ -n "$FIXES" ]; then
+                echo "### 🐛 Bug Fixes"
+                echo "$FIXES"
+                echo ""
+            fi
+            if [ -n "$CHORES" ]; then
+                echo "### 🛠️ Maintenance"
+                echo "$CHORES"
+                echo ""
+            fi
+            if [ -n "$TESTS" ]; then
+                echo "### 🧪 Testing"
+                echo "$TESTS"
+                echo ""
+            fi
+            if [ -n "$DOCS" ]; then
+                echo "### 📖 Documentation"
+                echo "$DOCS"
+                echo ""
+            fi
+            echo "### 📖 Full Changelog"
+            echo "https://github.com/{{github_repo}}/compare/${PREV_TAG}...{{tag}}"
+        } > "$NOTES_FILE"
+    fi
+
+    RELEASE_FLAGS=(--title "{{tag}}" --notes-file "$NOTES_FILE")
+    if [ "{{prerelease}}" = "true" ]; then
+        RELEASE_FLAGS+=(--prerelease)
+    fi
 
     echo "🚀 Creating release on GitHub..."
-    gh release create -R {{github_repo}} "{{tag}}" --title "{{tag}}" $NOTES_FLAG $PRERELEASE_FLAG
+    gh release create "{{tag}}" -R {{github_repo}} "${RELEASE_FLAGS[@]}"
+    echo "✓ Release {{tag}} created!"
 
 # Delete a release (use with caution!)
 [group('github')]

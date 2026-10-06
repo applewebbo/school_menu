@@ -4,6 +4,8 @@
 <script src="{% static 'js/tippy-bundle.umd.min.js' %}"></script>
 <!-- HTMX -->
 {% htmx_script %}
+<!-- Custom JS (must load before Alpine core so alpine:init listeners register in time) -->
+<script defer src="{% static 'js/custom.js' %}"></script>
 <!-- Alpine.js -->
 <script defer src="{% static 'js/alpine-focus.min.js' %}"></script>
 <script defer src="{% static 'js/alpine-collapse.min.js' %}"></script>
@@ -19,5 +21,3 @@
         data-website-id="{{ umami_website_id }}"
         {% if umami_domains %}data-domains="{{ umami_domains }}"{% endif %}></script>
 {% endif %}
-<!-- Custom JS -->
-<script defer src="{% static 'js/custom.js' %}"></script>

@@ -1,5 +1,11 @@
 {% load heroicons static %}
-<div class="text-center" id="day_menu">
+<div class="text-center"
+     id="day_menu"
+     {% if show_switch %}
+     x-data="swipeSchool"
+     @touchstart="onTouchStart($event)"
+     @touchend="onTouchEnd($event)"
+     {% endif %}>
     {% if show_school_header %}
         <div class="mb-4 flex flex-wrap items-center justify-center gap-2">
             <h2 class="text-base-content/60 text-sm font-semibold tracking-wide uppercase">{{ school.name }}</h2>
@@ -53,6 +59,7 @@
     </div>
     {% if show_switch %}
         <button type="button"
+                x-ref="switchSchoolBtn"
                 hx-get="{% url 'school_menu:switch_home_school' home_switch_target %}"
                 hx-target="#day_menu"
                 hx-swap="outerHTML"

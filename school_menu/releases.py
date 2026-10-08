@@ -10,6 +10,14 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.4.5",
+        "date": date(2026, 10, 8),
+        "notes": [
+            "Su smartphone puoi ora cambiare il menu visualizzato (tuo o della scuola preferita) anche con uno scorrimento del dito, oltre al pulsante già presente.",
+            "Diverse rifiniture tecniche interne per mantenere il sito affidabile.",
+        ],
+    },
+    {
         "version": "2026.4.4",
         "date": date(2026, 10, 1),
         "notes": [

@@ -5,6 +5,7 @@ from school_menu.models import (
     AnnualMeal,
     AuditLog,
     DetailedMeal,
+    MenuHealthCheck,
     MenuImportDraft,
     School,
     SimpleMeal,
@@ -175,3 +176,10 @@ class AuditLogFactory(factory.django.DjangoModelFactory):
     action = AuditLog.Actions.SCHOOL_CREATE
     model_name = "School"
     object_repr = factory.Sequence(lambda n: f"School {n}")
+
+
+class MenuHealthCheckFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = MenuHealthCheck
+
+    school = factory.SubFactory(SchoolFactory)

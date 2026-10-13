@@ -113,6 +113,41 @@ def get_season(school: School) -> int:
     return season
 
 
+def is_school_in_session(school: School, target_date) -> bool:
+    """
+    Check if the school is in session on a given date.
+
+    Uses the school's start_month/start_day and end_month/end_day to determine
+    if the target date falls within the academic year.
+
+    Args:
+        school: School instance with session date configuration
+        target_date: Date to check
+
+    Returns:
+        True if school is in session on target date, False otherwise
+
+    Note:
+        Handles academic years that span calendar years (e.g., Sept to June)
+    """
+    start_month = school.start_month
+    start_day = school.start_day
+    end_month = school.end_month
+    end_day = school.end_day
+
+    # Create comparable tuples for dates (month, day)
+    today_tuple = (target_date.month, target_date.day)
+    start_tuple = (start_month, start_day)
+    end_tuple = (end_month, end_day)
+
+    # Case 1: School year is within the same calendar year (e.g., Feb to June)
+    if start_tuple <= end_tuple:
+        return start_tuple <= today_tuple <= end_tuple
+    # Case 2: School year spans across calendar years (e.g., Sept to June)
+    else:
+        return today_tuple >= start_tuple or today_tuple <= end_tuple
+
+
 def get_adjusted_year() -> int:
     """
     Get the current academic year.

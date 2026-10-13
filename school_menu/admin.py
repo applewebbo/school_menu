@@ -9,6 +9,7 @@ from .models import (
     AnnualMeal,
     AuditLog,
     DetailedMeal,
+    MenuHealthCheck,
     MenuImportDraft,
     MenuImportQuota,
     School,
@@ -265,3 +266,14 @@ class MenuImportQuotaAdmin(admin.ModelAdmin):
     list_display = ["__str__", "user", "date", "count"]
     list_filter = ["date"]
     search_fields = ["user__email"]
+
+
+@admin.register(MenuHealthCheck)
+class MenuHealthCheckAdmin(admin.ModelAdmin):
+    list_display = ["school", "consecutive_missing_weeks", "warning_sent_at"]
+    list_filter = ["consecutive_missing_weeks"]
+    search_fields = ["school__name"]
+
+    def has_add_permission(self, request):
+        """Rows are only ever created by the weekly health check task."""
+        return False

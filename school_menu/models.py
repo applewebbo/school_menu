@@ -388,6 +388,30 @@ class MenuImportQuota(models.Model):
         return f"{owner} - {self.date:%d/%m/%Y}: {self.count}"
 
 
+class MenuHealthCheck(models.Model):
+    """Tracks consecutive weeks a published school has gone without a menu (#316).
+
+    Kept out of ``School`` itself so this operational state doesn't bloat the main
+    model: it only exists for schools the weekly check has actually flagged at least
+    once.
+    """
+
+    school = models.OneToOneField(
+        School, on_delete=models.CASCADE, related_name="menu_health_check"
+    )
+    consecutive_missing_weeks = models.PositiveSmallIntegerField(default=0)
+    warning_sent_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "controllo pubblicazione menu"
+        verbose_name_plural = "controlli pubblicazione menu"
+
+    def __str__(self):
+        return (
+            f"{self.school.name}: {self.consecutive_missing_weeks} settimane senza menu"
+        )
+
+
 @receiver(post_delete, sender=MenuImportDraft)
 def delete_menu_import_file(sender, instance, **kwargs):
     """Never leave an uploaded menu behind: it may contain third-party data.

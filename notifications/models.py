@@ -125,6 +125,8 @@ class MonthlyDigest(models.Model):
     report_errors = models.PositiveIntegerField(default=0)
     feedback_sent = models.PositiveIntegerField(default=0)
     new_subscriptions = models.PositiveIntegerField(default=0)
+    schools_missing_menu = models.PositiveIntegerField(default=0)
+    unpublished_schools = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

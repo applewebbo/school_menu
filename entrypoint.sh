@@ -20,6 +20,9 @@ python manage.py setup_notification_schedules
 echo "Registering unverified account purge schedule..."
 python manage.py setup_unverified_account_purge_schedule
 
+echo "Registering menu health check schedule..."
+python manage.py setup_menu_health_check_schedule
+
 echo "Building production css files..."
 # --force is required: plain `build` reports "up to date" and skips the rebuild, so a deploy
 # can ship a stylesheet missing the utility classes introduced in that very release (#242).

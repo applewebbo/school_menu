@@ -26,7 +26,16 @@ from notifications.models import (
     NotificationDeliveryMarker,
 )
 from notifications.utils import build_menu_notification_payload
-from school_menu.models import AnnualMeal, AuditLog, DetailedMeal, School, SimpleMeal
+from school_menu.models import (
+    AnnualMeal,
+    AuditLog,
+    DetailedMeal,
+    MenuHealthCheck,
+    School,
+    SimpleMeal,
+)
+from school_menu.tasks import MISSING_MENU_WARNING_WEEKS
+from school_menu.utils.calendar import is_school_in_session
 from users.tokens import make_unsubscribe_token
 
 logger = logging.getLogger(__name__)
@@ -141,6 +150,13 @@ def send_monthly_admin_digest() -> None:
         created_at__date__range=(period_start, period_end)
     ).count()
 
+    # Point-in-time snapshots (#316), not period counts like the ones above: how many
+    # schools are currently in trouble, as of when the digest is sent.
+    schools_missing_menu = MenuHealthCheck.objects.filter(
+        consecutive_missing_weeks__gte=MISSING_MENU_WARNING_WEEKS
+    ).count()
+    unpublished_schools = School.objects.filter(is_published=False).count()
+
     # Plain-text fallback for clients that don't render HTML.
     message = (
         f"Riepilogo attivita' dal {period_start:%d/%m/%Y} al {period_end:%d/%m/%Y}\n\n"
@@ -149,6 +165,8 @@ def send_monthly_admin_digest() -> None:
         f"Errori di invio segnalazioni: {report_errors}\n"
         f"Risposte a segnalazioni inviate: {feedback_sent}\n"
         f"Nuove iscrizioni alle notifiche: {new_subscriptions}\n"
+        f"Scuole con menu mancante: {schools_missing_menu}\n"
+        f"Scuole disattivate/non pubblicate: {unpublished_schools}\n"
     )
     html_message = render_to_string(
         "notifications/emails/monthly_digest.html",
@@ -160,6 +178,8 @@ def send_monthly_admin_digest() -> None:
             "report_errors": report_errors,
             "feedback_sent": feedback_sent,
             "new_subscriptions": new_subscriptions,
+            "schools_missing_menu": schools_missing_menu,
+            "unpublished_schools": unpublished_schools,
         },
     )
     email = EmailMultiAlternatives(
@@ -179,6 +199,8 @@ def send_monthly_admin_digest() -> None:
         report_errors=report_errors,
         feedback_sent=feedback_sent,
         new_subscriptions=new_subscriptions,
+        schools_missing_menu=schools_missing_menu,
+        unpublished_schools=unpublished_schools,
     )
     logger.info(f"[MonthlyDigest] Sent digest for {period_start} - {period_end}.")
 
@@ -292,39 +314,9 @@ def _has_menu_for_date(school: School, target_date: date) -> bool:
         return DetailedMeal.objects.filter(school=school, day=day_of_week).exists()
 
 
-def _is_school_in_session(school: School, target_date: date) -> bool:
-    """
-    Check if the school is in session on a given date.
-
-    Uses the school's start_month/start_day and end_month/end_day to determine
-    if the target date falls within the academic year.
-
-    Args:
-        school: School instance with session date configuration
-        target_date: Date to check
-
-    Returns:
-        True if school is in session on target date, False otherwise
-
-    Note:
-        Handles academic years that span calendar years (e.g., Sept to June)
-    """
-    start_month = school.start_month
-    start_day = school.start_day
-    end_month = school.end_month
-    end_day = school.end_day
-
-    # Create comparable tuples for dates (month, day)
-    today_tuple = (target_date.month, target_date.day)
-    start_tuple = (start_month, start_day)
-    end_tuple = (end_month, end_day)
-
-    # Case 1: School year is within the same calendar year (e.g., Feb to June)
-    if start_tuple <= end_tuple:
-        return start_tuple <= today_tuple <= end_tuple
-    # Case 2: School year spans across calendar years (e.g., Sept to June)
-    else:
-        return today_tuple >= start_tuple or today_tuple <= end_tuple
+# Shared with school_menu.tasks.check_weekly_menu_publication (#316); kept under this
+# name here since existing call sites and tests reference it as a module-private.
+_is_school_in_session = is_school_in_session
 
 
 def _send_menu_notifications(notification_time: str) -> None:

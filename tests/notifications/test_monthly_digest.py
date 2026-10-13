@@ -11,7 +11,11 @@ from notifications.models import MonthlyDigest
 from notifications.tasks import send_monthly_admin_digest
 from tests.contacts.factories import MenuReportFactory
 from tests.notifications.factories import AnonymousMenuNotificationFactory
-from tests.school_menu.factories import AuditLogFactory
+from tests.school_menu.factories import (
+    AuditLogFactory,
+    MenuHealthCheckFactory,
+    SchoolFactory,
+)
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -71,6 +75,26 @@ class TestSendMonthlyAdminDigest:
         assert digest.feedback_sent == 0
         assert digest.new_subscriptions == 0
         assert len(mail.outbox) == 1
+
+    def test_counts_schools_missing_menu_and_unpublished_schools(self):
+        # Already warned (>=2 consecutive missing weeks): counted as missing menu.
+        MenuHealthCheckFactory(consecutive_missing_weeks=2)
+        MenuHealthCheckFactory(consecutive_missing_weeks=5)
+        # Flagged but not yet warned: not counted.
+        MenuHealthCheckFactory(consecutive_missing_weeks=1)
+        SchoolFactory(is_published=False)
+        SchoolFactory(is_published=False)
+        SchoolFactory(is_published=True)
+
+        with time_machine.travel(datetime(2026, 9, 1, 6, 0), tick=False):
+            send_monthly_admin_digest()
+
+        digest = MonthlyDigest.objects.get()
+        assert digest.schools_missing_menu == 2
+        assert digest.unpublished_schools == 2
+
+        html_body, _ = mail.outbox[0].alternatives[0]
+        assert ">2<" in html_body
 
     def test_does_not_count_reports_without_errors_as_errors(self):
         user = UserFactory()

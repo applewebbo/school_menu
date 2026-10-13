@@ -45,6 +45,14 @@
                       <p style="margin:2px 0 0; color:#f67d00; font-size:24px; font-weight:700;">{{ new_subscriptions }}</p>
                     </td>
                   </tr>
+                  <tr><td style="height:12px; line-height:12px;">&nbsp;</td></tr>
+                  <tr>
+                    <td style="padding:14px 16px; background-color:#f5f5f5; border-radius:8px;">
+                      <p style="margin:0; color:#4b5563; font-size:13px;">Scuole con menu mancante</p>
+                      <p style="margin:2px 0 0; color:{% if schools_missing_menu %}#b91c1c{% else %}#1f2937{% endif %}; font-size:24px; font-weight:700;">{{ schools_missing_menu }}</p>
+                      <p style="margin:6px 0 0; color:#4b5563; font-size:13px;">{{ unpublished_schools }} scuole non pubblicate in totale</p>
+                    </td>
+                  </tr>
                 </table>
               </td>
             </tr>

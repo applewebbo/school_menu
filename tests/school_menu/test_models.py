@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from school_menu.models import Meal
+from tests.school_menu.factories import MenuHealthCheckFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -288,3 +289,12 @@ class TestCacheInvalidationOnModelSave:
 
         # Verify invalidate_meal_cache was NOT called
         mock_invalidate.assert_not_called()
+
+
+class TestMenuHealthCheckModel:
+    def test_str(self):
+        health_check = MenuHealthCheckFactory(consecutive_missing_weeks=2)
+
+        assert health_check.__str__() == (
+            f"{health_check.school.name}: 2 settimane senza menu"
+        )

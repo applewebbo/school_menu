@@ -364,6 +364,11 @@ AI_MENU_IMPORT_PURGE_SCHEDULE = env(
     "AI_MENU_IMPORT_PURGE_SCHEDULE", default="30 3 * * *"
 )
 
+# Cron for the weekly menu-publication health check, applied by
+# `manage.py setup_menu_health_check_schedule`. Monday morning, so the whole week's
+# publication gap is visible before anyone goes looking for the menu (#316).
+MENU_HEALTH_CHECK_SCHEDULE = env("MENU_HEALTH_CHECK_SCHEDULE", default="0 6 * * 1")
+
 # The scheduled slot fires a thin wrapper that re-queues the real fan-out as an
 # async_task with this timeout, so the per-subscriber loop runs on its own budget
 # instead of the cluster's default 60s (#266). Must stay below Q_CLUSTER["retry"]

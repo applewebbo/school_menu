@@ -8,6 +8,7 @@ from school_menu.models import (
     MenuHealthCheck,
     MenuImportDraft,
     School,
+    SchoolTransfer,
     SimpleMeal,
 )
 from tests.users.factories import UserFactory
@@ -183,3 +184,12 @@ class MenuHealthCheckFactory(factory.django.DjangoModelFactory):
         model = MenuHealthCheck
 
     school = factory.SubFactory(SchoolFactory)
+
+
+class SchoolTransferFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = SchoolTransfer
+
+    school = factory.SubFactory(SchoolFactory)
+    from_user = factory.SelfAttribute("school.user")
+    to_user = factory.SubFactory(UserFactory)

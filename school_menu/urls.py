@@ -35,6 +35,11 @@ urlpatterns = [
         name="toggle_favorite_school",
     ),
     path(
+        "menu/<slug:slug>/proponi-responsabile/",
+        views.propose_school_maintainer,
+        name="propose_maintainer",
+    ),
+    path(
         "home/switch/<str:target>/",
         views.switch_home_school,
         name="switch_home_school",

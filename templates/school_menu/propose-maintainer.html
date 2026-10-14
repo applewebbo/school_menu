@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="mx-auto mb-8 max-w-2xl md:mt-10 md:mb-10 md:px-4">
+    <div class="bg-base-300/50 border-base-300 md:bg-base-100 md:rounded-box grid gap-6 border-y p-5 pt-8 pb-8 md:border md:px-6 md:pt-4 md:pb-6 md:shadow-sm lg:px-12 lg:pt-6 lg:pb-12">
+        <h1 class="text-center text-xl font-semibold tracking-tight text-pretty md:text-2xl">Proponiti come responsabile</h1>
+        <p class="mb-3 text-base/5">
+            Ti stai proponendo come nuovo responsabile per la scuola <strong>{{ school.name }} ({{ school.city }})</strong>. Un amministratore valuterà la tua richiesta e, se confermata, ti verrà assegnata la gestione del menu.
+        </p>
+        <form method="post" class="flex flex-col gap-4">
+            {% csrf_token %}
+            <textarea name="message"
+                      class="textarea w-full"
+                      rows="4"
+                      placeholder="Messaggio (opzionale)"></textarea>
+            <div class="md:text-right">
+                <button type="submit" class="btn btn-sm btn-primary w-full md:w-auto">
+                    Invia Candidatura
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock content %}

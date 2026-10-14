@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from unittest import mock
 
 import time_machine
 from django.contrib.messages import get_messages
@@ -13,6 +14,7 @@ from school_menu.models import (
     DetailedMeal,
     Meal,
     School,
+    SchoolTransfer,
     SimpleMeal,
 )
 from school_menu.test import TestCase
@@ -21,6 +23,7 @@ from tests.school_menu.factories import (
     AnnualMealFactory,
     DetailedMealFactory,
     SchoolFactory,
+    SchoolTransferFactory,
     SimpleMealFactory,
 )
 from tests.school_menu.import_review import confirm_import
@@ -239,6 +242,43 @@ class SchoolMenuView(TestCase):
         self.response_200(response)
         assert response.context["school"] == school
         assert response.context["meal"] is None
+
+    def test_seeking_maintainer_banner_shown_when_published(self):
+        school = SchoolFactory(is_published=True, seeking_maintainer=True)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.assertContains(response, "alla ricerca di un nuovo responsabile")
+
+    def test_seeking_maintainer_banner_hidden_when_flag_is_off(self):
+        school = SchoolFactory(is_published=True, seeking_maintainer=False)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.assertNotContains(response, "alla ricerca di un nuovo responsabile")
+
+    def test_seeking_maintainer_banner_shows_login_link_for_anonymous(self):
+        school = SchoolFactory(is_published=True, seeking_maintainer=True)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.assertContains(response, "Accedi per proporti")
+
+    def test_seeking_maintainer_banner_shows_propose_link_for_other_users(self):
+        school = SchoolFactory(is_published=True, seeking_maintainer=True)
+        other_user = self.make_user()
+
+        with self.login(other_user):
+            response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.assertContains(response, "Proponiti come responsabile")
+
+    def test_seeking_maintainer_banner_hides_propose_link_for_owner(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, is_published=True, seeking_maintainer=True)
+
+        with self.login(user):
+            response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.assertContains(response, "alla ricerca di un nuovo responsabile")
+        self.assertNotContains(response, "Proponiti come responsabile")
 
 
 class GetMenuView(TestCase):
@@ -1641,3 +1681,79 @@ class TestSchoolScopedViewsAuthorization(TestCase):
             )
 
         self.response_404(response)
+
+
+class TestProposeSchoolMaintainerView(TestCase):
+    def setUp(self):
+        self.owner = self.make_user("owner@test.com")
+        self.school = SchoolFactory(user=self.owner, seeking_maintainer=True)
+        self.candidate = self.make_user("candidate@test.com")
+
+    def test_anonymous_is_redirected_to_login(self):
+        response = self.get("school_menu:propose_maintainer", slug=self.school.slug)
+
+        self.response_302(response)
+        assert "login" in response.url
+
+    def test_get_renders_form(self):
+        with self.login(self.candidate):
+            response = self.get("school_menu:propose_maintainer", slug=self.school.slug)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "school_menu/propose-maintainer.html")
+
+    def test_post_creates_transfer_and_notifies_admin(self):
+        with self.login(self.candidate):
+            response = self.post(
+                "school_menu:propose_maintainer",
+                slug=self.school.slug,
+                data={"message": "Mi piacerebbe aiutare"},
+            )
+
+        transfer = SchoolTransfer.objects.get(school=self.school)
+        assert transfer.from_user == self.owner
+        assert transfer.to_user == self.candidate
+        assert transfer.status == SchoolTransfer.Status.REQUESTED
+        self.assertRedirects(
+            response, reverse("school_menu:school_menu", args=[self.school.slug])
+        )
+        messages = list(get_messages(response.wsgi_request))
+        assert "Candidatura inviata con successo" in str(messages[0])
+
+    @mock.patch("school_menu.views.send_mail", side_effect=Exception("boom"))
+    def test_post_mail_failure_does_not_prevent_request(self, mock_send_mail):
+        with self.login(self.candidate):
+            response = self.post(
+                "school_menu:propose_maintainer",
+                slug=self.school.slug,
+                data={"message": ""},
+            )
+
+        assert SchoolTransfer.objects.filter(school=self.school).exists()
+        self.response_302(response)
+
+    def test_owner_cannot_propose_for_own_school(self):
+        with self.login(self.owner):
+            response = self.post(
+                "school_menu:propose_maintainer",
+                slug=self.school.slug,
+                data={"message": ""},
+            )
+
+        assert not SchoolTransfer.objects.filter(school=self.school).exists()
+        self.response_302(response)
+
+    def test_duplicate_pending_request_is_rejected(self):
+        SchoolTransferFactory(
+            school=self.school, from_user=self.owner, to_user=self.candidate
+        )
+
+        with self.login(self.candidate):
+            response = self.post(
+                "school_menu:propose_maintainer",
+                slug=self.school.slug,
+                data={"message": ""},
+            )
+
+        assert SchoolTransfer.objects.filter(school=self.school).count() == 1
+        self.response_302(response)

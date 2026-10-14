@@ -116,6 +116,7 @@ class SchoolForm(forms.ModelForm):
             "week_bias",
             "menu_type",
             "is_published",
+            "seeking_maintainer",
             "no_gluten",
             "no_lactose",
             "vegetarian",
@@ -129,6 +130,9 @@ class SchoolForm(forms.ModelForm):
             "week_bias": forms.NumberInput(attrs={"min": "0", "max": "3"}),
             "menu_type": forms.Select(attrs={"class": "select"}),
             "is_published": forms.CheckboxInput(
+                attrs={"class": "checkbox checkbox-sm checkbox-primary"}
+            ),
+            "seeking_maintainer": forms.CheckboxInput(
                 attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
             "no_gluten": forms.CheckboxInput(
@@ -156,6 +160,7 @@ class SchoolForm(forms.ModelForm):
                 'Tipo&nbsp;<span class="hidden sm:block">di Menù</span>'
             ),
             "is_published": "Menu Pubblico",
+            "seeking_maintainer": "Cerco un nuovo responsabile",
             "no_gluten": "No Glutine",
             "no_lactose": "No Lattosio",
             "vegetarian": "Vegetariano",
@@ -167,6 +172,7 @@ class SchoolForm(forms.ModelForm):
             "week_bias": "Modificare il valore per allineare la settimana in corso (min=0, max=3)",
             "menu_type": "Seleziona <strong>Semplice</strong> per menu + spuntino, <strong>Dettagliato</strong> per avere primo, secondo, contorno e frutta + spuntino",
             "is_published": "Seleziona per rendere il menù visibile agli altri utenti",
+            "seeking_maintainer": "Seleziona se stai cercando qualcuno che prenda in carico la gestione di questa scuola: verrà mostrato un avviso nella pagina pubblica del menu",
             "annual_menu": "Seleziona se la tua scuola fornisce un menu specifico per ogni giorno dell'anno. Selezionando questo campo non verranno considerati i valori dei campi Stagione, Scarto e Anno Scolastico.",
         }
         error_messages = {
@@ -211,6 +217,7 @@ class SchoolForm(forms.ModelForm):
                     HTML("""<hr class="hr_divider" />"""),
                     "menu_type",
                     Div("is_published", css_class="ms-1"),
+                    Div("seeking_maintainer", css_class="ms-1"),
                     HTML("""<hr class="hr_divider" />"""),
                     Fieldset(
                         "Anno Scolastico",

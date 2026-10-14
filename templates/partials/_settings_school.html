@@ -25,6 +25,12 @@
                                 No
                             {% endif %}
                         </li>
+                        {% if user.school.seeking_maintainer %}
+                        <li class="my-2 flex items-center">
+                            <span class="primary_label">Cerco un responsabile</span>
+                            {% heroicon_outline 'exclamation-triangle' class="text-warning size-5" %}
+                        </li>
+                        {% endif %}
                         <li>
                             <span class="primary_label">Inizio Anno&nbsp;<span class="hidden sm:inline-block">Scolastico</span></span>&nbsp;{{ user.school.start_day }}&nbsp;{{ user.school.start_month|month_name }}
                         </li>

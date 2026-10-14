@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
+from django.core.mail import send_mail
 from django.db import connection
 from django.db.models import Q
 from django.forms import modelformset_factory
@@ -50,6 +51,7 @@ from school_menu.models import (
     Meal,
     MenuImportDraft,
     School,
+    SchoolTransfer,
     SimpleMeal,
 )
 from school_menu.releases import RELEASES
@@ -394,6 +396,55 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
     context.update(get_favorite_context(request, school))
     context["show_school_header"] = context.get("can_favorite", False)
     return render(request, "school-menu.html", context)
+
+
+@login_required
+def propose_school_maintainer(request: HttpRequest, slug: str) -> HttpResponse:
+    """
+    Let a logged-in user propose themselves as the new maintainer of a school that
+    flagged itself as `seeking_maintainer` (#291). This never touches `School.user`
+    directly: it only records a `SchoolTransfer` request for an admin to review and
+    confirm from the dedicated "Trasferimenti" admin section.
+    """
+    school = get_object_or_404(School.objects.select_related("user"), slug=slug)
+
+    if request.user == school.user:
+        messages.error(request, "Non puoi proporti per la tua stessa scuola.")
+        return redirect("school_menu:school_menu", school.slug)
+
+    if SchoolTransfer.objects.filter(
+        school=school, to_user=request.user, status=SchoolTransfer.Status.REQUESTED
+    ).exists():
+        messages.error(request, "Hai già una richiesta in corso per questa scuola.")
+        return redirect("school_menu:school_menu", school.slug)
+
+    if request.method == "POST":
+        message = request.POST.get("message", "")
+        SchoolTransfer.objects.create(
+            school=school,
+            from_user=school.user,
+            to_user=request.user,
+            message=message,
+        )
+        try:
+            send_mail(
+                f"Candidatura responsabile per {school.name} su menuscolastico.it",
+                f"{request.user.email} si è candidato come nuovo responsabile per "
+                f"{school.name} ({school.city}).\n\n{message}",
+                None,
+                [settings.ADMIN_EMAIL],
+            )
+        except Exception as e:
+            logger.error(
+                f"Failed to send maintainer interest notification for {school.name}: {e}"
+            )
+        messages.add_message(
+            request, messages.SUCCESS, "Candidatura inviata con successo"
+        )
+        return redirect("school_menu:school_menu", school.slug)
+
+    context = {"school": school}
+    return render(request, "school_menu/propose-maintainer.html", context)
 
 
 @require_http_methods(["POST"])

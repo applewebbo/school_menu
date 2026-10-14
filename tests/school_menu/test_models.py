@@ -3,8 +3,9 @@ from unittest.mock import patch
 
 import pytest
 
-from school_menu.models import Meal
-from tests.school_menu.factories import MenuHealthCheckFactory
+from school_menu.models import Meal, SchoolTransfer
+from tests.school_menu.factories import MenuHealthCheckFactory, SchoolTransferFactory
+from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -298,3 +299,26 @@ class TestMenuHealthCheckModel:
         assert health_check.__str__() == (
             f"{health_check.school.name}: 2 settimane senza menu"
         )
+
+
+class TestSchoolModelSeekingMaintainer:
+    def test_seeking_maintainer_defaults_to_false(self, school_factory):
+        school = school_factory()
+
+        assert school.seeking_maintainer is False
+
+
+class TestSchoolTransferModel:
+    def test_str(self):
+        to_user = UserFactory(email="candidate@email.com")
+        transfer = SchoolTransferFactory(to_user=to_user)
+
+        assert transfer.__str__() == (
+            f"{transfer.school.name}: {transfer.from_user} -> {to_user} (Richiesto)"
+        )
+
+    def test_default_status_is_requested(self):
+        transfer = SchoolTransferFactory()
+
+        assert transfer.status == SchoolTransfer.Status.REQUESTED
+        assert transfer.resolved_at is None

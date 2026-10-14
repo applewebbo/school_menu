@@ -2,6 +2,7 @@ from django import forms
 from django.contrib import admin, messages
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import path
+from django.utils import timezone
 from import_export.admin import ImportExportModelAdmin
 from tablib import Dataset
 
@@ -13,9 +14,11 @@ from .models import (
     MenuImportDraft,
     MenuImportQuota,
     School,
+    SchoolTransfer,
     SimpleMeal,
 )
 from .resources import DetailedMealResource, SimpleMealResource
+from .tasks import send_handover_notice
 from .utils import validate_dataset
 
 
@@ -277,3 +280,75 @@ class MenuHealthCheckAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         """Rows are only ever created by the weekly health check task."""
         return False
+
+
+@admin.register(SchoolTransfer)
+class SchoolTransferAdmin(admin.ModelAdmin):
+    """
+    "Trasferimenti" — the only path that reassigns `School.user` (#291).
+
+    `from_user`/`to_user` are always set by the request flow itself, never
+    retyped here: the admin only reviews and confirms or rejects.
+    """
+
+    list_display = [
+        "school",
+        "from_user",
+        "to_user",
+        "status",
+        "created_at",
+        "resolved_at",
+    ]
+    list_filter = ["status"]
+    search_fields = ["school__name", "from_user__email", "to_user__email"]
+    readonly_fields = ["school", "from_user", "to_user", "message", "created_at"]
+    actions = ["confirm_transfer", "reject_transfer"]
+
+    def has_add_permission(self, request):
+        """Rows are only ever created by a logged-in user proposing themselves."""
+        return False
+
+    @admin.action(description="Confirma trasferimento")
+    def confirm_transfer(self, request, queryset):
+        for transfer in queryset.filter(status=SchoolTransfer.Status.REQUESTED):
+            school = transfer.school
+            if (
+                hasattr(transfer.to_user, "school")
+                and transfer.to_user.school.id != school.id
+            ):
+                self.message_user(
+                    request,
+                    f"{transfer.to_user} ha già una scuola: {school.name} non trasferita.",
+                    level=messages.ERROR,
+                )
+                continue
+            if school.user_id != transfer.from_user_id:
+                self.message_user(
+                    request,
+                    f"{school.name}: proprietario cambiato, richiesta non più valida.",
+                    level=messages.ERROR,
+                )
+                continue
+
+            old_user = school.user
+            school.user = transfer.to_user
+            school.seeking_maintainer = False
+            school.save(update_fields=["user", "seeking_maintainer"])
+
+            transfer.status = SchoolTransfer.Status.COMPLETED
+            transfer.resolved_at = timezone.now()
+            transfer.save(update_fields=["status", "resolved_at"])
+
+            SchoolTransfer.objects.filter(
+                school=school, status=SchoolTransfer.Status.REQUESTED
+            ).exclude(pk=transfer.pk).update(
+                status=SchoolTransfer.Status.REJECTED, resolved_at=timezone.now()
+            )
+
+            send_handover_notice(school, old_user, transfer.to_user)
+
+    @admin.action(description="Rifiuta trasferimento")
+    def reject_transfer(self, request, queryset):
+        queryset.filter(status=SchoolTransfer.Status.REQUESTED).update(
+            status=SchoolTransfer.Status.REJECTED, resolved_at=timezone.now()
+        )

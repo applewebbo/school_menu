@@ -193,6 +193,7 @@ class School(models.Model):
     vegetarian = models.BooleanField(default=False)
     special = models.BooleanField(default=False)
     annual_menu = models.BooleanField(default=False)
+    seeking_maintainer = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "scuola"
@@ -409,6 +410,51 @@ class MenuHealthCheck(models.Model):
     def __str__(self):
         return (
             f"{self.school.name}: {self.consecutive_missing_weeks} settimane senza menu"
+        )
+
+
+class SchoolTransfer(models.Model):
+    """A request to take over a school flagged as `seeking_maintainer` (#291).
+
+    `from_user`/`to_user` are always set from the request itself (the current owner,
+    the logged-in requester) rather than typed by an admin, so confirming a transfer
+    never risks assigning the wrong account.
+    """
+
+    class Status(models.TextChoices):
+        REQUESTED = "R", "Richiesto"
+        COMPLETED = "C", "Effettuato"
+        REJECTED = "J", "Rifiutato"
+
+    school = models.ForeignKey(
+        School, on_delete=models.CASCADE, related_name="transfers"
+    )
+    from_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="transfers_given",
+    )
+    to_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="transfers_requested",
+    )
+    message = models.TextField(blank=True)
+    status = models.CharField(
+        max_length=1, choices=Status.choices, default=Status.REQUESTED
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "trasferimento"
+        verbose_name_plural = "trasferimenti"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return (
+            f"{self.school.name}: {self.from_user} -> {self.to_user} "
+            f"({self.get_status_display()})"
         )
 
 

@@ -150,21 +150,21 @@ def _has_weekly_menu(school: School) -> bool:
     return bool(weekly_meals)
 
 
-def _send_menu_health_email(school, subject, template, context):
+def _send_html_email(to_email, subject, template, context):
     message = render_to_string(template, context)
     email = EmailMultiAlternatives(
         subject=subject,
         body=strip_tags(message),
         from_email=None,
-        to=[school.user.email],
+        to=[to_email],
     )
     email.attach_alternative(message, "text/html")
     email.send()
 
 
 def _send_menu_missing_warning(school):
-    _send_menu_health_email(
-        school,
+    _send_html_email(
+        school.user.email,
         subject=f"Nessun menu pubblicato per {school.name}",
         template="school_menu/emails/menu_missing_warning.html",
         context={"school": school, "weeks": MISSING_MENU_WARNING_WEEKS},
@@ -172,11 +172,27 @@ def _send_menu_missing_warning(school):
 
 
 def _send_menu_deactivation_notice(school):
-    _send_menu_health_email(
-        school,
+    _send_html_email(
+        school.user.email,
         subject=f"{school.name} è stata disattivata per mancanza di menu",
         template="school_menu/emails/menu_deactivated.html",
         context={"school": school, "weeks": MISSING_MENU_UNPUBLISH_WEEKS},
+    )
+
+
+def send_handover_notice(school, old_user, new_user):
+    """Notify both parties once a `SchoolTransfer` is confirmed by an admin (#291)."""
+    _send_html_email(
+        old_user.email,
+        subject=f"La gestione di {school.name} è stata trasferita",
+        template="school_menu/emails/handover_previous_owner.html",
+        context={"school": school, "new_user": new_user},
+    )
+    _send_html_email(
+        new_user.email,
+        subject=f"Ora gestisci {school.name}",
+        template="school_menu/emails/handover_new_owner.html",
+        context={"school": school},
     )
 
 

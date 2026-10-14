@@ -31,6 +31,22 @@ class TestSchoolForm:
         )
         assert form.is_valid(), form.errors
 
+    def test_form_accepts_seeking_maintainer(self):
+        form = SchoolForm(
+            data={
+                "name": "Test School",
+                "city": "Test City",
+                "season_choice": School.Seasons.INVERNALE,
+                "week_bias": 1,
+                "menu_type": School.Types.SIMPLE,
+                "start_date": date(2024, 9, 1),
+                "end_date": date(2025, 6, 30),
+                "seeking_maintainer": True,
+            }
+        )
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["seeking_maintainer"] is True
+
     def test_form_no_data(self):
         form = SchoolForm(data={})
         assert form.is_valid() is False

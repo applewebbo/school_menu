@@ -2,12 +2,23 @@ import io
 
 import pytest
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from school_menu.admin import CsvImportForm
-from school_menu.models import AuditLog, DetailedMeal, School, SimpleMeal
-from tests.school_menu.factories import SchoolFactory, SimpleMealFactory
+from school_menu.models import (
+    AuditLog,
+    DetailedMeal,
+    School,
+    SchoolTransfer,
+    SimpleMeal,
+)
+from tests.school_menu.factories import (
+    SchoolFactory,
+    SchoolTransferFactory,
+    SimpleMealFactory,
+)
 from tests.users.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -331,3 +342,107 @@ class TestImportCsvAction(TestCase):
             },
         )
         assert response.status_code == 302
+
+
+class TestSchoolTransferAdminActions(TestCase):
+    def setUp(self):
+        self.superuser = UserFactory(is_staff=True, is_superuser=True)
+        self.client.force_login(self.superuser)
+        self.changelist_url = reverse("admin:school_menu_schooltransfer_changelist")
+
+    def _run_action(self, action, transfers):
+        return self.client.post(
+            self.changelist_url,
+            {
+                "action": action,
+                "_selected_action": [t.pk for t in transfers],
+            },
+            follow=True,
+        )
+
+    def test_confirm_transfer_reassigns_school_and_notifies_both_parties(self):
+        owner = UserFactory(email="owner@test.com")
+        candidate = UserFactory(email="candidate@test.com")
+        school = SchoolFactory(user=owner, seeking_maintainer=True)
+        transfer = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=candidate
+        )
+
+        self._run_action("confirm_transfer", [transfer])
+
+        school.refresh_from_db()
+        transfer.refresh_from_db()
+        assert school.user == candidate
+        assert school.seeking_maintainer is False
+        assert transfer.status == SchoolTransfer.Status.COMPLETED
+        assert transfer.resolved_at is not None
+        assert len(mail.outbox) == 2
+        recipients = {m.to[0] for m in mail.outbox}
+        assert recipients == {"owner@test.com", "candidate@test.com"}
+
+    def test_confirm_transfer_rejects_other_pending_requests_for_same_school(self):
+        owner = UserFactory()
+        candidate = UserFactory()
+        other_candidate = UserFactory()
+        school = SchoolFactory(user=owner, seeking_maintainer=True)
+        confirmed = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=candidate
+        )
+        other = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=other_candidate
+        )
+
+        self._run_action("confirm_transfer", [confirmed])
+
+        other.refresh_from_db()
+        assert other.status == SchoolTransfer.Status.REJECTED
+
+    def test_confirm_transfer_blocked_when_candidate_already_owns_a_school(self):
+        owner = UserFactory()
+        candidate = UserFactory()
+        SchoolFactory(user=candidate)  # candidate already owns a different school
+        school = SchoolFactory(user=owner, seeking_maintainer=True)
+        transfer = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=candidate
+        )
+
+        self._run_action("confirm_transfer", [transfer])
+
+        school.refresh_from_db()
+        transfer.refresh_from_db()
+        assert school.user == owner
+        assert transfer.status == SchoolTransfer.Status.REQUESTED
+        assert len(mail.outbox) == 0
+
+    def test_confirm_transfer_blocked_when_owner_changed_since_request(self):
+        owner = UserFactory()
+        someone_else = UserFactory()
+        candidate = UserFactory()
+        school = SchoolFactory(user=owner, seeking_maintainer=True)
+        transfer = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=candidate
+        )
+        school.user = someone_else
+        school.save(update_fields=["user"])
+
+        self._run_action("confirm_transfer", [transfer])
+
+        transfer.refresh_from_db()
+        assert transfer.status == SchoolTransfer.Status.REQUESTED
+        assert len(mail.outbox) == 0
+
+    def test_reject_transfer_marks_rejected_without_touching_school(self):
+        owner = UserFactory()
+        candidate = UserFactory()
+        school = SchoolFactory(user=owner, seeking_maintainer=True)
+        transfer = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=candidate
+        )
+
+        self._run_action("reject_transfer", [transfer])
+
+        school.refresh_from_db()
+        transfer.refresh_from_db()
+        assert school.user == owner
+        assert transfer.status == SchoolTransfer.Status.REJECTED
+        assert transfer.resolved_at is not None

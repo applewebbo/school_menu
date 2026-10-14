@@ -169,7 +169,8 @@ class TestUploadMenuForm:
         # Assert the form is valid
         assert form.is_valid() is True
 
-    def test_form_invalid_file_type(self):
+    def test_form_invalid_file_type(self, settings):
+        settings.AI_MENU_IMPORT_ENABLED = False
         # Create a mock file object
         mock_file = SimpleUploadedFile(
             "test.txt", b"file_content", content_type="text/plain"
@@ -266,7 +267,8 @@ class TestAnnualMenuForm:
         # Assert the form is valid
         assert form.is_valid() is True
 
-    def test_form_invalid_file_type(self):
+    def test_form_invalid_file_type(self, settings):
+        settings.AI_MENU_IMPORT_ENABLED = False
         # Create a mock file object
         mock_file = SimpleUploadedFile(
             "test.txt", b"file_content", content_type="text/plain"

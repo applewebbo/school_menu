@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.signals import post_delete
@@ -194,6 +195,14 @@ class School(models.Model):
     special = models.BooleanField(default=False)
     annual_menu = models.BooleanField(default=False)
     seeking_maintainer = models.BooleanField(default=False)
+    mirror_from = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="mirrored_by",
+        verbose_name="mostra il menu di",
+    )
 
     class Meta:
         verbose_name = "scuola"
@@ -201,6 +210,32 @@ class School(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.city} ({str(self.user)})"
+
+    def clean(self):
+        super().clean()
+        if self.mirror_from_id is not None:
+            if self.pk and self.mirror_from_id == self.pk:
+                raise ValidationError(
+                    {"mirror_from": "Una scuola non può mostrare il menu di se stessa."}
+                )
+            if self.mirror_from.mirror_from_id is not None:
+                raise ValidationError(
+                    {
+                        "mirror_from": "Non puoi selezionare una scuola che a sua volta "
+                        "mostra il menu di un'altra scuola."
+                    }
+                )
+
+    def get_display_school(self) -> School:
+        """The school whose settings/meals should actually be rendered (#318)."""
+        source = self.mirror_from
+        if (
+            source is None
+            or not source.is_published
+            or source.mirror_from_id is not None
+        ):
+            return self
+        return source
 
     def save(self, *args, **kwargs):
         # Only generate slug on creation to prevent URL changes and IntegrityErrors
@@ -411,6 +446,24 @@ class MenuHealthCheck(models.Model):
         return (
             f"{self.school.name}: {self.consecutive_missing_weeks} settimane senza menu"
         )
+
+
+class MirrorFallbackCheck(models.Model):
+    """Tracks whether a mirroring school's owner has already been notified that its
+    `mirror_from` source is unpublished (#318)."""
+
+    school = models.OneToOneField(
+        School, on_delete=models.CASCADE, related_name="mirror_fallback_check"
+    )
+    notified_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "controllo fallback mirror"
+        verbose_name_plural = "controlli fallback mirror"
+
+    def __str__(self):
+        status = "attivo" if self.notified_at else "non attivo"
+        return f"{self.school.name}: fallback {status}"
 
 
 class SchoolTransfer(models.Model):

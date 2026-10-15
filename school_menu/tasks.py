@@ -20,7 +20,12 @@ from django_q.tasks import async_task
 
 from school_menu.ai.errors import AIImportError
 from school_menu.ai.extraction import extract_menu
-from school_menu.models import MenuHealthCheck, MenuImportDraft, School
+from school_menu.models import (
+    MenuHealthCheck,
+    MenuImportDraft,
+    MirrorFallbackCheck,
+    School,
+)
 from school_menu.services import ai_quota
 from school_menu.utils.calendar import (
     calculate_week,
@@ -247,3 +252,35 @@ def check_weekly_menu_publication() -> None:
         health_check.save(
             update_fields=["consecutive_missing_weeks", "warning_sent_at"]
         )
+
+
+def _send_mirror_fallback_notice(school):
+    _send_html_email(
+        school.user.email,
+        subject=f"{school.name} mostra temporaneamente il proprio menu",
+        template="school_menu/emails/mirror_fallback_notice.html",
+        context={"school": school, "source": school.mirror_from},
+    )
+
+
+def check_mirror_fallbacks() -> None:
+    """Scheduled task: notify owners whose mirror source has gone unpublished (#318)."""
+    for school in School.objects.filter(mirror_from__isnull=False).select_related(
+        "mirror_from", "user"
+    ):
+        fallback_check = MirrorFallbackCheck.objects.filter(school=school).first()
+        source_unpublished = not school.mirror_from.is_published
+
+        if not source_unpublished:
+            if fallback_check and fallback_check.notified_at:
+                fallback_check.notified_at = None
+                fallback_check.save(update_fields=["notified_at"])
+            continue
+
+        if fallback_check is None:
+            fallback_check = MirrorFallbackCheck.objects.create(school=school)
+
+        if fallback_check.notified_at is None:
+            _send_mirror_fallback_notice(school)
+            fallback_check.notified_at = timezone.now()
+            fallback_check.save(update_fields=["notified_at"])

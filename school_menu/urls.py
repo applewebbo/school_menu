@@ -75,6 +75,11 @@ htmx_urlpatterns = [
     path("settings/school/", views.school_settings_partial, name="school_settings"),
     path("search-schools/", views.search_schools, name="search_schools"),
     path(
+        "search-mirror-candidates/",
+        views.search_mirror_candidates,
+        name="search_mirror_candidates",
+    ),
+    path(
         "export-modal/<int:school_id>/<str:meal_type>/",
         views.export_modal_view,
         name="export_modal",

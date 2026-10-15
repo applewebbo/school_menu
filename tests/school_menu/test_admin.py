@@ -6,7 +6,7 @@ from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from school_menu.admin import CsvImportForm
+from school_menu.admin import CsvImportForm, SchoolAdmin
 from school_menu.models import (
     AuditLog,
     DetailedMeal,
@@ -446,3 +446,16 @@ class TestSchoolTransferAdminActions(TestCase):
         assert school.user == owner
         assert transfer.status == SchoolTransfer.Status.REJECTED
         assert transfer.resolved_at is not None
+
+
+class TestSchoolAdminMirrorFrom:
+    def test_mirror_from_in_menu_configuration_fieldset(self):
+        fieldsets = SchoolAdmin.fieldsets
+        menu_fields = dict(fieldsets)["Configurazione Menu"]["fields"]
+
+        assert "mirror_from" in menu_fields
+
+    def test_autocomplete_and_search_fields_configured(self):
+        assert "mirror_from" in SchoolAdmin.autocomplete_fields
+        assert SchoolAdmin.search_fields == ["name", "city"]
+        assert "mirror_from" in SchoolAdmin.list_filter

@@ -117,6 +117,7 @@ class SchoolForm(forms.ModelForm):
             "menu_type",
             "is_published",
             "seeking_maintainer",
+            "mirror_from",
             "no_gluten",
             "no_lactose",
             "vegetarian",
@@ -150,6 +151,7 @@ class SchoolForm(forms.ModelForm):
             "annual_menu": forms.CheckboxInput(
                 attrs={"class": "checkbox checkbox-sm checkbox-primary"}
             ),
+            "mirror_from": forms.HiddenInput(),
         }
         labels = {
             "name": "Nome",
@@ -166,6 +168,7 @@ class SchoolForm(forms.ModelForm):
             "vegetarian": "Vegetariano",
             "special": "Speciale",
             "annual_menu": "Menu Annuale",
+            "mirror_from": "Mostra il menu di",
         }
         help_texts = {
             "season_choice": "Selezionando <strong>Automatica</strong> il sistema sceglierà la stagione in base alla data corrente",
@@ -174,6 +177,7 @@ class SchoolForm(forms.ModelForm):
             "is_published": "Seleziona per rendere il menù visibile agli altri utenti",
             "seeking_maintainer": "Seleziona se stai cercando qualcuno che prenda in carico la gestione di questa scuola: verrà mostrato un avviso nella pagina pubblica del menu",
             "annual_menu": "Seleziona se la tua scuola fornisce un menu specifico per ogni giorno dell'anno. Selezionando questo campo non verranno considerati i valori dei campi Stagione, Scarto e Anno Scolastico.",
+            "mirror_from": "Mostra in tempo reale il menu della scuola selezionata. Se smette di pubblicarlo, torna visibile il tuo (riceverai un'email). Rimovibile in qualsiasi momento.",
         }
         error_messages = {
             "week_bias": {
@@ -207,6 +211,14 @@ class SchoolForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        mirror_qs = School.objects.filter(is_published=True, mirror_from__isnull=True)
+        if self.instance.pk:
+            mirror_qs = mirror_qs.exclude(pk=self.instance.pk)
+        if self.instance.mirror_from_id:
+            mirror_qs = mirror_qs | School.objects.filter(
+                pk=self.instance.mirror_from_id
+            )
+        self.fields["mirror_from"].queryset = mirror_qs
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
@@ -217,7 +229,6 @@ class SchoolForm(forms.ModelForm):
                     HTML("""<hr class="hr_divider" />"""),
                     "menu_type",
                     Div("is_published", css_class="ms-1"),
-                    Div("seeking_maintainer", css_class="ms-1"),
                     HTML("""<hr class="hr_divider" />"""),
                     Fieldset(
                         "Anno Scolastico",
@@ -236,6 +247,42 @@ class SchoolForm(forms.ModelForm):
                     "annual_menu",
                     HTML("""<hr class="hr_divider" />"""),
                     "week_bias",
+                    Div("seeking_maintainer", css_class="ms-1"),
+                    HTML(
+                        """
+                        <div class="ms-1"
+                             x-data="{
+                                mirrorId: '{{ form.mirror_from.value|default_if_none:'' }}',
+                                mirrorLabel: '{{ form.instance.mirror_from.name }}',
+                                mirrorCity: '{{ form.instance.mirror_from.city }}'
+                             }">
+                            <label class="label-text text-sm">Mostra il menu di</label>
+                            <input type="hidden" name="mirror_from" :value="mirrorId">
+                            <div x-show="mirrorId" class="flex items-center gap-2">
+                                <span x-text="mirrorLabel + ' (' + mirrorCity + ')'"></span>
+                                <button type="button"
+                                        class="btn btn-xs btn-ghost"
+                                        @click="mirrorId = ''; mirrorLabel = ''; mirrorCity = ''">Rimuovi</button>
+                            </div>
+                            <div x-show="!mirrorId">
+                                <div>
+                                    <input type="search"
+                                           name="q"
+                                           class="input input-sm w-full"
+                                           placeholder="Cerca scuola o città..."
+                                           autocomplete="off"
+                                           hx-get="{% url 'school_menu:search_mirror_candidates' %}"
+                                           hx-trigger="keyup changed delay:1s"
+                                           hx-target="#mirror-search-results">
+                                    <div id="mirror-search-results"></div>
+                                </div>
+                            </div>
+                            <p class="text-base-content/70 text-sm leading-5 mt-1">
+                                Mostra in tempo reale il menu della scuola selezionata. Se smette di pubblicarlo, torna visibile il tuo (riceverai un'email). Rimovibile in qualsiasi momento.
+                            </p>
+                        </div>
+                        """
+                    ),
                     HTML("""<hr class="hr_divider md:hidden" />"""),
                 ),
                 Fieldset(

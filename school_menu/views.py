@@ -202,20 +202,23 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
     Returns:
         dict: Context dictionary with school menu data
     """
+    display_school = school.get_display_school()
     current_week, adjusted_day = get_current_date()
-    bias = school.week_bias
+    bias = display_school.week_bias
     adjusted_week = calculate_week(current_week, bias)
-    season = get_season(school)
-    alt_menu = get_alt_menu(school.user)
+    season = get_season(display_school)
+    alt_menu = get_alt_menu(display_school.user)
 
-    if school.annual_menu:
-        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
-        types_menu = build_types_menu(weekly_meals, school)
+    if display_school.annual_menu:
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(display_school)
+        types_menu = build_types_menu(weekly_meals, display_school)
     else:
         weekly_meals, meals_for_today = get_meals(
-            school, season, adjusted_week, adjusted_day
+            display_school, season, adjusted_week, adjusted_day
         )
-        types_menu = build_types_menu(weekly_meals, school, adjusted_week, season)
+        types_menu = build_types_menu(
+            weekly_meals, display_school, adjusted_week, season
+        )
 
     # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
     weekly_meals = [m for m in weekly_meals if m.type == meal_type]
@@ -230,6 +233,7 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
 
     return {
         "school": school,
+        "display_school": display_school,
         "meal": meal_for_today,
         "weekly_meals": weekly_meals,
         "week": adjusted_week,
@@ -376,7 +380,10 @@ def build_school_structured_data(request: HttpRequest, school: School) -> str:
 
 def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpResponse:
     """Return school menu for the given school"""
-    school = get_object_or_404(School.objects.select_related("user"), slug=slug)
+    school = get_object_or_404(
+        School.objects.select_related("user", "mirror_from", "mirror_from__user"),
+        slug=slug,
+    )
     pk = request.session.get("anon_notification_pk")
     notifications_status = get_notifications_status(pk, school)
     if not school.is_published:
@@ -521,18 +528,22 @@ def get_menu(
     request: HttpRequest, school_id: int, week: int, day: int, meal_type: str
 ) -> HttpResponse:
     """get menu for the given school, day, week and type"""
-    school = get_object_or_404(School.objects.select_related("user"), pk=school_id)
+    school = get_object_or_404(
+        School.objects.select_related("user", "mirror_from", "mirror_from__user"),
+        pk=school_id,
+    )
+    display_school = school.get_display_school()
     pk = request.session.get("anon_notification_pk")
     notifications_status = get_notifications_status(pk, school)
-    season = get_season(school)
+    season = get_season(display_school)
     year = get_adjusted_year()
-    alt_menu = get_alt_menu(school.user)
-    if school.annual_menu:
-        weekly_meals, meals_for_today = get_meals_for_annual_menu(school)
-        types_menu = build_types_menu(weekly_meals, school)
+    alt_menu = get_alt_menu(display_school.user)
+    if display_school.annual_menu:
+        weekly_meals, meals_for_today = get_meals_for_annual_menu(display_school)
+        types_menu = build_types_menu(weekly_meals, display_school)
     else:
-        weekly_meals, meals_for_today = get_meals(school, season, week, day)
-        types_menu = build_types_menu(weekly_meals, school, week, season)
+        weekly_meals, meals_for_today = get_meals(display_school, season, week, day)
+        types_menu = build_types_menu(weekly_meals, display_school, week, season)
 
     # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
     weekly_meals = [m for m in weekly_meals if m.type == meal_type]
@@ -545,6 +556,7 @@ def get_menu(
 
     context = {
         "school": school,
+        "display_school": display_school,
         "meal": meal_for_today,
         "weekly_meals": weekly_meals,
         "week": week,
@@ -1019,6 +1031,24 @@ def search_schools(request: HttpRequest) -> HttpResponse:
     else:
         context["schools"] = schools  # type: ignore[assignment]
     return TemplateResponse(request, template, context)
+
+
+@login_required
+def search_mirror_candidates(request: HttpRequest) -> HttpResponse:
+    """Htmx typeahead for picking a `mirror_from` source (#318)."""
+    query = request.GET.get("q")
+    schools = School.objects.filter(is_published=True, mirror_from__isnull=True)
+    if hasattr(request.user, "school"):
+        schools = schools.exclude(pk=request.user.school.pk)
+    if query:
+        schools = schools.filter(
+            Q(name__icontains=query) | Q(city__icontains=query)
+        ).order_by("name")
+    else:
+        schools = schools.none()
+    return TemplateResponse(
+        request, "partials/_mirror_school_search.html", {"schools": schools}
+    )
 
 
 @login_required

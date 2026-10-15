@@ -2,8 +2,9 @@ from datetime import date
 from unittest.mock import patch
 
 import pytest
+from django.core.exceptions import ValidationError
 
-from school_menu.models import Meal, SchoolTransfer
+from school_menu.models import Meal, MirrorFallbackCheck, SchoolTransfer
 from tests.school_menu.factories import MenuHealthCheckFactory, SchoolTransferFactory
 from tests.users.factories import UserFactory
 
@@ -90,6 +91,86 @@ class TestSchoolModel:
         # But the actual fields should be updated
         assert school.name == "Scuola Media"
         assert school.city == "Milano"
+
+
+class TestSchoolModelMirrorFrom:
+    def test_mirror_from_defaults_to_none(self, school_factory):
+        school = school_factory()
+
+        assert school.mirror_from is None
+
+    def test_get_display_school_returns_self_when_no_mirror(self, school_factory):
+        school = school_factory()
+
+        assert school.get_display_school() == school
+
+    def test_get_display_school_returns_source_when_valid(self, school_factory):
+        source = school_factory(is_published=True)
+        mirroring = school_factory(mirror_from=source)
+
+        assert mirroring.get_display_school() == source
+
+    def test_get_display_school_falls_back_when_source_unpublished(
+        self, school_factory
+    ):
+        source = school_factory(is_published=False)
+        mirroring = school_factory(mirror_from=source)
+
+        assert mirroring.get_display_school() == mirroring
+
+    def test_get_display_school_falls_back_when_source_itself_mirrors(
+        self, school_factory
+    ):
+        root = school_factory(is_published=True)
+        middle = school_factory(is_published=True)
+        middle.mirror_from_id = root.id
+        middle.save(update_fields=["mirror_from"])
+        mirroring = school_factory(mirror_from=middle)
+
+        assert mirroring.get_display_school() == mirroring
+
+    def test_clean_rejects_self_mirror(self, school_factory):
+        school = school_factory()
+        school.mirror_from_id = school.id
+
+        with pytest.raises(ValidationError):
+            school.clean()
+
+    def test_clean_rejects_mirroring_a_school_that_already_mirrors(
+        self, school_factory
+    ):
+        root = school_factory(is_published=True)
+        middle = school_factory(mirror_from=root)
+        leaf = school_factory()
+        leaf.mirror_from = middle
+
+        with pytest.raises(ValidationError):
+            leaf.clean()
+
+    def test_clean_allows_valid_mirror(self, school_factory):
+        source = school_factory(is_published=True)
+        mirroring = school_factory()
+        mirroring.mirror_from = source
+
+        mirroring.clean()
+
+
+class TestMirrorFallbackCheckModel:
+    def test_str(self, school_factory):
+        school = school_factory(name="Scuola A")
+        check = MirrorFallbackCheck.objects.create(school=school)
+
+        assert str(check) == f"{school.name}: fallback non attivo"
+
+    def test_str_when_notified(self, school_factory):
+        from django.utils import timezone
+
+        school = school_factory(name="Scuola A")
+        check = MirrorFallbackCheck.objects.create(
+            school=school, notified_at=timezone.now()
+        )
+
+        assert str(check) == f"{school.name}: fallback attivo"
 
 
 class TestAnnualMenuModel:

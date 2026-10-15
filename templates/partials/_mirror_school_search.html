@@ -1,0 +1,17 @@
+{% load heroicons %}
+<ul id="mirror-search-results" class="menu bg-base-100 border-base-300 rounded-box w-full border p-2">
+    {% for school in schools %}
+        <li>
+            <button type="button"
+                    @click="mirrorId = '{{ school.pk }}'; mirrorLabel = '{{ school.name }}'; mirrorCity = '{{ school.city }}'; results = []">
+                {% heroicon_outline 'academic-cap' class="text-primary size-4 shrink-0" %}
+                <span class="truncate">
+                    <span class="text-base-content font-medium">{{ school.name }}</span>
+                    <span class="text-base-content/60 font-light">{{ school.city }}</span>
+                </span>
+            </button>
+        </li>
+    {% empty %}
+        <li class="text-base-content/60 px-2 py-1 text-sm italic">Nessuna scuola trovata.</li>
+    {% endfor %}
+</ul>

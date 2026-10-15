@@ -90,6 +90,7 @@ class SchoolAdmin(admin.ModelAdmin):
                     "season_choice",
                     "week_bias",
                     "annual_menu",
+                    "mirror_from",
                     "no_gluten",
                     "no_lactose",
                     "vegetarian",
@@ -110,6 +111,9 @@ class SchoolAdmin(admin.ModelAdmin):
         ),
     )
     actions = ["import_csv_menu"]
+    search_fields = ["name", "city"]
+    autocomplete_fields = ["mirror_from"]
+    list_filter = ["mirror_from"]
 
     def get_urls(self):
         urls = super().get_urls()

@@ -3,6 +3,7 @@ from unittest import mock
 
 import time_machine
 from django.contrib.messages import get_messages
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
@@ -280,6 +281,70 @@ class SchoolMenuView(TestCase):
         self.assertContains(response, "alla ricerca di un nuovo responsabile")
         self.assertNotContains(response, "Proponiti come responsabile")
 
+    @time_machine.travel("2024-01-01")  # Monday, ISO week 1
+    def test_mirroring_school_shows_source_menu(self):
+        cache.clear()
+        source = SchoolFactory(
+            is_published=True,
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            week_bias=0,
+        )
+        SimpleMealFactory(
+            school=source,
+            day=1,
+            week=1,
+            menu="Pasta al Pomodoro",
+            season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
+        )
+        mirroring = SchoolFactory(mirror_from=source)
+
+        response = self.get("school_menu:school_menu", slug=mirroring.slug)
+
+        self.response_200(response)
+        assert response.context["school"] == mirroring
+        assert response.context["display_school"] == source
+        self.assertContains(response, "Pasta al Pomodoro")
+
+    @time_machine.travel("2024-01-01")  # Monday, ISO week 1
+    def test_mirroring_school_falls_back_when_source_unpublished(self):
+        cache.clear()
+        source = SchoolFactory(
+            is_published=False,
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+        )
+        SimpleMealFactory(
+            school=source,
+            day=1,
+            week=1,
+            menu="Pasta al Pomodoro",
+            season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
+        )
+        mirroring = SchoolFactory(
+            mirror_from=source,
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            week_bias=0,
+        )
+        SimpleMealFactory(
+            school=mirroring,
+            day=1,
+            week=1,
+            menu="Riso al Sugo",
+            season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
+        )
+
+        response = self.get("school_menu:school_menu", slug=mirroring.slug)
+
+        self.response_200(response)
+        assert response.context["display_school"] == mirroring
+        self.assertContains(response, "Riso al Sugo")
+        self.assertNotContains(response, "Pasta al Pomodoro")
+
 
 class GetMenuView(TestCase):
     def test_get_with_simple_menu(self):
@@ -379,6 +444,77 @@ class GetMenuView(TestCase):
 
         self.response_200(response)
         assert response.context["meal"] is None
+
+    def test_get_resolves_mirrored_source(self):
+        cache.clear()
+        source = SchoolFactory(
+            menu_type=School.Types.SIMPLE, season_choice=School.Seasons.PRIMAVERILE
+        )
+        meal = SimpleMealFactory(
+            school=source,
+            day=1,
+            week=1,
+            menu="Pasta al Pomodoro",
+            season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
+        )
+        mirroring = SchoolFactory(mirror_from=source)
+
+        response = self.get("school_menu:get_menu", mirroring.pk, 1, 1, "S")
+
+        self.response_200(response)
+        assert response.context["school"] == mirroring
+        assert response.context["meal"] == meal
+
+
+class SearchMirrorCandidatesView(TestCase):
+    def test_excludes_unpublished_schools(self):
+        user = self.make_user()
+        SchoolFactory(name="Scuola Chiusa", is_published=False)
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:search_mirror_candidates", data={"q": "Chiusa"}
+            )
+
+        self.response_200(response)
+        assert "Scuola Chiusa" not in response.content.decode()
+
+    def test_excludes_schools_that_already_mirror(self):
+        user = self.make_user()
+        root = SchoolFactory(name="Scuola Root", is_published=True)
+        SchoolFactory(name="Scuola Mirror", is_published=True, mirror_from=root)
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:search_mirror_candidates", data={"q": "Scuola"}
+            )
+
+        self.response_200(response)
+        assert "Scuola Root" in response.content.decode()
+        assert "Scuola Mirror" not in response.content.decode()
+
+    def test_excludes_own_school(self):
+        user = self.make_user()
+        SchoolFactory(user=user, name="Scuola Mia", is_published=True)
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:search_mirror_candidates", data={"q": "Mia"}
+            )
+
+        self.response_200(response)
+        assert "Scuola Mia" not in response.content.decode()
+
+    def test_empty_query_returns_no_schools(self):
+        user = self.make_user()
+        SchoolFactory(name="Scuola Qualsiasi", is_published=True)
+
+        with self.login(user):
+            response = self.get("school_menu:search_mirror_candidates", data={"q": ""})
+
+        self.response_200(response)
+        assert "Scuola Qualsiasi" not in response.content.decode()
 
 
 class SettingView(TestCase):
@@ -581,6 +717,41 @@ class SettingView(TestCase):
 
         self.response_200(response)
         assert "user" in response.context
+
+    def test_school_settings_shows_mirrored_school(self):
+        source = SchoolFactory(
+            name="Scuola Sorgente", city="Bologna", is_published=True
+        )
+        user = self.make_user()
+        SchoolFactory(user=user, mirror_from=source)
+
+        with self.login(user):
+            response = self.get("school_menu:school_settings")
+
+        self.assertContains(response, "Scuola Sorgente")
+        self.assertContains(response, "Bologna")
+
+    def test_school_settings_shows_mirrored_school_even_when_unpublished(self):
+        source = SchoolFactory(
+            name="Scuola Sorgente", city="Bologna", is_published=False
+        )
+        user = self.make_user()
+        SchoolFactory(user=user, mirror_from=source)
+
+        with self.login(user):
+            response = self.get("school_menu:school_settings")
+
+        self.response_200(response)
+        self.assertContains(response, "Scuola Sorgente")
+
+    def test_school_settings_hides_mirror_row_when_unset(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:school_settings")
+
+        self.assertNotContains(response, "Mostra il menu di")
 
     def test_school_delete_get(self):
         user = self.make_user()

@@ -33,17 +33,17 @@
         {% if meal %}
             {% if not school.is_published %}<span class="badge badge-error badge-outline">PRIVATO</span>{% endif %}
             <h1 class="text-3xl font-medium tracking-tight">Menu del giorno</h1>
-            {% if school.annual_menu %}
+            {% if display_school.annual_menu %}
                 {% include 'partials/_annual_menu.html' %}
             {% else %}
-                {% if school.menu_type == "D" %}
+                {% if display_school.menu_type == "D" %}
                     {% include 'partials/_detailed_menu.html' %}
                 {% else %}
                     {% include 'partials/_simple_menu.html' %}
                 {% endif %}
                 {% endif %}
                 {% include 'partials/_types_menu.html' %}
-            {% if not school.annual_menu %}
+            {% if not display_school.annual_menu %}
             <div class="flex flex-col items-center justify-center gap-1 md:flex-row md:gap-2">
                 <div class="badge badge-secondary me-1">Settimana {{ week }}</div>
                 <div class="badge badge-primary me-1">

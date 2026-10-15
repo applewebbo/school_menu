@@ -124,6 +124,104 @@ class TestSchoolForm:
         school2.refresh_from_db()
         assert school2.slug == original_slug
 
+    def test_form_rejects_self_mirror(self, user_factory, school_factory):
+        user = user_factory()
+        school = school_factory(user=user)
+
+        form = SchoolForm(
+            instance=school,
+            data={
+                "name": school.name,
+                "city": school.city,
+                "season_choice": School.Seasons.INVERNALE,
+                "week_bias": 0,
+                "menu_type": School.Types.SIMPLE,
+                "start_date": date(2024, 9, 1),
+                "end_date": date(2025, 6, 30),
+                "mirror_from": school.pk,
+            },
+        )
+
+        assert form.is_valid() is False
+        assert "mirror_from" in form.errors
+
+    def test_form_rejects_mirroring_a_school_that_already_mirrors(
+        self, user_factory, school_factory
+    ):
+        root = school_factory(is_published=True)
+        middle = school_factory(mirror_from=root)
+        leaf_user = user_factory()
+        leaf = school_factory(user=leaf_user)
+
+        form = SchoolForm(
+            instance=leaf,
+            data={
+                "name": leaf.name,
+                "city": leaf.city,
+                "season_choice": School.Seasons.INVERNALE,
+                "week_bias": 0,
+                "menu_type": School.Types.SIMPLE,
+                "start_date": date(2024, 9, 1),
+                "end_date": date(2025, 6, 30),
+                "mirror_from": middle.pk,
+            },
+        )
+
+        assert form.is_valid() is False
+        assert "mirror_from" in form.errors
+
+    def test_form_accepts_valid_mirror(self, user_factory, school_factory):
+        source = school_factory(is_published=True)
+        user = user_factory()
+        school = school_factory(user=user)
+
+        form = SchoolForm(
+            instance=school,
+            data={
+                "name": school.name,
+                "city": school.city,
+                "season_choice": School.Seasons.INVERNALE,
+                "week_bias": 0,
+                "menu_type": School.Types.SIMPLE,
+                "start_date": date(2024, 9, 1),
+                "end_date": date(2025, 6, 30),
+                "mirror_from": source.pk,
+            },
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["mirror_from"] == source
+
+    def test_mirror_from_queryset_excludes_ineligible_schools(
+        self, user_factory, school_factory
+    ):
+        user = user_factory()
+        school = school_factory(user=user)
+        root = school_factory(is_published=True)
+        mirroring_school = school_factory(is_published=True, mirror_from=root)
+        unpublished = school_factory(is_published=False)
+
+        form = SchoolForm(instance=school)
+
+        queryset = form.fields["mirror_from"].queryset
+        assert root in queryset
+        assert school not in queryset
+        assert mirroring_school not in queryset
+        assert unpublished not in queryset
+
+    def test_mirror_from_queryset_keeps_stale_current_value(
+        self, user_factory, school_factory
+    ):
+        source = school_factory(is_published=True)
+        user = user_factory()
+        school = school_factory(user=user, mirror_from=source)
+        source.is_published = False
+        source.save()
+
+        form = SchoolForm(instance=school)
+
+        assert source in form.fields["mirror_from"].queryset
+
     def test_form_allows_update_without_name_city_change(
         self, user_factory, school_factory
     ):

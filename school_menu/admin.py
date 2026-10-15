@@ -305,7 +305,15 @@ class SchoolTransferAdmin(admin.ModelAdmin):
     ]
     list_filter = ["status"]
     search_fields = ["school__name", "from_user__email", "to_user__email"]
-    readonly_fields = ["school", "from_user", "to_user", "message", "created_at"]
+    readonly_fields = [
+        "school",
+        "from_user",
+        "to_user",
+        "message",
+        "created_at",
+        "status",
+        "resolved_at",
+    ]
     actions = ["confirm_transfer", "reject_transfer"]
 
     def has_add_permission(self, request):

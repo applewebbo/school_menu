@@ -3,10 +3,10 @@ import io
 import pytest
 from django.contrib.messages.storage.fallback import FallbackStorage
 from django.core import mail
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 
-from school_menu.admin import CsvImportForm, SchoolAdmin
+from school_menu.admin import CsvImportForm, SchoolAdmin, SchoolTransferAdmin
 from school_menu.models import (
     AuditLog,
     DetailedMeal,
@@ -459,3 +459,35 @@ class TestSchoolAdminMirrorFrom:
         assert "mirror_from" in SchoolAdmin.autocomplete_fields
         assert SchoolAdmin.search_fields == ["name", "city"]
         assert "mirror_from" in SchoolAdmin.list_filter
+
+
+class TestSchoolTransferAdminStatusReadonly:
+    """`status`/`resolved_at` must never be hand-editable: the only path that may
+    change them is the confirm/reject actions, which also carry the side effects
+    (reassigning `School.user`, sending emails) (#291)."""
+
+    def test_status_and_resolved_at_are_readonly(self):
+        assert "status" in SchoolTransferAdmin.readonly_fields
+        assert "resolved_at" in SchoolTransferAdmin.readonly_fields
+
+    def test_editing_status_directly_does_not_reassign_school(self):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+        owner = UserFactory(email="owner2@test.com")
+        candidate = UserFactory(email="candidate2@test.com")
+        school = SchoolFactory(user=owner, seeking_maintainer=True)
+        transfer = SchoolTransferFactory(
+            school=school, from_user=owner, to_user=candidate
+        )
+        superuser = User.objects.filter(is_superuser=True).first() or UserFactory(
+            is_staff=True, is_superuser=True
+        )
+        client = Client()
+        client.force_login(superuser)
+        url = reverse("admin:school_menu_schooltransfer_change", args=[transfer.pk])
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert b'name="status"' not in response.content

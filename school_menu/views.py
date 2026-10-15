@@ -10,7 +10,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
 from django.core.files.uploadedfile import UploadedFile
-from django.core.mail import send_mail
 from django.db import connection
 from django.db.models import Q
 from django.forms import modelformset_factory
@@ -67,6 +66,7 @@ from school_menu.serializers import (
     SimpleMealSerializer,
 )
 from school_menu.services import ai_quota
+from school_menu.tasks import _send_html_email
 from school_menu.utils import (
     build_types_menu,
     calculate_week,
@@ -434,12 +434,15 @@ def propose_school_maintainer(request: HttpRequest, slug: str) -> HttpResponse:
             message=message,
         )
         try:
-            send_mail(
-                f"Candidatura responsabile per {school.name} su menuscolastico.it",
-                f"{request.user.email} si è candidato come nuovo responsabile per "
-                f"{school.name} ({school.city}).\n\n{message}",
-                None,
-                [settings.ADMIN_EMAIL],
+            _send_html_email(
+                settings.ADMIN_EMAIL,
+                subject=f"Candidatura responsabile per {school.name} su menuscolastico.it",
+                template="school_menu/emails/maintainer_candidacy.html",
+                context={
+                    "school": school,
+                    "candidate": request.user,
+                    "message": message,
+                },
             )
         except Exception as e:
             logger.error(

@@ -2,7 +2,9 @@ from datetime import date, datetime
 from unittest import mock
 
 import time_machine
+from django.conf import settings
 from django.contrib.messages import get_messages
+from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
@@ -1891,7 +1893,15 @@ class TestProposeSchoolMaintainerView(TestCase):
         messages = list(get_messages(response.wsgi_request))
         assert "Candidatura inviata con successo" in str(messages[0])
 
-    @mock.patch("school_menu.views.send_mail", side_effect=Exception("boom"))
+        assert len(mail.outbox) == 1
+        notice = mail.outbox[0]
+        assert notice.to == [settings.ADMIN_EMAIL]
+        assert self.school.name in notice.subject
+        assert notice.alternatives[0][1] == "text/html"
+        assert self.candidate.email in notice.alternatives[0][0]
+        assert "Mi piacerebbe aiutare" in notice.alternatives[0][0]
+
+    @mock.patch("school_menu.views._send_html_email", side_effect=Exception("boom"))
     def test_post_mail_failure_does_not_prevent_request(self, mock_send_mail):
         with self.login(self.candidate):
             response = self.post(

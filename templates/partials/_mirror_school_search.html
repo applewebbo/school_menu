@@ -3,7 +3,7 @@
     {% for school in schools %}
         <li>
             <button type="button"
-                    @click="mirrorId = '{{ school.pk }}'; mirrorLabel = '{{ school.name }}'; mirrorCity = '{{ school.city }}'; results = []">
+                    @click="mirrorId = '{{ school.pk|escapejs }}'; mirrorLabel = '{{ school.name|escapejs }}'; mirrorCity = '{{ school.city|escapejs }}'; results = []">
                 {% heroicon_outline 'academic-cap' class="text-primary size-4 shrink-0" %}
                 <span class="truncate">
                     <span class="text-base-content font-medium">{{ school.name }}</span>

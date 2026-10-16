@@ -253,8 +253,8 @@ class SchoolForm(forms.ModelForm):
                         <div class="ms-1"
                              x-data="{
                                 mirrorId: '{{ form.mirror_from.value|default_if_none:'' }}',
-                                mirrorLabel: '{{ form.instance.mirror_from.name }}',
-                                mirrorCity: '{{ form.instance.mirror_from.city }}'
+                                mirrorLabel: '{{ form.instance.mirror_from.name|escapejs }}',
+                                mirrorCity: '{{ form.instance.mirror_from.city|escapejs }}'
                              }">
                             <label class="label-text text-sm">Mostra il menu di</label>
                             <input type="hidden" name="mirror_from" :value="mirrorId">

@@ -518,6 +518,21 @@ class SearchMirrorCandidatesView(TestCase):
         self.response_200(response)
         assert "Scuola Qualsiasi" not in response.content.decode()
 
+    def test_school_name_with_apostrophe_is_js_escaped(self):
+        """School names are interpolated into an Alpine JS string literal (#323)."""
+        user = self.make_user()
+        SchoolFactory(name="Cornate D'Adda", is_published=True)
+
+        with self.login(user):
+            response = self.get(
+                "school_menu:search_mirror_candidates", data={"q": "Cornate"}
+            )
+
+        content = response.content.decode()
+        self.response_200(response)
+        assert "mirrorLabel = 'Cornate D\\u0027Adda'" in content
+        assert "mirrorLabel = 'Cornate D'Adda'" not in content
+
 
 class SettingView(TestCase):
     def test_get(self):
@@ -680,6 +695,22 @@ class SettingView(TestCase):
         assert "form" in response.context
         # Check that the end_date in the form is for the next year
         assert response.context["form"].initial["end_date"].year == 2026
+
+    def test_school_update_get_mirror_label_with_apostrophe_is_js_escaped(self):
+        """mirrorLabel seed in the form's x-data is JS-escaped, not just HTML-escaped (#323)."""
+        source = SchoolFactory(
+            name="Cornate D'Adda", city="Cornate D'Adda", is_published=True
+        )
+        user = self.make_user()
+        SchoolFactory(user=user, mirror_from=source)
+
+        with self.login(user):
+            response = self.get("school_menu:school_update")
+
+        content = response.content.decode()
+        self.response_200(response)
+        assert "mirrorLabel: 'Cornate D\\u0027Adda'" in content
+        assert "mirrorLabel: 'Cornate D'Adda'" not in content
 
     def test_school_update_with_invalid_data(self):
         user = self.make_user()

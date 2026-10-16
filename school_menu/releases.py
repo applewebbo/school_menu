@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.5",
+        "date": date(2026, 10, 16),
+        "notes": [
+            "Novità: una scuola può ora mostrare automaticamente il menu di un'altra scuola (ad esempio se condividono la stessa mensa), restando comunque sul proprio menu se quella scuola smette di pubblicarlo.",
+            "Novità: chi non può più aggiornare il menu della propria scuola può segnalarla come «in cerca di un nuovo responsabile»; altri genitori possono proporsi per subentrare.",
+            "Il sito ora controlla automaticamente se una scuola non pubblica il menu da settimane e avvisa il responsabile prima di sospenderla.",
+            "Uniformato lo stile di tutte le email automatiche inviate dal sito.",
+        ],
+    },
+    {
         "version": "2026.4.5",
         "date": date(2026, 10, 8),
         "notes": [

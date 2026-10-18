@@ -69,5 +69,8 @@
             <div class="mx-auto place-self-center">{% include 'partials/_menu.html' %}</div>
         {% endif %}
     </div>
+    {% if not not_published %}
+        {% include 'partials/_ad_slot.html' %}
+    {% endif %}
 </div>
 {% endblock content %}

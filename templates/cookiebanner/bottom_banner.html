@@ -7,7 +7,7 @@
     {% if cb_settings.header_text %}
       <p class="mt-3 text-center sm:text-left">{{ cb_settings.header_text|safe }}</p>
     {% endif %}
-    <form id="cookiebannerForm" class="my-3">
+    <form id="cookiebannerForm" class="my-3 space-y-2">
       {% for cookiegroup in cb_settings.groups %}
         <div id="cookiegroup_{{ cookiegroup.id }}">
           <div class="form-control">
@@ -81,7 +81,11 @@
 
       function checkExistingCookies() {
         const savedCookieValue = getCookie('cookiebanner');
-        if (!savedCookieValue) {
+        const savedGroups = savedCookieValue ? savedCookieValue.split(',') : [];
+        // Re-show the banner if a group didn't exist yet when the user last accepted
+        // (e.g. "advertising" added after they already said yes to "essential" only).
+        const missingGroup = cookiegroups.some((group) => !savedGroups.includes(group.id));
+        if (!savedCookieValue || missingGroup) {
           cookieBannerModal.classList.remove('hidden');
           cookieBannerModal.classList.add('flex');
         }

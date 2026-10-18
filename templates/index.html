@@ -33,5 +33,8 @@
             <div class="mx-auto place-self-center">{% include 'partials/_anon_index.html' %}</div>
         {% endif %}
     </div>
+    {% if user.is_authenticated or school %}
+        {% include 'partials/_ad_slot.html' %}
+    {% endif %}
 </div>
 {% endblock content %}

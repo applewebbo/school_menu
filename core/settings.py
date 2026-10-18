@@ -233,6 +233,22 @@ COOKIEBANNER = {
                 },
             ],
         },
+        {
+            "id": "advertising",
+            "name": _("Pubblicità"),
+            "optional": True,
+            "description": _(
+                "Permettono di mostrare un annuncio pubblicitario (Google AdSense) che aiuta a coprire i costi di hosting del sito."
+            ),
+            "cookies": [
+                {
+                    "pattern": "__gads / __gpi / IDE / test_cookie",
+                    "description": _(
+                        "Cookie di Google AdSense usati per la selezione e la misurazione degli annunci."
+                    ),
+                },
+            ],
+        },
     ],
 }
 
@@ -302,6 +318,13 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
 APP_VERSION = "2026.5"
+
+# ADS (#320) - Google AdSense Auto ads (Anchor ad format) on menu-viewing pages only
+# (public menu page + authenticated home). Anchor ads are Google-managed: size, policy
+# compliance and the close button all come from Google, not from our markup. Off by
+# default: the publisher application still needs approval, so this stays dark until set.
+ENABLE_ADS = env.bool("ENABLE_ADS", default=False)
+ADSENSE_CLIENT_ID = env("ADSENSE_CLIENT_ID", default=None)
 
 # AI MENU IMPORT (#234)
 # The Gemini key belongs to the site, not to the user: quotas below are what keeps a
@@ -446,6 +469,23 @@ CSP_CONNECT_SRC = ("'self'",)
 # Nothing is framed: the share button is a plain link opened in a new tab, and the
 # Facebook SDK that used to need these allowances is gone (#240).
 CSP_FRAME_SRC = ("'none'",)
+
+# Google AdSense (#320): ad units render in cross-origin iframes, so this reopens the
+# #240 hardening above for Google's ad-serving domains specifically (verify the exact
+# list against Google's current docs before relying on it).
+if ENABLE_ADS:
+    CSP_SCRIPT_SRC += ("https://pagead2.googlesyndication.com",)
+    # 'none' and real sources are mutually exclusive in a CSP directive, so this replaces
+    # rather than extends the #240 value.
+    CSP_FRAME_SRC = (
+        "https://googleads.g.doubleclick.net",
+        "https://tpc.googlesyndication.com",
+        "https://www.google.com",
+    )
+    CSP_CONNECT_SRC += (
+        "https://pagead2.googlesyndication.com",
+        "https://googleads.g.doubleclick.net",
+    )
 
 # Report-only mode initially to avoid breaking existing functionality
 CSP_REPORT_ONLY = True

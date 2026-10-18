@@ -7,6 +7,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
@@ -346,6 +347,90 @@ class SchoolMenuView(TestCase):
         assert response.context["display_school"] == mirroring
         self.assertContains(response, "Riso al Sugo")
         self.assertNotContains(response, "Pasta al Pomodoro")
+
+
+@override_settings(ENABLE_ADS=True, ADSENSE_CLIENT_ID="ca-pub-test")
+class AdSlot(TestCase):
+    """AdSense Auto ads (Anchor) on real menu views, gated on ENABLE_ADS + consent (#320)."""
+
+    def _consent_to_ads(self):
+        self.client.cookies["cookiebanner"] = "essential,advertising"
+
+    def test_hidden_by_default_without_consent(self):
+        school = SchoolFactory(is_published=True)
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        self.assertNotContains(response, "<!-- ad-slot -->")
+
+    @override_settings(ENABLE_ADS=False)
+    def test_hidden_when_ads_disabled_even_with_consent(self):
+        school = SchoolFactory(is_published=True)
+        self._consent_to_ads()
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        self.assertNotContains(response, "<!-- ad-slot -->")
+
+    def test_shown_on_public_menu_when_enabled_and_consented(self):
+        school = SchoolFactory(is_published=True)
+        self._consent_to_ads()
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        self.assertContains(response, "<!-- ad-slot -->")
+
+    def test_hidden_when_school_not_published(self):
+        school = SchoolFactory(is_published=False)
+        self._consent_to_ads()
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        self.assertNotContains(response, "<!-- ad-slot -->")
+
+    @time_machine.travel("2025-08-20")
+    def test_shown_on_public_menu_when_school_not_in_session(self):
+        school = SchoolFactory(start_month=9, start_day=15, end_month=6, end_day=10)
+        self._consent_to_ads()
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        self.assertContains(response, "<!-- ad-slot -->")
+
+    def test_shown_on_index_for_authenticated_user(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+        self._consent_to_ads()
+
+        with self.login(user):
+            response = self.get("school_menu:index")
+
+        self.response_200(response)
+        self.assertContains(response, "<!-- ad-slot -->")
+
+    def test_hidden_on_index_for_anonymous_visitor_without_a_school(self):
+        self._consent_to_ads()
+
+        response = self.get("school_menu:index")
+
+        self.response_200(response)
+        self.assertNotContains(response, "<!-- ad-slot -->")
+
+    def test_hidden_on_settings_dashboard(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+        self._consent_to_ads()
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        self.assertNotContains(response, "<!-- ad-slot -->")
 
 
 class GetMenuView(TestCase):

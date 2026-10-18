@@ -62,6 +62,12 @@ urlpatterns = [
         "robots.txt",
         TemplateView.as_view(template_name="robots.txt", content_type="text/plain"),
     ),
+    # Google AdSense authorized-seller declaration (#320), served at the domain root
+    # per the IAB ads.txt spec.
+    path(
+        "ads.txt",
+        TemplateView.as_view(template_name="ads.txt", content_type="text/plain"),
+    ),
     path("", include("pwa.urls")),
 ]
 

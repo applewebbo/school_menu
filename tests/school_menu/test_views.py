@@ -7,7 +7,6 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import override_settings
 from django.urls import reverse
 from pytest_django.asserts import assertTemplateUsed
 
@@ -20,6 +19,7 @@ from school_menu.models import (
     School,
     SchoolTransfer,
     SimpleMeal,
+    SiteSettings,
 )
 from school_menu.test import TestCase
 from school_menu.utils import calculate_week, get_current_date, get_season
@@ -514,9 +514,12 @@ class SchoolMenuView(TestCase):
         self.assertNotContains(response, "Pasta al Pomodoro")
 
 
-@override_settings(ENABLE_ADS=True, ADSENSE_CLIENT_ID="ca-pub-test")
 class AdSlot(TestCase):
-    """AdSense Auto ads (Anchor) on real menu views, gated on ENABLE_ADS + consent (#320)."""
+    """AdSense Auto ads (Anchor) on real menu views, gated on SiteSettings.enable_ads
+    + consent (#320, admin-editable instead of env vars since #327)."""
+
+    def setUp(self):
+        SiteSettings.objects.create(enable_ads=True, adsense_client_id="ca-pub-test")
 
     def _consent_to_ads(self):
         self.client.cookies["cookiebanner"] = "essential,advertising"
@@ -529,8 +532,8 @@ class AdSlot(TestCase):
         self.response_200(response)
         self.assertNotContains(response, "<!-- ad-slot -->")
 
-    @override_settings(ENABLE_ADS=False)
     def test_hidden_when_ads_disabled_even_with_consent(self):
+        SiteSettings.objects.update(enable_ads=False)
         school = SchoolFactory(is_published=True)
         self._consent_to_ads()
 
@@ -596,6 +599,46 @@ class AdSlot(TestCase):
 
         self.response_200(response)
         self.assertNotContains(response, "<!-- ad-slot -->")
+
+
+class KofiSupportLink(TestCase):
+    """Footer badge + settings/notifications note, admin-gated (#327)."""
+
+    def test_footer_hidden_when_kofi_disabled(self):
+        response = self.get("school_menu:index")
+
+        self.response_200(response)
+        self.assertNotContains(response, "Sostieni il progetto")
+
+    def test_footer_shown_when_kofi_enabled(self):
+        SiteSettings.objects.create(enable_kofi=True, kofi_url="https://ko-fi.com/test")
+
+        response = self.get("school_menu:index")
+
+        self.response_200(response)
+        self.assertContains(response, "Sostieni il progetto")
+        self.assertContains(response, "https://ko-fi.com/test")
+
+    def test_footer_hidden_when_url_set_but_not_enabled(self):
+        SiteSettings.objects.create(
+            enable_kofi=False, kofi_url="https://ko-fi.com/test"
+        )
+
+        response = self.get("school_menu:index")
+
+        self.response_200(response)
+        self.assertNotContains(response, "Sostieni il progetto")
+
+    def test_settings_note_shown_when_kofi_enabled(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+        SiteSettings.objects.create(enable_kofi=True, kofi_url="https://ko-fi.com/test")
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        self.assertContains(response, "costi di hosting e manutenzione")
 
 
 class GetMenuView(TestCase):

@@ -1,17 +1,15 @@
-{% load cookiebanner settings_tags %}
-{% get_setting 'ENABLE_ADS' as ads_enabled %}
-{% get_setting 'ADSENSE_CLIENT_ID' as adsense_client_id %}
+{% load cookiebanner %}
 {% cookie_accepted 'advertising' as ads_consented %}
-{% if ads_enabled and adsense_client_id and ads_consented %}
+{% if site_settings.enable_ads and site_settings.adsense_client_id and ads_consented %}
     {# Google-managed Auto ads (Anchor ad format): size, placement and the close button
        are handled entirely by Google, not by our markup (#320). #}
     <!-- ad-slot -->
     <script async
-            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client_id }}"
+            src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ site_settings.adsense_client_id }}"
             crossorigin="anonymous"></script>
     <script>
         (window.adsbygoogle = window.adsbygoogle || []).push({
-            google_ad_client: "{{ adsense_client_id }}",
+            google_ad_client: "{{ site_settings.adsense_client_id }}",
             enable_page_level_ads: true
         });
     </script>

@@ -92,6 +92,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "core.context_processors.app_version",
+                "core.context_processors.site_settings",
             ],
         },
     },
@@ -319,17 +320,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
 APP_VERSION = "2026.5"
 
-# ADS (#320) - Google AdSense Auto ads (Anchor ad format) on menu-viewing pages only
-# (public menu page + authenticated home). Anchor ads are Google-managed: size, policy
-# compliance and the close button all come from Google, not from our markup. Off by
-# default: the publisher application still needs approval, so this stays dark until set.
-ENABLE_ADS = env.bool("ENABLE_ADS", default=False)
-ADSENSE_CLIENT_ID = env("ADSENSE_CLIENT_ID", default=None)
-
-# SUPPORT BANNER (#326) - plain outbound link, no embed/script, so it needs no new
-# cookie-consent category. Templates hide the footer badge and the settings/
-# notifications note until this is set.
-KOFI_URL = env("KOFI_URL", default=None)
+# ADS (#320) and SUPPORT BANNER (#326): both toggled from the admin's "Impostazioni
+# del sito" singleton (school_menu.models.SiteSettings, #327), not from env vars —
+# see core/context_processors.py:site_settings.
 
 # AI MENU IMPORT (#234)
 # The Gemini key belongs to the site, not to the user: quotas below are what keeps a
@@ -477,20 +470,22 @@ CSP_FRAME_SRC = ("'none'",)
 
 # Google AdSense (#320): ad units render in cross-origin iframes, so this reopens the
 # #240 hardening above for Google's ad-serving domains specifically (verify the exact
-# list against Google's current docs before relying on it).
-if ENABLE_ADS:
-    CSP_SCRIPT_SRC += ("https://pagead2.googlesyndication.com",)
-    # 'none' and real sources are mutually exclusive in a CSP directive, so this replaces
-    # rather than extends the #240 value.
-    CSP_FRAME_SRC = (
-        "https://googleads.g.doubleclick.net",
-        "https://tpc.googlesyndication.com",
-        "https://www.google.com",
-    )
-    CSP_CONNECT_SRC += (
-        "https://pagead2.googlesyndication.com",
-        "https://googleads.g.doubleclick.net",
-    )
+# list against Google's current docs before relying on it). Kept unconditional (not
+# gated on the admin-editable enable_ads toggle, #327): CSP only states what's
+# *allowed* to load, independently of whether the template currently requests it, so
+# turning ads on/off from the admin takes effect immediately with no redeploy.
+CSP_SCRIPT_SRC += ("https://pagead2.googlesyndication.com",)
+# 'none' and real sources are mutually exclusive in a CSP directive, so this replaces
+# rather than extends the #240 value.
+CSP_FRAME_SRC = (
+    "https://googleads.g.doubleclick.net",
+    "https://tpc.googlesyndication.com",
+    "https://www.google.com",
+)
+CSP_CONNECT_SRC += (
+    "https://pagead2.googlesyndication.com",
+    "https://googleads.g.doubleclick.net",
+)
 
 # Report-only mode initially to avoid breaking existing functionality
 CSP_REPORT_ONLY = True

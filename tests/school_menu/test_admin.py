@@ -13,6 +13,7 @@ from school_menu.models import (
     School,
     SchoolTransfer,
     SimpleMeal,
+    SiteSettings,
 )
 from tests.school_menu.factories import (
     SchoolFactory,
@@ -491,3 +492,113 @@ class TestSchoolTransferAdminStatusReadonly:
 
         assert response.status_code == 200
         assert b'name="status"' not in response.content
+
+
+class TestSiteSettingsAdmin(TestCase):
+    """Singleton admin (#327): no list, no add, no delete — just the one row's form."""
+
+    def setUp(self):
+        self.superuser = UserFactory(is_staff=True, is_superuser=True)
+        self.client.force_login(self.superuser)
+
+    def test_changelist_redirects_to_change_form_and_creates_row(self):
+        assert not SiteSettings.objects.exists()
+        url = reverse("admin:school_menu_sitesettings_changelist")
+
+        response = self.client.get(url)
+
+        settings = SiteSettings.objects.get()
+        self.assertRedirects(
+            response,
+            reverse("admin:school_menu_sitesettings_change", args=[settings.pk]),
+        )
+
+    def test_changelist_reuses_existing_row(self):
+        existing = SiteSettings.objects.create(enable_kofi=True)
+        url = reverse("admin:school_menu_sitesettings_changelist")
+
+        self.client.get(url)
+
+        assert SiteSettings.objects.count() == 1
+        assert SiteSettings.objects.get().pk == existing.pk
+
+    def test_add_view_is_blocked(self):
+        url = reverse("admin:school_menu_sitesettings_add")
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_view_is_blocked(self):
+        settings = SiteSettings.objects.create()
+        url = reverse("admin:school_menu_sitesettings_delete", args=[settings.pk])
+
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_change_form_saves_values(self):
+        settings = SiteSettings.objects.create()
+        url = reverse("admin:school_menu_sitesettings_change", args=[settings.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                "enable_ads": "on",
+                "adsense_client_id": "ca-pub-test",
+                "enable_kofi": "on",
+                "kofi_url": "https://ko-fi.com/test",
+                "_save": "Save",
+            },
+        )
+
+        # Not assertRedirects: the changelist itself redirects straight back to the
+        # change form (singleton admin), so there is no plain 200 at the end of the
+        # chain to fetch.
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, reverse("admin:school_menu_sitesettings_changelist")
+        )
+        settings.refresh_from_db()
+        assert settings.enable_ads is True
+        assert settings.adsense_client_id == "ca-pub-test"
+        assert settings.enable_kofi is True
+        assert settings.kofi_url == "https://ko-fi.com/test"
+
+    def test_change_form_rejects_enabled_kofi_without_url(self):
+        settings = SiteSettings.objects.create()
+        url = reverse("admin:school_menu_sitesettings_change", args=[settings.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                "enable_ads": "",
+                "adsense_client_id": "",
+                "enable_kofi": "on",
+                "kofi_url": "",
+                "_save": "Save",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        settings.refresh_from_db()
+        assert settings.enable_kofi is False
+
+    def test_change_form_rejects_enabled_ads_without_client_id(self):
+        settings = SiteSettings.objects.create()
+        url = reverse("admin:school_menu_sitesettings_change", args=[settings.pk])
+
+        response = self.client.post(
+            url,
+            data={
+                "enable_ads": "on",
+                "adsense_client_id": "",
+                "enable_kofi": "",
+                "kofi_url": "",
+                "_save": "Save",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        settings.refresh_from_db()
+        assert settings.enable_ads is False

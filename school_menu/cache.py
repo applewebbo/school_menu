@@ -264,6 +264,16 @@ def invalidate_school_cache(school_id: int, school_slug: str | None = None) -> i
     return total_deleted
 
 
+def invalidate_site_settings_cache() -> None:
+    """
+    Clear the cached SiteSettings singleton (#327).
+
+    Called from SiteSettings.save() so an admin edit is reflected on the very next
+    request, without waiting for the cache TTL to expire.
+    """
+    cache.delete("site_settings")
+
+
 def invalidate_school_list_cache() -> int:
     """
     Clear cached public school list and search results.

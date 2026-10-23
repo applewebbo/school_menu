@@ -9,6 +9,7 @@ from school_menu.models import (
     Meal,
     MirrorFallbackCheck,
     SchoolTransfer,
+    SiteSettings,
 )
 from tests.school_menu.factories import MenuHealthCheckFactory, SchoolTransferFactory
 from tests.users.factories import UserFactory
@@ -159,6 +160,84 @@ class TestSchoolHasSpecialDaysAcrossMealTypes:
 
         school.refresh_from_db()
         assert school.has_special_days is True
+
+
+class TestSiteSettingsModel:
+    """Singleton site settings (#327): always one row, cached between saves."""
+
+    def test_save_forces_pk_to_1(self):
+        settings_a = SiteSettings(enable_ads=True)
+        settings_a.save()
+        settings_b = SiteSettings(enable_kofi=True)
+        settings_b.save()
+
+        assert settings_a.pk == 1
+        assert settings_b.pk == 1
+        assert SiteSettings.objects.count() == 1
+        assert SiteSettings.objects.get().enable_kofi is True
+
+    def test_str(self):
+        assert str(SiteSettings()) == "Impostazioni del sito"
+
+    def test_get_solo_creates_row_with_defaults_when_missing(self):
+        assert not SiteSettings.objects.exists()
+
+        settings = SiteSettings.get_solo()
+
+        assert settings.pk == 1
+        assert settings.enable_ads is False
+        assert settings.enable_kofi is False
+
+    def test_get_solo_returns_cached_value_without_querying(self):
+        """DummyCache in tests never really stores anything, so cache.get is mocked
+        to simulate a hit, matching the pattern in tests/school_menu/test_cache.py."""
+        cached = SiteSettings(pk=1, enable_kofi=True)
+        with patch("school_menu.cache.cache") as mock_cache:
+            mock_cache.get.return_value = cached
+            with patch(
+                "school_menu.models.SiteSettings.objects.get_or_create"
+            ) as mock_get_or_create:
+                result = SiteSettings.get_solo()
+
+        assert result is cached
+        mock_get_or_create.assert_not_called()
+
+    @patch("school_menu.models.invalidate_site_settings_cache")
+    def test_save_invalidates_cache(self, mock_invalidate):
+        SiteSettings().save()
+
+        mock_invalidate.assert_called_once()
+
+    def test_clean_rejects_enabled_ads_without_client_id(self):
+        settings = SiteSettings(enable_ads=True, adsense_client_id="")
+
+        with pytest.raises(ValidationError) as exc_info:
+            settings.clean()
+
+        assert "adsense_client_id" in exc_info.value.message_dict
+
+    def test_clean_rejects_enabled_kofi_without_url(self):
+        settings = SiteSettings(enable_kofi=True, kofi_url="")
+
+        with pytest.raises(ValidationError) as exc_info:
+            settings.clean()
+
+        assert "kofi_url" in exc_info.value.message_dict
+
+    def test_clean_accepts_enabled_integrations_with_values(self):
+        settings = SiteSettings(
+            enable_ads=True,
+            adsense_client_id="ca-pub-test",
+            enable_kofi=True,
+            kofi_url="https://ko-fi.com/test",
+        )
+
+        settings.clean()
+
+    def test_clean_accepts_disabled_integrations_without_values(self):
+        settings = SiteSettings()
+
+        settings.clean()
 
 
 class TestSchoolModel:

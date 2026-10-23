@@ -1,10 +1,9 @@
-{% load heroicons settings_tags %}
-{% get_setting 'KOFI_URL' as kofi_url %}
-{% if kofi_url %}
+{% load heroicons %}
+{% if site_settings.enable_kofi and site_settings.kofi_url %}
     <div class="bg-base-100 sm:bg-base-300 flex items-start gap-3 rounded-lg p-4">
         {% heroicon_outline 'gift' class="text-primary size-6 shrink-0" %}
         <p class="text-base-content/80 text-sm/5">
-            Questo sito è gratuito e senza scopo di lucro. Se ti è utile, puoi sostenerlo con una piccola donazione su <a href="{{ kofi_url }}" target="_blank" rel="noopener" class="link link-primary">Ko-fi</a>: i fondi raccolti servono a coprire i costi di hosting e manutenzione.
+            Questo sito è gratuito e senza scopo di lucro. Se ti è utile, puoi sostenerlo con una piccola donazione su <a href="{{ site_settings.kofi_url }}" target="_blank" rel="noopener" class="link link-primary">Ko-fi</a>: i fondi raccolti servono a coprire i costi di hosting e manutenzione.
         </p>
     </div>
 {% endif %}

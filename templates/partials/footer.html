@@ -1,5 +1,4 @@
-{% load heroicons settings_tags static %}
-{% get_setting 'KOFI_URL' as kofi_url %}
+{% load heroicons static %}
 <footer class="bg-base-200">
     <div class="mx-auto w-full max-w-3xl">
         <div class="grid grid-cols-2 gap-8 px-4 py-6 md:grid-cols-4 lg:py-8">
@@ -12,8 +11,8 @@
                     <br>
                     <span class="text-base-content/90 font-light italic">cosa mangia mio figlio oggi?</span>
                 </p>
-                {% if kofi_url %}
-                    <a href="{{ kofi_url }}"
+                {% if site_settings.enable_kofi and site_settings.kofi_url %}
+                    <a href="{{ site_settings.kofi_url }}"
                        target="_blank"
                        rel="noopener"
                        class="bg-base-300 text-base-content/80 hover:bg-base-content/10 mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-medium transition-colors">

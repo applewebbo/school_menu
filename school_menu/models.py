@@ -8,7 +8,13 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from school_menu.cache import invalidate_meal_cache, invalidate_school_cache
+from school_menu.cache import (
+    get_cached_or_query,
+    invalidate_meal_cache,
+    invalidate_school_cache,
+    invalidate_site_settings_cache,
+)
+from school_menu.constants import CACHE_TTL_24_HOURS
 
 
 class Meal(models.Model):
@@ -621,3 +627,50 @@ def delete_menu_import_file(sender, instance, **kwargs):
     """
     if instance.source_file:
         instance.source_file.delete(save=False)
+
+
+class SiteSettings(models.Model):
+    """Site-wide integration toggles, editable from the admin instead of env vars (#327).
+
+    Always a single row (pk forced to 1 on save); use `get_solo()` to read it, which
+    caches the result so every page render (the footer reads this) costs zero extra
+    queries between saves.
+    """
+
+    enable_ads = models.BooleanField(default=False, verbose_name="Attiva AdSense")
+    adsense_client_id = models.CharField(
+        max_length=50, blank=True, verbose_name="Client ID AdSense"
+    )
+    enable_kofi = models.BooleanField(default=False, verbose_name="Attiva link Ko-fi")
+    kofi_url = models.URLField(blank=True, verbose_name="URL Ko-fi")
+
+    class Meta:
+        verbose_name = "impostazioni del sito"
+        verbose_name_plural = "impostazioni del sito"
+
+    def __str__(self):
+        return "Impostazioni del sito"
+
+    def clean(self):
+        super().clean()
+        if self.enable_ads and not self.adsense_client_id:
+            raise ValidationError(
+                {"adsense_client_id": "Inserisci il Client ID AdSense per attivarlo."}
+            )
+        if self.enable_kofi and not self.kofi_url:
+            raise ValidationError({"kofi_url": "Inserisci l'URL Ko-fi per attivarlo."})
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+        invalidate_site_settings_cache()
+
+    @classmethod
+    def get_solo(cls) -> SiteSettings:
+        """The singleton row, cached; created with all integrations off on first read."""
+
+        def query():
+            obj, _ = cls.objects.get_or_create(pk=1)
+            return obj
+
+        return get_cached_or_query("site_settings", query, timeout=CACHE_TTL_24_HOURS)

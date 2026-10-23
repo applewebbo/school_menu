@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin, messages
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.utils import timezone
 from import_export.admin import ImportExportModelAdmin
 from tablib import Dataset
@@ -16,6 +16,7 @@ from .models import (
     School,
     SchoolTransfer,
     SimpleMeal,
+    SiteSettings,
     SpecialDetailedMeal,
     SpecialSimpleMeal,
 )
@@ -378,3 +379,58 @@ class SchoolTransferAdmin(admin.ModelAdmin):
         queryset.filter(status=SchoolTransfer.Status.REQUESTED).update(
             status=SchoolTransfer.Status.REJECTED, resolved_at=timezone.now()
         )
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(admin.ModelAdmin):
+    """Singleton model (#327): the changelist redirects straight to the one row's
+    change form instead of showing a list, creating that row on first visit."""
+
+    fields = ["enable_ads", "adsense_client_id", "enable_kofi", "kofi_url"]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        obj, _ = SiteSettings.objects.get_or_create(pk=1)
+        url = reverse("admin:school_menu_sitesettings_change", args=[obj.pk])
+        return redirect(url)
+
+
+# Django's admin app index sorts models alphabetically by verbose_name, which has
+# nothing to do with how often each one is actually used. Reorder just this app's
+# models instead, falling back to alphabetical (Django's own ordering) for anything
+# not listed, so a future model doesn't silently disappear from the index (#327).
+SCHOOL_MENU_MODEL_ORDER = [
+    "School",
+    "DetailedMeal",
+    "SimpleMeal",
+    "AnnualMeal",
+    "SpecialDetailedMeal",
+    "SpecialSimpleMeal",
+    "MenuImportDraft",
+    "MenuImportQuota",
+    "MenuHealthCheck",
+    "SchoolTransfer",
+    "AuditLog",
+    "SiteSettings",
+]
+
+_default_get_app_list = admin.site.get_app_list
+
+
+def _ordered_get_app_list(self, request, app_label=None):
+    app_list = _default_get_app_list(request, app_label=app_label)
+    order = {name: index for index, name in enumerate(SCHOOL_MENU_MODEL_ORDER)}
+    for app in app_list:
+        if app["app_label"] == "school_menu":
+            app["models"].sort(
+                key=lambda model: order.get(model["object_name"], len(order))
+            )
+    return app_list
+
+
+admin.site.get_app_list = _ordered_get_app_list.__get__(admin.site, admin.AdminSite)

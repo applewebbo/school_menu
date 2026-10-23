@@ -61,6 +61,10 @@
               x-on:click="openChoices = ! openChoices"
               x-show="openChoices">{% heroicon_mini 'minus-circle' class="size-5" %}Info</button>
       <input type="submit"
+             name="save_preferences"
+             class="btn btn-sm btn-outline btn-primary"
+             value="Salva preferenze">
+      <input type="submit"
              name="enable_all"
              class="btn btn-sm btn-primary"
              value="Accetta">
@@ -81,10 +85,23 @@
 
       function checkExistingCookies() {
         const savedCookieValue = getCookie('cookiebanner');
-        const savedGroups = savedCookieValue ? savedCookieValue.split(',') : [];
-        // Re-show the banner if a group didn't exist yet when the user last accepted
-        // (e.g. "advertising" added after they already said yes to "essential" only).
-        const missingGroup = cookiegroups.some((group) => !savedGroups.includes(group.id));
+        // 'cookiebanner_known_groups' records every group id that existed when the
+        // visitor last decided, accepted or not — the accepted-only cookie above can't
+        // tell a declined group from one that didn't exist yet, so re-showing the
+        // banner whenever a group was simply absent from it would re-prompt someone
+        // who had explicitly unchecked "Pubblicità" on every single visit.
+        const knownGroupsValue = getCookie('cookiebanner_known_groups');
+        let missingGroup;
+        if (knownGroupsValue) {
+          const knownGroups = knownGroupsValue.split(',');
+          missingGroup = cookiegroups.some((group) => !knownGroups.includes(group.id));
+        } else {
+          // No decision recorded yet under the new cookie: fall back to the legacy
+          // check so visitors who already decided before this fix aren't re-prompted
+          // for groups they'd already accepted.
+          const savedGroups = savedCookieValue ? savedCookieValue.split(',') : [];
+          missingGroup = cookiegroups.some((group) => !savedGroups.includes(group.id));
+        }
         if (!savedCookieValue || missingGroup) {
           cookieBannerModal.classList.remove('hidden');
           cookieBannerModal.classList.add('flex');
@@ -154,6 +171,9 @@
           }
 
           setCookie('cookiebanner', enable_cookies.join(','), 365);
+          // Record every group the visitor saw at decision time, not just the
+          // accepted ones, so a declined group is never mistaken for a new one.
+          setCookie('cookiebanner_known_groups', cookiegroups.map(group => group.id).join(','), 365);
           window.location.reload();
         });
       });

@@ -10,6 +10,16 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.6",
+        "date": date(2026, 10, 23),
+        "notes": [
+            "Novità: le scuole con menu settimanale o dettagliato possono ora impostare un menu speciale per una data specifica (ad esempio per una festa), fino a 5 giorni speciali.",
+            "Aggiunto un piccolo badge «Sostieni il progetto» (Ko-fi) nel footer, con una spiegazione in impostazioni e notifiche su come vengono usati i fondi ricevuti.",
+            "Il banner dei cookie ora permette di salvare le preferenze scelte (ad esempio rifiutando solo la pubblicità) senza doverle accettare tutte.",
+            "Diverse rifiniture grafiche alla sezione «Giorni Speciali» nelle impostazioni, più leggibile su smartphone.",
+        ],
+    },
+    {
         "version": "2026.5",
         "date": date(2026, 10, 16),
         "notes": [

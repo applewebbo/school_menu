@@ -183,16 +183,14 @@ class SpecialSimpleMeal(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.school_id:
-            invalidate_meal_cache(self.school_id)
-            _sync_has_special_days(self.school_id)
+        invalidate_meal_cache(self.school_id)
+        _sync_has_special_days(self.school_id)
 
     def delete(self, *args, **kwargs):
         school_id = self.school_id
         super().delete(*args, **kwargs)
-        if school_id:
-            invalidate_meal_cache(school_id)
-            _sync_has_special_days(school_id)
+        invalidate_meal_cache(school_id)
+        _sync_has_special_days(school_id)
 
 
 class SpecialDetailedMeal(models.Model):
@@ -226,16 +224,14 @@ class SpecialDetailedMeal(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        if self.school_id:
-            invalidate_meal_cache(self.school_id)
-            _sync_has_special_days(self.school_id)
+        invalidate_meal_cache(self.school_id)
+        _sync_has_special_days(self.school_id)
 
     def delete(self, *args, **kwargs):
         school_id = self.school_id
         super().delete(*args, **kwargs)
-        if school_id:
-            invalidate_meal_cache(school_id)
-            _sync_has_special_days(school_id)
+        invalidate_meal_cache(school_id)
+        _sync_has_special_days(school_id)
 
 
 def _sync_has_special_days(school_id: int) -> None:

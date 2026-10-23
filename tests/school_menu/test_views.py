@@ -972,6 +972,15 @@ class SettingView(TestCase):
         )
         assert response.context["can_add_special_day"] is True
 
+    def test_get_without_school_skips_special_days(self):
+        user = self.make_user()
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        assert "special_days" not in response.context
+
     def test_partial_reload(self):
         user = self.make_user()
         SchoolFactory(user=user)
@@ -993,6 +1002,15 @@ class SettingView(TestCase):
 
         self.response_200(response)
         assert response.context["user"] == intruder
+
+    def test_partial_reload_without_school_skips_special_days(self):
+        user = self.make_user()
+
+        with self.login(user):
+            response = self.get("school_menu:menu_settings")
+
+        self.response_200(response)
+        assert "special_days" not in response.context
 
     def test_partial_reload_with_alt_menu(self):
         user = self.make_user()

@@ -326,6 +326,11 @@ APP_VERSION = "2026.5"
 ENABLE_ADS = env.bool("ENABLE_ADS", default=False)
 ADSENSE_CLIENT_ID = env("ADSENSE_CLIENT_ID", default=None)
 
+# SUPPORT BANNER (#326) - plain outbound link, no embed/script, so it needs no new
+# cookie-consent category. Templates hide the footer badge and the settings/
+# notifications note until this is set.
+KOFI_URL = env("KOFI_URL", default=None)
+
 # AI MENU IMPORT (#234)
 # The Gemini key belongs to the site, not to the user: quotas below are what keeps a
 # single account from burning the shared allowance. Everything is env-driven so moving

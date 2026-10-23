@@ -145,6 +145,106 @@ class AnnualMeal(Meal):
         ]
 
 
+MAX_SPECIAL_DAYS = 5
+
+
+class SpecialSimpleMeal(models.Model):
+    school = models.ForeignKey("School", on_delete=models.CASCADE)
+    type = models.CharField(
+        max_length=1, choices=Meal.Types.choices, default=Meal.Types.STANDARD
+    )
+    date = models.DateField()
+    menu = models.TextField(max_length=600)
+    morning_snack = models.CharField(max_length=200, blank=True)
+    afternoon_snack = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = "giorno speciale (menu semplice)"
+        verbose_name_plural = "giorni speciali (menu semplice)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "date", "type"],
+                name="unique_special_simple_school_date_type",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["school", "date"], name="special_simple_sch_date")
+        ]
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.school.name} [speciale {self.date:%d/%m/%Y}]"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.school_id:
+            invalidate_meal_cache(self.school_id)
+            _sync_has_special_days(self.school_id)
+
+    def delete(self, *args, **kwargs):
+        school_id = self.school_id
+        super().delete(*args, **kwargs)
+        if school_id:
+            invalidate_meal_cache(school_id)
+            _sync_has_special_days(school_id)
+
+
+class SpecialDetailedMeal(models.Model):
+    school = models.ForeignKey("School", on_delete=models.CASCADE)
+    type = models.CharField(
+        max_length=1, choices=Meal.Types.choices, default=Meal.Types.STANDARD
+    )
+    date = models.DateField()
+    first_course = models.CharField(max_length=200, blank=True)
+    second_course = models.CharField(max_length=200, blank=True)
+    side_dish = models.CharField(max_length=200, blank=True)
+    fruit = models.CharField(max_length=200, blank=True, default="Frutta di Stagione")
+    snack = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        verbose_name = "giorno speciale (menu dettagliato)"
+        verbose_name_plural = "giorni speciali (menu dettagliato)"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "date", "type"],
+                name="unique_special_detailed_school_date_type",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["school", "date"], name="special_detailed_sch_date")
+        ]
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.school.name} [speciale {self.date:%d/%m/%Y}]"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.school_id:
+            invalidate_meal_cache(self.school_id)
+            _sync_has_special_days(self.school_id)
+
+    def delete(self, *args, **kwargs):
+        school_id = self.school_id
+        super().delete(*args, **kwargs)
+        if school_id:
+            invalidate_meal_cache(school_id)
+            _sync_has_special_days(school_id)
+
+
+def _sync_has_special_days(school_id: int) -> None:
+    """Keep School.has_special_days in sync without calling School.save()
+    (which would redundantly re-invalidate the school cache already covered
+    by invalidate_meal_cache above)."""
+    has_any = (
+        SpecialSimpleMeal.objects.filter(school_id=school_id).exists()
+        or SpecialDetailedMeal.objects.filter(school_id=school_id).exists()
+    )
+    School.objects.filter(pk=school_id).exclude(has_special_days=has_any).update(
+        has_special_days=has_any
+    )
+
+
 class School(models.Model):
     class Seasons(models.IntegerChoices):
         PRIMAVERILE = 1
@@ -194,6 +294,7 @@ class School(models.Model):
     vegetarian = models.BooleanField(default=False)
     special = models.BooleanField(default=False)
     annual_menu = models.BooleanField(default=False)
+    has_special_days = models.BooleanField(default=False, editable=False)
     seeking_maintainer = models.BooleanField(default=False)
     mirror_from = models.ForeignKey(
         "self",

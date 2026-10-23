@@ -1,5 +1,7 @@
 """Calendar and date calculation utilities for school menu management."""
 
+from datetime import date, timedelta
+
 from django.utils import timezone
 
 from school_menu.constants import (
@@ -43,6 +45,32 @@ def calculate_week(week: int, bias: int) -> int:
     return int((week_number - floor_week_number) * 4)
 
 
+def get_target_date(next_day: bool = False) -> date:
+    """
+    Get the real calendar date of "today" (or "tomorrow"), skipping weekends
+    to the next Monday.
+
+    Shared by get_current_date, get_meals_for_annual_menu and
+    get_special_meal.
+
+    Args:
+        next_day: If True, returns the date for the next day instead of today
+
+    Returns:
+        The target date, moved to next Monday if it would otherwise fall on
+        a Saturday or Sunday.
+    """
+    target_date = timezone.now().date()
+    if next_day:
+        target_date += timedelta(days=1)
+
+    # If it's weekend, get next Monday
+    if target_date.weekday() >= FIRST_WEEKEND_DAY:  # Saturday or Sunday
+        target_date += timedelta(days=(7 - target_date.weekday()))
+
+    return target_date
+
+
 def get_current_date(next_day: bool = False) -> tuple[int, int]:
     """
     Get current week and day numbers, optionally for the next day.
@@ -63,18 +91,8 @@ def get_current_date(next_day: bool = False) -> tuple[int, int]:
         >>> get_current_date(next_day=True)  # Returns Tuesday
         (14, 2)
     """
-    from datetime import timedelta
-
-    target_date = timezone.now()
-    if next_day:
-        target_date += timedelta(days=1)
-
-    # If it's weekend, get next Monday
-    if target_date.weekday() >= FIRST_WEEKEND_DAY:  # Saturday or Sunday
-        target_date += timedelta(days=(7 - target_date.weekday()))
-
-    current_week = target_date.isocalendar()[1]
-    day = target_date.isocalendar()[2]
+    target_date = get_target_date(next_day)
+    current_week, day = target_date.isocalendar()[1], target_date.isocalendar()[2]
 
     return current_week, day
 

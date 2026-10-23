@@ -6,6 +6,8 @@ from tests.school_menu.factories import (
     DetailedMealFactory,
     SchoolFactory,
     SimpleMealFactory,
+    SpecialDetailedMealFactory,
+    SpecialSimpleMealFactory,
 )
 from tests.users.factories import UserFactory
 
@@ -14,4 +16,6 @@ register(SchoolFactory)
 register(SimpleMealFactory)
 register(DetailedMealFactory)
 register(AnnualMealFactory)
+register(SpecialSimpleMealFactory)
+register(SpecialDetailedMealFactory)
 register(MenuReportFactory)

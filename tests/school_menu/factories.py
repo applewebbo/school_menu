@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import factory
 from faker import Faker
 
@@ -5,11 +7,14 @@ from school_menu.models import (
     AnnualMeal,
     AuditLog,
     DetailedMeal,
+    Meal,
     MenuHealthCheck,
     MenuImportDraft,
     School,
     SchoolTransfer,
     SimpleMeal,
+    SpecialDetailedMeal,
+    SpecialSimpleMeal,
 )
 from tests.users.factories import UserFactory
 
@@ -155,6 +160,32 @@ class AnnualMealFactory(factory.django.DjangoModelFactory):
     menu = factory.Iterator(MEAL_LIST)
     snack = factory.Iterator(SNACK_LIST)
     date = factory.Faker("date_this_year")
+
+
+class SpecialSimpleMealFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = SpecialSimpleMeal
+
+    school = factory.SubFactory(SchoolFactory)
+    type = Meal.Types.STANDARD
+    date = factory.Sequence(lambda n: date(2026, 1, 1) + timedelta(days=n))
+    menu = factory.Iterator(MEAL_LIST)
+    morning_snack = factory.Iterator(FRUIT_LIST)
+    afternoon_snack = factory.Iterator(SNACK_LIST_2)
+
+
+class SpecialDetailedMealFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = SpecialDetailedMeal
+
+    school = factory.SubFactory(SchoolFactory)
+    type = Meal.Types.STANDARD
+    date = factory.Sequence(lambda n: date(2026, 1, 1) + timedelta(days=n))
+    first_course = factory.Iterator(FIRST_COURSE_LIST)
+    second_course = factory.Iterator(SECOND_COURSE_LIST)
+    side_dish = factory.Iterator(SIDE_DISH_LIST)
+    fruit = factory.Iterator(FRUIT_LIST)
+    snack = factory.Iterator(SNACK_LIST)
 
 
 class MenuImportDraftFactory(factory.django.DjangoModelFactory):

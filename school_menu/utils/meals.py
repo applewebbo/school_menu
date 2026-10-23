@@ -4,16 +4,23 @@ from datetime import timedelta
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 
 from school_menu.cache import get_cached_or_query
 from school_menu.constants import (
     CACHE_TTL_7_DAYS,
     CACHE_TTL_24_HOURS,
-    FIRST_WEEKEND_DAY,
     LAST_WORKING_DAY,
 )
-from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import (
+    AnnualMeal,
+    DetailedMeal,
+    Meal,
+    School,
+    SimpleMeal,
+    SpecialDetailedMeal,
+    SpecialSimpleMeal,
+)
+from school_menu.utils.calendar import get_target_date
 
 
 def get_user(pk: int) -> tuple:
@@ -209,13 +216,7 @@ def get_meals_for_annual_menu(
     Note:
         Automatically skips to next Monday if target date falls on weekend.
     """
-    target_date = timezone.now().date()
-    if next_day:
-        target_date += timedelta(days=1)
-
-    # If weekend, get next Monday's date
-    if target_date.weekday() >= FIRST_WEEKEND_DAY:  # Saturday (5) or Sunday (6)
-        target_date += timedelta(days=(7 - target_date.weekday()))
+    target_date = get_target_date(next_day)
 
     # Get meals for the week of the target date
     year, week, _ = target_date.isocalendar()
@@ -240,6 +241,31 @@ def get_meals_for_annual_menu(
     meals_for_today = [m for m in weekly_meals if m.date == target_date and m.is_active]
 
     return weekly_meals, meals_for_today
+
+
+def get_special_meal(school: School, target_date, meal_type: str = Meal.Types.STANDARD):
+    """
+    Get the special per-day override for `school` on `target_date`, or None.
+
+    Only call this when school.has_special_days is True — callers are
+    expected to guard on that flag so schools without special days pay zero
+    extra queries.
+    """
+    meal_model = (
+        SpecialSimpleMeal
+        if school.menu_type == School.Types.SIMPLE
+        else SpecialDetailedMeal
+    )
+    cache_key = f"special_meal:{school.id}:{target_date.isoformat()}:{meal_type}"
+
+    def query_special_meal():
+        return meal_model.objects.filter(
+            school=school, date=target_date, type=meal_type
+        ).first()
+
+    return get_cached_or_query(
+        cache_key, query_special_meal, timeout=CACHE_TTL_24_HOURS
+    )
 
 
 def fill_missing_dates(school: School, meal_type: str) -> None:

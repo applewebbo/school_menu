@@ -210,6 +210,7 @@ def invalidate_meal_cache(school_id: int) -> int:
         f"*meal:{school_id}:*",  # Individual meals
         f"*meals:{school_id}:*",  # Weekly meals
         f"*annual_meals:{school_id}:*",  # Annual meals
+        f"*special_meal:{school_id}:*",  # Special per-day override meals
         f"*types_menu:{school_id}*",  # Types menus
         "*json_api*",  # JSON API cache (all schools, as cache_page uses complex keys)
     ]

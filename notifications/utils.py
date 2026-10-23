@@ -9,6 +9,8 @@ from school_menu.utils import (
     get_meals,
     get_meals_for_annual_menu,
     get_season,
+    get_special_meal,
+    get_target_date,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,8 +52,16 @@ def build_menu_notification_payload(school, is_previous_day=False, meal_type="S"
 
         _, meals_for_today = get_meals(school, season, week, day)
 
-    # Filter meals by the requested meal type
-    meals_for_today = [m for m in meals_for_today if m.type == meal_type]
+    special_meal = None
+    if not school.annual_menu and school.has_special_days:
+        target_date = get_target_date(next_day=is_previous_day)
+        special_meal = get_special_meal(school, target_date, meal_type)
+
+    if special_meal is not None:
+        meals_for_today = [special_meal]
+    else:
+        # Filter meals by the requested meal type
+        meals_for_today = [m for m in meals_for_today if m.type == meal_type]
 
     # meals_for_today is a list, check if it's not empty
     if not meals_for_today:

@@ -5,7 +5,7 @@
                     class="btn btn-primary btn-xs md:btn-sm {% if label != meal.get_type_display %}btn-outline{% endif %} w-28 md:w-32"
                     hx-target="#day_menu"
                     hx-swap="outerHTML"
-                    hx-get="{% url 'school_menu:get_menu' school.pk week meal.day meal_type %}">
+                    hx-get="{% url 'school_menu:get_menu' school.pk week day meal_type %}">
                 {{ label|upper }}
             </button>
         {% endfor %}

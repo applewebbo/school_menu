@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from unittest import mock
 
 import time_machine
@@ -29,6 +29,8 @@ from tests.school_menu.factories import (
     SchoolFactory,
     SchoolTransferFactory,
     SimpleMealFactory,
+    SpecialDetailedMealFactory,
+    SpecialSimpleMealFactory,
 )
 from tests.school_menu.import_review import confirm_import
 from tests.users.factories import UserFactory
@@ -247,6 +249,169 @@ class SchoolMenuView(TestCase):
         assert response.context["school"] == school
         assert response.context["meal"] is None
 
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_with_special_day_override_for_simple_menu(self):
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, annual_menu=False, has_special_days=True
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+        special_meal = SpecialSimpleMealFactory(
+            school=school, date=today, type=Meal.Types.STANDARD
+        )
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] == special_meal
+        assert response.context["is_special_day"] is True
+        self.assertContains(response, "Menu Speciale")
+        self.assertNotContains(response, f"Settimana {adjusted_week}")
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_special_day_hides_alt_menu_types(self):
+        """A special day only ever has a Standard meal, so alternate types
+        (no_gluten, etc.) must not be shown or selectable (#317 follow-up)."""
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            annual_menu=False,
+            has_special_days=True,
+            no_gluten=True,
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+        SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.GLUTEN_FREE,
+        )
+        SpecialSimpleMealFactory(school=school, date=today, type=Meal.Types.STANDARD)
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["is_special_day"] is True
+        assert response.context["types_menu"] == {}
+        self.assertNotContains(response, "Senza Glutine")
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_with_special_day_override_for_detailed_menu(self):
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.DETAILED, annual_menu=False, has_special_days=True
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        DetailedMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+        special_meal = SpecialDetailedMealFactory(
+            school=school, date=today, type=Meal.Types.STANDARD
+        )
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] == special_meal
+        assert response.context["is_special_day"] is True
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_falls_back_to_regular_menu_without_special_day_for_today(self):
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, annual_menu=False, has_special_days=True
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        regular_meal = SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+        # Special day exists, but not for today
+        SpecialSimpleMealFactory(
+            school=school, date=today + timedelta(days=30), type=Meal.Types.STANDARD
+        )
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] == regular_meal
+        assert response.context["is_special_day"] is False
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_skips_special_day_lookup_when_school_has_no_special_days(self):
+        """has_special_days=False gates the extra query entirely (decision 5)."""
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, annual_menu=False, has_special_days=False
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        regular_meal = SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] == regular_meal
+        assert response.context["is_special_day"] is False
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_special_day_disabled_for_annual_menu_schools(self):
+        """Special days never apply when annual_menu=True (decision 7)."""
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(annual_menu=True, has_special_days=True)
+        annual_meal = AnnualMealFactory(
+            school=school, date=today, type=Meal.Types.STANDARD, is_active=True
+        )
+        SpecialSimpleMealFactory(school=school, date=today, type=Meal.Types.STANDARD)
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] == annual_meal
+        assert response.context["is_special_day"] is False
+
     def test_seeking_maintainer_banner_shown_when_published(self):
         school = SchoolFactory(is_published=True, seeking_maintainer=True)
         response = self.get("school_menu:school_menu", slug=school.slug)
@@ -434,6 +599,107 @@ class AdSlot(TestCase):
 
 
 class GetMenuView(TestCase):
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_menu_applies_special_day_override_for_todays_standard_slot(self):
+        """Re-requesting today's own (week, day, Standard) slot — e.g. after
+        switching to an alt menu and back — must restore the override and badge."""
+        cache.clear()
+        today = date(2026, 12, 7)
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            has_special_days=True,
+            week_bias=0,
+        )
+        week, day = get_current_date()
+        adjusted_week = calculate_week(week, school.week_bias)
+        SimpleMealFactory(
+            school=school,
+            day=day,
+            week=adjusted_week,
+            menu="Regular Menu",
+            season=School.Seasons.PRIMAVERILE,
+            type=Meal.Types.STANDARD,
+        )
+        special_meal = SpecialSimpleMealFactory(
+            school=school, date=today, type=Meal.Types.STANDARD
+        )
+
+        response = self.get("school_menu:get_menu", school.pk, adjusted_week, day, "S")
+
+        self.response_200(response)
+        assert response.context["meal"] == special_meal
+        assert response.context["is_special_day"] is True
+        self.assertContains(response, "Menu Speciale")
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_menu_day_switch_to_another_weekday_ignores_special_day_override(self):
+        """Decision 6: navigating to a *different* day-of-week never applies
+        today's special-day override, even though has_special_days is True."""
+        cache.clear()
+        today = date(2026, 12, 7)
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            has_special_days=True,
+            week_bias=0,
+        )
+        week, day = get_current_date()
+        adjusted_week = calculate_week(week, school.week_bias)
+        other_day = day + 1
+        other_day_meal = SimpleMealFactory(
+            school=school,
+            day=other_day,
+            week=adjusted_week,
+            menu="Regular Menu Tuesday",
+            season=School.Seasons.PRIMAVERILE,
+            type=Meal.Types.STANDARD,
+        )
+        SpecialSimpleMealFactory(school=school, date=today, type=Meal.Types.STANDARD)
+
+        response = self.get(
+            "school_menu:get_menu", school.pk, adjusted_week, other_day, "S"
+        )
+
+        self.response_200(response)
+        assert response.context["meal"] == other_day_meal
+        assert response.context["is_special_day"] is False
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_menu_alt_type_request_on_special_day_stays_on_special_meal(self):
+        """Alternate types are not selectable on a special day: even a direct
+        request for an alt type (e.g. after a stale button click) must be
+        ignored and the special Standard meal kept, with no alt buttons shown."""
+        cache.clear()
+        today = date(2026, 12, 7)
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            has_special_days=True,
+            week_bias=0,
+            no_gluten=True,
+        )
+        week, day = get_current_date()
+        adjusted_week = calculate_week(week, school.week_bias)
+        SimpleMealFactory(
+            school=school,
+            day=day,
+            week=adjusted_week,
+            menu="Regular Gluten Free Menu",
+            season=School.Seasons.PRIMAVERILE,
+            type=Meal.Types.GLUTEN_FREE,
+        )
+        special_meal = SpecialSimpleMealFactory(
+            school=school, date=today, type=Meal.Types.STANDARD
+        )
+
+        response = self.get("school_menu:get_menu", school.pk, adjusted_week, day, "G")
+
+        self.response_200(response)
+        assert response.context["meal"] == special_meal
+        assert response.context["is_special_day"] is True
+        assert response.context["types_menu"] == {}
+
     def test_get_with_simple_menu(self):
         school = SchoolFactory(
             menu_type=School.Types.SIMPLE, season_choice=School.Seasons.PRIMAVERILE
@@ -486,7 +752,7 @@ class GetMenuView(TestCase):
         from datetime import datetime
         from unittest import mock
 
-        with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
+        with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
             mock_timezone.now.return_value = datetime(2025, 4, 12, 12, 0)  # Saturday
 
             # Create a school and meals
@@ -649,6 +915,20 @@ class SettingView(TestCase):
         assert response.context["user"] == intruder
         self.assertNotContains(response, "Scuola Riservata")
 
+    def test_get_includes_special_days(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        SpecialSimpleMealFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        assert list(response.context["special_days"]) == list(
+            school.specialsimplemeal_set.all()
+        )
+        assert response.context["can_add_special_day"] is True
+
     def test_partial_reload(self):
         user = self.make_user()
         SchoolFactory(user=user)
@@ -681,6 +961,20 @@ class SettingView(TestCase):
         self.response_200(response)
         assert response.context["user"] == user
         assert response.context["menu_label"] == "No Glutine"
+
+    def test_partial_reload_includes_special_days(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        SpecialSimpleMealFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.get("school_menu:menu_settings")
+
+        self.response_200(response)
+        assert list(response.context["special_days"]) == list(
+            school.specialsimplemeal_set.all()
+        )
+        assert response.context["can_add_special_day"] is True
 
     def test_school_partial_view(self):
         user = self.make_user()
@@ -2053,4 +2347,189 @@ class TestProposeSchoolMaintainerView(TestCase):
             )
 
         assert SchoolTransfer.objects.filter(school=self.school).count() == 1
+        self.response_302(response)
+
+
+class TestSpecialDaysPartialView(TestCase):
+    def test_lists_special_days_for_simple_school(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        meal = SpecialSimpleMealFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.get("school_menu:special_days")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_special_days.html")
+        assert list(response.context["special_days"]) == [meal]
+        assert response.context["can_add_special_day"] is True
+
+    def test_disabled_message_for_annual_school(self):
+        user = self.make_user()
+        SchoolFactory(user=user, annual_menu=True)
+
+        with self.login(user):
+            response = self.get("school_menu:special_days")
+
+        self.response_200(response)
+        self.assertContains(response, "Menu Annuale")
+
+    def test_hides_add_button_at_limit(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
+        for day in range(5):
+            SpecialDetailedMealFactory(school=school, date=date(2026, 12, 1 + day))
+
+        with self.login(user):
+            response = self.get("school_menu:special_days")
+
+        self.response_200(response)
+        assert response.context["can_add_special_day"] is False
+        self.assertContains(response, "Limite massimo")
+
+    def test_requires_login(self):
+        response = self.get("school_menu:special_days")
+
+        self.response_302(response)
+
+
+class TestSpecialDayCreateView(TestCase):
+    def test_get_returns_form_for_simple_school(self):
+        user = self.make_user()
+        SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+
+        with self.login(user):
+            response = self.get("school_menu:special_day_create")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_special_day_form.html")
+
+    def test_post_creates_special_day_for_simple_school(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+
+        with self.login(user):
+            response = self.post(
+                "school_menu:special_day_create",
+                data={
+                    "date": "2026-12-08",
+                    "menu": "Pranzo di Natale",
+                    "morning_snack": "Frutta",
+                    "afternoon_snack": "Yogurt",
+                },
+            )
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_special_days.html")
+        meal = school.specialsimplemeal_set.get()
+        assert meal.menu == "Pranzo di Natale"
+        school.refresh_from_db()
+        assert school.has_special_days is True
+
+    def test_post_creates_special_day_for_detailed_school(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.DETAILED)
+
+        with self.login(user):
+            response = self.post(
+                "school_menu:special_day_create",
+                data={
+                    "date": "2026-12-08",
+                    "first_course": "Pasta al forno",
+                    "second_course": "Arrosto",
+                    "side_dish": "Insalata",
+                    "fruit": "Frutta",
+                    "snack": "Yogurt",
+                },
+            )
+
+        self.response_200(response)
+        meal = school.specialdetailedmeal_set.get()
+        assert meal.first_course == "Pasta al forno"
+
+    def test_post_rejects_invalid_data(self):
+        user = self.make_user()
+        SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+
+        with self.login(user):
+            response = self.post("school_menu:special_day_create", data={})
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_special_day_form.html")
+        assert response.context["form"].is_valid() is False
+
+    def test_post_rejects_beyond_limit_even_without_bypassing_ui(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        for day in range(5):
+            SpecialSimpleMealFactory(school=school, date=date(2026, 12, 1 + day))
+
+        with self.login(user):
+            response = self.post(
+                "school_menu:special_day_create",
+                data={
+                    "date": "2026-12-20",
+                    "menu": "Pranzo",
+                    "morning_snack": "Frutta",
+                    "afternoon_snack": "Yogurt",
+                },
+            )
+
+        self.response_403(response)
+        assert school.specialsimplemeal_set.count() == 5
+
+    def test_post_rejects_for_annual_school(self):
+        user = self.make_user()
+        SchoolFactory(user=user, annual_menu=True)
+
+        with self.login(user):
+            response = self.post(
+                "school_menu:special_day_create",
+                data={
+                    "date": "2026-12-20",
+                    "menu": "Pranzo",
+                    "morning_snack": "Frutta",
+                    "afternoon_snack": "Yogurt",
+                },
+            )
+
+        self.response_403(response)
+
+    def test_requires_login(self):
+        response = self.get("school_menu:special_day_create")
+
+        self.response_302(response)
+
+
+class TestSpecialDayDeleteView(TestCase):
+    def test_delete_removes_special_day(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user, menu_type=School.Types.SIMPLE)
+        meal = SpecialSimpleMealFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.delete("school_menu:special_day_delete", meal.pk)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_special_days.html")
+        assert not school.specialsimplemeal_set.filter(pk=meal.pk).exists()
+        school.refresh_from_db()
+        assert school.has_special_days is False
+
+    def test_delete_denied_for_other_user(self):
+        owner = self.make_user("owner@test.com")
+        school = SchoolFactory(user=owner, menu_type=School.Types.SIMPLE)
+        meal = SpecialSimpleMealFactory(school=school, date=date(2026, 12, 8))
+        intruder = self.make_user("intruder@test.com")
+        SchoolFactory(user=intruder, menu_type=School.Types.SIMPLE)
+
+        with self.login(intruder):
+            response = self.delete("school_menu:special_day_delete", meal.pk)
+
+        self.response_404(response)
+        assert school.specialsimplemeal_set.filter(pk=meal.pk).exists()
+
+    def test_requires_login(self):
+        response = self.delete("school_menu:special_day_delete", 1)
+
         self.response_302(response)

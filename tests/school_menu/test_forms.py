@@ -7,11 +7,13 @@ from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
     SimpleMealForm,
+    SpecialDetailedMealForm,
+    SpecialSimpleMealForm,
     UploadAnnualMenuForm,
     UploadMenuForm,
     allowed_upload_accept,
 )
-from school_menu.models import Meal, School
+from school_menu.models import MAX_SPECIAL_DAYS, Meal, School
 
 pytestmark = pytest.mark.django_db
 
@@ -386,3 +388,117 @@ class TestAnnualMenuForm:
         # Assert the form is invalid
         assert form.is_valid() is False
         assert form.errors == {"file": ["Questo campo è obbligatorio."]}
+
+
+class TestSpecialSimpleMealForm:
+    def test_form(self, school_factory):
+        school = school_factory()
+        form = SpecialSimpleMealForm(
+            data={
+                "date": date(2026, 12, 8),
+                "menu": "Test Menu",
+                "morning_snack": "Frutta",
+                "afternoon_snack": "Yogurt",
+            },
+            school=school,
+        )
+
+        assert form.is_valid() is True
+        meal = form.save()
+        assert meal.school == school
+        assert meal.type == Meal.Types.STANDARD
+
+    def test_rejects_duplicate_date_for_same_school(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory()
+        special_simple_meal_factory(school=school, date=date(2026, 12, 8))
+        form = SpecialSimpleMealForm(
+            data={
+                "date": date(2026, 12, 8),
+                "menu": "Test Menu",
+                "morning_snack": "Frutta",
+                "afternoon_snack": "Yogurt",
+            },
+            school=school,
+        )
+
+        assert form.is_valid() is False
+        assert "date" in form.errors
+
+    def test_allows_keeping_same_date_on_update(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory()
+        meal = special_simple_meal_factory(school=school, date=date(2026, 12, 8))
+        form = SpecialSimpleMealForm(
+            data={
+                "date": date(2026, 12, 8),
+                "menu": "Updated Menu",
+                "morning_snack": "Frutta",
+                "afternoon_snack": "Yogurt",
+            },
+            school=school,
+            instance=meal,
+        )
+
+        assert form.is_valid() is True, form.errors
+
+    def test_rejects_beyond_max_special_days(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory()
+        for day in range(MAX_SPECIAL_DAYS):
+            special_simple_meal_factory(school=school, date=date(2026, 12, 1 + day))
+        form = SpecialSimpleMealForm(
+            data={
+                "date": date(2026, 12, 20),
+                "menu": "Test Menu",
+                "morning_snack": "Frutta",
+                "afternoon_snack": "Yogurt",
+            },
+            school=school,
+        )
+
+        assert form.is_valid() is False
+
+
+class TestSpecialDetailedMealForm:
+    def test_form(self, school_factory):
+        school = school_factory()
+        form = SpecialDetailedMealForm(
+            data={
+                "date": date(2026, 12, 8),
+                "first_course": "Test First Course",
+                "second_course": "Test Second Course",
+                "side_dish": "Test Side Dish",
+                "fruit": "Test Fruit",
+                "snack": "Test Snack",
+            },
+            school=school,
+        )
+
+        assert form.is_valid() is True
+        meal = form.save()
+        assert meal.school == school
+        assert meal.type == Meal.Types.STANDARD
+
+    def test_rejects_beyond_max_special_days(
+        self, school_factory, special_detailed_meal_factory
+    ):
+        school = school_factory()
+        for day in range(MAX_SPECIAL_DAYS):
+            special_detailed_meal_factory(school=school, date=date(2026, 12, 1 + day))
+        form = SpecialDetailedMealForm(
+            data={
+                "date": date(2026, 12, 20),
+                "first_course": "Test First Course",
+                "second_course": "Test Second Course",
+                "side_dish": "Test Side Dish",
+                "fruit": "Test Fruit",
+                "snack": "Test Snack",
+            },
+            school=school,
+        )
+
+        assert form.is_valid() is False

@@ -16,6 +16,7 @@ from school_menu.utils.calendar import (
     get_adjusted_year,
     get_current_date,
     get_season,
+    get_target_date,
 )
 
 # Import CSV import and validation utilities from dedicated module
@@ -36,6 +37,7 @@ from school_menu.utils.meals import (
     get_alt_menu,
     get_meals,
     get_meals_for_annual_menu,
+    get_special_meal,
     get_user,
 )
 
@@ -56,12 +58,14 @@ __all__ = [
     "get_current_date",
     "get_season",
     "get_adjusted_year",
+    "get_target_date",
     # Meal utilities
     "get_user",
     "get_alt_menu",
     "build_types_menu",
     "get_meals",
     "get_meals_for_annual_menu",
+    "get_special_meal",
     "fill_missing_dates",
     # Notification utilities
     "get_notifications_status",

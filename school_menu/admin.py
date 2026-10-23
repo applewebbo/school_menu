@@ -16,6 +16,8 @@ from .models import (
     School,
     SchoolTransfer,
     SimpleMeal,
+    SpecialDetailedMeal,
+    SpecialSimpleMeal,
 )
 from .resources import DetailedMealResource, SimpleMealResource
 from .tasks import send_handover_notice
@@ -66,6 +68,18 @@ class SimpleMealAdmin(ImportExportModelAdmin):
 class AnnualMealAdmin(admin.ModelAdmin):
     list_display = ["__str__", "date", "type"]
     list_filter = ["type"]
+
+
+@admin.register(SpecialSimpleMeal)
+class SpecialSimpleMealAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "school", "date", "type"]
+    list_filter = ["school", "type"]
+
+
+@admin.register(SpecialDetailedMeal)
+class SpecialDetailedMealAdmin(admin.ModelAdmin):
+    list_display = ["__str__", "school", "date", "type"]
+    list_filter = ["school", "type"]
 
 
 @admin.register(School)

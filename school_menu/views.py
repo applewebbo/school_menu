@@ -40,11 +40,14 @@ from school_menu.forms import (
     DetailedMealForm,
     SchoolForm,
     SimpleMealForm,
+    SpecialDetailedMealForm,
+    SpecialSimpleMealForm,
     UploadAnnualMenuForm,
     UploadMenuForm,
 )
 from school_menu.menu_import_views import stage_csv_rows
 from school_menu.models import (
+    MAX_SPECIAL_DAYS,
     AnnualMeal,
     DetailedMeal,
     Meal,
@@ -52,6 +55,8 @@ from school_menu.models import (
     School,
     SchoolTransfer,
     SimpleMeal,
+    SpecialDetailedMeal,
+    SpecialSimpleMeal,
 )
 from school_menu.releases import RELEASES
 from school_menu.resources import (
@@ -79,6 +84,8 @@ from school_menu.utils import (
     get_meals_for_annual_menu,
     get_notifications_status,
     get_season,
+    get_special_meal,
+    get_target_date,
     get_user,
     validate_annual_dataset,
     validate_dataset,
@@ -223,11 +230,22 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
     # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
     weekly_meals = [m for m in weekly_meals if m.type == meal_type]
 
-    # Get today's meal for the selected type
-    try:
-        meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
-    except StopIteration:
-        meal_for_today = None
+    # A special day only ever has a Standard meal, so it overrides the
+    # requested meal_type outright: alternate types are not selectable on a
+    # special day (#317 follow-up).
+    special_meal = None
+    if not display_school.annual_menu and display_school.has_special_days:
+        special_meal = get_special_meal(display_school, get_target_date())
+
+    if special_meal is not None:
+        meal_for_today = special_meal
+        types_menu = {}
+    else:
+        # Get today's meal for the selected type
+        try:
+            meal_for_today = next(m for m in meals_for_today if m.type == meal_type)
+        except StopIteration:
+            meal_for_today = None
 
     year = get_adjusted_year()
 
@@ -241,6 +259,7 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
         "year": year,
         "alt_menu": alt_menu,
         "types_menu": types_menu,
+        "is_special_day": special_meal is not None,
     }
 
 
@@ -551,11 +570,28 @@ def get_menu(
     # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
     weekly_meals = [m for m in weekly_meals if m.type == meal_type]
 
-    # Get meal for the specified day and type
-    try:
-        meal_for_today = next(m for m in weekly_meals if m.day == day)
-    except StopIteration:
-        meal_for_today = None
+    # The special-day override only applies when the requested (week, day) is
+    # today's real slot — a day-switch to another weekday falls back to the
+    # regular rotation. Once it applies, it overrides the requested meal_type
+    # outright: a special day only ever has a Standard meal, so alternate
+    # types are not selectable on a special day (#317 follow-up).
+    current_iso_week, current_day = get_current_date()
+    current_week = calculate_week(current_iso_week, display_school.week_bias)
+    is_today = week == current_week and day == current_day
+
+    special_meal = None
+    if is_today and not display_school.annual_menu and display_school.has_special_days:
+        special_meal = get_special_meal(display_school, get_target_date())
+
+    if special_meal is not None:
+        meal_for_today = special_meal
+        types_menu = {}
+    else:
+        # Get meal for the specified day and type
+        try:
+            meal_for_today = next(m for m in weekly_meals if m.day == day)
+        except StopIteration:
+            meal_for_today = None
 
     context = {
         "school": school,
@@ -569,6 +605,7 @@ def get_menu(
         "alt_menu": alt_menu,
         "types_menu": types_menu,
         "notifications_status": notifications_status,
+        "is_special_day": special_meal is not None,
     }
     if request.GET.get("home") == "1":
         apply_home_context(request, school, context)
@@ -654,6 +691,8 @@ def settings_view(request: HttpRequest) -> HttpResponse:
         "active_menu": active_menu,
         "report_count": report_count,
     }
+    if hasattr(user, "school"):
+        context.update(_special_days_context(user.school))
     return render(request, "settings.html", context)
 
 
@@ -685,7 +724,75 @@ def menu_settings_partial(request: HttpRequest) -> HttpResponse:
         "menu_label": menu_label,
         "active_menu": active_menu,
     }
+    if hasattr(user, "school"):
+        context.update(_special_days_context(user.school))
     return render(request, "settings.html#menu", context)
+
+
+def _special_meal_model_and_form(school: School) -> tuple[type, type]:
+    """The special-day model/form pair matching the school's menu type (#317)."""
+    if school.menu_type == School.Types.SIMPLE:
+        return SpecialSimpleMeal, SpecialSimpleMealForm
+    return SpecialDetailedMeal, SpecialDetailedMealForm
+
+
+def _special_days_context(school: School) -> dict[str, Any]:
+    model, _ = _special_meal_model_and_form(school)
+    special_days = model.objects.filter(school=school)
+    return {
+        "school": school,
+        "special_days": special_days,
+        "can_add_special_day": special_days.count() < MAX_SPECIAL_DAYS,
+    }
+
+
+@login_required
+def special_days_partial(request: HttpRequest) -> HttpResponse:
+    """Render the "Giorni Speciali" settings section (#317)."""
+    school = get_object_or_404(School, user=request.user)
+    return render(request, "partials/_special_days.html", _special_days_context(school))
+
+
+@login_required
+def special_day_create(request: HttpRequest) -> HttpResponse:
+    """Add a special day to the authenticated user's school, via a modal form (#317)."""
+    school = get_object_or_404(School, user=request.user)
+    model, form_class = _special_meal_model_and_form(school)
+    if request.method == "POST":
+        # Blocks a direct POST past the "+" button, which the template already
+        # hides once the limit is reached.
+        if (
+            school.annual_menu
+            or model.objects.filter(school=school).count() >= MAX_SPECIAL_DAYS
+        ):
+            return HttpResponseForbidden()
+        form = form_class(request.POST, school=school)
+        if form.is_valid():
+            form.save()
+            # The form targets #dialog (it's rendered inside the modal), so the
+            # refreshed list is sent back as an out-of-band swap for the
+            # #special_days section outside it, and the modal itself is closed
+            # via the HX-Trigger (#317).
+            context = {**_special_days_context(school), "oob": True}
+            response = render(request, "partials/_special_days.html", context)
+            response["HX-Trigger"] = "hide-modal"
+            return response
+    else:
+        form = form_class(school=school)
+    return render(
+        request, "partials/_special_day_form.html", {"form": form, "school": school}
+    )
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def special_day_delete(request: HttpRequest, pk: int) -> HttpResponse:
+    """Delete a special day of the authenticated user's school (#317)."""
+    school = get_object_or_404(School, user=request.user)
+    model, _ = _special_meal_model_and_form(school)
+    special_day = get_object_or_404(model, pk=pk, school=school)
+    special_day.delete()
+    return render(request, "partials/_special_days.html", _special_days_context(school))
 
 
 @login_required

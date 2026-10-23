@@ -17,11 +17,14 @@ from school_menu.ai.normalise import (
     WEEKDAYS,
 )
 from school_menu.models import (
+    MAX_SPECIAL_DAYS,
     DetailedMeal,
     Meal,
     MenuImportDraft,
     School,
     SimpleMeal,
+    SpecialDetailedMeal,
+    SpecialSimpleMeal,
 )
 
 # Only CSV goes through the classic validation; the others exist so a file the user
@@ -441,6 +444,136 @@ class DetailedMealForm(DaisyErrorClassMixin, forms.ModelForm):
         self.helper = FormHelper()
         self.helper.form_tag = False
         self.helper.layout = Layout(
+            "first_course",
+            "second_course",
+            "side_dish",
+            "fruit",
+            "snack",
+        )
+
+
+class SpecialMealFormMixin:
+    """Shared clean/save logic for the two special-day forms (#317).
+
+    The form only ever handles a single record for a given school, so `school`
+    is passed in explicitly rather than derived from a formset queryset.
+    """
+
+    def __init__(self, *args, school, **kwargs):
+        self.school = school
+        super().__init__(*args, **kwargs)
+
+    def clean_date(self):
+        meal_date = self.cleaned_data["date"]
+        existing = self._meta.model.objects.filter(
+            school=self.school, date=meal_date, type=Meal.Types.STANDARD
+        )
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise forms.ValidationError(
+                "Esiste già un giorno speciale per questa data."
+            )
+        return meal_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.instance.pk:
+            count = self._meta.model.objects.filter(school=self.school).count()
+            if count >= MAX_SPECIAL_DAYS:
+                raise forms.ValidationError(
+                    f"Puoi creare al massimo {MAX_SPECIAL_DAYS} giorni speciali."
+                )
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        self.instance.school = self.school
+        self.instance.type = Meal.Types.STANDARD
+        return super().save(*args, **kwargs)
+
+
+class SpecialSimpleMealForm(
+    SpecialMealFormMixin, DaisyErrorClassMixin, forms.ModelForm
+):
+    class Meta:
+        model = SpecialSimpleMeal
+        fields = ["date", "menu", "morning_snack", "afternoon_snack"]
+        labels = {
+            "date": "Data",
+            "menu": "Menù",
+            "morning_snack": "Spuntino mattino",
+            "afternoon_snack": "Merenda pomeriggio",
+        }
+        widgets = {
+            "date": forms.DateInput(
+                attrs={"type": "date", "class": "input input-sm w-full"}
+            ),
+            "menu": forms.Textarea(
+                attrs={
+                    "class": "textarea textarea-sm w-full",
+                    "rows": 3,
+                    # The daisyUI textarea template hides its label (sr-only), so
+                    # a placeholder stands in for it — same convention as
+                    # propose-maintainer.html (#317).
+                    "placeholder": "Menù",
+                }
+            ),
+            "morning_snack": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "afternoon_snack": forms.TextInput(
+                attrs={"class": "input input-sm w-full"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            "date",
+            Field("menu", css_class="h-36"),
+            "morning_snack",
+            "afternoon_snack",
+        )
+
+
+class SpecialDetailedMealForm(
+    SpecialMealFormMixin, DaisyErrorClassMixin, forms.ModelForm
+):
+    class Meta:
+        model = SpecialDetailedMeal
+        fields = [
+            "date",
+            "first_course",
+            "second_course",
+            "side_dish",
+            "fruit",
+            "snack",
+        ]
+        labels = {
+            "date": "Data",
+            "first_course": "Primo",
+            "second_course": "Secondo",
+            "side_dish": "Contorno",
+            "fruit": "Frutta",
+            "snack": "Spuntino",
+        }
+        widgets = {
+            "date": forms.DateInput(
+                attrs={"type": "date", "class": "input input-sm w-full"}
+            ),
+            "first_course": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "second_course": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "side_dish": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "fruit": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+            "snack": forms.TextInput(attrs={"class": "input input-sm w-full"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            "date",
             "first_course",
             "second_course",
             "side_dish",

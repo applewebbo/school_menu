@@ -33,7 +33,7 @@
                     x-trap.noscroll.inert="openModal"
                     id="dialog"
                     tabindex="-1"
-                    @htmx:after-swap.camel="modalTitleId = $el.querySelector('[data-modal-title]').id"
+                    @htmx:after-swap.camel="modalTitleId = $el.querySelector('[data-modal-title]')?.id ?? null"
                     class="bg-base-100 relative w-full max-w-2xl overflow-y-auto rounded-lg shadow outline-none"></div>
           </div>
      </div>

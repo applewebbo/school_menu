@@ -6,7 +6,14 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from notifications.utils import build_menu_notification_payload
-from school_menu.models import AnnualMeal, DetailedMeal, Meal, School, SimpleMeal
+from school_menu.models import (
+    AnnualMeal,
+    DetailedMeal,
+    Meal,
+    School,
+    SimpleMeal,
+    SpecialSimpleMeal,
+)
 
 User = get_user_model()
 pytestmark = pytest.mark.django_db
@@ -311,3 +318,124 @@ def test_build_menu_notification_payload_filters_by_meal_type(
         )
     assert payload is not None
     assert expected_menu in payload["body"]
+
+
+def test_build_menu_notification_payload_uses_special_day_override_for_today(school):
+    """Decision 6/Notifications: today's special day replaces the regular menu."""
+    target_date = timezone.now().date()
+    school.has_special_days = True
+    school.save()
+    SimpleMeal.objects.create(
+        school=school,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.STANDARD,
+        menu="Regular Menu",
+    )
+    SpecialSimpleMeal.objects.create(
+        school=school, date=target_date, type=Meal.Types.STANDARD, menu="Special Menu"
+    )
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date", return_value=target_date),
+    ):
+        payload = build_menu_notification_payload(school)
+
+    assert payload is not None
+    assert "Special Menu" in payload["body"]
+    assert "Regular Menu" not in payload["body"]
+
+
+def test_build_menu_notification_payload_uses_special_day_override_for_next_day(
+    school,
+):
+    """The "domani" notification (is_previous_day=True) also honors the override."""
+    target_date = timezone.now().date() + timedelta(days=1)
+    school.has_special_days = True
+    school.save()
+    SpecialSimpleMeal.objects.create(
+        school=school,
+        date=target_date,
+        type=Meal.Types.STANDARD,
+        menu="Special Menu Tomorrow",
+    )
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 2)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date", return_value=target_date),
+    ):
+        payload = build_menu_notification_payload(school, is_previous_day=True)
+
+    assert payload is not None
+    assert "Special Menu Tomorrow" in payload["body"]
+
+
+def test_build_menu_notification_payload_falls_back_without_special_day(school):
+    """has_special_days=True but no override for the target date: regular menu wins."""
+    target_date = timezone.now().date()
+    school.has_special_days = True
+    school.save()
+    SimpleMeal.objects.create(
+        school=school,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.STANDARD,
+        menu="Regular Menu",
+    )
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date", return_value=target_date),
+    ):
+        payload = build_menu_notification_payload(school)
+
+    assert payload is not None
+    assert "Regular Menu" in payload["body"]
+
+
+def test_build_menu_notification_payload_skips_special_day_lookup_when_flag_is_false(
+    school,
+):
+    """has_special_days=False gates the extra query entirely (decision 5)."""
+    target_date = timezone.now().date()
+    SpecialSimpleMeal.objects.create(
+        school=school, date=target_date, type=Meal.Types.STANDARD, menu="Special Menu"
+    )
+    SimpleMeal.objects.create(
+        school=school,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.STANDARD,
+        menu="Regular Menu",
+    )
+    school.has_special_days = False  # in-memory override, bypassing the model sync
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date") as mock_get_target_date,
+    ):
+        payload = build_menu_notification_payload(school)
+        mock_get_target_date.assert_not_called()
+
+    assert payload is not None
+    assert "Regular Menu" in payload["body"]

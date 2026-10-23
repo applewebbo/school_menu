@@ -7,7 +7,7 @@ from django.http import Http404
 from django.test import TestCase
 from tablib import Dataset
 
-from school_menu.models import AnnualMeal, School, SimpleMeal
+from school_menu.models import AnnualMeal, Meal, School, SimpleMeal
 from school_menu.utils import (
     ChoicesWidget,
     build_types_menu,
@@ -21,6 +21,8 @@ from school_menu.utils import (
     get_meals_for_annual_menu,
     get_notifications_status,
     get_season,
+    get_special_meal,
+    get_target_date,
     get_user,
     validate_annual_dataset,
     validate_dataset,
@@ -30,6 +32,8 @@ from tests.school_menu.factories import (
     AnnualMealFactory,
     SchoolFactory,
     SimpleMealFactory,
+    SpecialDetailedMealFactory,
+    SpecialSimpleMealFactory,
 )
 from tests.users.factories import UserFactory
 
@@ -725,7 +729,7 @@ class TestChoicesWidget:
 
 def test_get_meals_for_annual_menu_weekday():
     """Test getting meals on a regular weekday (returns list, not QuerySet)."""
-    with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2024, 1, 3, 12, 0)
         school = SchoolFactory()
         meal = AnnualMealFactory(school=school, date=date(2024, 1, 3), is_active=True)
@@ -735,7 +739,7 @@ def test_get_meals_for_annual_menu_weekday():
 
 def test_get_meals_for_annual_menu_weekend():
     """Test getting meals on a weekend (returns list, not QuerySet)."""
-    with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2024, 1, 6, 12, 0)
         school = SchoolFactory()
         monday_meal = AnnualMealFactory(
@@ -747,7 +751,7 @@ def test_get_meals_for_annual_menu_weekend():
 
 def test_get_meals_for_annual_menu_next_day():
     """Test getting meals for the next day (returns list, not QuerySet)."""
-    with mock.patch("school_menu.utils.meals.timezone") as mock_timezone:
+    with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
         mock_timezone.now.return_value = datetime(2024, 1, 7, 12, 0)
         school = SchoolFactory()
         monday_meal = AnnualMealFactory(
@@ -755,6 +759,77 @@ def test_get_meals_for_annual_menu_next_day():
         )
         _, today_meals = get_meals_for_annual_menu(school, next_day=True)
         assert today_meals[0] == monday_meal
+
+
+class TestGetTargetDate:
+    """get_target_date is the shared helper extracted from get_current_date /
+    get_meals_for_annual_menu (real calendar date of today/tomorrow, with
+    weekend-skip to next Monday)."""
+
+    def test_weekday(self):
+        with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
+            mock_timezone.now.return_value = datetime(2023, 4, 3, 12, 0)
+            assert get_target_date() == date(2023, 4, 3)
+
+    def test_saturday_skips_to_next_monday(self):
+        with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
+            mock_timezone.now.return_value = datetime(2023, 4, 8, 12, 0)
+            assert get_target_date() == date(2023, 4, 10)
+
+    def test_sunday_skips_to_next_monday(self):
+        with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
+            mock_timezone.now.return_value = datetime(2023, 4, 9, 12, 0)
+            assert get_target_date() == date(2023, 4, 10)
+
+    def test_next_day(self):
+        with mock.patch("school_menu.utils.calendar.timezone") as mock_timezone:
+            mock_timezone.now.return_value = datetime(2023, 4, 3, 12, 0)
+            assert get_target_date(next_day=True) == date(2023, 4, 4)
+
+
+class TestGetSpecialMeal:
+    def test_returns_special_simple_meal_for_simple_school(self):
+        school = SchoolFactory(menu_type=School.Types.SIMPLE)
+        meal = SpecialSimpleMealFactory(
+            school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+        )
+
+        result = get_special_meal(school, date(2026, 12, 8), Meal.Types.STANDARD)
+
+        assert result == meal
+
+    def test_returns_special_detailed_meal_for_detailed_school(self):
+        school = SchoolFactory(menu_type=School.Types.DETAILED)
+        meal = SpecialDetailedMealFactory(
+            school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+        )
+
+        result = get_special_meal(school, date(2026, 12, 8), Meal.Types.STANDARD)
+
+        assert result == meal
+
+    def test_returns_none_when_no_special_meal_for_date(self):
+        school = SchoolFactory(menu_type=School.Types.SIMPLE)
+        SpecialSimpleMealFactory(
+            school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+        )
+
+        result = get_special_meal(school, date(2026, 12, 25), Meal.Types.STANDARD)
+
+        assert result is None
+
+    def test_zero_queries_when_school_has_no_special_days(
+        self, django_assert_num_queries
+    ):
+        """Central requirement of decision 5: schools without special days
+        pay zero extra queries on the public menu lookup. The caller is
+        expected to guard the call with school.has_special_days, so this
+        asserts the *call site* contract, not get_special_meal in isolation."""
+        school = SchoolFactory(menu_type=School.Types.SIMPLE, has_special_days=False)
+
+        with django_assert_num_queries(0):
+            if school.has_special_days:
+                get_special_meal(school, date(2026, 12, 8), Meal.Types.STANDARD)
 
 
 class TestFillMissingDates(TestCase):

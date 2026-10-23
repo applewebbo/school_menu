@@ -72,6 +72,17 @@ htmx_urlpatterns = [
         name="upload_annual_menu",
     ),
     path("settings/menu/", views.menu_settings_partial, name="menu_settings"),
+    path("settings/special-days/", views.special_days_partial, name="special_days"),
+    path(
+        "settings/special-days/add/",
+        views.special_day_create,
+        name="special_day_create",
+    ),
+    path(
+        "settings/special-days/<int:pk>/delete/",
+        views.special_day_delete,
+        name="special_day_delete",
+    ),
     path("settings/school/", views.school_settings_partial, name="school_settings"),
     path("search-schools/", views.search_schools, name="search_schools"),
     path(

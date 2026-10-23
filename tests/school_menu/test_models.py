@@ -3,8 +3,13 @@ from unittest.mock import patch
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
-from school_menu.models import Meal, MirrorFallbackCheck, SchoolTransfer
+from school_menu.models import (
+    Meal,
+    MirrorFallbackCheck,
+    SchoolTransfer,
+)
 from tests.school_menu.factories import MenuHealthCheckFactory, SchoolTransferFactory
 from tests.users.factories import UserFactory
 
@@ -35,6 +40,125 @@ class TestSimpleMealModel:
         )
 
         assert simple_meal.__str__() == "Lunedì - Settimana 1 [Invernale]"
+
+
+class TestSpecialSimpleMealModel:
+    def test_factory(self, school_factory, special_simple_meal_factory):
+        school = school_factory()
+        meal = special_simple_meal_factory(school=school, date=date(2026, 12, 8))
+
+        assert str(meal) == f"{school.name} [speciale 08/12/2026]"
+
+    def test_unique_constraint_on_school_date_type(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory()
+        special_simple_meal_factory(
+            school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+        )
+
+        with pytest.raises(IntegrityError):
+            special_simple_meal_factory(
+                school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+            )
+
+    def test_save_sets_school_has_special_days(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory(has_special_days=False)
+
+        special_simple_meal_factory(school=school)
+
+        school.refresh_from_db()
+        assert school.has_special_days is True
+
+    def test_delete_last_special_day_resets_has_special_days(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory()
+        meal = special_simple_meal_factory(school=school)
+        school.refresh_from_db()
+        assert school.has_special_days is True
+
+        meal.delete()
+
+        school.refresh_from_db()
+        assert school.has_special_days is False
+
+    def test_delete_one_of_many_keeps_has_special_days_true(
+        self, school_factory, special_simple_meal_factory
+    ):
+        school = school_factory()
+        meal_1 = special_simple_meal_factory(school=school, date=date(2026, 12, 8))
+        special_simple_meal_factory(school=school, date=date(2026, 12, 25))
+
+        meal_1.delete()
+
+        school.refresh_from_db()
+        assert school.has_special_days is True
+
+
+class TestSpecialDetailedMealModel:
+    def test_factory(self, school_factory, special_detailed_meal_factory):
+        school = school_factory()
+        meal = special_detailed_meal_factory(school=school, date=date(2026, 12, 8))
+
+        assert str(meal) == f"{school.name} [speciale 08/12/2026]"
+
+    def test_unique_constraint_on_school_date_type(
+        self, school_factory, special_detailed_meal_factory
+    ):
+        school = school_factory()
+        special_detailed_meal_factory(
+            school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+        )
+
+        with pytest.raises(IntegrityError):
+            special_detailed_meal_factory(
+                school=school, date=date(2026, 12, 8), type=Meal.Types.STANDARD
+            )
+
+    def test_save_sets_school_has_special_days(
+        self, school_factory, special_detailed_meal_factory
+    ):
+        school = school_factory(has_special_days=False)
+
+        special_detailed_meal_factory(school=school)
+
+        school.refresh_from_db()
+        assert school.has_special_days is True
+
+    def test_delete_last_special_day_resets_has_special_days(
+        self, school_factory, special_detailed_meal_factory
+    ):
+        school = school_factory()
+        meal = special_detailed_meal_factory(school=school)
+        school.refresh_from_db()
+        assert school.has_special_days is True
+
+        meal.delete()
+
+        school.refresh_from_db()
+        assert school.has_special_days is False
+
+
+class TestSchoolHasSpecialDaysAcrossMealTypes:
+    """A school's has_special_days reflects both Special*Meal models combined."""
+
+    def test_simple_and_detailed_special_meals_both_set_flag(
+        self,
+        school_factory,
+        special_simple_meal_factory,
+        special_detailed_meal_factory,
+    ):
+        school = school_factory(has_special_days=False)
+        simple_meal = special_simple_meal_factory(school=school, date=date(2026, 12, 8))
+        special_detailed_meal_factory(school=school, date=date(2026, 12, 25))
+
+        simple_meal.delete()
+
+        school.refresh_from_db()
+        assert school.has_special_days is True
 
 
 class TestSchoolModel:
@@ -279,6 +403,66 @@ class TestCacheInvalidationOnModelSave:
         annual_meal.delete()
 
         # Verify invalidate_meal_cache was called with correct school_id
+        mock_invalidate.assert_called_with(school.id)
+
+    @patch("school_menu.models.invalidate_meal_cache")
+    def test_special_simple_meal_save_invalidates_cache(
+        self, mock_invalidate, user_factory, school_factory, special_simple_meal_factory
+    ):
+        """Test that saving a SpecialSimpleMeal invalidates the meal cache."""
+        user = user_factory()
+        school = school_factory(user=user)
+
+        _special_meal = special_simple_meal_factory(school=school)  # noqa: F841
+
+        mock_invalidate.assert_called_with(school.id)
+
+    @patch("school_menu.models.invalidate_meal_cache")
+    def test_special_simple_meal_delete_invalidates_cache(
+        self, mock_invalidate, user_factory, school_factory, special_simple_meal_factory
+    ):
+        """Test that deleting a SpecialSimpleMeal invalidates the meal cache."""
+        user = user_factory()
+        school = school_factory(user=user)
+        special_meal = special_simple_meal_factory(school=school)
+        mock_invalidate.reset_mock()
+
+        special_meal.delete()
+
+        mock_invalidate.assert_called_with(school.id)
+
+    @patch("school_menu.models.invalidate_meal_cache")
+    def test_special_detailed_meal_save_invalidates_cache(
+        self,
+        mock_invalidate,
+        user_factory,
+        school_factory,
+        special_detailed_meal_factory,
+    ):
+        """Test that saving a SpecialDetailedMeal invalidates the meal cache."""
+        user = user_factory()
+        school = school_factory(user=user)
+
+        _special_meal = special_detailed_meal_factory(school=school)  # noqa: F841
+
+        mock_invalidate.assert_called_with(school.id)
+
+    @patch("school_menu.models.invalidate_meal_cache")
+    def test_special_detailed_meal_delete_invalidates_cache(
+        self,
+        mock_invalidate,
+        user_factory,
+        school_factory,
+        special_detailed_meal_factory,
+    ):
+        """Test that deleting a SpecialDetailedMeal invalidates the meal cache."""
+        user = user_factory()
+        school = school_factory(user=user)
+        special_meal = special_detailed_meal_factory(school=school)
+        mock_invalidate.reset_mock()
+
+        special_meal.delete()
+
         mock_invalidate.assert_called_with(school.id)
 
     @patch("school_menu.models.invalidate_school_cache")

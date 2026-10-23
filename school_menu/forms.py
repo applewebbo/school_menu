@@ -16,6 +16,7 @@ from school_menu.ai.normalise import (
     SNACK_MAX_LENGTH,
     WEEKDAYS,
 )
+from school_menu.constants import FIRST_WEEKEND_DAY
 from school_menu.models import (
     MAX_SPECIAL_DAYS,
     DetailedMeal,
@@ -465,6 +466,10 @@ class SpecialMealFormMixin:
 
     def clean_date(self):
         meal_date = self.cleaned_data["date"]
+        if meal_date.weekday() >= FIRST_WEEKEND_DAY:
+            raise forms.ValidationError(
+                "La data selezionata cade in un giorno di weekend (sabato o domenica)."
+            )
         existing = self._meta.model.objects.filter(
             school=self.school, date=meal_date, type=Meal.Types.STANDARD
         )

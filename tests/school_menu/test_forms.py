@@ -408,6 +408,21 @@ class TestSpecialSimpleMealForm:
         assert meal.school == school
         assert meal.type == Meal.Types.STANDARD
 
+    def test_rejects_weekend_date(self, school_factory):
+        school = school_factory()
+        form = SpecialSimpleMealForm(
+            data={
+                "date": date(2026, 12, 12),  # Saturday
+                "menu": "Test Menu",
+                "morning_snack": "Frutta",
+                "afternoon_snack": "Yogurt",
+            },
+            school=school,
+        )
+
+        assert form.is_valid() is False
+        assert "date" in form.errors
+
     def test_rejects_duplicate_date_for_same_school(
         self, school_factory, special_simple_meal_factory
     ):

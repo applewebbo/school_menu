@@ -3,9 +3,21 @@
      id="special_days"
      x-data
      {% if oob %}hx-swap-oob="true"{% endif %}>
-    <div class="mb-2 flex items-center justify-center md:justify-start">
-        <h4 class="text-lg font-bold tracking-tight">Giorni Speciali</h4>
-        <span class="badge badge-sm badge-neutral badge-outline ms-2">{{ special_days.count }}/5</span>
+    <div class="mb-2 flex flex-col items-center gap-2 sm:flex-row sm:justify-between md:mt-6">
+        <div class="flex items-center justify-center sm:justify-start">
+            <h4 class="text-lg font-bold tracking-tight">Giorni Speciali</h4>
+            <span class="badge badge-sm badge-neutral badge-outline ms-2">{{ special_days.count }}/5</span>
+        </div>
+        {% if not school.annual_menu and can_add_special_day %}
+            <button class="btn btn-xs btn-outline btn-secondary dark:btn-soft hidden items-center justify-center sm:inline-flex"
+                    hx-get="{% url 'school_menu:special_day_create' %}"
+                    hx-target="#dialog"
+                    hx-swap="innerHTML"
+                    @click="$dispatch('open-modal')">
+                {% heroicon_mini 'plus' class="size-3 me-1" %}
+                Aggiungi Giorno Speciale
+            </button>
+        {% endif %}
     </div>
     {% if school.annual_menu %}
         <div class="col-span-1 m-auto my-4 flex items-center rounded border border-blue-200 bg-blue-100 px-6 py-4 text-blue-800 md:col-span-2">
@@ -13,21 +25,23 @@
             <p>I giorni speciali sono disabilitati in quanto è stata selezionata l'opzione <strong>Menu Annuale</strong>.</p>
         </div>
     {% else %}
-        {% for special_day in special_days %}
-            <div class="flex items-center">
-                <h5 class="mr-8 grow font-medium md:grow-0">{{ special_day.date|date:"d/m/Y" }}</h5>
-                <button class="btn btn-xs btn-outline btn-error group dark:btn-soft inline-flex items-center"
-                        hx-delete="{% url 'school_menu:special_day_delete' special_day.pk %}"
-                        hx-confirm="Confermi l'eliminazione del giorno speciale del {{ special_day.date|date:'d/m/Y' }}?"
-                        hx-target="#special_days"
-                        hx-swap="outerHTML">
-                    Elimina
-                    {% heroicon_mini 'trash' class="group-hover:text-white text-error size-3" %}
-                </button>
-            </div>
-        {% endfor %}
+        <div class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+            {% for special_day in special_days %}
+                <div class="flex items-center">
+                    <h5 class="mr-8 grow font-medium md:grow-0">{{ special_day.date|date:"d/m/Y" }}</h5>
+                    <button class="btn btn-xs btn-outline btn-error group dark:btn-soft inline-flex items-center"
+                            hx-delete="{% url 'school_menu:special_day_delete' special_day.pk %}"
+                            hx-confirm="Confermi l'eliminazione del giorno speciale del {{ special_day.date|date:'d/m/Y' }}?"
+                            hx-target="#special_days"
+                            hx-swap="outerHTML">
+                        Elimina
+                        {% heroicon_mini 'trash' class="group-hover:text-white text-error size-3" %}
+                    </button>
+                </div>
+            {% endfor %}
+        </div>
         {% if can_add_special_day %}
-            <button class="btn btn-xs btn-outline btn-secondary dark:btn-soft inline-flex items-center justify-center"
+            <button class="btn btn-xs btn-outline btn-secondary dark:btn-soft inline-flex w-full items-center justify-center sm:hidden"
                     hx-get="{% url 'school_menu:special_day_create' %}"
                     hx-target="#dialog"
                     hx-swap="innerHTML"

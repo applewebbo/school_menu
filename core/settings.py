@@ -165,7 +165,7 @@ MAILERS = {
         "BACKEND": "anymail.backends.mailgun.EmailBackend",
     },
 }
-DEFAULT_FROM_EMAIL = "info@mg.webbografico.com"
+DEFAULT_FROM_EMAIL = "info@menuscolastico.it"
 ADMIN_EMAIL = env("ADMIN_EMAIL")
 
 # Newsletter emails (#289) are built by a background task with no request in scope, so

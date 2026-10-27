@@ -195,6 +195,9 @@ src/intellisense.css
 .claude/
 .playwright-mcp/
 
+# NEWSLETTER DRAFTS (local-only, never committed)
+newsletters/
+
 # TESTS
 tests/performance/
 

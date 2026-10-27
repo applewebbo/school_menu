@@ -1,12 +1,18 @@
 {% load heroicons i18n %}
 <div id="cookiebannerModal"
      tabindex="-1"
-     class="bg-base-300 fixed start-0 bottom-0 z-50 hidden w-full justify-between p-4">
+     class="bg-base-300 fixed start-0 bottom-0 z-50 hidden max-h-screen w-full justify-between overflow-y-auto p-4">
   <div class="m-auto max-w-4xl px-5 py-3 md:px-6 md:py-4" x-data="{ openChoices : false }">
-    <h3 class="text-base-content text-center text-xl font-semibold sm:text-left">{{ cb_settings.title }}</h3>
-    {% if cb_settings.header_text %}
-      <p class="mt-3 text-center sm:text-left">{{ cb_settings.header_text|safe }}</p>
-    {% endif %}
+    <div class="flex items-center justify-between gap-2">
+      <h3 class="text-base-content text-left text-xl font-semibold">{{ cb_settings.title }}</h3>
+      <button type="button"
+              aria-label="Info"
+              class="btn btn-circle btn-xs sm:btn-sm btn-outline btn-info font-serif italic"
+              x-on:click="openChoices = ! openChoices"
+              x-bind:class="openChoices && 'btn-active'"
+              x-bind:aria-pressed="openChoices">i</button>
+    </div>
+    {% if cb_settings.header_text %}<p class="mt-3 text-left">{{ cb_settings.header_text|safe }}</p>{% endif %}
     <form id="cookiebannerForm" class="my-3 space-y-2">
       {% for cookiegroup in cb_settings.groups %}
         <div id="cookiegroup_{{ cookiegroup.id }}">
@@ -49,26 +55,16 @@
         {% endfor %}
       </div>
     </div>
-    <div id="cookiebannerModalFooter"
-         class="flex items-center justify-center gap-2 px-5 py-3 md:justify-end md:px-6 md:py-4">
+    <div id="cookiebannerModalFooter" class="flex flex-col items-start gap-3 py-3 md:py-4">
       {% if cb_settings.footer_text %}<p class="text-left">{{ cb_settings.footer_text|safe }}</p>{% endif %}
-      <button type="button"
-              class="btn btn-sm btn-secondary"
-              x-on:click="openChoices = ! openChoices"
-              x-show="!openChoices">{% heroicon_mini 'plus-circle' class="size-5" %}Info</button>
-      <button type="button"
-              class="btn btn-sm btn-secondary"
-              x-on:click="openChoices = ! openChoices"
-              x-show="openChoices">{% heroicon_mini 'minus-circle' class="size-5" %}Info</button>
-      <input type="submit"
-             name="save_preferences"
-             class="btn btn-sm btn-outline btn-primary"
-             value="Salva preferenze">
-      <input type="submit"
-             name="enable_all"
-             class="btn btn-sm btn-primary"
-             value="Accetta">
-      <ul class="menu menu-horizontal">
+      <div class="flex w-full flex-wrap justify-end gap-2">
+        <input type="submit"
+               name="save_preferences"
+               class="btn btn-sm btn-outline btn-primary"
+               value="Salva preferenze">
+        <input type="submit" name="enable_all" class="btn btn-sm btn-primary" value="Accetta">
+      </div>
+      <ul class="menu menu-horizontal flex-wrap p-0">
         {% for link in cb_settings.footer_links %}
           <li>
             <a class="link link-primary" href="{{ link.href }}">{{ link.title }}</a>

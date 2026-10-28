@@ -22,7 +22,11 @@ class SchoolSitemap(Sitemap):
         )
         detailed_ids = set(DetailedMeal.objects.values_list("school_id", flat=True))
         simple_ids = set(SimpleMeal.objects.values_list("school_id", flat=True))
-        annual_ids = set(AnnualMeal.objects.values_list("school_id", flat=True))
+        annual_ids = set(
+            AnnualMeal.objects.filter(is_active=True).values_list(
+                "school_id", flat=True
+            )
+        )
 
         def has_meals(school):
             effective = school.get_display_school()

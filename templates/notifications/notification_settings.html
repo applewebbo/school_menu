@@ -4,6 +4,10 @@
     Notifiche
 {% endblock page_title %}
 
+{% block robots_meta %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock robots_meta %}
+
 {% block add_js %}
     <script src="{% static 'js/custom-webpush.js' %}"></script>
     <script src="{% static 'js/pwa_install.js' %}"></script>

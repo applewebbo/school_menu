@@ -4,6 +4,10 @@
     Impostazioni
 {% endblock page_title %}
 
+{% block robots_meta %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock robots_meta %}
+
 {% block content %}
 <!-- INFO -->
 {% include 'partials/_settings_info.html' %}

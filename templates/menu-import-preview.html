@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 {% load heroicons %}
+{% block robots_meta %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock robots_meta %}
 {% partialdef pager %}
     {% if pages %}
         <nav class="my-4 flex flex-wrap items-center justify-between gap-3"

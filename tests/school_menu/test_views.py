@@ -209,6 +209,38 @@ class SchoolMenuView(TestCase):
         assertTemplateUsed(response, "school-menu.html")
         assert response.context["school"] == school
 
+    def test_canonical_url_is_self_when_not_mirroring(self):
+        school = SchoolFactory(menu_type=School.Types.SIMPLE)
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.assertContains(
+            response,
+            f'href="http://testserver{school.get_absolute_url()}"',
+        )
+
+    def test_canonical_url_points_to_source_school_when_mirroring(self):
+        source = SchoolFactory(menu_type=School.Types.SIMPLE)
+        SimpleMealFactory(
+            school=source,
+            day=1,
+            week=1,
+            season=School.Seasons.PRIMAVERILE,
+            type=SimpleMeal.Types.STANDARD,
+        )
+        mirroring = SchoolFactory(mirror_from=source)
+
+        response = self.get("school_menu:school_menu", slug=mirroring.slug)
+
+        self.assertContains(
+            response,
+            f'href="http://testserver{source.get_absolute_url()}"',
+        )
+        self.assertNotContains(
+            response,
+            f'href="http://testserver{mirroring.get_absolute_url()}"',
+        )
+
     def test_get_with_is_published_false(self):
         school = SchoolFactory(is_published=False)
         response = self.get("school_menu:school_menu", slug=school.slug)
@@ -959,6 +991,17 @@ class SettingView(TestCase):
         self.response_200(response)
         assertTemplateUsed(response, "settings.html")
         assert response.context["user"] == user
+
+    def test_get_has_noindex(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
 
     def test_the_page_always_belongs_to_the_caller(self):
         """
@@ -1897,6 +1940,17 @@ class CreateWeeklyMenuView(TestCase):
             else:
                 assert DetailedMeal.objects.filter(school=school).count() == 5
 
+    def test_get_has_noindex(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:create_weekly_menu", school.pk, 1, 1, "S")
+
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
+
     def test_get_with_meals_already_present(self):
         user = self.make_user()
         school = SchoolFactory(
@@ -2365,6 +2419,14 @@ class TestProposeSchoolMaintainerView(TestCase):
 
         self.response_200(response)
         assertTemplateUsed(response, "school_menu/propose-maintainer.html")
+
+    def test_get_has_noindex(self):
+        with self.login(self.candidate):
+            response = self.get("school_menu:propose_maintainer", slug=self.school.slug)
+
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
 
     def test_post_creates_transfer_and_notifies_admin(self):
         with self.login(self.candidate):

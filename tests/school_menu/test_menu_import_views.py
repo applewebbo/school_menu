@@ -334,6 +334,17 @@ class TestPreviewAndConfirm(TestPlusTestCase):
         self.assertContains(response, "Pasta")
         self.assertContains(response, "giorno non riconosciuto")
 
+    def test_preview_has_noindex(self):
+        with self.login(self.user):
+            draft = self.make_ready()
+            response = self.client.get(
+                reverse("school_menu:menu_import_preview", args=[draft.pk])
+            )
+
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
+
     def test_only_a_ready_draft_can_be_previewed(self):
         with self.login(self.user):
             draft = MenuImportDraftFactory(school=self.school, status=PENDING)

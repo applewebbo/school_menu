@@ -329,6 +329,14 @@ class TestSchoolHasMeals:
 
         assert school.has_meals() is False
 
+    def test_false_with_only_inactive_annual_meal(
+        self, school_factory, annual_meal_factory
+    ):
+        school = school_factory(annual_menu=True)
+        annual_meal_factory(school=school, is_active=False)
+
+        assert school.has_meals() is False
+
 
 class TestSchoolModelMirrorFrom:
     def test_mirror_from_defaults_to_none(self, school_factory):

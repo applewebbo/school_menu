@@ -189,4 +189,29 @@ User-agent: SputnikBot
 User-agent: MegaIndex.ru
 Disallow: /
 
+# Private/management sections: login-required or purely functional, never worth
+# a crawl budget and never meant to be indexed (#332). The school menu pages
+# themselves (/menu/<slug>/) are deliberately NOT listed here.
+User-agent: *
+Disallow: /admin/
+Disallow: /api/
+Disallow: /accounts/
+Disallow: /users/
+Disallow: /settings/
+Disallow: /school/
+Disallow: /notifications/
+Disallow: /contacts/menu/
+Disallow: /contacts/reports/
+Disallow: /contacts/report/
+Disallow: /menu-import/
+Disallow: /ai-import/
+Disallow: /export/
+Disallow: /export-modal/
+Disallow: /search-schools/
+Disallow: /search-mirror-candidates/
+Disallow: /report-count/
+Disallow: /json/
+Disallow: /home/switch/
+Disallow: /menu/*/proponi-responsabile/
+
 Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

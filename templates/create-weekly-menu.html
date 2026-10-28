@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
+{% block robots_meta %}
+    <meta name="robots" content="noindex, nofollow">
+{% endblock robots_meta %}
+
 {% block content %}
     {% comment %}
     Same card shell as menu-import-preview.html: both pages are "review and correct a week of

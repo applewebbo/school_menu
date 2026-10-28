@@ -353,7 +353,7 @@ class School(models.Model):
     def has_meals(self) -> bool:
         """Whether this school has any menu content of its own active type (#331)."""
         if self.annual_menu:
-            return AnnualMeal.objects.filter(school=self).exists()
+            return AnnualMeal.objects.filter(school=self, is_active=True).exists()
         if self.menu_type == self.Types.SIMPLE:
             return SimpleMeal.objects.filter(school=self).exists()
         return DetailedMeal.objects.filter(school=self).exists()

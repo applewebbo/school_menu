@@ -40,6 +40,13 @@ class SitemapView(TestCase):
 
         self.assertContains(response, school.get_absolute_url())
 
+    def test_published_school_with_only_inactive_annual_meal_is_not_listed(self):
+        school = SchoolFactory(is_published=True, annual_menu=True)
+        AnnualMealFactory(school=school, is_active=False)
+        response = self.get("django.contrib.sitemaps.views.sitemap")
+
+        self.assertNotContains(response, school.get_absolute_url())
+
     def test_published_school_with_no_meals_is_not_listed(self):
         school = SchoolFactory(is_published=True)
         response = self.get("django.contrib.sitemaps.views.sitemap")

@@ -409,11 +409,16 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
         return render(request, "school-menu.html", {"not_published": True})
     # Empty/test schools with no menu content ever uploaded are kept out of
     # search results, even when reachable outside the sitemap (#331).
-    no_meals = not school.get_display_school().has_meals()
+    display_school = school.get_display_school()
+    no_meals = not display_school.has_meals()
+    # A mirroring school renders the same content as its source school, so
+    # canonicalize to the source URL to avoid duplicate-content pages (#332).
+    canonical_url = request.build_absolute_uri(display_school.get_absolute_url())
     if not _is_school_in_session(school, datetime.now()):
         context = {
             "not_in_session": True,
             "no_meals": no_meals,
+            "canonical_url": canonical_url,
             "start_day": school.start_day,
             "start_month": school.start_month,
             "school": school,
@@ -422,6 +427,7 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
         return render(request, "school-menu.html", context)
     context = get_school_menu_context(school, meal_type)
     context["no_meals"] = no_meals
+    context["canonical_url"] = canonical_url
     context["notifications_status"] = notifications_status
     context["structured_data"] = build_school_structured_data(request, school)
     context.update(get_favorite_context(request, school))

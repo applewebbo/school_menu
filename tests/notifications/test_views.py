@@ -66,6 +66,12 @@ def test_notification_settings_no_session(client):
     assert b"form" in response.content or b"csrfmiddlewaretoken" in response.content
 
 
+def test_notification_settings_has_noindex(client):
+    url = reverse("notifications:notification_settings")
+    response = client.get(url)
+    assert b'<meta name="robots" content="noindex, nofollow">' in response.content
+
+
 def test_notification_settings_with_session(client, school_factory):
     school = school_factory()
     notification = AnonymousMenuNotification.objects.create(

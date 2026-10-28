@@ -106,6 +106,15 @@ class MenuReportView(TestCase):
         self.response_200(response)
         assert response.context["school"] == school
 
+    def test_get_has_noindex(self):
+        school = SchoolFactory()
+
+        response = self.get("contacts:menu_report", school_id=school.pk)
+
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
+
     def test_post_with_success(self):
         user = self.make_user()
         school = SchoolFactory(user=user)

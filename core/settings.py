@@ -318,7 +318,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # APP-SPECIFIC SETTINGS
 ENABLE_SCHOOL_DATE_CHECK = env.bool("ENABLE_SCHOOL_DATE_CHECK", default=True)
-APP_VERSION = "2026.6"
+APP_VERSION = "2026.6.1"
 
 # ADS (#320) and SUPPORT BANNER (#326): both toggled from the admin's "Impostazioni
 # del sito" singleton (school_menu.models.SiteSettings, #327), not from env vars —

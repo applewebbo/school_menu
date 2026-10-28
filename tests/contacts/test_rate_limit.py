@@ -1,4 +1,4 @@
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.test import override_settings
 
 from contacts.rate_limit import is_rate_limited
@@ -52,6 +52,10 @@ class TestIsRateLimited:
         def raise_value_error(key):
             raise ValueError
 
-        monkeypatch.setattr(cache, "incr", raise_value_error)
+        # Patch the concrete backend, not the lazy `cache` proxy: override_settings
+        # reverts CACHES (and resets the proxy's target) before monkeypatch's own
+        # teardown runs, so undoing the patch on the proxy would hit a different,
+        # already-restored backend instance.
+        monkeypatch.setattr(caches["default"], "incr", raise_value_error)
 
         assert is_rate_limited("test-key", limit=3, window_seconds=60) is False

@@ -10,6 +10,15 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.6.1",
+        "date": date(2026, 10, 28),
+        "notes": [
+            "Corretto il banner dei cookie che su smartphone poteva mostrare i pulsanti tagliati o sovrapposti.",
+            "Le email automatiche del sito sono ora inviate dall'indirizzo ufficiale info@menuscolastico.it.",
+            "Rifiniture tecniche interne per migliorare la qualità delle pagine delle scuole agli occhi dei motori di ricerca.",
+        ],
+    },
+    {
         "version": "2026.6",
         "date": date(2026, 10, 23),
         "notes": [

@@ -11,7 +11,7 @@ This module tests:
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.core.cache import cache
+from django.core.cache import cache, caches
 from django.db import connection
 from django.test import override_settings
 from django.urls import reverse
@@ -305,7 +305,11 @@ class TestHealthCheckEndpoint:
         def mock_cache_set(*args, **kwargs):
             raise Exception("Cache connection failed")
 
-        monkeypatch.setattr(cache, "set", mock_cache_set)
+        # Patch the concrete backend, not the lazy `cache` proxy: override_settings
+        # reverts CACHES (and resets the proxy's target) before monkeypatch's own
+        # teardown runs, so undoing the patch on the proxy would hit a different,
+        # already-restored backend instance.
+        monkeypatch.setattr(caches["default"], "set", mock_cache_set)
 
         url = reverse("health_check")
         response = client.get(url)

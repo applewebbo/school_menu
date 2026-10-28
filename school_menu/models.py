@@ -350,6 +350,14 @@ class School(models.Model):
         # menu flags affect display even without modifying meals
         invalidate_school_cache(self.id, self.slug)
 
+    def has_meals(self) -> bool:
+        """Whether this school has any menu content of its own active type (#331)."""
+        if self.annual_menu:
+            return AnnualMeal.objects.filter(school=self).exists()
+        if self.menu_type == self.Types.SIMPLE:
+            return SimpleMeal.objects.filter(school=self).exists()
+        return DetailedMeal.objects.filter(school=self).exists()
+
     def get_absolute_url(self):
         return reverse("school_menu:school_menu", kwargs={"slug": self.slug})
 

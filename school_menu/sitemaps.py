@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-from school_menu.models import School
+from school_menu.models import AnnualMeal, DetailedMeal, School, SimpleMeal
 
 
 class SchoolSitemap(Sitemap):
@@ -11,7 +11,28 @@ class SchoolSitemap(Sitemap):
     priority = 0.8
 
     def items(self):
-        return School.objects.filter(is_published=True).only("slug").order_by("slug")
+        # Excludes pages with no actual menu content (empty/test schools), which
+        # Google AdSense flags as "low value content" (#331). A mirroring school
+        # (mirror_from) shows another school's meals, so its own emptiness isn't
+        # what matters — resolve to the effective school via get_display_school().
+        published = (
+            School.objects.filter(is_published=True)
+            .select_related("mirror_from")
+            .order_by("slug")
+        )
+        detailed_ids = set(DetailedMeal.objects.values_list("school_id", flat=True))
+        simple_ids = set(SimpleMeal.objects.values_list("school_id", flat=True))
+        annual_ids = set(AnnualMeal.objects.values_list("school_id", flat=True))
+
+        def has_meals(school):
+            effective = school.get_display_school()
+            if effective.annual_menu:
+                return effective.id in annual_ids
+            if effective.menu_type == School.Types.SIMPLE:
+                return effective.id in simple_ids
+            return effective.id in detailed_ids
+
+        return [school for school in published if has_meals(school)]
 
     def location(self, item):
         return item.get_absolute_url()

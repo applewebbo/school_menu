@@ -220,6 +220,26 @@ class SchoolMenuView(TestCase):
             response, '<meta name="robots" content="noindex, nofollow">'
         )
 
+    def test_get_with_no_meals_has_noindex(self):
+        school = SchoolFactory(menu_type=School.Types.DETAILED)
+        # No meal created: empty page, should not be indexed (#331)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["no_meals"] is True
+        self.assertContains(
+            response, '<meta name="robots" content="noindex, nofollow">'
+        )
+
+    def test_get_with_meals_has_no_noindex(self):
+        school = SchoolFactory(menu_type=School.Types.DETAILED)
+        DetailedMealFactory(school=school)
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["no_meals"] is False
+        self.assertNotContains(response, 'name="robots"')
+
     def test_get_includes_json_ld_structured_data(self):
         school = SchoolFactory(name="Scuola Rossi", city="Bologna")
         response = self.get("school_menu:school_menu", slug=school.slug)

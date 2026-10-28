@@ -55,7 +55,7 @@
 {% endblock structured_data %}
 
 {% block robots_meta %}
-    {% if not_published %}
+    {% if not_published or no_meals %}
         <meta name="robots" content="noindex, nofollow">
     {% endif %}
 {% endblock robots_meta %}

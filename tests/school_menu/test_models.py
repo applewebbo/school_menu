@@ -8,6 +8,7 @@ from django.db import IntegrityError
 from school_menu.models import (
     Meal,
     MirrorFallbackCheck,
+    School,
     SchoolTransfer,
     SiteSettings,
 )
@@ -294,6 +295,39 @@ class TestSchoolModel:
         # But the actual fields should be updated
         assert school.name == "Scuola Media"
         assert school.city == "Milano"
+
+
+class TestSchoolHasMeals:
+    def test_false_when_no_meals_at_all(self, school_factory):
+        school = school_factory(menu_type=School.Types.DETAILED)
+
+        assert school.has_meals() is False
+
+    def test_true_with_detailed_meal(self, school_factory, detailed_meal_factory):
+        school = school_factory(menu_type=School.Types.DETAILED)
+        detailed_meal_factory(school=school)
+
+        assert school.has_meals() is True
+
+    def test_true_with_simple_meal(self, school_factory, simple_meal_factory):
+        school = school_factory(menu_type=School.Types.SIMPLE)
+        simple_meal_factory(school=school)
+
+        assert school.has_meals() is True
+
+    def test_true_with_annual_meal(self, school_factory, annual_meal_factory):
+        school = school_factory(annual_menu=True)
+        annual_meal_factory(school=school)
+
+        assert school.has_meals() is True
+
+    def test_detailed_meals_dont_count_for_simple_school(
+        self, school_factory, detailed_meal_factory
+    ):
+        school = school_factory(menu_type=School.Types.SIMPLE)
+        detailed_meal_factory(school=school)
+
+        assert school.has_meals() is False
 
 
 class TestSchoolModelMirrorFrom:

@@ -407,9 +407,13 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
     notifications_status = get_notifications_status(pk, school)
     if not school.is_published:
         return render(request, "school-menu.html", {"not_published": True})
+    # Empty/test schools with no menu content ever uploaded are kept out of
+    # search results, even when reachable outside the sitemap (#331).
+    no_meals = not school.get_display_school().has_meals()
     if not _is_school_in_session(school, datetime.now()):
         context = {
             "not_in_session": True,
+            "no_meals": no_meals,
             "start_day": school.start_day,
             "start_month": school.start_month,
             "school": school,
@@ -417,6 +421,7 @@ def school_menu(request: HttpRequest, slug: str, meal_type: str = "S") -> HttpRe
         }
         return render(request, "school-menu.html", context)
     context = get_school_menu_context(school, meal_type)
+    context["no_meals"] = no_meals
     context["notifications_status"] = notifications_status
     context["structured_data"] = build_school_structured_data(request, school)
     context.update(get_favorite_context(request, school))

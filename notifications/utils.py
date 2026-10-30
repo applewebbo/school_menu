@@ -5,6 +5,7 @@ from django.utils import timezone
 from school_menu.models import School
 from school_menu.utils import (
     calculate_week,
+    get_closure,
     get_current_date,
     get_meals,
     get_meals_for_annual_menu,
@@ -14,6 +15,18 @@ from school_menu.utils import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def build_closure_notification_payload(school, is_previous_day=False):
+    """Payload for an extraordinary closure day (#333): a dedicated "school
+    closed" message, sent instead of the regular menu notification."""
+    if is_previous_day:
+        head = f"Scuola chiusa domani {school.name}"
+        body = "La scuola sarà chiusa domani per chiusura straordinaria."
+    else:
+        head = f"Scuola chiusa oggi {school.name}"
+        body = "La scuola è chiusa oggi per chiusura straordinaria."
+    return {"head": head, "body": body}
 
 
 def build_menu_notification_payload(school, is_previous_day=False, meal_type="S"):
@@ -33,6 +46,12 @@ def build_menu_notification_payload(school, is_previous_day=False, meal_type="S"
         f"is_previous_day={is_previous_day}, meal_type={meal_type}, "
         f"current_time={now.isoformat()}, timezone={now.tzname()}"
     )
+
+    # A closure overrides everything, regardless of menu_type/annual_menu (#333).
+    if school.has_closures and get_closure(
+        school, get_target_date(next_day=is_previous_day)
+    ):
+        return build_closure_notification_payload(school, is_previous_day)
 
     if school.annual_menu:
         logger.info(

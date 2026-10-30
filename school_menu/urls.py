@@ -83,6 +83,17 @@ htmx_urlpatterns = [
         views.special_day_delete,
         name="special_day_delete",
     ),
+    path("settings/closures/", views.closures_partial, name="closures"),
+    path(
+        "settings/closures/add/",
+        views.closure_create,
+        name="closure_create",
+    ),
+    path(
+        "settings/closures/<int:pk>/delete/",
+        views.closure_delete,
+        name="closure_delete",
+    ),
     path("settings/school/", views.school_settings_partial, name="school_settings"),
     path("search-schools/", views.search_schools, name="search_schools"),
     path(

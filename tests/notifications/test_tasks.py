@@ -38,6 +38,7 @@ from tests.notifications.factories import (
 from tests.school_menu.factories import (
     AnnualMealFactory,
     DetailedMealFactory,
+    SchoolClosureFactory,
     SchoolFactory,
     SimpleMealFactory,
 )
@@ -307,6 +308,54 @@ def test_send_menu_notifications_skips_previous_day_when_target_has_no_menu(
 
     mock_has_menu_for_date.assert_called_once_with(school_in_session, date(2025, 8, 23))
     mock_send_notification.assert_not_called()
+
+
+@time_machine.travel("2025-08-18")  # A Monday
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_sends_closure_payload_for_closed_school(
+    mock_send_notification, school_in_session
+):
+    """An extraordinary closure sends a dedicated "school closed" message (#333)."""
+    school_in_session.has_closures = True
+    school_in_session.save()
+    SchoolClosureFactory(school=school_in_session, date=date(2025, 8, 18))
+    AnonymousMenuNotificationFactory(
+        school=school_in_session,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+    )
+    create_simple_meals_for_all_seasons_and_weeks(school_in_session, day=1)
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    mock_send_notification.assert_called_once()
+    args, _ = mock_send_notification.call_args
+    payload = args[1]
+    assert "chiusa" in payload["body"]
+
+
+@time_machine.travel("2025-08-18")  # A Monday
+@patch("notifications.tasks._has_menu_for_date")
+@patch("notifications.tasks.send_test_notification")
+def test_send_menu_notifications_closure_overrides_missing_menu(
+    mock_send_notification, mock_has_menu_for_date, school_in_session
+):
+    """A closure sends its dedicated payload even when no menu is defined for the
+    date — it must not fall through to the "no menu" skip (#333)."""
+    mock_has_menu_for_date.return_value = False
+    school_in_session.has_closures = True
+    school_in_session.save()
+    SchoolClosureFactory(school=school_in_session, date=date(2025, 8, 18))
+    AnonymousMenuNotificationFactory(
+        school=school_in_session,
+        daily_notification=True,
+        notification_time=AnonymousMenuNotification.SAME_DAY_9AM,
+    )
+
+    _send_menu_notifications(AnonymousMenuNotification.SAME_DAY_9AM)
+
+    mock_has_menu_for_date.assert_not_called()
+    mock_send_notification.assert_called_once()
 
 
 @time_machine.travel("2025-08-18")  # A Monday

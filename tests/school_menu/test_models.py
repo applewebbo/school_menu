@@ -144,6 +144,58 @@ class TestSpecialDetailedMealModel:
         assert school.has_special_days is False
 
 
+class TestSchoolClosureModel:
+    def test_factory(self, school_factory, school_closure_factory):
+        school = school_factory()
+        closure = school_closure_factory(school=school, date=date(2026, 12, 8))
+
+        assert str(closure) == f"{school.name} [chiusura 08/12/2026]"
+
+    def test_unique_constraint_on_school_date(
+        self, school_factory, school_closure_factory
+    ):
+        school = school_factory()
+        school_closure_factory(school=school, date=date(2026, 12, 8))
+
+        with pytest.raises(IntegrityError):
+            school_closure_factory(school=school, date=date(2026, 12, 8))
+
+    def test_save_sets_school_has_closures(
+        self, school_factory, school_closure_factory
+    ):
+        school = school_factory(has_closures=False)
+
+        school_closure_factory(school=school)
+
+        school.refresh_from_db()
+        assert school.has_closures is True
+
+    def test_delete_last_closure_resets_has_closures(
+        self, school_factory, school_closure_factory
+    ):
+        school = school_factory()
+        closure = school_closure_factory(school=school)
+        school.refresh_from_db()
+        assert school.has_closures is True
+
+        closure.delete()
+
+        school.refresh_from_db()
+        assert school.has_closures is False
+
+    def test_delete_one_of_many_keeps_has_closures_true(
+        self, school_factory, school_closure_factory
+    ):
+        school = school_factory()
+        closure_1 = school_closure_factory(school=school, date=date(2026, 12, 8))
+        school_closure_factory(school=school, date=date(2026, 12, 25))
+
+        closure_1.delete()
+
+        school.refresh_from_db()
+        assert school.has_closures is True
+
+
 class TestSchoolHasSpecialDaysAcrossMealTypes:
     """A school's has_special_days reflects both Special*Meal models combined."""
 

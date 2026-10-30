@@ -35,6 +35,7 @@ from school_menu.utils.meals import (
     build_types_menu,
     fill_missing_dates,
     get_alt_menu,
+    get_closure,
     get_meals,
     get_meals_for_annual_menu,
     get_special_meal,
@@ -66,6 +67,7 @@ __all__ = [
     "get_meals",
     "get_meals_for_annual_menu",
     "get_special_meal",
+    "get_closure",
     "fill_missing_dates",
     # Notification utilities
     "get_notifications_status",

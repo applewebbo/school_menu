@@ -69,7 +69,9 @@
             </div>
             {% endif %}
         {% else %}
-            {% if not_in_session %}
+            {% if is_closed %}
+            {% include 'partials/_school_closed.html' %}
+            {% elif not_in_session %}
             {% include 'partials/_not_in_session.html' %}
             {% else %}
             <img src="{% static 'img/calendar.png' %}" alt="" class="mx-auto max-w-24">

@@ -38,6 +38,7 @@ from school_menu.cache import (
 )
 from school_menu.forms import (
     DetailedMealForm,
+    SchoolClosureForm,
     SchoolForm,
     SimpleMealForm,
     SpecialDetailedMealForm,
@@ -47,12 +48,14 @@ from school_menu.forms import (
 )
 from school_menu.menu_import_views import stage_csv_rows
 from school_menu.models import (
+    MAX_SCHOOL_CLOSURES,
     MAX_SPECIAL_DAYS,
     AnnualMeal,
     DetailedMeal,
     Meal,
     MenuImportDraft,
     School,
+    SchoolClosure,
     SchoolTransfer,
     SimpleMeal,
     SpecialDetailedMeal,
@@ -79,6 +82,7 @@ from school_menu.utils import (
     detect_csv_format,
     get_adjusted_year,
     get_alt_menu,
+    get_closure,
     get_current_date,
     get_meals,
     get_meals_for_annual_menu,
@@ -230,14 +234,27 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
     # Filter meals by type using list comprehension (weekly_meals is a list, not QuerySet)
     weekly_meals = [m for m in weekly_meals if m.type == meal_type]
 
+    # A closure overrides everything (menu and alt types alike): the school is
+    # simply closed, regardless of menu_type/annual_menu (#333).
+    is_closed = False
+    if display_school.has_closures:
+        is_closed = get_closure(display_school, get_target_date())
+
     # A special day only ever has a Standard meal, so it overrides the
     # requested meal_type outright: alternate types are not selectable on a
     # special day (#317 follow-up).
     special_meal = None
-    if not display_school.annual_menu and display_school.has_special_days:
+    if (
+        not is_closed
+        and not display_school.annual_menu
+        and display_school.has_special_days
+    ):
         special_meal = get_special_meal(display_school, get_target_date())
 
-    if special_meal is not None:
+    if is_closed:
+        meal_for_today = None
+        types_menu = {}
+    elif special_meal is not None:
         meal_for_today = special_meal
         types_menu = {}
     else:
@@ -260,6 +277,7 @@ def get_school_menu_context(school: School, meal_type: str = "S") -> dict[str, A
         "alt_menu": alt_menu,
         "types_menu": types_menu,
         "is_special_day": special_meal is not None,
+        "is_closed": is_closed,
     }
 
 
@@ -590,11 +608,25 @@ def get_menu(
     current_week = calculate_week(current_iso_week, display_school.week_bias)
     is_today = week == current_week and day == current_day
 
+    # Same "only when it's today's real slot" gate as the special-day override
+    # above — a closure never applies to a day-switch to another weekday (#333).
+    is_closed = False
+    if is_today and display_school.has_closures:
+        is_closed = get_closure(display_school, get_target_date())
+
     special_meal = None
-    if is_today and not display_school.annual_menu and display_school.has_special_days:
+    if (
+        is_today
+        and not is_closed
+        and not display_school.annual_menu
+        and display_school.has_special_days
+    ):
         special_meal = get_special_meal(display_school, get_target_date())
 
-    if special_meal is not None:
+    if is_closed:
+        meal_for_today = None
+        types_menu = {}
+    elif special_meal is not None:
         meal_for_today = special_meal
         types_menu = {}
     else:
@@ -617,6 +649,7 @@ def get_menu(
         "types_menu": types_menu,
         "notifications_status": notifications_status,
         "is_special_day": special_meal is not None,
+        "is_closed": is_closed,
     }
     if request.GET.get("home") == "1":
         apply_home_context(request, school, context)
@@ -704,6 +737,7 @@ def settings_view(request: HttpRequest) -> HttpResponse:
     }
     if hasattr(user, "school"):
         context.update(_special_days_context(user.school))
+        context.update(_closures_context(user.school))
     return render(request, "settings.html", context)
 
 
@@ -737,6 +771,7 @@ def menu_settings_partial(request: HttpRequest) -> HttpResponse:
     }
     if hasattr(user, "school"):
         context.update(_special_days_context(user.school))
+        context.update(_closures_context(user.school))
     return render(request, "settings.html#menu", context)
 
 
@@ -804,6 +839,55 @@ def special_day_delete(request: HttpRequest, pk: int) -> HttpResponse:
     special_day = get_object_or_404(model, pk=pk, school=school)
     special_day.delete()
     return render(request, "partials/_special_days.html", _special_days_context(school))
+
+
+def _closures_context(school: School) -> dict[str, Any]:
+    closures = SchoolClosure.objects.filter(school=school)
+    return {
+        "school": school,
+        "closures": closures,
+        "can_add_closure": closures.count() < MAX_SCHOOL_CLOSURES,
+    }
+
+
+@login_required
+def closures_partial(request: HttpRequest) -> HttpResponse:
+    """Render the "Chiusure Straordinarie" settings section (#333)."""
+    school = get_object_or_404(School, user=request.user)
+    return render(request, "partials/_closures.html", _closures_context(school))
+
+
+@login_required
+def closure_create(request: HttpRequest) -> HttpResponse:
+    """Add a closure to the authenticated user's school, via a modal form (#333)."""
+    school = get_object_or_404(School, user=request.user)
+    if request.method == "POST":
+        # Blocks a direct POST past the "+" button, which the template already
+        # hides once the limit is reached.
+        if SchoolClosure.objects.filter(school=school).count() >= MAX_SCHOOL_CLOSURES:
+            return HttpResponseForbidden()
+        form = SchoolClosureForm(request.POST, school=school)
+        if form.is_valid():
+            form.save()
+            context = {**_closures_context(school), "oob": True}
+            response = render(request, "partials/_closures.html", context)
+            response["HX-Trigger"] = "hide-modal"
+            return response
+    else:
+        form = SchoolClosureForm(school=school)
+    return render(
+        request, "partials/_closure_form.html", {"form": form, "school": school}
+    )
+
+
+@login_required
+@require_http_methods(["DELETE"])
+def closure_delete(request: HttpRequest, pk: int) -> HttpResponse:
+    """Delete a closure of the authenticated user's school (#333)."""
+    school = get_object_or_404(School, user=request.user)
+    closure = get_object_or_404(SchoolClosure, pk=pk, school=school)
+    closure.delete()
+    return render(request, "partials/_closures.html", _closures_context(school))
 
 
 @login_required

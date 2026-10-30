@@ -1,0 +1,13 @@
+{% load heroicons static %}
+<div class="mb-12">
+    <div class="text-center">
+        <img src="{% static 'img/holidays.png' %}" alt="" class="mx-auto mt-8 max-w-36 xl:mt-12">
+        <h2 class="text-base-content mx-auto my-4 text-xl font-medium tracking-tight md:my-6 xl:my-8">
+            Scuola chiusa oggi
+        </h2>
+        <div role=alert class="alert alert-vertical sm:alert-horizontal">
+            {% heroicon_outline 'information-circle' class="text-info" %}
+            <span>La scuola ha segnalato una chiusura straordinaria per oggi: nessun menu previsto.</span>
+        </div>
+    </div>
+</div>

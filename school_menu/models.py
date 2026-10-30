@@ -247,6 +247,56 @@ def _sync_has_special_days(school_id: int) -> None:
     )
 
 
+MAX_SCHOOL_CLOSURES = 5
+
+
+class SchoolClosure(models.Model):
+    """An extraordinary closure day (holiday, strike, ...) for a school (#333).
+
+    Unlike special days, a closure applies regardless of menu_type/annual_menu:
+    it overrides the daily menu display and notification with a "closed" message.
+    """
+
+    school = models.ForeignKey("School", on_delete=models.CASCADE)
+    date = models.DateField()
+
+    class Meta:
+        verbose_name = "chiusura straordinaria"
+        verbose_name_plural = "chiusure straordinarie"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["school", "date"], name="unique_school_closure_date"
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["school", "date"], name="school_closure_sch_date")
+        ]
+        ordering = ["-date"]
+
+    def __str__(self):
+        return f"{self.school.name} [chiusura {self.date:%d/%m/%Y}]"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        invalidate_meal_cache(self.school_id)
+        _sync_has_closures(self.school_id)
+
+    def delete(self, *args, **kwargs):
+        school_id = self.school_id
+        super().delete(*args, **kwargs)
+        invalidate_meal_cache(school_id)
+        _sync_has_closures(school_id)
+
+
+def _sync_has_closures(school_id: int) -> None:
+    """Keep School.has_closures in sync without calling School.save() (same
+    rationale as _sync_has_special_days above)."""
+    has_any = SchoolClosure.objects.filter(school_id=school_id).exists()
+    School.objects.filter(pk=school_id).exclude(has_closures=has_any).update(
+        has_closures=has_any
+    )
+
+
 class School(models.Model):
     class Seasons(models.IntegerChoices):
         PRIMAVERILE = 1
@@ -297,6 +347,7 @@ class School(models.Model):
     special = models.BooleanField(default=False)
     annual_menu = models.BooleanField(default=False)
     has_special_days = models.BooleanField(default=False, editable=False)
+    has_closures = models.BooleanField(default=False, editable=False)
     seeking_maintainer = models.BooleanField(default=False)
     mirror_from = models.ForeignKey(
         "self",

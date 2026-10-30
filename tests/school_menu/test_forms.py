@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from school_menu.forms import (
     DetailedMealForm,
+    SchoolClosureForm,
     SchoolForm,
     SimpleMealForm,
     SpecialDetailedMealForm,
@@ -13,7 +14,7 @@ from school_menu.forms import (
     UploadMenuForm,
     allowed_upload_accept,
 )
-from school_menu.models import MAX_SPECIAL_DAYS, Meal, School
+from school_menu.models import MAX_SCHOOL_CLOSURES, MAX_SPECIAL_DAYS, Meal, School
 
 pytestmark = pytest.mark.django_db
 
@@ -515,5 +516,54 @@ class TestSpecialDetailedMealForm:
             },
             school=school,
         )
+
+        assert form.is_valid() is False
+
+
+class TestSchoolClosureForm:
+    def test_form(self, school_factory):
+        school = school_factory()
+        form = SchoolClosureForm(data={"date": date(2026, 12, 8)}, school=school)
+
+        assert form.is_valid() is True
+        closure = form.save()
+        assert closure.school == school
+
+    def test_rejects_weekend_date(self, school_factory):
+        school = school_factory()
+        form = SchoolClosureForm(
+            data={"date": date(2026, 12, 12)},  # Saturday
+            school=school,
+        )
+
+        assert form.is_valid() is False
+        assert "date" in form.errors
+
+    def test_rejects_duplicate_date_for_same_school(
+        self, school_factory, school_closure_factory
+    ):
+        school = school_factory()
+        school_closure_factory(school=school, date=date(2026, 12, 8))
+        form = SchoolClosureForm(data={"date": date(2026, 12, 8)}, school=school)
+
+        assert form.is_valid() is False
+        assert "date" in form.errors
+
+    def test_allows_keeping_same_date_on_update(
+        self, school_factory, school_closure_factory
+    ):
+        school = school_factory()
+        closure = school_closure_factory(school=school, date=date(2026, 12, 8))
+        form = SchoolClosureForm(
+            data={"date": date(2026, 12, 8)}, school=school, instance=closure
+        )
+
+        assert form.is_valid() is True, form.errors
+
+    def test_rejects_beyond_max_closures(self, school_factory, school_closure_factory):
+        school = school_factory()
+        for day in range(MAX_SCHOOL_CLOSURES):
+            school_closure_factory(school=school, date=date(2026, 12, 1 + day))
+        form = SchoolClosureForm(data={"date": date(2026, 12, 20)}, school=school)
 
         assert form.is_valid() is False

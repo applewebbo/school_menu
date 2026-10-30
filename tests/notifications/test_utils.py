@@ -5,12 +5,16 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
-from notifications.utils import build_menu_notification_payload
+from notifications.utils import (
+    build_closure_notification_payload,
+    build_menu_notification_payload,
+)
 from school_menu.models import (
     AnnualMeal,
     DetailedMeal,
     Meal,
     School,
+    SchoolClosure,
     SimpleMeal,
     SpecialSimpleMeal,
 )
@@ -436,6 +440,107 @@ def test_build_menu_notification_payload_skips_special_day_lookup_when_flag_is_f
     ):
         payload = build_menu_notification_payload(school)
         mock_get_target_date.assert_not_called()
+
+    assert payload is not None
+    assert "Regular Menu" in payload["body"]
+
+
+def test_build_closure_notification_payload_today():
+    school = School(name="Test School")
+    payload = build_closure_notification_payload(school)
+
+    assert payload == {
+        "head": "Scuola chiusa oggi Test School",
+        "body": "La scuola è chiusa oggi per chiusura straordinaria.",
+    }
+
+
+def test_build_closure_notification_payload_tomorrow():
+    school = School(name="Test School")
+    payload = build_closure_notification_payload(school, is_previous_day=True)
+
+    assert payload == {
+        "head": "Scuola chiusa domani Test School",
+        "body": "La scuola sarà chiusa domani per chiusura straordinaria.",
+    }
+
+
+def test_build_menu_notification_payload_uses_closure_override_for_today(school):
+    """A closure overrides the regular menu entirely (#333)."""
+    target_date = timezone.now().date()
+    school.has_closures = True
+    school.save()
+    SimpleMeal.objects.create(
+        school=school,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.STANDARD,
+        menu="Regular Menu",
+    )
+    SchoolClosure.objects.create(school=school, date=target_date)
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date", return_value=target_date),
+    ):
+        payload = build_menu_notification_payload(school)
+
+    assert payload == build_closure_notification_payload(school)
+
+
+def test_build_menu_notification_payload_closure_overrides_special_day(school):
+    """A closure takes priority over a special-day override (#333)."""
+    target_date = timezone.now().date()
+    school.has_closures = True
+    school.has_special_days = True
+    school.save()
+    SpecialSimpleMeal.objects.create(
+        school=school, date=target_date, type=Meal.Types.STANDARD, menu="Special Menu"
+    )
+    SchoolClosure.objects.create(school=school, date=target_date)
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date", return_value=target_date),
+    ):
+        payload = build_menu_notification_payload(school)
+
+    assert payload == build_closure_notification_payload(school)
+
+
+def test_build_menu_notification_payload_skips_closure_lookup_when_flag_is_false(
+    school,
+):
+    """has_closures=False gates the extra query entirely, mirroring decision 5."""
+    target_date = timezone.now().date()
+    SimpleMeal.objects.create(
+        school=school,
+        day=1,
+        week=1,
+        season=School.Seasons.PRIMAVERILE,
+        type=Meal.Types.STANDARD,
+        menu="Regular Menu",
+    )
+    school.has_closures = False  # in-memory override, bypassing the model sync
+
+    with (
+        patch("notifications.utils.get_current_date", return_value=(1, 1)),
+        patch("notifications.utils.calculate_week", return_value=1),
+        patch(
+            "notifications.utils.get_season", return_value=School.Seasons.PRIMAVERILE
+        ),
+        patch("notifications.utils.get_target_date", return_value=target_date),
+    ):
+        payload = build_menu_notification_payload(school)
 
     assert payload is not None
     assert "Regular Menu" in payload["body"]

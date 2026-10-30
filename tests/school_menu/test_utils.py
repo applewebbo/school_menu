@@ -17,6 +17,7 @@ from school_menu.utils import (
     fill_missing_dates,
     filter_dataset_columns,
     get_alt_menu,
+    get_closure,
     get_current_date,
     get_meals_for_annual_menu,
     get_notifications_status,
@@ -30,6 +31,7 @@ from school_menu.utils import (
 from tests.notifications.factories import AnonymousMenuNotificationFactory
 from tests.school_menu.factories import (
     AnnualMealFactory,
+    SchoolClosureFactory,
     SchoolFactory,
     SimpleMealFactory,
     SpecialDetailedMealFactory,
@@ -830,6 +832,30 @@ class TestGetSpecialMeal:
         with django_assert_num_queries(0):
             if school.has_special_days:
                 get_special_meal(school, date(2026, 12, 8), Meal.Types.STANDARD)
+
+
+class TestGetClosure:
+    def test_returns_true_when_closure_exists_for_date(self):
+        school = SchoolFactory()
+        SchoolClosureFactory(school=school, date=date(2026, 12, 8))
+
+        assert get_closure(school, date(2026, 12, 8)) is True
+
+    def test_returns_false_when_no_closure_for_date(self):
+        school = SchoolFactory()
+        SchoolClosureFactory(school=school, date=date(2026, 12, 8))
+
+        assert get_closure(school, date(2026, 12, 25)) is False
+
+    def test_zero_queries_when_school_has_no_closures(self, django_assert_num_queries):
+        """Mirrors decision 5's zero-extra-query guarantee for get_special_meal:
+        schools without closures pay zero extra queries on the public menu
+        lookup. The caller is expected to guard on school.has_closures."""
+        school = SchoolFactory(has_closures=False)
+
+        with django_assert_num_queries(0):
+            if school.has_closures:
+                get_closure(school, date(2026, 12, 8))
 
 
 class TestFillMissingDates(TestCase):

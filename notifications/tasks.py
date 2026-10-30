@@ -25,7 +25,10 @@ from notifications.models import (
     Newsletter,
     NotificationDeliveryMarker,
 )
-from notifications.utils import build_menu_notification_payload
+from notifications.utils import (
+    build_closure_notification_payload,
+    build_menu_notification_payload,
+)
 from school_menu.models import (
     AnnualMeal,
     AuditLog,
@@ -36,6 +39,7 @@ from school_menu.models import (
 )
 from school_menu.tasks import MISSING_MENU_WARNING_WEEKS
 from school_menu.utils.calendar import is_school_in_session
+from school_menu.utils.meals import get_closure
 from users.tokens import make_unsubscribe_token
 
 logger = logging.getLogger(__name__)
@@ -378,24 +382,33 @@ def _send_menu_notifications(notification_time: str) -> None:
             )
             continue
 
-        # No menu is ever defined for a closed day (e.g. Saturday/Sunday), so skip it
-        # outright instead of falling through to a weekend-rollover substitute (#284).
-        if not _has_menu_for_date(school, target_date):
-            logger.info(
-                f"Skipping notification for {school.name} on {target_date.strftime('%A')} "
-                "as no menu is defined for this date."
-            )
-            continue
+        # An extraordinary closure (#333) takes priority over the "no menu defined"
+        # skip below: it actively sends a dedicated "school closed" notification
+        # instead of silently skipping, even if no menu happens to be defined for
+        # the date (e.g. an annual-menu school with a gap on that date).
+        if school.has_closures and get_closure(school, target_date):
+            payload = build_closure_notification_payload(school, is_previous_day)
+        else:
+            # No menu is ever defined for a closed day (e.g. Saturday/Sunday), so skip
+            # it outright instead of falling through to a weekend-rollover substitute
+            # (#284).
+            if not _has_menu_for_date(school, target_date):
+                logger.info(
+                    f"Skipping notification for {school.name} on "
+                    f"{target_date.strftime('%A')} as no menu is defined for this date."
+                )
+                continue
 
-        payload = build_menu_notification_payload(
-            school, is_previous_day, meal_type=subscription.meal_type
-        )
-
-        if payload is None:
-            logger.info(
-                f"Skipping notification for {school.name} on {target_date}: no meals found."
+            payload = build_menu_notification_payload(
+                school, is_previous_day, meal_type=subscription.meal_type
             )
-            continue
+
+            if payload is None:
+                logger.info(
+                    f"Skipping notification for {school.name} on {target_date}: "
+                    "no meals found."
+                )
+                continue
 
         payload["icon"] = "/static/img/notification-bell.png"
         payload["url"] = school.get_absolute_url()

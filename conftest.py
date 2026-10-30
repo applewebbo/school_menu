@@ -4,6 +4,7 @@ from tests.contacts.factories import MenuReportFactory
 from tests.school_menu.factories import (
     AnnualMealFactory,
     DetailedMealFactory,
+    SchoolClosureFactory,
     SchoolFactory,
     SimpleMealFactory,
     SpecialDetailedMealFactory,
@@ -18,4 +19,5 @@ register(DetailedMealFactory)
 register(AnnualMealFactory)
 register(SpecialSimpleMealFactory)
 register(SpecialDetailedMealFactory)
+register(SchoolClosureFactory)
 register(MenuReportFactory)

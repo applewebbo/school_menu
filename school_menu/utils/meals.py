@@ -16,6 +16,7 @@ from school_menu.models import (
     DetailedMeal,
     Meal,
     School,
+    SchoolClosure,
     SimpleMeal,
     SpecialDetailedMeal,
     SpecialSimpleMeal,
@@ -266,6 +267,22 @@ def get_special_meal(school: School, target_date, meal_type: str = Meal.Types.ST
     return get_cached_or_query(
         cache_key, query_special_meal, timeout=CACHE_TTL_24_HOURS
     )
+
+
+def get_closure(school: School, target_date) -> bool:
+    """
+    Whether `school` is marked as closed on `target_date` (#333).
+
+    Only call this when school.has_closures is True — callers are expected
+    to guard on that flag so schools without closures pay zero extra
+    queries.
+    """
+    cache_key = f"school_closure:{school.id}:{target_date.isoformat()}"
+
+    def query_closure():
+        return SchoolClosure.objects.filter(school=school, date=target_date).exists()
+
+    return get_cached_or_query(cache_key, query_closure, timeout=CACHE_TTL_24_HOURS)
 
 
 def fill_missing_dates(school: School, meal_type: str) -> None:

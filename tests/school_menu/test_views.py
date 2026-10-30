@@ -26,6 +26,7 @@ from school_menu.utils import calculate_week, get_current_date, get_season
 from tests.school_menu.factories import (
     AnnualMealFactory,
     DetailedMealFactory,
+    SchoolClosureFactory,
     SchoolFactory,
     SchoolTransferFactory,
     SimpleMealFactory,
@@ -464,6 +465,71 @@ class SchoolMenuView(TestCase):
         assert response.context["meal"] == annual_meal
         assert response.context["is_special_day"] is False
 
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_closure_overrides_meal_and_sets_is_closed(self):
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, annual_menu=False, has_closures=True
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+        SchoolClosureFactory(school=school, date=today)
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] is None
+        assert response.context["is_closed"] is True
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_closure_applies_to_annual_menu_schools(self):
+        """Unlike special days, closures also apply to annual_menu schools."""
+        today = date(2026, 12, 7)
+        cache.clear()
+        school = SchoolFactory(annual_menu=True, has_closures=True)
+        AnnualMealFactory(
+            school=school, date=today, type=Meal.Types.STANDARD, is_active=True
+        )
+        SchoolClosureFactory(school=school, date=today)
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] is None
+        assert response.context["is_closed"] is True
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_skips_closure_lookup_when_school_has_no_closures(self):
+        cache.clear()
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE, annual_menu=False, has_closures=False
+        )
+        week, day = get_current_date()
+        season = get_season(school)
+        adjusted_week = calculate_week(week, school.week_bias)
+        regular_meal = SimpleMealFactory(
+            school=school,
+            week=adjusted_week,
+            day=day,
+            season=season,
+            type=Meal.Types.STANDARD,
+        )
+
+        response = self.get("school_menu:school_menu", slug=school.slug)
+
+        self.response_200(response)
+        assert response.context["meal"] == regular_meal
+        assert response.context["is_closed"] is False
+
     def test_seeking_maintainer_banner_shown_when_published(self):
         school = SchoolFactory(is_published=True, seeking_maintainer=True)
         response = self.get("school_menu:school_menu", slug=school.slug)
@@ -795,6 +861,65 @@ class GetMenuView(TestCase):
         assert response.context["is_special_day"] is True
         assert response.context["types_menu"] == {}
 
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_menu_applies_closure_override_for_todays_slot(self):
+        cache.clear()
+        today = date(2026, 12, 7)
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            has_closures=True,
+            week_bias=0,
+        )
+        week, day = get_current_date()
+        adjusted_week = calculate_week(week, school.week_bias)
+        SimpleMealFactory(
+            school=school,
+            day=day,
+            week=adjusted_week,
+            menu="Regular Menu",
+            season=School.Seasons.PRIMAVERILE,
+            type=Meal.Types.STANDARD,
+        )
+        SchoolClosureFactory(school=school, date=today)
+
+        response = self.get("school_menu:get_menu", school.pk, adjusted_week, day, "S")
+
+        self.response_200(response)
+        assert response.context["meal"] is None
+        assert response.context["is_closed"] is True
+
+    @time_machine.travel("2026-12-07")  # Monday
+    def test_get_menu_day_switch_to_another_weekday_ignores_closure_override(self):
+        cache.clear()
+        today = date(2026, 12, 7)
+        school = SchoolFactory(
+            menu_type=School.Types.SIMPLE,
+            season_choice=School.Seasons.PRIMAVERILE,
+            has_closures=True,
+            week_bias=0,
+        )
+        week, day = get_current_date()
+        adjusted_week = calculate_week(week, school.week_bias)
+        other_day = day + 1
+        other_day_meal = SimpleMealFactory(
+            school=school,
+            day=other_day,
+            week=adjusted_week,
+            menu="Regular Menu Tuesday",
+            season=School.Seasons.PRIMAVERILE,
+            type=Meal.Types.STANDARD,
+        )
+        SchoolClosureFactory(school=school, date=today)
+
+        response = self.get(
+            "school_menu:get_menu", school.pk, adjusted_week, other_day, "S"
+        )
+
+        self.response_200(response)
+        assert response.context["meal"] == other_day_meal
+        assert response.context["is_closed"] is False
+
     def test_get_with_simple_menu(self):
         school = SchoolFactory(
             menu_type=School.Types.SIMPLE, season_choice=School.Seasons.PRIMAVERILE
@@ -1044,6 +1169,29 @@ class SettingView(TestCase):
         self.response_200(response)
         assert "special_days" not in response.context
 
+    def test_get_includes_closures(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        SchoolClosureFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        assert list(response.context["closures"]) == list(
+            school.schoolclosure_set.all()
+        )
+        assert response.context["can_add_closure"] is True
+
+    def test_get_without_school_skips_closures(self):
+        user = self.make_user()
+
+        with self.login(user):
+            response = self.get("school_menu:settings")
+
+        self.response_200(response)
+        assert "closures" not in response.context
+
     def test_partial_reload(self):
         user = self.make_user()
         SchoolFactory(user=user)
@@ -1074,6 +1222,15 @@ class SettingView(TestCase):
 
         self.response_200(response)
         assert "special_days" not in response.context
+
+    def test_partial_reload_without_school_skips_closures(self):
+        user = self.make_user()
+
+        with self.login(user):
+            response = self.get("school_menu:menu_settings")
+
+        self.response_200(response)
+        assert "closures" not in response.context
 
     def test_partial_reload_with_alt_menu(self):
         user = self.make_user()
@@ -2674,5 +2831,130 @@ class TestSpecialDayDeleteView(TestCase):
 
     def test_requires_login(self):
         response = self.delete("school_menu:special_day_delete", 1)
+
+        self.response_302(response)
+
+
+class TestClosuresPartialView(TestCase):
+    def test_lists_closures(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        closure = SchoolClosureFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.get("school_menu:closures")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_closures.html")
+        assert list(response.context["closures"]) == [closure]
+        assert response.context["can_add_closure"] is True
+
+    def test_hides_add_button_at_limit(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        for day in range(5):
+            SchoolClosureFactory(school=school, date=date(2026, 12, 1 + day))
+
+        with self.login(user):
+            response = self.get("school_menu:closures")
+
+        self.response_200(response)
+        assert response.context["can_add_closure"] is False
+        self.assertContains(response, "Limite massimo")
+
+    def test_requires_login(self):
+        response = self.get("school_menu:closures")
+
+        self.response_302(response)
+
+
+class TestClosureCreateView(TestCase):
+    def test_get_returns_form(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.get("school_menu:closure_create")
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_closure_form.html")
+
+    def test_post_creates_closure(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.post(
+                "school_menu:closure_create", data={"date": "2026-12-08"}
+            )
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_closures.html")
+        closure = school.schoolclosure_set.get()
+        assert closure.date == date(2026, 12, 8)
+        school.refresh_from_db()
+        assert school.has_closures is True
+
+    def test_post_rejects_invalid_data(self):
+        user = self.make_user()
+        SchoolFactory(user=user)
+
+        with self.login(user):
+            response = self.post("school_menu:closure_create", data={})
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_closure_form.html")
+        assert response.context["form"].is_valid() is False
+
+    def test_post_rejects_beyond_limit_even_without_bypassing_ui(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        for day in range(5):
+            SchoolClosureFactory(school=school, date=date(2026, 12, 1 + day))
+
+        with self.login(user):
+            response = self.post(
+                "school_menu:closure_create", data={"date": "2026-12-20"}
+            )
+
+        self.response_403(response)
+        assert school.schoolclosure_set.count() == 5
+
+    def test_requires_login(self):
+        response = self.get("school_menu:closure_create")
+
+        self.response_302(response)
+
+
+class TestClosureDeleteView(TestCase):
+    def test_delete_removes_closure(self):
+        user = self.make_user()
+        school = SchoolFactory(user=user)
+        closure = SchoolClosureFactory(school=school, date=date(2026, 12, 8))
+
+        with self.login(user):
+            response = self.delete("school_menu:closure_delete", closure.pk)
+
+        self.response_200(response)
+        assertTemplateUsed(response, "partials/_closures.html")
+        assert not school.schoolclosure_set.filter(pk=closure.pk).exists()
+        school.refresh_from_db()
+        assert school.has_closures is False
+
+    def test_delete_denied_for_other_user(self):
+        owner = self.make_user("owner@test.com")
+        school = SchoolFactory(user=owner)
+        closure = SchoolClosureFactory(school=school, date=date(2026, 12, 8))
+        intruder = self.make_user("intruder@test.com")
+        SchoolFactory(user=intruder)
+
+        with self.login(intruder):
+            response = self.delete("school_menu:closure_delete", closure.pk)
+
+        self.response_404(response)
+        assert school.schoolclosure_set.filter(pk=closure.pk).exists()
+
+    def test_requires_login(self):
+        response = self.delete("school_menu:closure_delete", 1)
 
         self.response_302(response)

@@ -11,6 +11,7 @@ from school_menu.models import (
     MenuHealthCheck,
     MenuImportDraft,
     School,
+    SchoolClosure,
     SchoolTransfer,
     SimpleMeal,
     SpecialDetailedMeal,
@@ -186,6 +187,14 @@ class SpecialDetailedMealFactory(factory.django.DjangoModelFactory):
     side_dish = factory.Iterator(SIDE_DISH_LIST)
     fruit = factory.Iterator(FRUIT_LIST)
     snack = factory.Iterator(SNACK_LIST)
+
+
+class SchoolClosureFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = SchoolClosure
+
+    school = factory.SubFactory(SchoolFactory)
+    date = factory.Sequence(lambda n: date(2026, 1, 1) + timedelta(days=n))
 
 
 class MenuImportDraftFactory(factory.django.DjangoModelFactory):

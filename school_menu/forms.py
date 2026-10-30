@@ -18,11 +18,13 @@ from school_menu.ai.normalise import (
 )
 from school_menu.constants import FIRST_WEEKEND_DAY
 from school_menu.models import (
+    MAX_SCHOOL_CLOSURES,
     MAX_SPECIAL_DAYS,
     DetailedMeal,
     Meal,
     MenuImportDraft,
     School,
+    SchoolClosure,
     SimpleMeal,
     SpecialDetailedMeal,
     SpecialSimpleMeal,
@@ -585,6 +587,55 @@ class SpecialDetailedMealForm(
             "fruit",
             "snack",
         )
+
+
+class SchoolClosureForm(DaisyErrorClassMixin, forms.ModelForm):
+    """Add/edit form for an extraordinary closure day (#333), mirroring the
+    weekend/duplicate/max-count validation of SpecialMealFormMixin."""
+
+    class Meta:
+        model = SchoolClosure
+        fields = ["date"]
+        labels = {"date": "Data"}
+        widgets = {
+            "date": forms.DateInput(
+                attrs={"type": "date", "class": "input input-sm w-full"}
+            ),
+        }
+
+    def __init__(self, *args, school, **kwargs):
+        self.school = school
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout("date")
+
+    def clean_date(self):
+        closure_date = self.cleaned_data["date"]
+        if closure_date.weekday() >= FIRST_WEEKEND_DAY:
+            raise forms.ValidationError(
+                "La data selezionata cade in un giorno di weekend (sabato o domenica)."
+            )
+        existing = SchoolClosure.objects.filter(school=self.school, date=closure_date)
+        if self.instance.pk:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise forms.ValidationError("Esiste già una chiusura per questa data.")
+        return closure_date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if not self.instance.pk:
+            count = SchoolClosure.objects.filter(school=self.school).count()
+            if count >= MAX_SCHOOL_CLOSURES:
+                raise forms.ValidationError(
+                    f"Puoi creare al massimo {MAX_SCHOOL_CLOSURES} chiusure straordinarie."
+                )
+        return cleaned_data
+
+    def save(self, *args, **kwargs):
+        self.instance.school = self.school
+        return super().save(*args, **kwargs)
 
 
 # ---------------------------------------------------------------------------

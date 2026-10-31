@@ -1,6 +1,8 @@
 from django import forms
 from django.conf import settings
 from django.contrib import admin
+from django.db import models
+from django.shortcuts import redirect
 from django.urls import reverse
 from django_q.tasks import async_task
 
@@ -9,6 +11,7 @@ from notifications.models import (
     DailyNotification,
     MonthlyDigest,
     Newsletter,
+    NewsletterTemplate,
 )
 from notifications.tasks import _build_newsletter_email
 
@@ -59,6 +62,14 @@ class MonthlyDigestAdmin(admin.ModelAdmin):
 
 
 class NewsletterAdminForm(forms.ModelForm):
+    # Upload-and-parse alternative to pasting HTML (#334): read once at save time to
+    # fill body_html, never stored anywhere (not a model field, no FileField on disk).
+    body_html_file = forms.FileField(
+        required=False,
+        label="Carica contenuto (.html)",
+        help_text="Se caricato, sostituisce il contenuto del campo HTML sottostante.",
+    )
+
     class Meta:
         model = Newsletter
         fields = "__all__"
@@ -67,6 +78,26 @@ class NewsletterAdminForm(forms.ModelForm):
             # the project's minimalism convention since only the site owner uses this.
             "body_html": forms.Textarea(attrs={"rows": 20, "cols": 100}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Not required at the form level: it can be filled either by pasting or by
+        # the upload below, enforced together in clean().
+        self.fields["body_html"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        uploaded = cleaned_data.get("body_html_file")
+        if uploaded:
+            if not uploaded.name.lower().endswith(".html"):
+                self.add_error("body_html_file", "Il file deve avere estensione .html")
+            else:
+                content = uploaded.read().decode("utf-8")
+                cleaned_data["body_html"] = content
+                self.instance.body_html = content
+        elif not cleaned_data.get("body_html"):
+            self.add_error("body_html", "Questo campo è obbligatorio.")
+        return cleaned_data
 
 
 @admin.register(Newsletter)
@@ -93,7 +124,10 @@ class NewsletterAdmin(admin.ModelAdmin):
     ]
 
     fieldsets = (
-        ("Newsletter Content", {"fields": ("subject", "body_html")}),
+        (
+            "Newsletter Content",
+            {"fields": ("subject", "body_html_file", "body_html")},
+        ),
         (
             "Status",
             {
@@ -161,6 +195,28 @@ class NewsletterAdmin(admin.ModelAdmin):
 
         if sent_count > 0:
             self.message_user(request, f"Sending {sent_count} newsletter(s)...")
+
+
+@admin.register(NewsletterTemplate)
+class NewsletterTemplateAdmin(admin.ModelAdmin):
+    """Singleton model (#334): the changelist redirects straight to the one row's
+    change form instead of showing a list, creating that row on first visit."""
+
+    fields = ["wrapper_html"]
+    formfield_overrides = {
+        models.TextField: {"widget": forms.Textarea(attrs={"rows": 30, "cols": 120})}
+    }
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def changelist_view(self, request, extra_context=None):
+        obj, _ = NewsletterTemplate.objects.get_or_create(pk=1)
+        url = reverse("admin:notifications_newslettertemplate_change", args=[obj.pk])
+        return redirect(url)
 
 
 @admin.register(BroadcastNotification)

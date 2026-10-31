@@ -3,10 +3,15 @@ from unittest.mock import patch
 import pytest
 from django.contrib.admin.sites import AdminSite
 from django.contrib.messages.storage.fallback import FallbackStorage
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import RequestFactory
+from django.urls import reverse
 
-from notifications.admin import BroadcastNotificationAdmin, NewsletterAdmin
-from notifications.models import BroadcastNotification, Newsletter
+from notifications.admin import (
+    BroadcastNotificationAdmin,
+    NewsletterAdmin,
+)
+from notifications.models import BroadcastNotification, Newsletter, NewsletterTemplate
 from tests.notifications.factories import (
     BroadcastNotificationFactory,
     NewsletterFactory,
@@ -333,3 +338,141 @@ class TestMonthlyDigestAdmin:
 
         assert admin_obj.has_add_permission(admin_request) is False
         assert admin_obj.has_change_permission(admin_request) is False
+
+
+class TestNewsletterAdminFormFileUpload:
+    """Upload-and-parse body_html instead of pasting it (#334): the uploaded file
+    is only read once to fill the field, never stored anywhere.
+
+    Built via the admin's own get_form() (not the bare form class) so readonly
+    fields (created_by, status, counts...) are excluded exactly as they are in the
+    real add/change view, instead of coming back as spuriously required.
+    """
+
+    def _form(self, newsletter_admin, admin_request, data=None, files=None):
+        form_class = newsletter_admin.get_form(admin_request)
+        return form_class(data=data, files=files)
+
+    def test_uploaded_html_file_overrides_body_html(
+        self, newsletter_admin, admin_request
+    ):
+        uploaded = SimpleUploadedFile(
+            "content.html", b"<p>Dal file</p>", content_type="text/html"
+        )
+        form = self._form(
+            newsletter_admin,
+            admin_request,
+            data={"subject": "Test", "body_html": "<p>Pasted</p>"},
+            files={"body_html_file": uploaded},
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["body_html"] == "<p>Dal file</p>"
+
+    def test_without_upload_keeps_pasted_body_html(
+        self, newsletter_admin, admin_request
+    ):
+        form = self._form(
+            newsletter_admin,
+            admin_request,
+            data={"subject": "Test", "body_html": "<p>Pasted</p>"},
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["body_html"] == "<p>Pasted</p>"
+
+    def test_rejects_empty_body_html_when_no_file_uploaded(
+        self, newsletter_admin, admin_request
+    ):
+        form = self._form(
+            newsletter_admin,
+            admin_request,
+            data={"subject": "Test", "body_html": ""},
+        )
+
+        assert not form.is_valid()
+        assert "body_html" in form.errors
+
+    def test_rejects_non_html_file_extension(self, newsletter_admin, admin_request):
+        uploaded = SimpleUploadedFile(
+            "content.txt", b"<p>Dal file</p>", content_type="text/plain"
+        )
+        form = self._form(
+            newsletter_admin,
+            admin_request,
+            data={"subject": "Test", "body_html": "<p>Pasted</p>"},
+            files={"body_html_file": uploaded},
+        )
+
+        assert not form.is_valid()
+        assert "body_html_file" in form.errors
+
+    def test_uploaded_file_is_not_persisted_anywhere(
+        self, newsletter_admin, admin_request
+    ):
+        uploaded = SimpleUploadedFile(
+            "content.html", b"<p>Dal file</p>", content_type="text/html"
+        )
+        form = self._form(
+            newsletter_admin,
+            admin_request,
+            data={"subject": "Test", "body_html": ""},
+            files={"body_html_file": uploaded},
+        )
+        assert form.is_valid(), form.errors
+
+        newsletter = form.save(commit=False)
+
+        assert newsletter.body_html == "<p>Dal file</p>"
+        assert "body_html_file" not in [f.name for f in Newsletter._meta.fields]
+
+
+class TestNewsletterTemplateAdmin:
+    """Singleton admin (#334): no list, no add, no delete — just the one row's form,
+    mirroring SiteSettingsAdmin (#327)."""
+
+    def test_changelist_redirects_to_change_form_and_creates_row(self, client):
+        superuser = UserFactory(is_staff=True, is_superuser=True)
+        client.force_login(superuser)
+        assert not NewsletterTemplate.objects.exists()
+        url = reverse("admin:notifications_newslettertemplate_changelist")
+
+        response = client.get(url)
+
+        template = NewsletterTemplate.objects.get()
+        assert response.status_code == 302
+        assert response.url == reverse(
+            "admin:notifications_newslettertemplate_change", args=[template.pk]
+        )
+
+    def test_changelist_reuses_existing_row(self, client):
+        superuser = UserFactory(is_staff=True, is_superuser=True)
+        client.force_login(superuser)
+        existing = NewsletterTemplate.objects.create(wrapper_html="<p>X</p>")
+        url = reverse("admin:notifications_newslettertemplate_changelist")
+
+        client.get(url)
+
+        assert NewsletterTemplate.objects.count() == 1
+        assert NewsletterTemplate.objects.get().pk == existing.pk
+
+    def test_add_view_is_blocked(self, client):
+        superuser = UserFactory(is_staff=True, is_superuser=True)
+        client.force_login(superuser)
+        url = reverse("admin:notifications_newslettertemplate_add")
+
+        response = client.get(url)
+
+        assert response.status_code == 403
+
+    def test_delete_view_is_blocked(self, client):
+        superuser = UserFactory(is_staff=True, is_superuser=True)
+        client.force_login(superuser)
+        template = NewsletterTemplate.objects.create()
+        url = reverse(
+            "admin:notifications_newslettertemplate_delete", args=[template.pk]
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 403

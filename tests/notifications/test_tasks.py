@@ -13,10 +13,12 @@ from notifications.models import (
     BroadcastNotification,
     DailyNotification,
     Newsletter,
+    NewsletterTemplate,
     NotificationDeliveryMarker,
 )
 from notifications.tasks import (
     _already_delivered,
+    _build_newsletter_email,
     _has_menu_for_date,
     _is_school_in_session,
     _send_menu_notifications,
@@ -1058,3 +1060,43 @@ class TestSendNewsletter:
         html_body = message.alternatives[0][0]
         assert "unsubscribe" in html_body
         assert user.email in message.to
+
+
+class TestBuildNewsletterEmail:
+    """Wrapper rendered from the DB-editable NewsletterTemplate singleton (#334),
+    not the static template file."""
+
+    def test_uses_default_wrapper_when_no_custom_template_saved(self):
+        assert not NewsletterTemplate.objects.exists()
+
+        email = _build_newsletter_email(
+            "Oggetto", "<p>Contenuto</p>", "test@example.com", "https://x/unsub"
+        )
+
+        html_body = email.alternatives[0][0]
+        assert "Oggetto" in html_body
+        assert "<p>Contenuto</p>" in html_body
+        assert "https://x/unsub" in html_body
+
+    def test_uses_custom_wrapper_from_db(self):
+        NewsletterTemplate.objects.create(
+            wrapper_html=(
+                "<html><body>"
+                "<h1>{{ subject }}</h1>"
+                "<div>{{ body_html|safe }}</div>"
+                '<a href="{{ unsubscribe_url }}">Disiscriviti</a>'
+                "</body></html>"
+            )
+        )
+
+        email = _build_newsletter_email(
+            "Oggetto custom",
+            "<p>Corpo</p>",
+            "test@example.com",
+            "https://x/unsub",
+        )
+
+        html_body = email.alternatives[0][0]
+        assert "<h1>Oggetto custom</h1>" in html_body
+        assert "<div><p>Corpo</p></div>" in html_body
+        assert 'href="https://x/unsub"' in html_body

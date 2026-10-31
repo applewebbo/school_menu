@@ -1,8 +1,11 @@
 import hashlib
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models
 
+from school_menu.cache import get_cached_or_query
+from school_menu.constants import CACHE_TTL_24_HOURS
 from school_menu.models import Meal, School
 
 
@@ -196,6 +199,102 @@ NEWSLETTER_BODY_PLACEHOLDER = """\
   <li style="margin-bottom:6px;">Terza nuova funzionalità</li>
 </ul>\
 """
+
+
+# Default wrapper markup for a new NewsletterTemplate singleton (#334): the same
+# header/body/footer chrome that used to live only in
+# templates/notifications/emails/newsletter.html, now editable from admin without a
+# deploy. Placeholders are rendered with Django's Template engine, same syntax as a
+# regular template file.
+NEWSLETTER_WRAPPER_DEFAULT = """\
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ subject }}</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#eef2ea; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef2ea; padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%;">
+            <tr>
+              <td style="background-color:#2e8401; padding:24px 32px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td width="36" style="vertical-align:middle;">
+                      <img src="{{ logo_url }}" width="28" height="28" alt="" style="display:block; border-radius:6px;">
+                    </td>
+                    <td style="vertical-align:middle; padding-left:10px;">
+                      <p style="margin:0; color:#ffffff; font-size:17px; font-weight:700;">Menu Scolastico</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#ffffff; padding:32px; border-left:1px solid #e2e8dc; border-right:1px solid #e2e8dc;">
+                {{ body_html|safe }}
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#f7f9f4; padding:20px 32px 28px; border:1px solid #e2e8dc; border-top:none;">
+                <p style="margin:0; color:#9ca3af; font-size:12px; line-height:1.5;">
+                  Ricevi questa email perché sei registrato su Menu Scolastico.
+                  <a href="{{ unsubscribe_url }}" style="color:#9ca3af; text-decoration:underline;">Annulla l'iscrizione alla newsletter</a>.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
+"""
+
+
+class NewsletterTemplate(models.Model):
+    """Admin-editable newsletter wrapper markup (#334): header bar, surrounding
+    chrome and unsubscribe footer, editable without a deploy.
+
+    Always a single row (pk forced to 1 on save); use `get_solo()` to read it, which
+    caches the result so every send costs zero extra queries between saves.
+    """
+
+    wrapper_html = models.TextField(
+        default=NEWSLETTER_WRAPPER_DEFAULT,
+        help_text=(
+            "Documento HTML completo dell'email. Placeholder disponibili: "
+            "{{ subject }}, {{ logo_url }}, {{ body_html }} (va usato con il "
+            "filtro |safe) e {{ unsubscribe_url }}."
+        ),
+    )
+
+    class Meta:
+        verbose_name = "modello newsletter"
+        verbose_name_plural = "modello newsletter"
+
+    def __str__(self):
+        return "Modello email newsletter"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+        cache.delete("newsletter_template")
+
+    @classmethod
+    def get_solo(cls) -> NewsletterTemplate:
+        """The singleton row, cached; created with the default wrapper on first read."""
+
+        def query():
+            obj, _ = cls.objects.get_or_create(pk=1)
+            return obj
+
+        return get_cached_or_query(
+            "newsletter_template", query, timeout=CACHE_TTL_24_HOURS
+        )
 
 
 class Newsletter(models.Model):

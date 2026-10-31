@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import patch
 
 import pytest
 from django.apps import apps
@@ -9,6 +10,7 @@ from notifications.models import (
     DailyNotification,
     MonthlyDigest,
     Newsletter,
+    NewsletterTemplate,
 )
 from tests.notifications.factories import (
     BroadcastNotificationFactory,
@@ -348,3 +350,52 @@ class TestNewsletterModel:
         assert meta.verbose_name == "Newsletter"
         assert meta.verbose_name_plural == "Newsletter"
         assert meta.ordering == ["-created_at"]
+
+
+class TestNewsletterTemplateModel:
+    """Singleton wrapper template (#334): always one row, cached between saves."""
+
+    def test_save_forces_pk_to_1(self):
+        template_a = NewsletterTemplate(wrapper_html="<p>A</p>")
+        template_a.save()
+        template_b = NewsletterTemplate(wrapper_html="<p>B</p>")
+        template_b.save()
+
+        assert template_a.pk == 1
+        assert template_b.pk == 1
+        assert NewsletterTemplate.objects.count() == 1
+        assert NewsletterTemplate.objects.get().wrapper_html == "<p>B</p>"
+
+    def test_str(self):
+        assert str(NewsletterTemplate()) == "Modello email newsletter"
+
+    def test_get_solo_creates_row_with_default_wrapper_when_missing(self):
+        assert not NewsletterTemplate.objects.exists()
+
+        template = NewsletterTemplate.get_solo()
+
+        assert template.pk == 1
+        assert "{{ body_html" in template.wrapper_html
+        assert "{{ unsubscribe_url }}" in template.wrapper_html
+
+    def test_get_solo_returns_cached_value_without_querying(self):
+        """DummyCache in tests never really stores anything, so cache.get is mocked
+        to simulate a hit, matching the pattern in tests/school_menu/test_cache.py.
+        get_cached_or_query lives in school_menu.cache, so that's the module whose
+        `cache` reference needs patching, not notifications.models'."""
+        cached = NewsletterTemplate(pk=1, wrapper_html="<p>cached</p>")
+        with patch("school_menu.cache.cache") as mock_cache:
+            mock_cache.get.return_value = cached
+            with patch(
+                "notifications.models.NewsletterTemplate.objects.get_or_create"
+            ) as mock_get_or_create:
+                result = NewsletterTemplate.get_solo()
+
+        assert result is cached
+        mock_get_or_create.assert_not_called()
+
+    def test_save_invalidates_cache(self):
+        with patch("notifications.models.cache") as mock_cache:
+            NewsletterTemplate().save()
+
+        mock_cache.delete.assert_called_once_with("newsletter_template")

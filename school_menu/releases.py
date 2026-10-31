@@ -10,6 +10,15 @@ from datetime import date
 
 RELEASES: list[dict] = [
     {
+        "version": "2026.6.2",
+        "date": date(2026, 10, 31),
+        "notes": [
+            "Novità: nelle impostazioni della scuola è ora disponibile una sezione dedicata ai giorni speciali e alle chiusure straordinarie (fino a 5), nei quali gli utenti ricevono una notifica «scuola chiusa oggi» al posto del menu del giorno.",
+            "La newsletter inviata dal sito è ora più facile da aggiornare: l'aspetto grafico dell'email e il contenuto possono essere caricati da un file, senza bisogno di interventi tecnici.",
+            "Corretto un problema per cui l'email della newsletter mostrava angoli e colori sbagliati su alcune app di posta per smartphone.",
+        ],
+    },
+    {
         "version": "2026.6.1",
         "date": date(2026, 10, 28),
         "notes": [
